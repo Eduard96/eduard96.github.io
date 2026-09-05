@@ -208,7 +208,7 @@
 </head>
 <body>
 
-<button class="burger" id="burgerBtn" aria-label="menu">☰</button>
+<button class="burger" id="burgerBtn" aria-label="menu" style="display:none">☰</button>
 <div id="scrim"></div>
 <nav id="sidebar">
   <button data-nav="sense">Mark</button>
@@ -223,7 +223,11 @@
 
 <div id="app">
 
-  <section class="view active" id="view-email">
+  <section class="view active" id="view-loading">
+    <span class="wordmark">H A N I S</span>
+  </section>
+
+  <section class="view" id="view-email">
     <span class="wordmark">H A N I S</span>
     <h1>Here And Now I Sense</h1>
     <p class="lede">A shared field of what people feel right now. Leave your email — we'll send a sign-in link, no password.</p>
@@ -312,13 +316,15 @@ $('sendEmailLink').addEventListener('click', async ()=>{
       handleCodeInApp: true
     });
     localStorage.setItem('hanis-email-for-signin', email);
-    $('emailHint').textContent = 'link sent — open the email on this device';
+    $('emailHint').textContent = 'link sent — open the email on this device (check spam/junk if it doesn\'t show up)';
   }catch(e){
     $('emailError').textContent = "couldn't send: " + e.message;
   }
 });
 
-if (isSignInWithEmailLink(auth, window.location.href)) {
+let completingLink = isSignInWithEmailLink(auth, window.location.href);
+
+if (completingLink) {
   let email = localStorage.getItem('hanis-email-for-signin');
   if (!email) email = window.prompt('confirm your email to sign in');
   if (email) {
@@ -327,7 +333,13 @@ if (isSignInWithEmailLink(auth, window.location.href)) {
         localStorage.removeItem('hanis-email-for-signin');
         window.history.replaceState({}, document.title, window.location.pathname);
       })
-      .catch(e => console.error(e));
+      .catch(e => {
+        completingLink = false;
+        show('view-email');
+        $('emailError').textContent = "couldn't complete sign-in: " + e.message;
+      });
+  } else {
+    completingLink = false;
   }
 }
 
@@ -336,8 +348,14 @@ let cooldownTimer = null;
 
 onAuthStateChanged(auth, async (user)=>{
   currentUser = user;
-  if (!user){ show('view-email'); return; }
+  if (!user){
+    $('burgerBtn').style.display = 'none';
+    if (completingLink) return;
+    show('view-email');
+    return;
+  }
   await ensureUserDoc(user);
+  $('burgerBtn').style.display = 'block';
   show('view-sense');
   refreshCooldownUI();
 });
@@ -355,7 +373,7 @@ async function ensureUserDoc(user){
   }
 }
 
-$('signOutBtn').addEventListener('click', ()=> signOut(auth));
+$('signOutBtn').addEventListener('click', ()=> { closeSidebar(); signOut(auth); });
 
 const sidebar = $('sidebar'), scrim = $('scrim');
 $('burgerBtn').addEventListener('click', ()=>{ sidebar.classList.add('open'); scrim.classList.add('open'); });
