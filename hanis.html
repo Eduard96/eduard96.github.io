@@ -354,10 +354,14 @@ onAuthStateChanged(auth, async (user)=>{
     show('view-email');
     return;
   }
-  await ensureUserDoc(user);
   $('burgerBtn').style.display = 'block';
   show('view-sense');
-  refreshCooldownUI();
+  try{
+    await ensureUserDoc(user);
+    refreshCooldownUI();
+  }catch(e){
+    $('senseError').textContent = "database error: " + e.message;
+  }
 });
 
 async function ensureUserDoc(user){
