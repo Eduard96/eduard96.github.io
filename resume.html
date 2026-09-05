@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Eduard — Cross-Domain Researcher</title>
+<meta name="description" content="Independent backend engineer and cross-domain researcher — noticing contradictions across finance, code, and conversation, and testing whether the pattern holds." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,480;1,9..144,420&family=Space+Mono:wght@400;700&family=Public+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #23241a;
+    --bg-raised: #2a2b1f;
+    --ink: #f2ede2;
+    --ink-dim: #b9b6a6;
+    --terracotta: #d3794f;
+    --terracotta-soft: #c88a68;
+    --slate: #6b7481;
+    --line: rgba(242,237,226,0.14);
+    --line-strong: rgba(242,237,226,0.28);
+    --serif: "Fraunces", ui-serif, Georgia, serif;
+    --mono: "Space Mono", ui-monospace, monospace;
+    --sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+    --measure: 640px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection{ background: var(--terracotta); color: var(--bg); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  a{ color: var(--ink); }
+  a:focus-visible, button:focus-visible{
+    outline: 2px solid var(--terracotta-soft);
+    outline-offset: 3px;
+  }
+
+  .wrap{
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- Hero ---------- */
+
+  .hero{
+    padding: 96px 0 72px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 56px;
+    align-items: center;
+  }
+
+  .hero-copy .eyebrow{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--terracotta-soft);
+    margin: 0 0 18px;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-copy h1{
+    font-family: var(--serif);
+    font-weight: 480;
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    line-height: 1.08;
+    margin: 0 0 22px;
+    max-width: 11ch;
+  }
+
+  .hero-copy p{
+    color: var(--ink-dim);
+    max-width: 46ch;
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- Flip card ---------- */
+
+  .card-stage{
+    perspective: 1400px;
+    width: 320px;
+    height: 180px;
+    flex-shrink: 0;
+  }
+
+  .card{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(0deg) rotateY(0deg);
+    transition: transform 1.1s cubic-bezier(.65,.05,.36,1);
+    will-change: transform;
+  }
+
+  .card-face{
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 20px 44px -20px rgba(0,0,0,0.6);
+  }
+
+  .card-face.front{
+    background: #262819;
+  }
+  .card-face.front img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .card-face.back{
+    transform: rotateY(180deg);
+    background: var(--bg-raised);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 22px 24px;
+  }
+
+  .card-face.back .role{
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--terracotta-soft);
+    margin: 0;
+  }
+
+  .card-face.back .contact{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .card-face.back .contact span{
+    color: var(--ink-dim);
+    margin-right: 8px;
+  }
+
+  .card-face.back .name{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+
+  /* ---------- Sections ---------- */
+
+  section{
+    padding: 56px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .section-inner{
+    max-width: var(--measure);
+  }
+
+  h2{
+    font-family: var(--serif);
+    font-weight: 480;
+    font-size: 1.6rem;
+    margin: 0 0 20px;
+  }
+
+  section p{
+    margin: 0 0 16px;
+    max-width: 62ch;
+  }
+
+  section p:last-child{ margin-bottom: 0; }
+
+  .capability-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .capability-list li{
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+  }
+
+  .capability-list li:first-child{ border-top: none; padding-top: 0; }
+
+  .capability-list h3{
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 0.98rem;
+    color: var(--terracotta-soft);
+    margin: 0;
+  }
+
+  .capability-list p{
+    margin: 0;
+    color: var(--ink-dim);
+    max-width: 52ch;
+  }
+
+  footer{
+    padding: 48px 0 72px;
+    border-top: 1px solid var(--line);
+  }
+
+  footer p{
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 760px){
+    .hero{
+      grid-template-columns: 1fr;
+      padding: 64px 0 48px;
+      gap: 40px;
+    }
+    .card-stage{
+      width: 100%;
+      max-width: 340px;
+      height: 191px;
+    }
+    .capability-list li{
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Eduard — Yerevan</p>
+        <h1>I ask the question everyone else skipped.</h1>
+        <p>Independent backend engineer and cross-domain researcher — most of what I do starts with noticing a contradiction, then testing whether the same pattern holds somewhere else entirely.</p>
+      </div>
+
+      <div class="card-stage" id="cardStage" aria-label="Business card, flips automatically">
+        <div class="card" id="flipCard">
+          <div class="card-face front">
+            <img src="data:image/webp;base64,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" alt="Eduard's mark: a crescent form overlapping a diamond of connected nodes" />
+          </div>
+          <div class="card-face back">
+            <p class="name">Eduard Matveev</p>
+            <p class="role">Cross-Domain Researcher</p>
+            <div class="contact">
+              <div><span>email</span>dev.eduardmatveev@gmail.com</div>
+              <div><span>telegram</span>@polyfbo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="what-i-do">
+      <div class="section-inner">
+        <h2>What I work on</h2>
+        <p>My work sits between backend engineering, applied AI, and economic analysis. I've built backend systems and algorithmic trading infrastructure, and more recently have been integrating large language models directly into working systems rather than bolting them on as a feature. I'm also experimenting with reinforcement learning — more as a way to probe how systems learn than as something I'd call a strength yet.</p>
+        <p>Underneath most of this is the same habit: noticing where an explanation doesn't quite fit, and following that thread until it turns into something testable. I also write on process philosophy and economics, since the same patterns tend to repeat there too.</p>
+      </div>
+    </section>
+
+    <section id="capabilities">
+      <div class="section-inner">
+        <h2>What I can do</h2>
+        <ul class="capability-list">
+          <li>
+            <h3>Cross-domain thinking</h3>
+            <p>Noticing when a pattern from one field — a feedback loop, an incentive structure, a contradiction — shows up almost unchanged in a completely different one, and treating that as a hypothesis worth testing rather than a coincidence.</p>
+          </li>
+          <li>
+            <h3>Asking the right question</h3>
+            <p>Helping someone get unstuck on their own problem — personal, business, process, or management — mostly by asking the question that reframes what they're actually trying to solve.</p>
+          </li>
+          <li>
+            <h3>Backend engineering</h3>
+            <p>Designing and maintaining backend systems and APIs, end to end, as a solo builder.</p>
+          </li>
+          <li>
+            <h3>Applied AI</h3>
+            <p>Integrating LLMs at the API level into working systems — agentic workflows and tool use, not a chat window bolted onto a product.</p>
+          </li>
+          <li>
+            <h3>Economic &amp; market analysis</h3>
+            <p>Reading markets and macro trends, and testing trading ideas against them rather than taking them on faith.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="ai-fluency">
+      <div class="section-inner">
+        <h2>Working with AI</h2>
+        <p>I use AI systems, including Claude, as core infrastructure rather than a convenience layer — architecting the plumbing that lets a model act, not just answer. That means working directly with APIs, designing the surrounding system so the model's output is actually load-bearing, and treating the model itself as a component to be engineered around, not a black box to prompt and hope.</p>
+        <p>It also functions as a thinking partner: a fast way to stress-test an idea, pressure it from an unfamiliar angle, or check whether a pattern I've noticed in one domain actually holds up in another.</p>
+      </div>
+    </section>
+
+    <section id="how-i-think">
+      <div class="section-inner">
+        <h2>How I think</h2>
+        <p>I think abductively — starting from a contradiction, an observation that doesn't quite fit, and working backward to the structure that would explain it, then testing whether that structure holds somewhere else, rather than starting from a hypothesis and building forward. Ideas tend to arrive as structural isomorphisms: a shape I've noticed in one domain — a feedback loop in a market, a pattern in how a conversation breaks down, an incentive that quietly contradicts its own stated goal — reappearing almost unchanged in a completely different one.</p>
+        <p>I lean toward process over static categories: what matters is usually how something is unfolding, not the label it's been given. In practice this means I spend less time asking "what is this" and more time asking "what is this doing, and where else have I seen it do that."</p>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+  (function(){
+    var card = document.getElementById('flipCard');
+    var back = card ? card.querySelector('.card-face.back') : null;
+    if(!card || !back) return;
+
+    var showingBack = false;
+    // Each entry is a flip axis + direction. The back face's own base
+    // rotation is set to match the same axis right before the flip, so the
+    // two 180deg turns cancel out and the back content always lands
+    // right-side up and unmirrored, whichever axis or direction was used.
+    var axisCycle = [
+      { x: 0,    y: 180  }, // vertical
+      { x: 180,  y: 0    }, // horizontal, top-to-bottom
+      { x: 0,    y: -180 }, // vertical, reverse
+      { x: -180, y: 0    }  // horizontal, reverse
+    ];
+    var cycleIndex = 0;
+
+    function scheduleNext(){
+      var delay = 4000 + Math.random() * 1000; // 4-5s
+      setTimeout(tick, delay);
+    }
+
+    function tick(){
+      if(!showingBack){
+        var axis = axisCycle[cycleIndex % axisCycle.length];
+        cycleIndex++;
+        var axisIsY = axis.y !== 0;
+        back.style.transform = axisIsY ? 'rotateY(180deg)' : 'rotateX(180deg)';
+        card.style.transform = 'rotateX(' + axis.x + 'deg) rotateY(' + axis.y + 'deg)';
+        showingBack = true;
+      } else {
+        card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        showingBack = false;
+      }
+      scheduleNext();
+    }
+
+    scheduleNext();
+  })();
+</script>
+
+</body>
+</html>
