@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>HANIS · Here And Now I Sense</title>
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%237fe9df' stroke-width='2' opacity='0.55'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23ffb15e'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --void-a: #07070b;
+    --void-b: #0e0f16;
+    --ink: #e9e6de;
+    --muted: #83879a;
+    --phosphor: #7fe9df;
+    --ember: #ffb15e;
+    --line: rgba(233,230,222,0.10);
+    --serif: 'Cormorant Garamond', serif;
+    --mono: 'Space Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, #12141f 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 85% 110%, #10161a 0%, transparent 55%),
+      linear-gradient(180deg, var(--void-a), var(--void-b));
+    color:var(--ink);
+    font-family:var(--serif);
+    overflow:hidden;
+    animation:breathe 14s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{ filter:brightness(1); }
+    50%{ filter:brightness(1.05); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    body{ animation:none; }
+  }
+
+  #app{
+    position:relative;
+    height:100dvh;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .view{
+    display:none;
+    width:100%;
+    max-width:420px;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:22px;
+  }
+  .view.active{ display:flex; }
+
+  .wordmark{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.35em;
+    color:var(--muted);
+    padding-left:0.35em;
+  }
+
+  h1{
+    font-weight:400;
+    font-size:clamp(28px,7vw,40px);
+    margin:0;
+    line-height:1.15;
+  }
+  p.lede{
+    color:var(--muted);
+    font-size:16px;
+    line-height:1.5;
+    margin:0;
+    max-width:34ch;
+  }
+
+  .field-row{
+    display:flex;
+    width:100%;
+    gap:10px;
+  }
+  input[type=text], input[type=email], input[type=tel]{
+    flex:1;
+    background:transparent;
+    border:1px solid var(--line);
+    border-radius:2px;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:19px;
+    padding:14px 16px;
+    outline:none;
+    transition:border-color .3s;
+  }
+  input:focus{ border-color:var(--phosphor); }
+  input::placeholder{ color:var(--muted); }
+
+  button{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:0.06em;
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:14px 20px;
+    cursor:pointer;
+    transition:border-color .3s, color .3s, opacity .3s;
+    white-space:nowrap;
+  }
+  button:hover:not(:disabled){ border-color:var(--phosphor); color:var(--phosphor); }
+  button:disabled{ opacity:0.35; cursor:default; }
+  button.primary{ border-color:var(--ember); color:var(--ember); }
+  button.primary:hover:not(:disabled){ border-color:var(--ember); color:var(--ember); background:rgba(255,177,94,0.08); }
+  button.ghost{ border-color:transparent; color:var(--muted); }
+  button.ghost:hover{ color:var(--ink); border-color:transparent; }
+
+  .method-row{ display:flex; gap:10px; width:100%; }
+  .method-row button{ flex:1; }
+
+  .hint{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .error{ font-family:var(--mono); font-size:12px; color:#ff8a8a; min-height:14px; }
+
+  .count-hint{ font-family:var(--mono); font-size:13px; color:var(--phosphor); opacity:0.75; }
+
+  .ember-word{
+    font-size:clamp(30px,8vw,44px);
+    color:var(--ember);
+    font-style:italic;
+  }
+  .global-total{
+    font-family:var(--mono);
+    font-size:34px;
+    color:var(--phosphor);
+    letter-spacing:0.03em;
+  }
+  .global-label{ font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:0.15em; }
+
+  .ranking{
+    width:100%;
+    max-height:34vh;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  .rank-row{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:13px;
+    padding:2px 0;
+  }
+  .rank-row .r-text{ color:var(--ink); }
+  .rank-row .r-score{ color:var(--muted); }
+
+  .burger{
+    position:fixed; top:18px; left:18px; z-index:50;
+    background:transparent; border:none; color:var(--muted);
+    font-family:var(--mono); font-size:20px; cursor:pointer; padding:8px;
+  }
+  .burger:hover{ color:var(--ink); }
+  #sidebar{
+    position:fixed; top:0; left:0; height:100dvh; width:280px;
+    background:#0a0b11; border-right:1px solid var(--line);
+    transform:translateX(-100%); transition:transform .35s ease;
+    z-index:60; padding:70px 22px 22px; display:flex; flex-direction:column; gap:4px;
+  }
+  #sidebar.open{ transform:translateX(0); }
+  #sidebar button{
+    text-align:left; border:none; padding:12px 4px;
+    font-family:var(--mono); font-size:13px; color:var(--muted);
+  }
+  #sidebar button.active{ color:var(--phosphor); }
+  #sidebar button:hover{ color:var(--ink); border-color:transparent; }
+  #sidebar .soon{ opacity:0.4; cursor:default; }
+  #sidebar .divider{ height:1px; background:var(--line); margin:14px 0; }
+
+  #scrim{
+    position:fixed; inset:0; background:rgba(0,0,0,0.5);
+    opacity:0; pointer-events:none; transition:opacity .3s; z-index:55;
+  }
+  #scrim.open{ opacity:1; pointer-events:auto; }
+
+  .history-list{
+    width:100%; max-height:60vh; overflow-y:auto;
+    display:flex; flex-direction:column; gap:10px; text-align:left;
+  }
+  .history-row{ font-family:var(--mono); font-size:13px; display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:8px; }
+  .history-row .h-word{ color:var(--ember); font-family:var(--serif); font-size:16px; font-style:italic; }
+  .history-row .h-time{ color:var(--muted); }
+
+</style>
+</head>
+<body>
+
+<button class="burger" id="burgerBtn" aria-label="меню">☰</button>
+<div id="scrim"></div>
+<nav id="sidebar">
+  <button data-nav="sense">Отметить</button>
+  <button data-nav="history">История ощущений</button>
+  <div class="divider"></div>
+  <button class="soon">Карта резонанса — скоро</button>
+  <button class="soon">Круги — скоро</button>
+  <button class="soon">Нити — скоро</button>
+  <div class="divider"></div>
+  <button id="signOutBtn">Выйти</button>
+</nav>
+
+<div id="app">
+
+  <section class="view active" id="view-email">
+    <span class="wordmark">H A N I S</span>
+    <h1>Here And Now I Sense</h1>
+    <p class="lede">Общее поле того, что чувствуют сейчас. Оставьте email — пришлём ссылку для входа, без пароля.</p>
+    <div class="field-row">
+      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <button class="primary" id="sendEmailLink">отправить ссылку</button>
+    <p class="hint" id="emailHint"></p>
+    <p class="error" id="emailError"></p>
+  </section>
+
+  <section class="view" id="view-sense">
+    <span class="wordmark">H A N I S</span>
+    <p class="lede">Что вы чувствуете здесь и сейчас? Два слова.</p>
+    <div class="field-row">
+      <input type="text" id="senseInput" placeholder="тихо, тревожно…" maxlength="30">
+    </div>
+    <button class="primary" id="markBtn">отметить присутствие</button>
+    <p class="count-hint" id="countHint"></p>
+    <p class="error" id="senseError"></p>
+  </section>
+
+  <section class="view" id="view-reveal">
+    <p class="hint">вы отметили</p>
+    <div class="ember-word" id="revealWord"></div>
+    <div class="global-total" id="globalTotal">—</div>
+    <div class="global-label">присутствий всего</div>
+    <div class="ranking" id="rankingList"></div>
+    <button id="againBtn">ещё раз</button>
+  </section>
+
+  <section class="view" id="view-history">
+    <h1>Ваши ощущения</h1>
+    <div class="history-list" id="historyList"></div>
+    <button class="ghost" data-back="view-sense">назад</button>
+  </section>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink,
+  onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection,
+  writeBatch, serverTimestamp, query, where, orderBy, limit,
+  getDocs, increment, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "CONFIG_PLACEHOLDER",
+  authDomain: "CONFIG_PLACEHOLDER.firebaseapp.com",
+  projectId: "CONFIG_PLACEHOLDER",
+  storageBucket: "CONFIG_PLACEHOLDER.appspot.com",
+  messagingSenderId: "CONFIG_PLACEHOLDER",
+  appId: "CONFIG_PLACEHOLDER"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+const show = id => {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $(id).classList.add('active');
+};
+const norm = s => s.trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 30);
+const safeDocId = s => norm(s).replace(/[\/\.\#\$\[\]]/g, '-') || 'пусто';
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const HOUR = 3600 * 1000;
+
+document.querySelectorAll('[data-back]').forEach(b=>{
+  b.addEventListener('click', ()=> show(b.dataset.back));
+});
+
+$('sendEmailLink').addEventListener('click', async ()=>{
+  const email = $('emailInput').value.trim();
+  $('emailError').textContent = '';
+  if (!email || !email.includes('@')) { $('emailError').textContent = 'введите корректный email'; return; }
+  try{
+    await sendSignInLinkToEmail(auth, email, {
+      url: window.location.href,
+      handleCodeInApp: true
+    });
+    localStorage.setItem('hanis-email-for-signin', email);
+    $('emailHint').textContent = 'ссылка отправлена — откройте письмо на этом устройстве';
+  }catch(e){
+    $('emailError').textContent = 'не получилось отправить: ' + e.message;
+  }
+});
+
+if (isSignInWithEmailLink(auth, window.location.href)) {
+  let email = localStorage.getItem('hanis-email-for-signin');
+  if (!email) email = window.prompt('подтвердите ваш email для входа');
+  if (email) {
+    signInWithEmailLink(auth, email, window.location.href)
+      .then(()=> {
+        localStorage.removeItem('hanis-email-for-signin');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      })
+      .catch(e => console.error(e));
+  }
+}
+
+let currentUser = null;
+let cooldownTimer = null;
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  if (!user){ show('view-email'); return; }
+  await ensureUserDoc(user);
+  show('view-sense');
+  refreshCooldownUI();
+});
+
+async function ensureUserDoc(user){
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()){
+    await setDoc(ref, {
+      createdAt: serverTimestamp(),
+      lastMarkAt: null,
+      method: 'email',
+      value: user.email || null
+    });
+  }
+}
+
+$('signOutBtn').addEventListener('click', ()=> signOut(auth));
+
+const sidebar = $('sidebar'), scrim = $('scrim');
+$('burgerBtn').addEventListener('click', ()=>{ sidebar.classList.add('open'); scrim.classList.add('open'); });
+scrim.addEventListener('click', closeSidebar);
+function closeSidebar(){ sidebar.classList.remove('open'); scrim.classList.remove('open'); }
+document.querySelectorAll('#sidebar [data-nav]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    closeSidebar();
+    document.querySelectorAll('#sidebar [data-nav]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    if (b.dataset.nav === 'sense'){ show('view-sense'); refreshCooldownUI(); }
+    if (b.dataset.nav === 'history'){ loadHistory(); show('view-history'); }
+  });
+});
+
+async function refreshCooldownUI(){
+  if (!currentUser) return;
+  const snap = await getDoc(doc(db, 'users', currentUser.uid));
+  const last = snap.data()?.lastMarkAt?.toMillis?.() || 0;
+  tickCooldown(last);
+}
+
+function tickCooldown(lastMs){
+  clearInterval(cooldownTimer);
+  const input = $('senseInput'), btn = $('markBtn'), hint = $('countHint');
+  function tick(){
+    const remain = lastMs + HOUR - Date.now();
+    if (remain <= 0){
+      input.disabled = false; btn.disabled = false; btn.textContent = 'отметить присутствие';
+      hint.textContent = '';
+      clearInterval(cooldownTimer);
+    } else {
+      input.disabled = true; btn.disabled = true;
+      const m = Math.floor(remain / 60000), s = Math.floor((remain % 60000) / 1000);
+      btn.textContent = 'следующая отметка через ' + m + ':' + String(s).padStart(2,'0');
+    }
+  }
+  tick();
+  cooldownTimer = setInterval(tick, 1000);
+}
+
+$('markBtn').addEventListener('click', async ()=>{
+  const raw = $('senseInput').value;
+  const phrase = norm(raw);
+  $('senseError').textContent = '';
+  if (!phrase){ $('senseInput').focus(); return; }
+  if (!currentUser) return;
+
+  $('markBtn').disabled = true;
+  $('markBtn').textContent = '…';
+
+  try{
+    const uid = currentUser.uid;
+    const batch = writeBatch(db);
+
+    const eventRef = doc(collection(db, 'events'));
+    batch.set(eventRef, { phrase, ts: serverTimestamp(), tz });
+
+    const markRef = doc(collection(db, 'users', uid, 'marks'));
+    batch.set(markRef, { phrase, ts: serverTimestamp(), tz });
+
+    const phraseRef = doc(db, 'phrases', safeDocId(phrase));
+    batch.set(phraseRef, { text: phrase, total: increment(1) }, { merge: true });
+
+    batch.set(doc(db, 'meta', 'global'), { total: increment(1) }, { merge: true });
+    batch.update(doc(db, 'users', uid), { lastMarkAt: serverTimestamp() });
+
+    await batch.commit();
+    await reveal(phrase);
+  }catch(e){
+    $('senseError').textContent = 'не получилось отметить: ' + e.message;
+    $('markBtn').disabled = false;
+    $('markBtn').textContent = 'отметить присутствие';
+  }
+});
+
+async function reveal(phrase){
+  $('revealWord').textContent = phrase;
+  show('view-reveal');
+
+  const globalSnap = await getDoc(doc(db, 'meta', 'global'));
+  $('globalTotal').textContent = (globalSnap.data()?.total || 0).toLocaleString('ru-RU');
+
+  const ranked = await computeRanking();
+  const list = $('rankingList');
+  list.innerHTML = '';
+  ranked.forEach(([text, weight])=>{
+    const row = document.createElement('div');
+    row.className = 'rank-row';
+    row.innerHTML = `<span class="r-text">${escapeHtml(text)}</span><span class="r-score">${weight.toFixed(1)}</span>`;
+    list.appendChild(row);
+  });
+}
+
+async function computeRanking(){
+  const cutoff = Timestamp.fromMillis(Date.now() - 24 * HOUR);
+  const q = query(collection(db, 'events'), where('ts', '>=', cutoff), orderBy('ts', 'desc'), limit(3000));
+  const snap = await getDocs(q);
+  const weights = {};
+  snap.forEach(d=>{
+    const { phrase, ts } = d.data();
+    if (!phrase || !ts) return;
+    const age = Date.now() - ts.toMillis();
+    const w = Math.max(0, 1 - age / (24 * HOUR));
+    weights[phrase] = (weights[phrase] || 0) + w;
+  });
+  return Object.entries(weights).sort((a,b)=> b[1]-a[1]).slice(0, 20);
+}
+
+$('againBtn').addEventListener('click', async ()=>{
+  $('senseInput').value = '';
+  show('view-sense');
+  await refreshCooldownUI();
+  if (!$('senseInput').disabled) $('senseInput').focus();
+});
+
+async function loadHistory(){
+  const list = $('historyList');
+  list.innerHTML = '<p class="hint">загрузка…</p>';
+  const q = query(collection(db, 'users', currentUser.uid, 'marks'), orderBy('ts', 'desc'), limit(50));
+  const snap = await getDocs(q);
+  list.innerHTML = '';
+  if (snap.empty){ list.innerHTML = '<p class="hint">пока пусто</p>'; return; }
+  snap.forEach(d=>{
+    const { phrase, ts, tz: eventTz } = d.data();
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    const time = ts?.toDate ? ts.toDate().toLocaleString('ru-RU', { timeZone: eventTz || tz }) : '';
+    row.innerHTML = `<span class="h-word">${escapeHtml(phrase)}</span><span class="h-time">${time}</span>`;
+    list.appendChild(row);
+  });
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+$('senseInput').addEventListener('keydown', e=>{ if (e.key === 'Enter') $('markBtn').click(); });
+</script>
+</body>
+</html>
