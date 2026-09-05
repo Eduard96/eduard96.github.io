@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -208,17 +208,17 @@
 </head>
 <body>
 
-<button class="burger" id="burgerBtn" aria-label="меню">☰</button>
+<button class="burger" id="burgerBtn" aria-label="menu">☰</button>
 <div id="scrim"></div>
 <nav id="sidebar">
-  <button data-nav="sense">Отметить</button>
-  <button data-nav="history">История ощущений</button>
+  <button data-nav="sense">Mark</button>
+  <button data-nav="history">Sense history</button>
   <div class="divider"></div>
-  <button class="soon">Карта резонанса — скоро</button>
-  <button class="soon">Круги — скоро</button>
-  <button class="soon">Нити — скоро</button>
+  <button class="soon">Resonance map — soon</button>
+  <button class="soon">Circles — soon</button>
+  <button class="soon">Threads — soon</button>
   <div class="divider"></div>
-  <button id="signOutBtn">Выйти</button>
+  <button id="signOutBtn">Sign out</button>
 </nav>
 
 <div id="app">
@@ -226,39 +226,39 @@
   <section class="view active" id="view-email">
     <span class="wordmark">H A N I S</span>
     <h1>Here And Now I Sense</h1>
-    <p class="lede">Общее поле того, что чувствуют сейчас. Оставьте email — пришлём ссылку для входа, без пароля.</p>
+    <p class="lede">A shared field of what people feel right now. Leave your email — we'll send a sign-in link, no password.</p>
     <div class="field-row">
       <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
     </div>
-    <button class="primary" id="sendEmailLink">отправить ссылку</button>
+    <button class="primary" id="sendEmailLink">send link</button>
     <p class="hint" id="emailHint"></p>
     <p class="error" id="emailError"></p>
   </section>
 
   <section class="view" id="view-sense">
     <span class="wordmark">H A N I S</span>
-    <p class="lede">Что вы чувствуете здесь и сейчас? Два слова.</p>
+    <p class="lede">What do you feel here and now? Two words.</p>
     <div class="field-row">
-      <input type="text" id="senseInput" placeholder="тихо, тревожно…" maxlength="30">
+      <input type="text" id="senseInput" placeholder="quiet, anxious…" maxlength="30">
     </div>
-    <button class="primary" id="markBtn">отметить присутствие</button>
+    <button class="primary" id="markBtn">mark presence</button>
     <p class="count-hint" id="countHint"></p>
     <p class="error" id="senseError"></p>
   </section>
 
   <section class="view" id="view-reveal">
-    <p class="hint">вы отметили</p>
+    <p class="hint">you marked</p>
     <div class="ember-word" id="revealWord"></div>
     <div class="global-total" id="globalTotal">—</div>
-    <div class="global-label">присутствий всего</div>
+    <div class="global-label">presences total</div>
     <div class="ranking" id="rankingList"></div>
-    <button id="againBtn">ещё раз</button>
+    <button id="againBtn">again</button>
   </section>
 
   <section class="view" id="view-history">
-    <h1>Ваши ощущения</h1>
+    <h1>Your senses</h1>
     <div class="history-list" id="historyList"></div>
-    <button class="ghost" data-back="view-sense">назад</button>
+    <button class="ghost" data-back="view-sense">back</button>
   </section>
 
 </div>
@@ -294,7 +294,7 @@ const show = id => {
   $(id).classList.add('active');
 };
 const norm = s => s.trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 30);
-const safeDocId = s => norm(s).replace(/[\/\.\#\$\[\]]/g, '-') || 'пусто';
+const safeDocId = s => norm(s).replace(/[\/\.\#\$\[\]]/g, '-') || 'empty';
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const HOUR = 3600 * 1000;
 
@@ -305,22 +305,22 @@ document.querySelectorAll('[data-back]').forEach(b=>{
 $('sendEmailLink').addEventListener('click', async ()=>{
   const email = $('emailInput').value.trim();
   $('emailError').textContent = '';
-  if (!email || !email.includes('@')) { $('emailError').textContent = 'введите корректный email'; return; }
+  if (!email || !email.includes('@')) { $('emailError').textContent = 'enter a valid email'; return; }
   try{
     await sendSignInLinkToEmail(auth, email, {
       url: window.location.href,
       handleCodeInApp: true
     });
     localStorage.setItem('hanis-email-for-signin', email);
-    $('emailHint').textContent = 'ссылка отправлена — откройте письмо на этом устройстве';
+    $('emailHint').textContent = 'link sent — open the email on this device';
   }catch(e){
-    $('emailError').textContent = 'не получилось отправить: ' + e.message;
+    $('emailError').textContent = "couldn't send: " + e.message;
   }
 });
 
 if (isSignInWithEmailLink(auth, window.location.href)) {
   let email = localStorage.getItem('hanis-email-for-signin');
-  if (!email) email = window.prompt('подтвердите ваш email для входа');
+  if (!email) email = window.prompt('confirm your email to sign in');
   if (email) {
     signInWithEmailLink(auth, email, window.location.href)
       .then(()=> {
@@ -384,13 +384,13 @@ function tickCooldown(lastMs){
   function tick(){
     const remain = lastMs + HOUR - Date.now();
     if (remain <= 0){
-      input.disabled = false; btn.disabled = false; btn.textContent = 'отметить присутствие';
+      input.disabled = false; btn.disabled = false; btn.textContent = 'mark presence';
       hint.textContent = '';
       clearInterval(cooldownTimer);
     } else {
       input.disabled = true; btn.disabled = true;
       const m = Math.floor(remain / 60000), s = Math.floor((remain % 60000) / 1000);
-      btn.textContent = 'следующая отметка через ' + m + ':' + String(s).padStart(2,'0');
+      btn.textContent = 'next mark in ' + m + ':' + String(s).padStart(2,'0');
     }
   }
   tick();
@@ -426,9 +426,9 @@ $('markBtn').addEventListener('click', async ()=>{
     await batch.commit();
     await reveal(phrase);
   }catch(e){
-    $('senseError').textContent = 'не получилось отметить: ' + e.message;
+    $('senseError').textContent = "couldn't mark: " + e.message;
     $('markBtn').disabled = false;
-    $('markBtn').textContent = 'отметить присутствие';
+    $('markBtn').textContent = 'mark presence';
   }
 });
 
@@ -437,7 +437,7 @@ async function reveal(phrase){
   show('view-reveal');
 
   const globalSnap = await getDoc(doc(db, 'meta', 'global'));
-  $('globalTotal').textContent = (globalSnap.data()?.total || 0).toLocaleString('ru-RU');
+  $('globalTotal').textContent = (globalSnap.data()?.total || 0).toLocaleString('en-US');
 
   const ranked = await computeRanking();
   const list = $('rankingList');
@@ -474,16 +474,16 @@ $('againBtn').addEventListener('click', async ()=>{
 
 async function loadHistory(){
   const list = $('historyList');
-  list.innerHTML = '<p class="hint">загрузка…</p>';
+  list.innerHTML = '<p class="hint">loading…</p>';
   const q = query(collection(db, 'users', currentUser.uid, 'marks'), orderBy('ts', 'desc'), limit(50));
   const snap = await getDocs(q);
   list.innerHTML = '';
-  if (snap.empty){ list.innerHTML = '<p class="hint">пока пусто</p>'; return; }
+  if (snap.empty){ list.innerHTML = '<p class="hint">nothing yet</p>'; return; }
   snap.forEach(d=>{
     const { phrase, ts, tz: eventTz } = d.data();
     const row = document.createElement('div');
     row.className = 'history-row';
-    const time = ts?.toDate ? ts.toDate().toLocaleString('ru-RU', { timeZone: eventTz || tz }) : '';
+    const time = ts?.toDate ? ts.toDate().toLocaleString('en-US', { timeZone: eventTz || tz }) : '';
     row.innerHTML = `<span class="h-word">${escapeHtml(phrase)}</span><span class="h-time">${time}</span>`;
     list.appendChild(row);
   });
