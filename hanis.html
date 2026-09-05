@@ -264,24 +264,24 @@
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink,
   onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection,
   writeBatch, serverTimestamp, query, where, orderBy, limit,
   getDocs, increment, Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "CONFIG_PLACEHOLDER",
-  authDomain: "CONFIG_PLACEHOLDER.firebaseapp.com",
-  projectId: "CONFIG_PLACEHOLDER",
-  storageBucket: "CONFIG_PLACEHOLDER.appspot.com",
-  messagingSenderId: "CONFIG_PLACEHOLDER",
-  appId: "CONFIG_PLACEHOLDER"
+  apiKey: "AIzaSyBZyF6t1kGwg5ROm0sZWOvruvzUrAPb1qI",
+  authDomain: "eduard96-github-io-hanis-html.firebaseapp.com",
+  projectId: "eduard96-github-io-hanis-html",
+  storageBucket: "eduard96-github-io-hanis-html.firebasestorage.app",
+  messagingSenderId: "1095474944291",
+  appId: "1:1095474944291:web:b15bfc80ac4d39af46d496"
 };
 
 const app = initializeApp(firebaseConfig);
