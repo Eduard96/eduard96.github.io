@@ -138,7 +138,6 @@
   .ember-word{
     font-size:clamp(30px,8vw,44px);
     color:var(--ember);
-    font-style:italic;
   }
   .global-total{
     font-family:var(--mono);
@@ -201,7 +200,7 @@
     display:flex; flex-direction:column; gap:10px; text-align:left;
   }
   .history-row{ font-family:var(--mono); font-size:13px; display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:8px; }
-  .history-row .h-word{ color:var(--ember); font-family:var(--serif); font-size:16px; font-style:italic; }
+  .history-row .h-word{ color:var(--ember); font-family:var(--serif); font-size:16px; }
   .history-row .h-time{ color:var(--muted); }
 
 </style>
@@ -302,6 +301,15 @@ const safeDocId = s => norm(s).replace(/[\/\.\#\$\[\]]/g, '-') || 'empty';
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const HOUR = 3600 * 1000;
 
+async function withRetry(fn, attempts = 3, delayMs = 900){
+  let lastErr;
+  for (let i = 0; i < attempts; i++){
+    try{ return await fn(); }
+    catch(e){ lastErr = e; if (i < attempts - 1) await new Promise(r => setTimeout(r, delayMs)); }
+  }
+  throw lastErr;
+}
+
 document.querySelectorAll('[data-back]').forEach(b=>{
   b.addEventListener('click', ()=> show(b.dataset.back));
 });
@@ -366,14 +374,14 @@ onAuthStateChanged(auth, async (user)=>{
 
 async function ensureUserDoc(user){
   const ref = doc(db, 'users', user.uid);
-  const snap = await getDoc(ref);
+  const snap = await withRetry(() => getDoc(ref));
   if (!snap.exists()){
-    await setDoc(ref, {
+    await withRetry(() => setDoc(ref, {
       createdAt: serverTimestamp(),
       lastMarkAt: null,
       method: 'email',
       value: user.email || null
-    });
+    }));
   }
 }
 
@@ -395,9 +403,13 @@ document.querySelectorAll('#sidebar [data-nav]').forEach(b=>{
 
 async function refreshCooldownUI(){
   if (!currentUser) return;
-  const snap = await getDoc(doc(db, 'users', currentUser.uid));
-  const last = snap.data()?.lastMarkAt?.toMillis?.() || 0;
-  tickCooldown(last);
+  try{
+    const snap = await withRetry(() => getDoc(doc(db, 'users', currentUser.uid)));
+    const last = snap.data()?.lastMarkAt?.toMillis?.() || 0;
+    tickCooldown(last);
+  }catch(e){
+    tickCooldown(0);
+  }
 }
 
 function tickCooldown(lastMs){
@@ -457,25 +469,31 @@ $('markBtn').addEventListener('click', async ()=>{
 async function reveal(phrase){
   $('revealWord').textContent = phrase;
   show('view-reveal');
+  $('globalTotal').textContent = '…';
+  $('rankingList').innerHTML = '';
 
-  const globalSnap = await getDoc(doc(db, 'meta', 'global'));
-  $('globalTotal').textContent = (globalSnap.data()?.total || 0).toLocaleString('en-US');
+  try{
+    const globalSnap = await withRetry(() => getDoc(doc(db, 'meta', 'global')));
+    $('globalTotal').textContent = (globalSnap.data()?.total || 0).toLocaleString('en-US');
 
-  const ranked = await computeRanking();
-  const list = $('rankingList');
-  list.innerHTML = '';
-  ranked.forEach(([text, weight])=>{
-    const row = document.createElement('div');
-    row.className = 'rank-row';
-    row.innerHTML = `<span class="r-text">${escapeHtml(text)}</span><span class="r-score">${weight.toFixed(1)}</span>`;
-    list.appendChild(row);
-  });
+    const ranked = await computeRanking();
+    const list = $('rankingList');
+    ranked.forEach(([text, weight])=>{
+      const row = document.createElement('div');
+      row.className = 'rank-row';
+      row.innerHTML = `<span class="r-text">${escapeHtml(text)}</span><span class="r-score">${weight.toFixed(1)}</span>`;
+      list.appendChild(row);
+    });
+  }catch(e){
+    $('globalTotal').textContent = '—';
+    $('rankingList').innerHTML = '<p class="hint">could not load the count — check your connection and refresh</p>';
+  }
 }
 
 async function computeRanking(){
   const cutoff = Timestamp.fromMillis(Date.now() - 24 * HOUR);
   const q = query(collection(db, 'events'), where('ts', '>=', cutoff), orderBy('ts', 'desc'), limit(3000));
-  const snap = await getDocs(q);
+  const snap = await withRetry(() => getDocs(q));
   const weights = {};
   snap.forEach(d=>{
     const { phrase, ts } = d.data();
@@ -497,18 +515,22 @@ $('againBtn').addEventListener('click', async ()=>{
 async function loadHistory(){
   const list = $('historyList');
   list.innerHTML = '<p class="hint">loading…</p>';
-  const q = query(collection(db, 'users', currentUser.uid, 'marks'), orderBy('ts', 'desc'), limit(50));
-  const snap = await getDocs(q);
-  list.innerHTML = '';
-  if (snap.empty){ list.innerHTML = '<p class="hint">nothing yet</p>'; return; }
-  snap.forEach(d=>{
-    const { phrase, ts, tz: eventTz } = d.data();
-    const row = document.createElement('div');
-    row.className = 'history-row';
-    const time = ts?.toDate ? ts.toDate().toLocaleString('en-US', { timeZone: eventTz || tz }) : '';
-    row.innerHTML = `<span class="h-word">${escapeHtml(phrase)}</span><span class="h-time">${time}</span>`;
-    list.appendChild(row);
-  });
+  try{
+    const q = query(collection(db, 'users', currentUser.uid, 'marks'), orderBy('ts', 'desc'), limit(50));
+    const snap = await withRetry(() => getDocs(q));
+    list.innerHTML = '';
+    if (snap.empty){ list.innerHTML = '<p class="hint">nothing yet</p>'; return; }
+    snap.forEach(d=>{
+      const { phrase, ts, tz: eventTz } = d.data();
+      const row = document.createElement('div');
+      row.className = 'history-row';
+      const time = ts?.toDate ? ts.toDate().toLocaleString('en-US', { timeZone: eventTz || tz }) : '';
+      row.innerHTML = `<span class="h-word">${escapeHtml(phrase)}</span><span class="h-time">${time}</span>`;
+      list.appendChild(row);
+    });
+  }catch(e){
+    list.innerHTML = '<p class="hint">could not load — check your connection</p>';
+  }
 }
 
 function escapeHtml(s){
