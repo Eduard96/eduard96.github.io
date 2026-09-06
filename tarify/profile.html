@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarify — анкета блогера</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314201B'/%3E%3Cpath d='M14 34 L34 14 L50 14 L50 30 L30 50 Z' fill='none' stroke='%23E8792A' stroke-width='4' stroke-linejoin='round'/%3E%3Ccircle cx='41' cy='23' r='4' fill='%23E8792A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F8F7; --surface:#FFFFFF; --ink:#14201B; --ink-soft:#5A6A63;
+    --accent:#E8792A; --accent-dark:#C85F17; --teal:#1F6F5C; --teal-light:#E4F0EC;
+    --border:#DFE6E2; --radius:10px; --maxw:1180px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Manrope',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+  header.site{border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:40;}
+  .headbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;gap:16px;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:16px;height:16px;}
+  .langsw{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:2px;}
+  .langsw button{border:none;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;cursor:pointer;color:var(--ink-soft);}
+  .langsw button.active{background:var(--ink);color:#fff;}
+  .cta-btn{background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-weight:600;font-size:14px;white-space:nowrap;}
+  .cta-btn:hover{background:var(--teal);}
+
+  .back-link{display:inline-block;margin:22px 0 8px;color:var(--ink-soft);font-size:14px;font-weight:600;}
+  .back-link:hover{color:var(--ink);}
+
+  .profile-head{display:flex;gap:20px;align-items:center;padding:20px 0 26px;flex-wrap:wrap;}
+  .avatar-lg{width:80px;height:80px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;font-family:'Space Grotesk',sans-serif;flex-shrink:0;}
+  .profile-name{font-size:28px;}
+  .profile-handle{color:var(--ink-soft);font-size:15px;margin-top:2px;}
+  .profile-bio{margin-top:8px;font-size:14.5px;color:var(--ink-soft);max-width:60ch;}
+  .niche-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .niche-tag{font-size:12px;background:var(--surface);border:1px solid var(--border);color:var(--ink-soft);padding:4px 10px;border-radius:12px;}
+  .platform-tag{font-size:12px;background:var(--teal-light);color:var(--teal);border:none;padding:4px 10px;border-radius:12px;font-weight:600;}
+
+  .content-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;padding-bottom:70px;align-items:start;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:22px;}
+  .panel h2{font-size:17px;margin-bottom:16px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .stat-box{background:var(--bg);border-radius:8px;padding:14px;}
+  .stat-box .num{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:20px;}
+  .stat-box .label{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+
+  .audience-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .audience-row:last-child{border-bottom:none;}
+  .audience-row span:first-child{color:var(--ink-soft);}
+  .audience-row span:last-child{font-weight:600;font-family:'IBM Plex Mono',monospace;}
+  .gender-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden;display:flex;margin-top:6px;margin-bottom:14px;}
+  .gender-bar .f{background:var(--accent);height:100%;}
+  .gender-bar .m{background:var(--teal);height:100%;}
+  .gender-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);}
+
+  .hashtag-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .hashtag{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--bg);padding:5px 10px;border-radius:6px;color:var(--teal);}
+
+  .collab-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .collab-tag{font-size:13px;background:var(--surface);border:1px solid var(--border);padding:5px 11px;border-radius:8px;color:var(--ink);font-weight:600;}
+  .collab-empty{font-size:13.5px;color:var(--ink-soft);}
+
+  .rate-row{display:flex;align-items:baseline;gap:8px;padding:11px 0;border-bottom:1px dotted var(--border);}
+  .rate-row:last-child{border-bottom:none;}
+  .rate-label{font-size:15px;color:var(--ink);font-weight:600;white-space:nowrap;}
+  .rate-fill{flex:1;border-bottom:1px dotted var(--border);transform:translateY(-5px);}
+  .rate-price{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:18px;color:var(--accent-dark);white-space:nowrap;}
+  .barter-note{margin-top:14px;background:var(--teal-light);color:var(--teal);padding:9px 12px;border-radius:8px;font-size:13.5px;font-weight:600;}
+
+  .contact-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .contact-row:last-child{border-bottom:none;}
+  .contact-row span:first-child{color:var(--ink-soft);}
+  .contact-row span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+  .notfound{padding:80px 20px;text-align:center;color:var(--ink-soft);}
+
+  footer.site{border-top:1px solid var(--border);padding:26px 0;text-align:center;font-size:13px;color:var(--ink-soft);}
+
+  @media (max-width:860px){
+    .content-grid{grid-template-columns:1fr;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap headbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 34 L34 14 L50 14 L50 30 L30 50 Z" stroke="#E8792A" stroke-width="5" stroke-linejoin="round"/><circle cx="41" cy="23" r="4" fill="#E8792A"/></svg></span>
+      <span>Tarify</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="langsw" role="group" aria-label="Language">
+        <button data-lang="en">EN</button>
+        <button data-lang="ru">RU</button>
+        <button data-lang="hy">HY</button>
+      </div>
+      <a class="cta-btn" href="add-listing.html" data-i18n="cta_add_short">Мои цены</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <a class="back-link" href="index.html" data-i18n="profile_back">← Назад в каталог</a>
+  <div id="profileContent"></div>
+</div>
+
+<footer class="site">
+  <div class="wrap" data-i18n="footer_text">Демо-платформа. Все данные вымышленные.</div>
+</footer>
+
+<script>
+const I18N = {
+  ru:{
+    cta_add_short:"Мои цены", profile_back:"← Назад в каталог",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Красота", niche_fashion:"Мода", niche_fitness:"Фитнес", niche_food:"Еда", niche_travel:"Путешествия",
+    niche_tech:"Технологии", niche_gaming:"Игры", niche_business:"Бизнес/Финансы", niche_family:"Семья/Дети",
+    niche_lifestyle:"Лайфстайл", niche_comedy:"Юмор", niche_music:"Музыка", niche_education:"Образование", niche_pets:"Питомцы", niche_auto:"Авто",
+    format_story:"Сторис 24ч", format_post:"Пост", format_reel:"Рилс",
+    stats_title:"Статистика (посл. 3–4 публикации)", label_avgviews:"Средние просмотры", label_avglikes:"Средние лайки", label_avgshares:"Средние репосты", label_followers:"Подписчики",
+    audience_title:"Аудитория", audience_gender:"Пол", audience_age:"Основной возраст", audience_geo:"Топ страны", female:"жен.", male:"муж.",
+    hashtags_title:"Основные хештеги",
+    collabs_title:"С кем уже работали",
+    prices_title:"Цены на рекламу", barter_note:"Открыт(а) к бартеру",
+    contacts_title:"Контакты",
+    notfound_title:"Анкета не найдена", notfound_sub:"Возможно, она была удалена. ", notfound_link:"Вернуться в каталог",
+    footer_text:"Демо-платформа. Все данные вымышленные."
+  },
+  en:{
+    cta_add_short:"My rates", profile_back:"← Back to catalog",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Beauty", niche_fashion:"Fashion", niche_fitness:"Fitness", niche_food:"Food", niche_travel:"Travel",
+    niche_tech:"Tech", niche_gaming:"Gaming", niche_business:"Business/Finance", niche_family:"Family/Kids",
+    niche_lifestyle:"Lifestyle", niche_comedy:"Comedy", niche_music:"Music", niche_education:"Education", niche_pets:"Pets", niche_auto:"Auto",
+    format_story:"Story 24h", format_post:"Post", format_reel:"Reel",
+    stats_title:"Stats (last 3–4 posts)", label_avgviews:"Average views", label_avglikes:"Average likes", label_avgshares:"Average shares", label_followers:"Followers",
+    audience_title:"Audience", audience_gender:"Gender", audience_age:"Main age group", audience_geo:"Top countries", female:"female", male:"male",
+    hashtags_title:"Main hashtags",
+    collabs_title:"Past collaborations",
+    prices_title:"Ad prices", barter_note:"Open to barter",
+    contacts_title:"Contacts",
+    notfound_title:"Listing not found", notfound_sub:"It may have been removed. ", notfound_link:"Back to catalog",
+    footer_text:"Demo platform. All data is fictional."
+  },
+  hy:{
+    cta_add_short:"Իմ գները", profile_back:"← Վերադառնալ ցանկ",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Գեղեցկություն", niche_fashion:"Նորաձևություն", niche_fitness:"Ֆիթնես", niche_food:"Սնունդ", niche_travel:"Ճամփորդություն",
+    niche_tech:"Տեխնոլոգիաներ", niche_gaming:"Խաղեր", niche_business:"Բիզնես/Ֆինանսներ", niche_family:"Ընտանիք/Երեխաներ",
+    niche_lifestyle:"Ապրելակերպ", niche_comedy:"Հումոր", niche_music:"Երաժշտություն", niche_education:"Կրթություն", niche_pets:"Ընտանի կենդանիներ", niche_auto:"Ավտո",
+    format_story:"Սթորի 24ժ", format_post:"Փոստ", format_reel:"Ռիլս",
+    stats_title:"Վիճակագրություն (վերջին 3–4 հրապարակում)", label_avgviews:"Միջին դիտումներ", label_avglikes:"Միջին հավանումներ", label_avgshares:"Միջին տարածումներ", label_followers:"Հետևորդներ",
+    audience_title:"Լսարան", audience_gender:"Սեռ", audience_age:"Հիմնական տարիք", audience_geo:"Առաջատար երկրներ", female:"կին", male:"տղամարդ",
+    hashtags_title:"Հիմնական հեշթեգներ",
+    collabs_title:"Ում հետ արդեն աշխատել են",
+    prices_title:"Գովազդի գներ", barter_note:"Բաց է բարտերի համար",
+    contacts_title:"Կոնտակտներ",
+    notfound_title:"Էջը չի գտնվել", notfound_sub:"Հնարավոր է՝ այն ջնջվել է։ ", notfound_link:"Վերադառնալ ցանկ",
+    footer_text:"Փորձնական հարթակ։ Բոլոր տվյալները հորինված են։"
+  }
+};
+let lang = localStorage.getItem('tarify_lang') || 'ru';
+
+const SEED = [
+  {id:1,name:"Anna Petrosyan",handle:"@anna.style",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["fashion","lifestyle"],followers:128000,avgViews:45000,avgLikes:6200,avgShares:340,audFemale:78,audMale:22,audAge:"18–24",audGeo:["Armenia","Russia","USA"],hashtags:["fashion","yerevanstyle","ootd"],pastCollabs:["Zara Armenia","Yves Rocher","SAS Yerevan"],prices:{story:20,post:60,reel:90},currency:"USD",barter:true,bio:"Fashion & lifestyle content from Yerevan.",contacts:{telegram:"@anna_style",whatsapp:"+374 55 111 222",email:"anna@example.com",instagram:"@anna.style"}},
+  {id:2,name:"David Karapetyan",handle:"@david.fit",country:"Armenia",city:"Yerevan",platforms:["instagram","tiktok"],niches:["fitness"],followers:95000,avgViews:120000,avgLikes:8900,avgShares:510,audFemale:40,audMale:60,audAge:"18–34",audGeo:["Armenia","Georgia","Russia"],hashtags:["fitness","gymlife","armeniafit"],pastCollabs:["FitLine Gym","Nike Armenia"],prices:{story:15,post:50,reel:80},currency:"USD",barter:false,bio:"Strength training & nutrition tips.",contacts:{telegram:"@david_fit",whatsapp:"+374 55 222 333",email:"david@example.com",instagram:"@david.fit"}},
+  {id:3,name:"Mariam Hovhannisyan",handle:"@mari.beauty",country:"Armenia",city:"Yerevan",platforms:["instagram","youtube"],niches:["beauty"],followers:210000,avgViews:60000,avgLikes:15000,avgShares:900,audFemale:90,audMale:10,audAge:"18–24",audGeo:["Armenia","Iran","Russia"],hashtags:["beauty","makeup","skincare"],pastCollabs:["L'Oréal Armenia","Sephora AM","Notino"],prices:{story:30,post:100,reel:150},currency:"USD",barter:true,bio:"Makeup tutorials and skincare reviews.",contacts:{telegram:"@mari_beauty",whatsapp:"+374 55 333 444",email:"mariam@example.com",instagram:"@mari.beauty"}},
+  {id:4,name:"Alex Sarkisov",handle:"@alexeats",country:"Russia",city:"Moscow",platforms:["instagram","tiktok","youtube"],niches:["food"],followers:340000,avgViews:210000,avgLikes:22000,avgShares:1400,audFemale:55,audMale:45,audAge:"25–34",audGeo:["Russia","Kazakhstan","Belarus"],hashtags:["food","recipe","moscoweats"],prices:{story:50,post:180,reel:260},currency:"RUB",barter:false,bio:"Restaurant reviews & home recipes.",contacts:{telegram:"@alexeats",whatsapp:"+7 916 000 1122",email:"alex@example.com",instagram:"@alexeats"}},
+  {id:5,name:"Lilit Grigoryan",handle:"@lili.travels",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["travel","lifestyle"],followers:76000,avgViews:30000,avgLikes:5100,avgShares:280,audFemale:65,audMale:35,audAge:"18–24",audGeo:["Armenia","USA","France"],hashtags:["travel","wanderlust","armenia"],prices:{story:18,post:55,reel:85},currency:"USD",barter:true,bio:"Solo travel across the Caucasus and beyond.",contacts:{telegram:"@lili_travels",whatsapp:"+374 55 444 555",email:"lilit@example.com",instagram:"@lili.travels"}},
+  {id:6,name:"Narek Avanesyan",handle:"@narek.tech",country:"Armenia",city:"Yerevan",platforms:["youtube","telegram"],niches:["tech","gaming"],followers:58000,avgViews:40000,avgLikes:3900,avgShares:210,audFemale:20,audMale:80,audAge:"18–24",audGeo:["Armenia","Russia","Ukraine"],hashtags:["tech","gadgets","gaming"],prices:{story:10,post:40,reel:65},currency:"USD",barter:false,bio:"Gadget reviews and gaming setups.",contacts:{telegram:"@narek_tech",whatsapp:"+374 55 555 666",email:"narek@example.com",instagram:"@narek.tech"}},
+  {id:7,name:"Sofia Martirosyan",handle:"@sofia.mama",country:"Armenia",city:"Gyumri",platforms:["instagram"],niches:["family"],followers:41000,avgViews:18000,avgLikes:3100,avgShares:150,audFemale:88,audMale:12,audAge:"25–34",audGeo:["Armenia","Russia","USA"],hashtags:["mom","family","kids"],prices:{story:8,post:28,reel:45},currency:"USD",barter:true,bio:"Motherhood, parenting and family life.",contacts:{telegram:"@sofia_mama",whatsapp:"+374 55 666 777",email:"sofia@example.com",instagram:"@sofia.mama"}},
+  {id:8,name:"Gor Manukyan",handle:"@gor.comedy",country:"Armenia",city:"Yerevan",platforms:["instagram","tiktok"],niches:["comedy"],followers:512000,avgViews:890000,avgLikes:62000,avgShares:4100,audFemale:48,audMale:52,audAge:"18–24",audGeo:["Armenia","Russia","Georgia"],hashtags:["comedy","funny","armenia"],pastCollabs:["Ucom","Wolt Armenia","Team Telecom"],prices:{story:60,post:200,reel:320},currency:"USD",barter:false,bio:"Sketches and everyday humor.",contacts:{telegram:"@gor_comedy",whatsapp:"+374 55 777 888",email:"gor@example.com",instagram:"@gor.comedy"}},
+  {id:9,name:"Elena Kuznetsova",handle:"@elena.finance",country:"Russia",city:"Moscow",platforms:["telegram","youtube"],niches:["business"],followers:89000,avgViews:25000,avgLikes:2200,avgShares:190,audFemale:35,audMale:65,audAge:"25–44",audGeo:["Russia","Kazakhstan","Belarus"],hashtags:["finance","investing","money"],prices:{story:25,post:70,reel:95},currency:"RUB",barter:false,bio:"Personal finance and investing basics.",contacts:{telegram:"@elena_finance",whatsapp:"+7 916 111 2233",email:"elena@example.com",instagram:"@elena.finance"}},
+  {id:10,name:"Tatev Ghazaryan",handle:"@tatev.pets",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["pets"],followers:33000,avgViews:14000,avgLikes:2600,avgShares:120,audFemale:70,audMale:30,audAge:"18–34",audGeo:["Armenia","Russia"],hashtags:["pets","dogsofinstagram","cats"],prices:{story:7,post:22,reel:35},currency:"USD",barter:true,bio:"Two dogs, one cat, daily chaos.",contacts:{telegram:"@tatev_pets",whatsapp:"+374 55 888 999",email:"tatev@example.com",instagram:"@tatev.pets"}}
+];
+
+function loadData(){
+  const stored = localStorage.getItem('tarify_influencers');
+  if(!stored){ localStorage.setItem('tarify_influencers', JSON.stringify(SEED)); return SEED.slice(); }
+  try{ return JSON.parse(stored); }catch(e){ return SEED.slice(); }
+}
+const DATA = loadData();
+
+function currencySymbol(cur){ return cur==='USD' ? '$' : cur==='RUB' ? '₽' : cur==='AMD' ? '֏' : cur; }
+function initials(name){ return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+
+function getIdFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return parseInt(params.get('id'));
+}
+
+function render(){
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.langsw button').forEach(b=> b.classList.toggle('active', b.dataset.lang===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key]) el.textContent = dict[key];
+  });
+
+  const id = getIdFromUrl();
+  const inf = DATA.find(x=>x.id===id);
+  const container = document.getElementById('profileContent');
+
+  if(!inf){
+    container.innerHTML = `<div class="notfound"><h2>${dict.notfound_title}</h2><p>${dict.notfound_sub}<a href="index.html" style="color:var(--teal);font-weight:600;">${dict.notfound_link}</a></p></div>`;
+    return;
+  }
+
+  const sym = currencySymbol(inf.currency);
+
+  container.innerHTML = `
+    <div class="profile-head">
+      <div class="avatar-lg">${initials(inf.name)}</div>
+      <div>
+        <h1 class="profile-name">${inf.name}</h1>
+        <div class="profile-handle">${inf.handle} · ${inf.city}, ${inf.country}</div>
+        <div class="profile-bio">${inf.bio}</div>
+        <div class="niche-tags">
+          ${inf.platforms.map(p=>`<span class="platform-tag">${dict['platform_'+p]}</span>`).join('')}
+          ${inf.niches.map(n=>`<span class="niche-tag">${dict['niche_'+n]}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div>
+        <div class="panel">
+          <h2>${dict.stats_title}</h2>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="num">${inf.followers.toLocaleString()}</div><div class="label">${dict.label_followers}</div></div>
+            <div class="stat-box"><div class="num">${inf.avgViews.toLocaleString()}</div><div class="label">${dict.label_avgviews}</div></div>
+            <div class="stat-box"><div class="num">${inf.avgLikes.toLocaleString()}</div><div class="label">${dict.label_avglikes}</div></div>
+            <div class="stat-box"><div class="num">${inf.avgShares.toLocaleString()}</div><div class="label">${dict.label_avgshares}</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>${dict.audience_title}</h2>
+          <div class="gender-bar">
+            <div class="f" style="width:${inf.audFemale}%"></div>
+            <div class="m" style="width:${inf.audMale}%"></div>
+          </div>
+          <div class="gender-legend"><span>${dict.female} ${inf.audFemale}%</span><span>${dict.male} ${inf.audMale}%</span></div>
+          <div class="audience-row"><span>${dict.audience_age}</span><span>${inf.audAge}</span></div>
+          <div class="audience-row"><span>${dict.audience_geo}</span><span>${inf.audGeo.join(', ')}</span></div>
+        </div>
+
+        <div class="panel">
+          <h2>${dict.hashtags_title}</h2>
+          <div class="hashtag-list">${inf.hashtags.map(h=>`<span class="hashtag">#${h}</span>`).join('')}</div>
+        </div>
+
+        <div class="panel">
+          <h2>${dict.collabs_title}</h2>
+          ${(inf.pastCollabs && inf.pastCollabs.length)
+            ? `<div class="collab-list">${inf.pastCollabs.map(c=>`<span class="collab-tag">${c}</span>`).join('')}</div>`
+            : `<div class="collab-empty">—</div>`}
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>${dict.prices_title}</h2>
+          <div class="rate-row"><span class="rate-label">${dict.format_story}</span><span class="rate-fill"></span><span class="rate-price">${sym}${inf.prices.story}</span></div>
+          <div class="rate-row"><span class="rate-label">${dict.format_post}</span><span class="rate-fill"></span><span class="rate-price">${sym}${inf.prices.post}</span></div>
+          <div class="rate-row"><span class="rate-label">${dict.format_reel}</span><span class="rate-fill"></span><span class="rate-price">${sym}${inf.prices.reel}</span></div>
+          ${inf.barter ? `<div class="barter-note">${dict.barter_note}</div>` : ''}
+        </div>
+
+        <div class="panel">
+          <h2>${dict.contacts_title}</h2>
+          ${inf.contacts.telegram ? `<div class="contact-row"><span>Telegram</span><span>${inf.contacts.telegram}</span></div>` : ''}
+          ${inf.contacts.whatsapp ? `<div class="contact-row"><span>WhatsApp</span><span>${inf.contacts.whatsapp}</span></div>` : ''}
+          ${inf.contacts.instagram ? `<div class="contact-row"><span>Instagram</span><span>${inf.contacts.instagram}</span></div>` : ''}
+          ${inf.contacts.email ? `<div class="contact-row"><span>Email</span><span>${inf.contacts.email}</span></div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+document.querySelectorAll('.langsw button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    lang = b.dataset.lang;
+    localStorage.setItem('tarify_lang', lang);
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

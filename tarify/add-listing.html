@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarify — разместить анкету</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314201B'/%3E%3Cpath d='M14 34 L34 14 L50 14 L50 30 L30 50 Z' fill='none' stroke='%23E8792A' stroke-width='4' stroke-linejoin='round'/%3E%3Ccircle cx='41' cy='23' r='4' fill='%23E8792A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F8F7; --surface:#FFFFFF; --ink:#14201B; --ink-soft:#5A6A63;
+    --accent:#E8792A; --accent-dark:#C85F17; --teal:#1F6F5C; --teal-light:#E4F0EC;
+    --border:#DFE6E2; --radius:10px; --maxw:820px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Manrope',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+  header.site{border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:40;}
+  .headbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;gap:16px;max-width:1180px;margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:16px;height:16px;}
+  .langsw{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:2px;}
+  .langsw button{border:none;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;cursor:pointer;color:var(--ink-soft);}
+  .langsw button.active{background:var(--ink);color:#fff;}
+
+  .page-head{padding:36px 0 8px;}
+  .page-head h1{font-size:30px;}
+  .page-head p{color:var(--ink-soft);font-size:15px;margin-top:8px;max-width:60ch;}
+
+  form{padding:20px 0 80px;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px;}
+  .panel h2{font-size:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px;color:var(--ink);}
+  .field .hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+  .field input[type=text], .field input[type=number], .field input[type=email], .field textarea, .field select{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:'Manrope',sans-serif;font-size:14px;background:var(--bg);color:var(--ink);
+  }
+  .field textarea{resize:vertical;min-height:70px;}
+  .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--teal);outline:none;background:var(--surface);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:14.5px;cursor:pointer;}
+  .checkline input{width:17px;height:17px;accent-color:var(--teal);}
+  .platform-check{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .platform-check input{width:16px;height:16px;accent-color:var(--teal);flex-shrink:0;}
+  .platform-check label{font-size:14px;font-weight:600;min-width:90px;}
+  .platform-check input[type=text]{flex:1;}
+
+  .submit-btn{background:var(--accent);color:#fff;border:none;padding:14px 26px;border-radius:8px;font-weight:700;font-size:15.5px;cursor:pointer;width:100%;}
+  .submit-btn:hover{background:var(--accent-dark);}
+
+  .success-box{background:var(--surface);border:1px solid var(--teal);border-radius:12px;padding:36px;text-align:center;margin:30px 0 80px;}
+  .success-box h2{color:var(--teal);font-size:22px;margin-bottom:10px;}
+  .success-box p{color:var(--ink-soft);margin-bottom:20px;}
+  .success-box a.btn{display:inline-block;background:var(--ink);color:#fff;padding:12px 22px;border-radius:8px;font-weight:600;}
+
+  footer.site{border-top:1px solid var(--border);padding:26px 0;text-align:center;font-size:13px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="headbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 34 L34 14 L50 14 L50 30 L30 50 Z" stroke="#E8792A" stroke-width="5" stroke-linejoin="round"/><circle cx="41" cy="23" r="4" fill="#E8792A"/></svg></span>
+      <span>Tarify</span>
+    </a>
+    <div class="langsw" role="group" aria-label="Language">
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+      <button data-lang="hy">HY</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <h1 data-i18n="page_title">Разместить свои расценки</h1>
+    <p data-i18n="page_sub">Заполните информацию о себе — она появится в каталоге сразу после сохранения (демо-режим, без модерации).</p>
+  </div>
+
+  <form id="listingForm">
+    <div class="panel">
+      <h2 data-i18n="sec_basic">Основное</h2>
+      <div class="field">
+        <label data-i18n="lbl_name">Имя / название блога</label>
+        <input type="text" id="f-name" required>
+      </div>
+      <div class="field">
+        <label data-i18n="lbl_bio">Короткое описание</label>
+        <textarea id="f-bio"></textarea>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="lbl_country">Страна</label>
+          <input type="text" id="f-country" required>
+        </div>
+        <div class="field">
+          <label data-i18n="lbl_city">Город</label>
+          <input type="text" id="f-city">
+        </div>
+      </div>
+      <div class="field">
+        <label data-i18n="lbl_niches">Ниши (можно несколько, через запятую)</label>
+        <input type="text" id="f-niches" placeholder="beauty, lifestyle">
+        <div class="hint" data-i18n="hint_niches">Например: beauty, fashion, fitness, food, travel, tech, gaming, business, family, lifestyle, comedy, music, education, pets, auto</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_platforms">Платформы и ники</h2>
+      <div class="platform-check"><input type="checkbox" id="pc-instagram"><label>Instagram</label><input type="text" id="ph-instagram" placeholder="@handle"></div>
+      <div class="platform-check"><input type="checkbox" id="pc-tiktok"><label>TikTok</label><input type="text" id="ph-tiktok" placeholder="@handle"></div>
+      <div class="platform-check"><input type="checkbox" id="pc-youtube"><label>YouTube</label><input type="text" id="ph-youtube" placeholder="@handle"></div>
+      <div class="platform-check"><input type="checkbox" id="pc-telegram"><label>Telegram</label><input type="text" id="ph-telegram" placeholder="@handle"></div>
+      <div class="platform-check"><input type="checkbox" id="pc-facebook"><label>Facebook</label><input type="text" id="ph-facebook" placeholder="@handle"></div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_stats">Статистика</h2>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="lbl_followers">Подписчики (всего)</label>
+          <input type="number" id="f-followers" min="0" required>
+        </div>
+        <div class="field">
+          <label data-i18n="lbl_avgviews">Средние просмотры</label>
+          <input type="number" id="f-avgviews" min="0">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="lbl_avglikes">Средние лайки</label>
+          <input type="number" id="f-avglikes" min="0">
+        </div>
+        <div class="field">
+          <label data-i18n="lbl_avgshares">Средние репосты</label>
+          <input type="number" id="f-avgshares" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_audience">Аудитория</h2>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="lbl_female">Женщины, %</label>
+          <input type="number" id="f-female" min="0" max="100" value="50">
+        </div>
+        <div class="field">
+          <label data-i18n="lbl_male">Мужчины, %</label>
+          <input type="number" id="f-male" min="0" max="100" value="50">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="lbl_age">Основной возраст (напр. 18–24)</label>
+          <input type="text" id="f-age" placeholder="18–24">
+        </div>
+        <div class="field">
+          <label data-i18n="lbl_geo">Топ-3 страны аудитории (через запятую)</label>
+          <input type="text" id="f-geo" placeholder="Armenia, Russia, USA">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_hashtags">Хештеги</h2>
+      <div class="field">
+        <label data-i18n="lbl_hashtags">Основные хештеги</label>
+        <input type="text" id="f-hashtags" placeholder="fashion, ootd, yerevanstyle">
+        <div class="hint" data-i18n="hint_hashtags">Через запятую, без #</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_collabs">С кем уже работали</h2>
+      <div class="field">
+        <label data-i18n="lbl_collabs">Бренды / аккаунты (необязательно)</label>
+        <input type="text" id="f-collabs" placeholder="Zara Armenia, Wolt, Ucom">
+        <div class="hint" data-i18n="hint_collabs">Через запятую. Можно оставить пустым.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_prices">Цены</h2>
+      <div class="field">
+        <label data-i18n="lbl_currency">Валюта</label>
+        <select id="f-currency">
+          <option value="USD">USD</option>
+          <option value="AMD">AMD</option>
+          <option value="RUB">RUB</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label data-i18n="lbl-price-story">Сторис 24ч</label>
+          <input type="number" id="f-price-story" min="0">
+        </div>
+        <div class="field">
+          <label data-i18n="lbl-price-post">Пост</label>
+          <input type="number" id="f-price-post" min="0">
+        </div>
+        <div class="field">
+          <label data-i18n="lbl-price-reel">Рилс</label>
+          <input type="number" id="f-price-reel" min="0">
+        </div>
+      </div>
+      <div class="field">
+        <label class="checkline"><input type="checkbox" id="f-barter"><span data-i18n="lbl_barter">Готов(а) на бартер</span></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="sec_contacts">Контакты</h2>
+      <div class="row2">
+        <div class="field">
+          <label>Telegram</label>
+          <input type="text" id="f-contact-telegram" placeholder="@username">
+        </div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input type="text" id="f-contact-whatsapp" placeholder="+374 ...">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="lbl_contact_instagram">Instagram (для сообщений)</label>
+          <input type="text" id="f-contact-instagram" placeholder="@username">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="f-contact-email">
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn" data-i18n="submit_btn">Опубликовать анкету</button>
+  </form>
+
+  <div class="success-box" id="successBox" style="display:none;">
+    <h2 data-i18n="success_title">Готово!</h2>
+    <p data-i18n="success_sub">Ваша анкета добавлена в каталог.</p>
+    <a class="btn" id="viewListingLink" href="#" data-i18n="view_listing_btn">Посмотреть анкету</a>
+  </div>
+</div>
+
+<footer class="site">
+  <div class="wrap" data-i18n="footer_text">Демо-платформа. Все данные вымышленные.</div>
+</footer>
+
+<script>
+const I18N = {
+  ru:{
+    page_title:"Разместить свои расценки",
+    page_sub:"Заполните информацию о себе — она появится в каталоге сразу после сохранения (демо-режим, без модерации).",
+    sec_basic:"Основное", lbl_name:"Имя / название блога", lbl_bio:"Короткое описание",
+    lbl_country:"Страна", lbl_city:"Город", lbl_niches:"Ниши (можно несколько, через запятую)",
+    hint_niches:"Например: beauty, fashion, fitness, food, travel, tech, gaming, business, family, lifestyle, comedy, music, education, pets, auto",
+    sec_platforms:"Платформы и ники",
+    sec_stats:"Статистика", lbl_followers:"Подписчики (всего)", lbl_avgviews:"Средние просмотры", lbl_avglikes:"Средние лайки", lbl_avgshares:"Средние репосты",
+    sec_audience:"Аудитория", lbl_female:"Женщины, %", lbl_male:"Мужчины, %", lbl_age:"Основной возраст (напр. 18–24)", lbl_geo:"Топ-3 страны аудитории (через запятую)",
+    sec_hashtags:"Хештеги", lbl_hashtags:"Основные хештеги", hint_hashtags:"Через запятую, без #",
+    sec_collabs:"С кем уже работали", lbl_collabs:"Бренды / аккаунты (необязательно)", hint_collabs:"Через запятую. Можно оставить пустым.",
+    sec_prices:"Цены", lbl_currency:"Валюта", "lbl-price-story":"Сторис 24ч", "lbl-price-post":"Пост", "lbl-price-reel":"Рилс", lbl_barter:"Готов(а) на бартер",
+    sec_contacts:"Контакты", lbl_contact_instagram:"Instagram (для сообщений)",
+    submit_btn:"Опубликовать анкету",
+    success_title:"Готово!", success_sub:"Ваша анкета добавлена в каталог.", view_listing_btn:"Посмотреть анкету",
+    footer_text:"Демо-платформа. Все данные вымышленные.",
+    alert_required:"Заполните обязательные поля: имя, страна, подписчики."
+  },
+  en:{
+    page_title:"List your rates",
+    page_sub:"Fill in your info — it appears in the catalog right after saving (demo mode, no moderation).",
+    sec_basic:"Basics", lbl_name:"Name / blog title", lbl_bio:"Short bio",
+    lbl_country:"Country", lbl_city:"City", lbl_niches:"Niches (comma-separated)",
+    hint_niches:"E.g.: beauty, fashion, fitness, food, travel, tech, gaming, business, family, lifestyle, comedy, music, education, pets, auto",
+    sec_platforms:"Platforms & handles",
+    sec_stats:"Stats", lbl_followers:"Followers (total)", lbl_avgviews:"Average views", lbl_avglikes:"Average likes", lbl_avgshares:"Average shares",
+    sec_audience:"Audience", lbl_female:"Female, %", lbl_male:"Male, %", lbl_age:"Main age (e.g. 18–24)", lbl_geo:"Top 3 audience countries (comma-separated)",
+    sec_hashtags:"Hashtags", lbl_hashtags:"Main hashtags", hint_hashtags:"Comma-separated, no #",
+    sec_collabs:"Past collaborations", lbl_collabs:"Brands / accounts (optional)", hint_collabs:"Comma-separated. Can be left empty.",
+    sec_prices:"Prices", lbl_currency:"Currency", "lbl-price-story":"Story 24h", "lbl-price-post":"Post", "lbl-price-reel":"Reel", lbl_barter:"Open to barter",
+    sec_contacts:"Contacts", lbl_contact_instagram:"Instagram (for DMs)",
+    submit_btn:"Publish listing",
+    success_title:"Done!", success_sub:"Your listing is now in the catalog.", view_listing_btn:"View listing",
+    footer_text:"Demo platform. All data is fictional.",
+    alert_required:"Please fill in the required fields: name, country, followers."
+  },
+  hy:{
+    page_title:"Տեղադրել ձեր գները",
+    page_sub:"Լրացրեք ձեր տվյալները․ դրանք անմիջապես կհայտնվեն ցանկում (փորձնական ռեժիմ)։",
+    sec_basic:"Հիմնական", lbl_name:"Անուն / բլոգի վերնագիր", lbl_bio:"Կարճ նկարագրություն",
+    lbl_country:"Երկիր", lbl_city:"Քաղաք", lbl_niches:"Ոլորտներ (ստորակետով)",
+    hint_niches:"Օրինակ՝ beauty, fashion, fitness, food, travel, tech, gaming, business, family, lifestyle, comedy, music, education, pets, auto",
+    sec_platforms:"Հարթակներ և նիքեր",
+    sec_stats:"Վիճակագրություն", lbl_followers:"Հետևորդներ (ընդհանուր)", lbl_avgviews:"Միջին դիտումներ", lbl_avglikes:"Միջին հավանումներ", lbl_avgshares:"Միջին տարածումներ",
+    sec_audience:"Լսարան", lbl_female:"Կանայք, %", lbl_male:"Տղամարդիկ, %", lbl_age:"Հիմնական տարիք (օր. 18–24)", lbl_geo:"Լսարանի թոփ 3 երկիր (ստորակետով)",
+    sec_hashtags:"Հեշթեգներ", lbl_hashtags:"Հիմնական հեշթեգներ", hint_hashtags:"Ստորակետով, առանց #",
+    sec_collabs:"Ում հետ արդեն աշխատել են", lbl_collabs:"Բրենդներ / էջեր (ոչ պարտադիր)", hint_collabs:"Ստորակետով։ Կարելի է թողնել դատարկ։",
+    sec_prices:"Գներ", lbl_currency:"Արժույթ", "lbl-price-story":"Սթորի 24ժ", "lbl-price-post":"Փոստ", "lbl-price-reel":"Ռիլս", lbl_barter:"Պատրաստ եմ բարտերի",
+    sec_contacts:"Կոնտակտներ", lbl_contact_instagram:"Instagram (նամակների համար)",
+    submit_btn:"Հրապարակել էջը",
+    success_title:"Պատրաստ է!", success_sub:"Ձեր էջն ավելացվել է ցանկում։", view_listing_btn:"Դիտել էջը",
+    footer_text:"Փորձնական հարթակ։ Բոլոր տվյալները հորինված են։",
+    alert_required:"Լրացրեք պարտադիր դաշտերը՝ անուն, երկիր, հետևորդներ։"
+  }
+};
+let lang = localStorage.getItem('tarify_lang') || 'ru';
+
+function applyI18n(){
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key]) el.textContent = dict[key];
+  });
+  document.querySelectorAll('.langsw button').forEach(b=> b.classList.toggle('active', b.dataset.lang===lang));
+}
+document.querySelectorAll('.langsw button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    lang = b.dataset.lang;
+    localStorage.setItem('tarify_lang', lang);
+    applyI18n();
+  });
+});
+
+function loadData(){
+  const stored = localStorage.getItem('tarify_influencers');
+  try{ return stored ? JSON.parse(stored) : []; }catch(e){ return []; }
+}
+function saveData(list){ localStorage.setItem('tarify_influencers', JSON.stringify(list)); }
+
+document.getElementById('listingForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const dict = I18N[lang];
+  const name = document.getElementById('f-name').value.trim();
+  const country = document.getElementById('f-country').value.trim();
+  const followers = parseInt(document.getElementById('f-followers').value) || 0;
+  if(!name || !country || !followers){
+    alert(dict.alert_required);
+    return;
+  }
+
+  const platforms = [];
+  ['instagram','tiktok','youtube','telegram','facebook'].forEach(p=>{
+    if(document.getElementById('pc-'+p).checked) platforms.push(p);
+  });
+  const primaryHandle = platforms.length ? (document.getElementById('ph-'+platforms[0]).value.trim() || '@'+name.toLowerCase().replace(/\s+/g,'')) : '@'+name.toLowerCase().replace(/\s+/g,'');
+
+  const niches = document.getElementById('f-niches').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  const hashtags = document.getElementById('f-hashtags').value.split(',').map(s=>s.trim().replace(/^#/,'')).filter(Boolean);
+  const pastCollabs = document.getElementById('f-collabs').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const geo = document.getElementById('f-geo').value.split(',').map(s=>s.trim()).filter(Boolean);
+
+  const data = loadData();
+  const newId = data.length ? Math.max(...data.map(x=>x.id)) + 1 : 1;
+
+  const entry = {
+    id:newId, name:name, handle:primaryHandle,
+    country:country, city:document.getElementById('f-city').value.trim(),
+    platforms: platforms.length ? platforms : ['instagram'],
+    niches: niches.length ? niches : ['lifestyle'],
+    followers: followers,
+    avgViews: parseInt(document.getElementById('f-avgviews').value) || 0,
+    avgLikes: parseInt(document.getElementById('f-avglikes').value) || 0,
+    avgShares: parseInt(document.getElementById('f-avgshares').value) || 0,
+    audFemale: parseInt(document.getElementById('f-female').value) || 50,
+    audMale: parseInt(document.getElementById('f-male').value) || 50,
+    audAge: document.getElementById('f-age').value.trim() || '18–24',
+    audGeo: geo.length ? geo : [country],
+    hashtags: hashtags,
+    pastCollabs: pastCollabs,
+    prices:{
+      story: parseInt(document.getElementById('f-price-story').value) || 0,
+      post: parseInt(document.getElementById('f-price-post').value) || 0,
+      reel: parseInt(document.getElementById('f-price-reel').value) || 0
+    },
+    currency: document.getElementById('f-currency').value,
+    barter: document.getElementById('f-barter').checked,
+    bio: document.getElementById('f-bio').value.trim(),
+    contacts:{
+      telegram: document.getElementById('f-contact-telegram').value.trim(),
+      whatsapp: document.getElementById('f-contact-whatsapp').value.trim(),
+      instagram: document.getElementById('f-contact-instagram').value.trim(),
+      email: document.getElementById('f-contact-email').value.trim()
+    }
+  };
+
+  data.push(entry);
+  saveData(data);
+
+  document.getElementById('listingForm').style.display = 'none';
+  document.getElementById('successBox').style.display = 'block';
+  document.getElementById('viewListingLink').href = 'profile.html?id=' + newId;
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+applyI18n();
+</script>
+</body>
+</html>
