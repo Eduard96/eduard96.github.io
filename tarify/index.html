@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarify — расценки блогеров без переписок</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314201B'/%3E%3Cpath d='M14 34 L34 14 L50 14 L50 30 L30 50 Z' fill='none' stroke='%23E8792A' stroke-width='4' stroke-linejoin='round'/%3E%3Ccircle cx='41' cy='23' r='4' fill='%23E8792A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F8F7;
+    --surface:#FFFFFF;
+    --ink:#14201B;
+    --ink-soft:#5A6A63;
+    --accent:#E8792A;
+    --accent-dark:#C85F17;
+    --teal:#1F6F5C;
+    --teal-light:#E4F0EC;
+    --border:#DFE6E2;
+    --radius:10px;
+    --maxw:1180px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Manrope',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  a{color:inherit;text-decoration:none;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+  /* header */
+  header.site{
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+    position:sticky;top:0;z-index:40;
+  }
+  .headbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;gap:16px;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:16px;height:16px;}
+  nav.top{display:flex;align-items:center;gap:22px;font-size:15px;font-weight:600;}
+  nav.top a{color:var(--ink-soft);padding:6px 0;border-bottom:2px solid transparent;}
+  nav.top a.active,nav.top a:hover{color:var(--ink);border-color:var(--accent);}
+  .cta-btn{background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-weight:600;font-size:14px;white-space:nowrap;}
+  .cta-btn:hover{background:var(--teal);}
+  .langsw{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:2px;}
+  .langsw button{border:none;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;cursor:pointer;color:var(--ink-soft);}
+  .langsw button.active{background:var(--ink);color:#fff;}
+
+  /* hero */
+  .hero{padding:64px 0 48px;}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;}
+  .hero h1{font-size:44px;line-height:1.1;font-weight:700;}
+  .hero p.sub{margin:18px 0 28px;font-size:17px;color:var(--ink-soft);max-width:46ch;}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:13px 22px;border-radius:8px;font-weight:600;font-size:15px;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--ink);}
+
+  /* the rate-card visual */
+  .ticket{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:26px 26px 22px;
+    position:relative;
+    box-shadow:0 1px 0 var(--border);
+  }
+  .ticket::before{
+    content:"";position:absolute;top:24px;left:-9px;width:18px;height:18px;border-radius:50%;
+    background:var(--bg);border:1px solid var(--border);
+  }
+  .ticket-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .avatar{width:44px;height:44px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Space Grotesk',sans-serif;flex-shrink:0;}
+  .ticket-name{font-weight:700;font-size:16px;}
+  .ticket-handle{color:var(--ink-soft);font-size:13px;}
+  .rate-row{display:flex;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px dotted var(--border);}
+  .rate-row:last-child{border-bottom:none;}
+  .rate-label{font-size:14px;color:var(--ink-soft);white-space:nowrap;}
+  .rate-fill{flex:1;border-bottom:1px dotted var(--border);transform:translateY(-4px);}
+  .rate-price{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:15px;color:var(--accent-dark);white-space:nowrap;}
+
+  /* section titles */
+  .section-title{font-size:26px;margin-bottom:4px;}
+  .section-sub{color:var(--ink-soft);font-size:15px;margin-bottom:24px;}
+
+  /* layout: filters + grid */
+  .browse{padding:20px 0 80px;}
+  .browse-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
+  .search-box{position:relative;max-width:360px;flex:1;min-width:220px;}
+  .search-box input{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Manrope',sans-serif;font-size:14px;background:var(--surface);}
+  .search-box input:focus{border-color:var(--teal);}
+  .sort-box select{padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:'Manrope',sans-serif;font-size:14px;background:var(--surface);color:var(--ink);}
+
+  .layout{display:grid;grid-template-columns:250px 1fr;gap:32px;align-items:start;}
+  aside.filters{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;position:sticky;top:88px;}
+  .filter-group{margin-bottom:20px;}
+  .filter-group:last-child{margin-bottom:0;}
+  .filter-group h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin-bottom:10px;font-family:'Manrope',sans-serif;font-weight:700;}
+  .chip-list{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{border:1px solid var(--border);background:var(--surface);padding:6px 11px;border-radius:20px;font-size:13px;cursor:pointer;color:var(--ink-soft);user-select:none;}
+  .chip.on{background:var(--teal-light);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .filter-group select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;background:var(--surface);color:var(--ink);font-family:'Manrope',sans-serif;}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;padding:4px 0;}
+  .checkline input{width:16px;height:16px;accent-color:var(--teal);}
+  .reset-link{font-size:13px;color:var(--ink-soft);text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;margin-top:14px;}
+
+  .results-count{font-size:13.5px;color:var(--ink-soft);margin-bottom:14px;font-family:'IBM Plex Mono',monospace;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:20px;display:flex;flex-direction:column;gap:14px;transition:border-color .15s, transform .15s;
+  }
+  .card:hover{border-color:var(--teal);transform:translateY(-2px);}
+  .card-top{display:flex;gap:12px;align-items:center;}
+  .card-name{font-weight:700;font-size:15.5px;}
+  .card-loc{font-size:12.5px;color:var(--ink-soft);}
+  .niche-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .niche-tag{font-size:11.5px;background:var(--bg);border:1px solid var(--border);color:var(--ink-soft);padding:3px 8px;border-radius:12px;}
+  .stat-line{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);}
+  .stat-line b{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .card-prices{background:var(--bg);border-radius:8px;padding:10px 12px;font-size:13px;}
+  .card-prices .row{display:flex;justify-content:space-between;padding:3px 0;}
+  .card-prices .row span:first-child{color:var(--ink-soft);}
+  .card-prices .row span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:auto;}
+  .barter-badge{font-size:11px;background:var(--teal-light);color:var(--teal);padding:4px 9px;border-radius:20px;font-weight:700;position:relative;}
+  .view-link{font-size:13.5px;font-weight:700;color:var(--accent-dark);}
+
+  .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-soft);}
+  .empty h3{margin-bottom:8px;color:var(--ink);}
+
+  footer.site{border-top:1px solid var(--border);padding:26px 0;text-align:center;font-size:13px;color:var(--ink-soft);}
+
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;}
+    .layout{grid-template-columns:1fr;}
+    aside.filters{position:static;}
+    nav.top{display:none;}
+    .hero h1{font-size:32px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap headbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 34 L34 14 L50 14 L50 30 L30 50 Z" stroke="#E8792A" stroke-width="5" stroke-linejoin="round"/><circle cx="41" cy="23" r="4" fill="#E8792A"/></svg></span>
+      <span>Tarify</span>
+    </a>
+    <nav class="top">
+      <a href="index.html" class="active" data-i18n="nav_browse">Каталог</a>
+      <a href="add-listing.html" data-i18n="nav_add">Разместить анкету</a>
+    </nav>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="langsw" role="group" aria-label="Language">
+        <button data-lang="en">EN</button>
+        <button data-lang="ru">RU</button>
+        <button data-lang="hy">HY</button>
+      </div>
+      <a class="cta-btn" href="add-listing.html" data-i18n="cta_add_short">Мои цены</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1 data-i18n="hero_title">Расценки блогеров — без переписок</h1>
+      <p class="sub" data-i18n="hero_sub">Смотрите цены на рекламу в Stories, постах и Reels заранее — сравнивайте блогеров по охватам, аудитории и хештегам.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#browse" data-i18n="cta_browse">Смотреть каталог</a>
+        <a class="btn btn-ghost" href="add-listing.html" data-i18n="cta_add">Разместить свои цены</a>
+      </div>
+    </div>
+    <div class="ticket">
+      <div class="ticket-head">
+        <div class="avatar">AP</div>
+        <div>
+          <div class="ticket-name">Anna Petrosyan</div>
+          <div class="ticket-handle">@anna.style · Yerevan</div>
+        </div>
+      </div>
+      <div class="rate-row"><span class="rate-label" data-i18n="format_story">Сторис 24ч</span><span class="rate-fill"></span><span class="rate-price">$20</span></div>
+      <div class="rate-row"><span class="rate-label" data-i18n="format_post">Пост</span><span class="rate-fill"></span><span class="rate-price">$60</span></div>
+      <div class="rate-row"><span class="rate-label" data-i18n="format_reel">Рилс</span><span class="rate-fill"></span><span class="rate-price">$90</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="browse" id="browse">
+  <div class="wrap">
+    <div class="browse-top">
+      <div>
+        <h2 class="section-title" data-i18n="filters_title">Каталог блогеров</h2>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div class="search-box">
+          <input type="text" id="searchInput" data-i18n-ph="search_placeholder" placeholder="Поиск по имени или нику">
+        </div>
+        <div class="sort-box">
+          <select id="sortSelect">
+            <option value="default" data-i18n="sort_default">По умолчанию</option>
+            <option value="price_asc" data-i18n="sort_price_asc">Цена: сначала дешевле</option>
+            <option value="price_desc" data-i18n="sort_price_desc">Цена: сначала дороже</option>
+            <option value="followers" data-i18n="sort_followers">По подписчикам</option>
+            <option value="engagement" data-i18n="sort_engagement">По вовлечённости</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="filters">
+        <div class="filter-group">
+          <h3 data-i18n="filter_platform">Платформа</h3>
+          <div class="chip-list" id="f-platform"></div>
+        </div>
+        <div class="filter-group">
+          <h3 data-i18n="filter_niche">Ниша</h3>
+          <div class="chip-list" id="f-niche"></div>
+        </div>
+        <div class="filter-group">
+          <h3 data-i18n="filter_format">Формат рекламы</h3>
+          <div class="chip-list" id="f-format"></div>
+        </div>
+        <div class="filter-group">
+          <h3 data-i18n="filter_followers">Подписчики</h3>
+          <select id="f-followers"></select>
+        </div>
+        <div class="filter-group">
+          <h3 data-i18n="filter_price">Макс. цена (за формат)</h3>
+          <select id="f-price"></select>
+        </div>
+        <div class="filter-group">
+          <h3 data-i18n="filter_country">Страна аудитории</h3>
+          <select id="f-country"></select>
+        </div>
+        <div class="filter-group">
+          <label class="checkline">
+            <input type="checkbox" id="f-barter">
+            <span data-i18n="filter_barter_label">Готовы на бартер</span>
+          </label>
+        </div>
+        <button class="reset-link" id="resetBtn" data-i18n="filter_reset">Сбросить фильтры</button>
+      </aside>
+
+      <div>
+        <div class="results-count" id="resultsCount"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap" data-i18n="footer_text">Демо-платформа. Все данные вымышленные.</div>
+</footer>
+
+<script>
+/* ---------- i18n ---------- */
+const I18N = {
+  ru:{
+    nav_browse:"Каталог", nav_add:"Разместить анкету", cta_add_short:"Мои цены",
+    hero_title:"Расценки блогеров — без переписок",
+    hero_sub:"Смотрите цены на рекламу в Stories, постах и Reels заранее — сравнивайте блогеров по охватам, аудитории и хештегам.",
+    cta_browse:"Смотреть каталог", cta_add:"Разместить свои цены",
+    search_placeholder:"Поиск по имени или нику",
+    filters_title:"Каталог блогеров",
+    filter_platform:"Платформа", filter_niche:"Ниша", filter_format:"Формат рекламы",
+    filter_followers:"Подписчики", filter_price:"Макс. цена (за формат)", filter_country:"Страна аудитории",
+    filter_barter_label:"Готовы на бартер", filter_reset:"Сбросить фильтры",
+    sort_default:"По умолчанию", sort_price_asc:"Цена: сначала дешевле", sort_price_desc:"Цена: сначала дороже",
+    sort_followers:"По подписчикам", sort_engagement:"По вовлечённости",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Красота", niche_fashion:"Мода", niche_fitness:"Фитнес", niche_food:"Еда", niche_travel:"Путешествия",
+    niche_tech:"Технологии", niche_gaming:"Игры", niche_business:"Бизнес/Финансы", niche_family:"Семья/Дети",
+    niche_lifestyle:"Лайфстайл", niche_comedy:"Юмор", niche_music:"Музыка", niche_education:"Образование", niche_pets:"Питомцы", niche_auto:"Авто",
+    format_story:"Сторис 24ч", format_post:"Пост", format_reel:"Рилс",
+    followers_any:"Любое", followers_1:"до 10 тыс.", followers_2:"10–50 тыс.", followers_3:"50–100 тыс.", followers_4:"100–500 тыс.", followers_5:"от 500 тыс.",
+    price_any:"Любая",
+    country_any:"Любая",
+    results_count:n=>`Найдено: ${n}`,
+    card_followers:"подписчиков", card_avgviews:"ср. просмотры", card_from:"от",
+    barter_tag:"Бартер ОК",
+    empty_title:"Ничего не найдено", empty_sub:"Попробуйте изменить фильтры",
+    view_link:"Смотреть анкету →",
+    footer_text:"Демо-платформа. Все данные вымышленные."
+  },
+  en:{
+    nav_browse:"Browse", nav_add:"List your rates", cta_add_short:"My rates",
+    hero_title:"Influencer ad rates — no DMs needed",
+    hero_sub:"See story, post and reel prices upfront — compare creators by reach, audience and hashtags.",
+    cta_browse:"Browse creators", cta_add:"List your rates",
+    search_placeholder:"Search by name or handle",
+    filters_title:"Creator catalog",
+    filter_platform:"Platform", filter_niche:"Niche", filter_format:"Ad format",
+    filter_followers:"Followers", filter_price:"Max price (per format)", filter_country:"Audience country",
+    filter_barter_label:"Open to barter", filter_reset:"Reset filters",
+    sort_default:"Default", sort_price_asc:"Price: low to high", sort_price_desc:"Price: high to low",
+    sort_followers:"By followers", sort_engagement:"By engagement",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Beauty", niche_fashion:"Fashion", niche_fitness:"Fitness", niche_food:"Food", niche_travel:"Travel",
+    niche_tech:"Tech", niche_gaming:"Gaming", niche_business:"Business/Finance", niche_family:"Family/Kids",
+    niche_lifestyle:"Lifestyle", niche_comedy:"Comedy", niche_music:"Music", niche_education:"Education", niche_pets:"Pets", niche_auto:"Auto",
+    format_story:"Story 24h", format_post:"Post", format_reel:"Reel",
+    followers_any:"Any", followers_1:"under 10K", followers_2:"10–50K", followers_3:"50–100K", followers_4:"100–500K", followers_5:"500K+",
+    price_any:"Any",
+    country_any:"Any",
+    results_count:n=>`${n} creators found`,
+    card_followers:"followers", card_avgviews:"avg. views", card_from:"from",
+    barter_tag:"Barter OK",
+    empty_title:"No creators found", empty_sub:"Try adjusting your filters",
+    view_link:"View listing →",
+    footer_text:"Demo platform. All data is fictional."
+  },
+  hy:{
+    nav_browse:"Բլոգերներ", nav_add:"Տեղադրել էջ", cta_add_short:"Իմ գները",
+    hero_title:"Բլոգերների գներ՝ առանց նամակագրության",
+    hero_sub:"Նախապես տեսեք Stories-ի, փոստերի և Reels-ի գովազդի գները․ համեմատեք բլոգերներին ըստ լսարանի և հեշթեգների։",
+    cta_browse:"Դիտել բլոգերներին", cta_add:"Տեղադրել ձեր գները",
+    search_placeholder:"Փնտրել ըստ անվան կամ նիքի",
+    filters_title:"Բլոգերների ցանկ",
+    filter_platform:"Հարթակ", filter_niche:"Ոլորտ", filter_format:"Գովազդի ձևաչափ",
+    filter_followers:"Հետևորդներ", filter_price:"Առավելագույն գին", filter_country:"Լսարանի երկիր",
+    filter_barter_label:"Պատրաստ են բարտերի", filter_reset:"Զրոյացնել ֆիլտրերը",
+    sort_default:"Լռելյայն", sort_price_asc:"Գին՝ էժանից թանկ", sort_price_desc:"Գին՝ թանկից էժան",
+    sort_followers:"Ըստ հետևորդների", sort_engagement:"Ըստ ներգրավվածության",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Գեղեցկություն", niche_fashion:"Նորաձևություն", niche_fitness:"Ֆիթնես", niche_food:"Սնունդ", niche_travel:"Ճամփորդություն",
+    niche_tech:"Տեխնոլոգիաներ", niche_gaming:"Խաղեր", niche_business:"Բիզնես/Ֆինանսներ", niche_family:"Ընտանիք/Երեխաներ",
+    niche_lifestyle:"Ապրելակերպ", niche_comedy:"Հումոր", niche_music:"Երաժշտություն", niche_education:"Կրթություն", niche_pets:"Ընտանի կենդանիներ", niche_auto:"Ավտո",
+    format_story:"Սթորի 24ժ", format_post:"Փոստ", format_reel:"Ռիլս",
+    followers_any:"Ցանկացած", followers_1:"մինչև 10հզ", followers_2:"10–50հզ", followers_3:"50–100հզ", followers_4:"100–500հզ", followers_5:"500հզ+",
+    price_any:"Ցանկացած",
+    country_any:"Ցանկացած",
+    results_count:n=>`Գտնվել է՝ ${n}`,
+    card_followers:"հետևորդ", card_avgviews:"միջին դիտում", card_from:"-ից",
+    barter_tag:"Բարտեր OK",
+    empty_title:"Ոչինչ չի գտնվել", empty_sub:"Փորձեք փոխել ֆիլտրերը",
+    view_link:"Դիտել էջը →",
+    footer_text:"Փորձնական հարթակ։ Բոլոր տվյալները հորինված են։"
+  }
+};
+let lang = localStorage.getItem('tarify_lang') || 'ru';
+
+function applyI18n(){
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key] && typeof dict[key]==='string') el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-ph');
+    if(dict[key]) el.setAttribute('placeholder', dict[key]);
+  });
+  document.querySelectorAll('.langsw button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.lang===lang);
+  });
+  renderFilters();
+  renderGrid();
+}
+document.querySelectorAll('.langsw button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    lang = b.dataset.lang;
+    localStorage.setItem('tarify_lang', lang);
+    applyI18n();
+  });
+});
+
+/* ---------- data ---------- */
+const SEED = [
+  {id:1,name:"Anna Petrosyan",handle:"@anna.style",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["fashion","lifestyle"],followers:128000,avgViews:45000,avgLikes:6200,avgShares:340,audFemale:78,audMale:22,audAge:"18–24",audGeo:["Armenia","Russia","USA"],hashtags:["fashion","yerevanstyle","ootd"],pastCollabs:["Zara Armenia","Yves Rocher","SAS Yerevan"],prices:{story:20,post:60,reel:90},currency:"USD",barter:true,bio:"Fashion & lifestyle content from Yerevan.",contacts:{telegram:"@anna_style",whatsapp:"+374 55 111 222",email:"anna@example.com",instagram:"@anna.style"}},
+  {id:2,name:"David Karapetyan",handle:"@david.fit",country:"Armenia",city:"Yerevan",platforms:["instagram","tiktok"],niches:["fitness"],followers:95000,avgViews:120000,avgLikes:8900,avgShares:510,audFemale:40,audMale:60,audAge:"18–34",audGeo:["Armenia","Georgia","Russia"],hashtags:["fitness","gymlife","armeniafit"],pastCollabs:["FitLine Gym","Nike Armenia"],prices:{story:15,post:50,reel:80},currency:"USD",barter:false,bio:"Strength training & nutrition tips.",contacts:{telegram:"@david_fit",whatsapp:"+374 55 222 333",email:"david@example.com",instagram:"@david.fit"}},
+  {id:3,name:"Mariam Hovhannisyan",handle:"@mari.beauty",country:"Armenia",city:"Yerevan",platforms:["instagram","youtube"],niches:["beauty"],followers:210000,avgViews:60000,avgLikes:15000,avgShares:900,audFemale:90,audMale:10,audAge:"18–24",audGeo:["Armenia","Iran","Russia"],hashtags:["beauty","makeup","skincare"],pastCollabs:["L'Oréal Armenia","Sephora AM","Notino"],prices:{story:30,post:100,reel:150},currency:"USD",barter:true,bio:"Makeup tutorials and skincare reviews.",contacts:{telegram:"@mari_beauty",whatsapp:"+374 55 333 444",email:"mariam@example.com",instagram:"@mari.beauty"}},
+  {id:4,name:"Alex Sarkisov",handle:"@alexeats",country:"Russia",city:"Moscow",platforms:["instagram","tiktok","youtube"],niches:["food"],followers:340000,avgViews:210000,avgLikes:22000,avgShares:1400,audFemale:55,audMale:45,audAge:"25–34",audGeo:["Russia","Kazakhstan","Belarus"],hashtags:["food","recipe","moscoweats"],prices:{story:50,post:180,reel:260},currency:"RUB",barter:false,bio:"Restaurant reviews & home recipes.",contacts:{telegram:"@alexeats",whatsapp:"+7 916 000 1122",email:"alex@example.com",instagram:"@alexeats"}},
+  {id:5,name:"Lilit Grigoryan",handle:"@lili.travels",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["travel","lifestyle"],followers:76000,avgViews:30000,avgLikes:5100,avgShares:280,audFemale:65,audMale:35,audAge:"18–24",audGeo:["Armenia","USA","France"],hashtags:["travel","wanderlust","armenia"],prices:{story:18,post:55,reel:85},currency:"USD",barter:true,bio:"Solo travel across the Caucasus and beyond.",contacts:{telegram:"@lili_travels",whatsapp:"+374 55 444 555",email:"lilit@example.com",instagram:"@lili.travels"}},
+  {id:6,name:"Narek Avanesyan",handle:"@narek.tech",country:"Armenia",city:"Yerevan",platforms:["youtube","telegram"],niches:["tech","gaming"],followers:58000,avgViews:40000,avgLikes:3900,avgShares:210,audFemale:20,audMale:80,audAge:"18–24",audGeo:["Armenia","Russia","Ukraine"],hashtags:["tech","gadgets","gaming"],prices:{story:10,post:40,reel:65},currency:"USD",barter:false,bio:"Gadget reviews and gaming setups.",contacts:{telegram:"@narek_tech",whatsapp:"+374 55 555 666",email:"narek@example.com",instagram:"@narek.tech"}},
+  {id:7,name:"Sofia Martirosyan",handle:"@sofia.mama",country:"Armenia",city:"Gyumri",platforms:["instagram"],niches:["family"],followers:41000,avgViews:18000,avgLikes:3100,avgShares:150,audFemale:88,audMale:12,audAge:"25–34",audGeo:["Armenia","Russia","USA"],hashtags:["mom","family","kids"],prices:{story:8,post:28,reel:45},currency:"USD",barter:true,bio:"Motherhood, parenting and family life.",contacts:{telegram:"@sofia_mama",whatsapp:"+374 55 666 777",email:"sofia@example.com",instagram:"@sofia.mama"}},
+  {id:8,name:"Gor Manukyan",handle:"@gor.comedy",country:"Armenia",city:"Yerevan",platforms:["instagram","tiktok"],niches:["comedy"],followers:512000,avgViews:890000,avgLikes:62000,avgShares:4100,audFemale:48,audMale:52,audAge:"18–24",audGeo:["Armenia","Russia","Georgia"],hashtags:["comedy","funny","armenia"],pastCollabs:["Ucom","Wolt Armenia","Team Telecom"],prices:{story:60,post:200,reel:320},currency:"USD",barter:false,bio:"Sketches and everyday humor.",contacts:{telegram:"@gor_comedy",whatsapp:"+374 55 777 888",email:"gor@example.com",instagram:"@gor.comedy"}},
+  {id:9,name:"Elena Kuznetsova",handle:"@elena.finance",country:"Russia",city:"Moscow",platforms:["telegram","youtube"],niches:["business"],followers:89000,avgViews:25000,avgLikes:2200,avgShares:190,audFemale:35,audMale:65,audAge:"25–44",audGeo:["Russia","Kazakhstan","Belarus"],hashtags:["finance","investing","money"],prices:{story:25,post:70,reel:95},currency:"RUB",barter:false,bio:"Personal finance and investing basics.",contacts:{telegram:"@elena_finance",whatsapp:"+7 916 111 2233",email:"elena@example.com",instagram:"@elena.finance"}},
+  {id:10,name:"Tatev Ghazaryan",handle:"@tatev.pets",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["pets"],followers:33000,avgViews:14000,avgLikes:2600,avgShares:120,audFemale:70,audMale:30,audAge:"18–34",audGeo:["Armenia","Russia"],hashtags:["pets","dogsofinstagram","cats"],prices:{story:7,post:22,reel:35},currency:"USD",barter:true,bio:"Two dogs, one cat, daily chaos.",contacts:{telegram:"@tatev_pets",whatsapp:"+374 55 888 999",email:"tatev@example.com",instagram:"@tatev.pets"}}
+];
+
+function loadData(){
+  const stored = localStorage.getItem('tarify_influencers');
+  if(!stored){
+    localStorage.setItem('tarify_influencers', JSON.stringify(SEED));
+    return SEED.slice();
+  }
+  try{ return JSON.parse(stored); }catch(e){ return SEED.slice(); }
+}
+const DATA = loadData();
+
+/* ---------- filter state ---------- */
+const PLATFORMS = ["instagram","tiktok","youtube","telegram","facebook"];
+const NICHES = ["beauty","fashion","fitness","food","travel","tech","gaming","business","family","lifestyle","comedy","music","education","pets","auto"];
+const FORMATS = ["story","post","reel"];
+const COUNTRIES = ["Armenia","Russia","USA","Georgia","Ukraine","Kazakhstan","Belarus","France","Iran"];
+const FOLLOWER_BUCKETS = [
+  {key:"any", min:0, max:Infinity},
+  {key:"1", min:0, max:10000},
+  {key:"2", min:10000, max:50000},
+  {key:"3", min:50000, max:100000},
+  {key:"4", min:100000, max:500000},
+  {key:"5", min:500000, max:Infinity}
+];
+const PRICE_OPTIONS = [0, 20, 50, 100, 200, 999999];
+
+const state = { platform:new Set(), niche:new Set(), format:new Set(), followers:"any", price:0, country:"any", barter:false, search:"", sort:"default" };
+
+function renderFilters(){
+  const dict = I18N[lang];
+  const pEl = document.getElementById('f-platform'); pEl.innerHTML='';
+  PLATFORMS.forEach(p=>{
+    const c = document.createElement('div');
+    c.className = 'chip' + (state.platform.has(p)?' on':'');
+    c.textContent = dict['platform_'+p];
+    c.onclick = ()=>{ state.platform.has(p)?state.platform.delete(p):state.platform.add(p); renderFilters(); renderGrid(); };
+    pEl.appendChild(c);
+  });
+  const nEl = document.getElementById('f-niche'); nEl.innerHTML='';
+  NICHES.forEach(n=>{
+    const c = document.createElement('div');
+    c.className = 'chip' + (state.niche.has(n)?' on':'');
+    c.textContent = dict['niche_'+n];
+    c.onclick = ()=>{ state.niche.has(n)?state.niche.delete(n):state.niche.add(n); renderFilters(); renderGrid(); };
+    nEl.appendChild(c);
+  });
+  const fEl = document.getElementById('f-format'); fEl.innerHTML='';
+  FORMATS.forEach(f=>{
+    const c = document.createElement('div');
+    c.className = 'chip' + (state.format.has(f)?' on':'');
+    c.textContent = dict['format_'+f];
+    c.onclick = ()=>{ state.format.has(f)?state.format.delete(f):state.format.add(f); renderFilters(); renderGrid(); };
+    fEl.appendChild(c);
+  });
+
+  const folSel = document.getElementById('f-followers');
+  folSel.innerHTML = FOLLOWER_BUCKETS.map(b=>`<option value="${b.key}" ${state.followers===b.key?'selected':''}>${dict['followers_'+b.key]}</option>`).join('');
+  folSel.onchange = ()=>{ state.followers = folSel.value; renderGrid(); };
+
+  const priceSel = document.getElementById('f-price');
+  priceSel.innerHTML = `<option value="0" ${state.price===0?'selected':''}>${dict.price_any}</option>` +
+    PRICE_OPTIONS.filter(p=>p>0 && p<999999).map(p=>`<option value="${p}" ${state.price==p?'selected':''}>≤ ${p}</option>`).join('');
+  priceSel.onchange = ()=>{ state.price = parseInt(priceSel.value); renderGrid(); };
+
+  const countrySel = document.getElementById('f-country');
+  countrySel.innerHTML = `<option value="any" ${state.country==='any'?'selected':''}>${dict.country_any}</option>` +
+    COUNTRIES.map(c=>`<option value="${c}" ${state.country===c?'selected':''}>${c}</option>`).join('');
+  countrySel.onchange = ()=>{ state.country = countrySel.value; renderGrid(); };
+
+  document.getElementById('f-barter').checked = state.barter;
+}
+document.getElementById('f-barter').addEventListener('change', e=>{ state.barter = e.target.checked; renderGrid(); });
+document.getElementById('searchInput').addEventListener('input', e=>{ state.search = e.target.value.toLowerCase(); renderGrid(); });
+document.getElementById('sortSelect').addEventListener('change', e=>{ state.sort = e.target.value; renderGrid(); });
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  state.platform.clear(); state.niche.clear(); state.format.clear();
+  state.followers='any'; state.price=0; state.country='any'; state.barter=false; state.search='';
+  document.getElementById('searchInput').value='';
+  renderFilters(); renderGrid();
+});
+
+function minPrice(inf){ return Math.min(inf.prices.story, inf.prices.post, inf.prices.reel); }
+function engagement(inf){ return inf.avgLikes + inf.avgShares; }
+
+function filterData(){
+  return DATA.filter(inf=>{
+    if(state.platform.size && ![...state.platform].some(p=>inf.platforms.includes(p))) return false;
+    if(state.niche.size && ![...state.niche].some(n=>inf.niches.includes(n))) return false;
+    if(state.format.size && ![...state.format].every(f=>inf.prices[f] !== undefined)) return false;
+    if(state.followers !== 'any'){
+      const b = FOLLOWER_BUCKETS.find(x=>x.key===state.followers);
+      if(!(inf.followers>=b.min && inf.followers<b.max)) return false;
+    }
+    if(state.price>0 && minPrice(inf) > state.price) return false;
+    if(state.country!=='any' && !inf.audGeo.includes(state.country)) return false;
+    if(state.barter && !inf.barter) return false;
+    if(state.search && !(inf.name.toLowerCase().includes(state.search) || inf.handle.toLowerCase().includes(state.search))) return false;
+    return true;
+  });
+}
+
+function sortData(list){
+  const arr = list.slice();
+  if(state.sort==='price_asc') arr.sort((a,b)=>minPrice(a)-minPrice(b));
+  else if(state.sort==='price_desc') arr.sort((a,b)=>minPrice(b)-minPrice(a));
+  else if(state.sort==='followers') arr.sort((a,b)=>b.followers-a.followers);
+  else if(state.sort==='engagement') arr.sort((a,b)=>engagement(b)-engagement(a));
+  return arr;
+}
+
+function currencySymbol(cur){ return cur==='USD' ? '$' : cur==='RUB' ? '₽' : cur==='AMD' ? '֏' : cur; }
+
+function initials(name){ return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+
+function renderGrid(){
+  const dict = I18N[lang];
+  const list = sortData(filterData());
+  document.getElementById('resultsCount').textContent = dict.results_count(list.length);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty"><h3>${dict.empty_title}</h3><p>${dict.empty_sub}</p></div>`;
+    return;
+  }
+  list.forEach(inf=>{
+    const sym = currencySymbol(inf.currency);
+    const card = document.createElement('a');
+    card.href = `profile.html?id=${inf.id}`;
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="avatar" style="width:40px;height:40px;font-size:13px;">${initials(inf.name)}</div>
+        <div>
+          <div class="card-name">${inf.name}</div>
+          <div class="card-loc">${inf.handle} · ${inf.city}</div>
+        </div>
+      </div>
+      <div class="niche-tags">${inf.niches.map(n=>`<span class="niche-tag">${dict['niche_'+n]}</span>`).join('')}</div>
+      <div class="stat-line"><span>${dict.card_followers}</span><b>${inf.followers.toLocaleString()}</b></div>
+      <div class="stat-line"><span>${dict.card_avgviews}</span><b>${inf.avgViews.toLocaleString()}</b></div>
+      <div class="card-prices">
+        <div class="row"><span>${dict.format_story}</span><span>${sym}${inf.prices.story}</span></div>
+        <div class="row"><span>${dict.format_post}</span><span>${sym}${inf.prices.post}</span></div>
+        <div class="row"><span>${dict.format_reel}</span><span>${sym}${inf.prices.reel}</span></div>
+      </div>
+      <div class="card-bottom">
+        ${inf.barter ? `<span class="barter-badge">${dict.barter_tag}</span>` : '<span></span>'}
+        <span class="view-link">${dict.view_link}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+applyI18n();
+</script>
+</body>
+</html>
