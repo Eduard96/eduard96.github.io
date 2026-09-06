@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Причал — крышевая система доставки дронами</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B1013'/%3E%3Crect x='9' y='41' width='46' height='4' rx='2' fill='%233A4750'/%3E%3Crect x='23' y='27' width='18' height='12' rx='2' fill='%23FF6A2B'/%3E%3Ccircle cx='32' cy='13' r='5' fill='%234CD97D'/%3E%3Cline x1='32' y1='18' x2='32' y2='27' stroke='%234CD97D' stroke-width='2'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1013;
+    --bg-panel:#121A1E;
+    --bg-panel-2:#0E1519;
+    --line:#24333A;
+    --grid:#182126;
+    --ink:#E7EEF0;
+    --ink-dim:#8AA0A8;
+    --ink-faint:#54666C;
+    --accent:#FF6A2B;
+    --accent-soft:#3A2317;
+    --good:#4CD97D;
+    --warn:#FFD166;
+    --sans:'Inter',system-ui,sans-serif;
+    --display:'Space Grotesk',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  body{-webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+
+  .topbar{
+    display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+    padding:22px 28px 16px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, var(--bg-panel-2), var(--bg));
+  }
+  .brand{display:flex;align-items:baseline;gap:12px;}
+  .brand .mark{
+    width:11px;height:11px;border-radius:3px;background:var(--accent);
+    box-shadow:0 0 12px 1px rgba(255,106,43,.55);
+    display:inline-block;transform:translateY(-1px);
+  }
+  .brand h1{font-family:var(--display);font-size:22px;font-weight:600;margin:0;letter-spacing:.2px;}
+  .brand .tagline{color:var(--ink-dim);font-size:13.5px;max-width:46ch;line-height:1.5;}
+  .topbar .hint{color:var(--ink-faint);font-size:12px;font-family:var(--mono);text-align:right;white-space:nowrap;padding-top:4px;}
+
+  .stage{
+    position:relative;width:100%;height:min(78vh,760px);min-height:460px;
+    overflow:hidden;border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 100% at 50% 0%, #131C21 0%, #0B1013 60%);
+  }
+  .stage canvas{display:block;width:100%;height:100%;}
+
+  .label{
+    position:absolute;top:0;left:0;pointer-events:none;
+    font-family:var(--mono);font-size:11px;color:var(--ink-dim);
+    white-space:nowrap;transform-origin:0 0;
+    padding:2px 6px;border-radius:3px;
+    background:rgba(11,16,19,.55);border:1px solid rgba(255,255,255,.06);
+  }
+  .label.building{color:var(--ink);font-size:12px;font-weight:500;font-family:var(--sans);}
+  .label.dock{color:var(--accent);border-color:rgba(255,106,43,.35);}
+
+  .hud{
+    position:absolute;background:rgba(14,21,25,.82);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:10px;
+  }
+
+  .hud-view{top:16px;left:16px;padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;max-width:280px;}
+  .view-btn{
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);
+    background:transparent;border:1px solid var(--line);border-radius:6px;
+    padding:6px 9px;cursor:pointer;transition:border-color .15s,color .15s;
+  }
+  .view-btn:hover{color:var(--ink);border-color:#3E5058;}
+  .view-btn.active{color:var(--accent);border-color:rgba(255,106,43,.5);}
+
+  .hud-ops{
+    top:16px;right:16px;width:308px;max-height:calc(100% - 32px);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .hud-ops h2{
+    font-family:var(--display);font-size:13px;font-weight:600;margin:0;
+    padding:12px 14px 10px;border-bottom:1px solid var(--line);color:var(--ink);
+  }
+  .ops-rows{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px;}
+  .ops-row{
+    border:1px solid var(--line);border-radius:8px;padding:9px 10px;cursor:pointer;
+    background:var(--bg-panel);transition:border-color .15s;
+  }
+  .ops-row:hover{border-color:#3E5058;}
+  .ops-row-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .ops-row-name{font-size:13px;font-weight:500;}
+  .ops-state{
+    font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:20px;
+    display:flex;align-items:center;gap:5px;color:var(--ink-dim);border:1px solid var(--line);
+  }
+  .ops-state .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);}
+  .ops-state.busy .dot{background:var(--warn);}
+  .ops-state.notified .dot{background:var(--accent);}
+  .ops-state.ground .dot{background:#6FB7FF;}
+  .ops-state.idle .dot{background:var(--good);}
+  .ops-row-body{margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .ops-select{
+    flex:1;min-width:0;background:var(--bg-panel-2);color:var(--ink);
+    border:1px solid var(--line);border-radius:6px;font-size:11.5px;font-family:var(--sans);
+    padding:5px 6px;
+  }
+  .ops-btn{
+    font-family:var(--sans);font-size:11.5px;font-weight:500;color:var(--bg);
+    background:var(--accent);border:none;border-radius:6px;padding:6px 10px;cursor:pointer;
+    white-space:nowrap;transition:filter .15s;
+  }
+  .ops-btn:hover{filter:brightness(1.08);}
+  .ops-btn.secondary{background:transparent;color:var(--ink-dim);border:1px solid var(--line);}
+  .ops-btn.secondary:hover{color:var(--ink);border-color:#3E5058;}
+  .ops-btn:disabled{opacity:.35;cursor:default;filter:none;}
+  .ops-note{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-top:6px;line-height:1.5;}
+
+  .hud-log{
+    left:16px;bottom:16px;width:340px;max-height:210px;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .hud-log h2{
+    font-family:var(--display);font-size:12px;font-weight:600;margin:0;
+    padding:10px 12px 8px;border-bottom:1px solid var(--line);color:var(--ink-dim);
+  }
+  .log-body{overflow-y:auto;padding:8px 12px;font-family:var(--mono);font-size:11px;line-height:1.7;color:var(--ink-dim);}
+  .log-body .t{color:var(--ink-faint);margin-right:6px;}
+  .log-body div{opacity:0;animation:fadeIn .3s forwards;}
+  @keyframes fadeIn{to{opacity:1;}}
+
+  .hud-legend{
+    right:16px;bottom:16px;padding:9px 12px;font-family:var(--mono);font-size:10.5px;
+    color:var(--ink-faint);line-height:1.9;
+  }
+  .hud-legend b{color:var(--ink-dim);font-weight:500;}
+  .swatch{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:6px;}
+
+  .view-btn.accent-btn{background:var(--accent);color:#1A0D05;border-color:var(--accent);font-weight:600;}
+  .view-btn.accent-btn:hover{filter:brightness(1.08);}
+
+  .pip{
+    position:absolute;top:16px;left:50%;transform:translateX(-50%);
+    width:220px;height:160px;border:1px solid var(--line);border-radius:8px;
+    overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s;
+  }
+  .pip.active{opacity:1;}
+  .pip .pip-label{
+    position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:10px;color:var(--ink-dim);
+    background:rgba(11,16,19,.65);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,.06);
+  }
+  .pip .pip-frame{position:absolute;inset:0;border:1px solid rgba(255,106,43,.25);border-radius:8px;}
+
+  .hud-caption{
+    position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+    padding:10px 18px;text-align:center;min-width:280px;max-width:80vw;
+    opacity:0;transition:opacity .25s;
+  }
+  .hud-caption.active{opacity:1;}
+  .hud-caption .caption-step{font-family:var(--mono);font-size:10.5px;color:var(--accent);margin-bottom:4px;}
+  .hud-caption .caption-text{font-family:var(--sans);font-size:13.5px;color:var(--ink);}
+  @media (max-width:860px){
+    .pip{width:150px;height:110px;}
+  }
+
+  .docs{max-width:1180px;margin:0 auto;padding:56px 28px 100px;display:grid;grid-template-columns:220px 1fr;gap:56px;}
+  .docs-nav{position:sticky;top:24px;align-self:start;}
+  .docs-nav a{
+    display:block;font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);
+    padding:6px 0;border-left:2px solid transparent;padding-left:12px;text-decoration:none;
+    transition:color .15s,border-color .15s;
+  }
+  .docs-nav a:hover{color:var(--ink);border-color:var(--line);}
+  .docs-title{font-family:var(--display);font-size:13px;color:var(--ink-dim);margin:0 0 14px;padding-left:12px;font-weight:600;}
+
+  .docs-content section{margin-bottom:56px;border-top:1px solid var(--line);padding-top:28px;}
+  .docs-content section:first-child{border-top:none;padding-top:0;}
+  .docs-content h2{
+    font-family:var(--display);font-size:22px;font-weight:600;margin:0 0 6px;
+    display:flex;align-items:baseline;gap:12px;
+  }
+  .docs-content h2 .num{color:var(--accent);font-family:var(--mono);font-size:15px;font-weight:500;}
+  .docs-content p{line-height:1.75;color:#C7D2D5;max-width:68ch;font-size:15px;}
+  .docs-content p+p{margin-top:12px;}
+  .docs-content ul{margin:14px 0;padding:0;list-style:none;max-width:68ch;}
+  .docs-content li{
+    position:relative;padding-left:20px;margin-bottom:10px;line-height:1.65;
+    color:#C7D2D5;font-size:14.5px;
+  }
+  .docs-content li::before{
+    content:'';position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:1px;background:var(--accent);
+  }
+  .docs-content code{
+    font-family:var(--mono);font-size:.9em;background:var(--bg-panel);border:1px solid var(--line);
+    padding:1px 6px;border-radius:4px;color:var(--warn);
+  }
+  .docs-content .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px;}
+  .spec-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .spec-card h3{font-family:var(--sans);font-size:13.5px;font-weight:600;margin:0 0 8px;color:var(--ink);}
+  .spec-card p{font-size:13.5px;margin:0;}
+
+  footer{border-top:1px solid var(--line);padding:20px 28px;color:var(--ink-faint);font-size:12px;font-family:var(--mono);text-align:center;}
+
+  @media (max-width:860px){
+    .docs{grid-template-columns:1fr;}
+    .docs-nav{position:static;display:flex;flex-wrap:wrap;gap:2px 14px;margin-bottom:24px;}
+    .docs-title{display:none;}
+    .hud-ops{width:min(88vw,300px);}
+    .hud-log{width:min(88vw,300px);}
+    .hud-legend{display:none;}
+    .stage{height:64vh;}
+    .docs-content .grid2{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .log-body div{animation:none;opacity:1;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark"></span>
+    <h1>Причал</h1>
+    <span class="tagline">Дрон оставляет посылку на крыше — крышевая платформа сама довозит её до нужного окна. Прототип механики и архитектуры.</span>
+  </div>
+  <div class="hint">ЛКМ — вращение · колесо — зум · ПКМ — сдвиг</div>
+</header>
+
+<main class="stage" id="stage">
+  <div id="labels-layer"></div>
+
+  <div class="hud hud-view" id="viewButtons"></div>
+
+  <div class="hud hud-ops">
+    <h2>Панель зданий</h2>
+    <div class="ops-rows" id="opsRows"></div>
+  </div>
+
+  <div class="hud hud-log">
+    <h2>Журнал событий</h2>
+    <div class="log-body" id="logBody"></div>
+  </div>
+
+  <div class="hud hud-legend">
+    <div><span class="swatch" style="background:var(--accent)"></span>дрон / активная посылка</div>
+    <div><span class="swatch" style="background:var(--good)"></span>система свободна</div>
+    <div><span class="swatch" style="background:#6FB7FF"></span>платформа у земли</div>
+  </div>
+
+  <div class="pip" id="pip">
+    <span class="pip-label">камера дрона</span>
+    <span class="pip-frame"></span>
+  </div>
+
+  <div class="hud hud-caption" id="hudCaption">
+    <div class="caption-step" id="captionStep">шаг 1 из 6</div>
+    <div class="caption-text" id="captionText">Дрон вылетает…</div>
+  </div>
+</main>
+
+<article class="docs">
+  <nav class="docs-nav">
+    <div class="docs-title">Техническое описание</div>
+    <a href="#s1">1 · Общая идея</a>
+    <a href="#s2">2 · Типы зданий</a>
+    <a href="#s3">3 · Механика платформы</a>
+    <a href="#s4">4 · Дрон и стыковка</a>
+    <a href="#s5">5 · Электроника и датчики</a>
+    <a href="#s6">6 · Программная архитектура</a>
+    <a href="#s7">7 · Сценарий курьера</a>
+    <a href="#s8">8 · Безопасность</a>
+  </nav>
+
+  <div class="docs-content">
+
+    <section id="s1">
+      <h2><span class="num">1</span>Общая идея</h2>
+      <p>Дрон не залетает в город к каждому окну — это шумно, небезопасно и требует ювелирной точности на ветру. Вместо этого у него одна задача: долететь до крыши здания и оставить посылку на неподвижной площадке в центре крыши. Дальше посылку до конкретного окна или балкона довозит уже сама платформа — по кресту направляющих на крыше и монорельсу вдоль нужного фасада.</p>
+      <p>Получается разделение труда: <code>дрон</code> отвечает за воздух и последнюю милю «до здания», а <code>крышевая платформа</code> — за последние 5–30 метров «внутри здания», к конкретной квартире. Тот же механизм работает и в обратную сторону: курьер снизу может вызвать платформу на землю, положить посылку и отправить её наверх — для отправки или для этажей, куда дрону подлетать нет смысла.</p>
+    </section>
+
+    <section id="s2">
+      <h2><span class="num">2</span>Типы зданий</h2>
+      <p>Внизу — четыре условных макета, показывающих, что механика не завязана на один тип дома. У каждого на крыше — один и тот же крест из четырёх направляющих (влево, вправо, вперёд, назад), просто часть «рукавов» может быть не задействована:</p>
+      <ul>
+        <li><b>Башня</b> — высокий дом, окна задействованы сразу с трёх сторон (слева, справа и спереди), на боковых рукавах — по две остановки на разных этажах.</li>
+        <li><b>Дом с балконами</b> — платформа останавливается не у окна, а у края балкона; отсек можно переставить прямо на балконную плиту.</li>
+        <li><b>Офисный блок</b> — низкое и широкое здание, большая посадочная площадка на крыше, короткие монорельсы сразу на три стороны.</li>
+        <li><b>Малый дом</b> — минимальная конфигурация: из всего креста реально используется один рукав и один клиент, остальные — запас на будущее.</li>
+      </ul>
+      <p>Задний рукав креста у всех домов одинаковый — он всегда доходит до земли и служит курьерским входом. Кликните по зданию в панели справа или прямо по макету на сцене — камера сфокусируется на нём.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="num">3</span>Механика платформы</h2>
+      <p>На крыше — не один рельс, а крест: от центра расходятся четыре направляющих (влево, вправо, вперёд, назад), по одной на каждую сторону здания. Это разделяет процесс на два независимых шага — приём посылки и её доставку — и каждый шаг решён своим механизмом.</p>
+      <div class="grid2">
+        <div class="spec-card">
+          <h3>Приём — фиксированная площадка</h3>
+          <p>Дрон садится всегда в одну и ту же точку — в центр креста, а не на движущийся отсек. Там стоит неподвижная площадка с зрительной меткой. Когда отсек подъезжает её забрать, площадка слегка наклоняется (создаёт уклон), и посылка медленно, под своим весом, скатывается с неё внутрь отсека — там её ловят боковые и задняя стенки, чтобы не проскочила мимо.</p>
+        </div>
+        <div class="spec-card">
+          <h3>Доставка — крест и монорельс</h3>
+          <p>После загрузки открытая сторона отсека закрывается подвижным бортом — дальше груз едет закрытым со всех четырёх сторон. Отсек едет по рельсу того рукава креста, что ведёт к нужной стороне дома, доезжает до края крыши и там стыкуется с вертикальным монорельсом на фасаде: рельс держит его от раскачивания, а тянет и опускает канат лебёдки, закреплённый наверху этой колонки.</p>
+        </div>
+      </div>
+      <p>У одного и того же рукава может быть несколько остановок по высоте — например, 3-й и 5-й этаж на одном монорельсе. Задний рукав креста у каждого здания особый: он всегда доходит до земли, и именно им пользуется курьер — тем же отсеком, только без стадии наклона (курьер кладёт посылку рукой, борт просто закрывается перед подъёмом).</p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="num">4</span>Дрон и точность стыковки</h2>
+      <p>Задача дрона — попасть в площадку шириной около метра, а не просто «на крышу». Причём это всегда одна и та же точка — центр крыши, независимо от того, к какому в итоге окну поедет посылка, — поэтому требования к точности дрона не зависят от планировки конкретного здания. При посадке на глаз с ветром нужная точность не гарантирована, поэтому используется зрительная разметка (<code>fiducial marker</code>, похоже на QR-код) на площадке: камера дрона видит маркер и по нему выравнивается в последние 1–2 метра снижения, а не только по GPS/RTK.</p>
+      <ul>
+        <li>Грузоподъёмность площадки и отсека ограничивает и максимальный вес заказа — превышение отклоняется ещё на этапе оформления доставки.</li>
+        <li>Датчик веса в площадке подтверждает, что посылка физически легла (а не зависла на пол пути) — это и есть сигнал «доставлено на крышу», который уходит клиенту.</li>
+        <li>Есть порог по силе ветра и осадкам, при превышении которого посадка дроном на эту крышу временно недоступна (значение зависит от модели дрона и высоты здания — здесь не фиксируется).</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <h2><span class="num">5</span>Электроника и датчики</h2>
+      <p>На каждой платформе стоит локальный контроллер (например, промышленный модуль на базе <code>ESP32</code> или небольшой <code>PLC</code>), который не «думает» сам, а выполняет команды — двигаться, остановиться, опуститься до отметки:</p>
+      <ul>
+        <li>Энкодеры (датчики положения) на приводе рельса и на лебёдке — контроллер всегда знает точную позицию отсека, а не оценивает её по времени работы мотора.</li>
+        <li>Концевые выключатели и физические упоры на фиксированных точках — механическая подстраховка на случай ошибки энкодера.</li>
+        <li>Датчик веса в отсеке — отличает «отсек пуст», «посылка на месте» и «что-то мешает закрытию/движению».</li>
+        <li>Локальная шина между узлами одного здания (<code>CAN</code> или <code>RS-485</code>) — быстрая и устойчивая к помехам связь между приводами и контроллером.</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <h2><span class="num">6</span>Программная архитектура</h2>
+      <p>Выше электроники — облачный слой, который знает про заказы, клиентов и уведомления, а не про моторы:</p>
+      <ul>
+        <li><b>Конечный автомат платформы</b> (<code>state machine</code>) на здание: <code>ожидание → движение по рельсу → стыковка с монорельсом → спуск/подъём → у окна → возврат</code>. Пока автомат не в «ожидании», новая команда для этого здания не принимается.</li>
+        <li><b>Шлюз здания</b> — локальный сервис, который транслирует облачные команды в команды для конкретного контроллера платформы (по локальной сети), и наоборот — телеметрию наверх.</li>
+        <li><b>Обмен сообщениями</b> — <code>MQTT</code> или <code>WebSocket</code>: дрон после подтверждённой посадки публикует событие «доставлено на крышу», сервис заказов переводит его в уведомление клиенту.</li>
+        <li><b>Клиентское приложение</b> — кнопка «Получить заказ» отправляет команду не напрямую на платформу, а через сервис заказов, который проверяет, что заказ действительно ждёт именно этого клиента, и только потом ставит платформу в очередь.</li>
+        <li><b>Приложение курьера</b> — тот же сервис заказов, но со сценарием «вызвать вниз / отправить наверх» вместо «получить».</li>
+        <li><b>Аутентификация и права</b> — команда «получить заказ» привязана к паре (заказ, клиент), поэтому чужой аккаунт не может вызвать чужую посылку к своему окну.</li>
+      </ul>
+    </section>
+
+    <section id="s7">
+      <h2><span class="num">7</span>Сценарий курьера снизу</h2>
+      <p>Курьер использует ту же самую платформу и тот же крест направляющих, что и обычная доставка — только через задний рукав, который один и тот же на каждом здании доходит до самой земли:</p>
+      <ul>
+        <li>Курьер нажимает «вызвать вниз» — платформа сначала едет к заднему рукаву (если была не там), затем спускается по монорельсу до нижней отметки, и борт открывается для загрузки.</li>
+        <li>После того как курьер положил посылку — «отправить наверх»: борт закрывается, платформа поднимается и ждёт в исходном положении, откуда её дальше маршрутизируют к нужному окну как обычную доставку.</li>
+        <li>Пока платформа занята курьерским циклом, входящий дрон для этого же здания ставится в лёгкий режим ожидания (кружит рядом или откладывает вылет) — конфликт исключён самим автоматом состояний.</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <h2><span class="num">8</span>Безопасность и отказоустойчивость</h2>
+      <p>Основной риск не «дрон разобьётся», а «груз сорвётся с высоты», поэтому здесь заложена избыточность:</p>
+      <ul>
+        <li>Несущий канат лебёдки дублируется тонким страховочным тросом, рассчитанным на статическую нагрузку сам по себе.</li>
+        <li>Открытая сторона отсека, через которую грузится посылка, — самое уязвимое место, поэтому она не остаётся открытой в пути: сразу после загрузки подвижный борт встаёт вертикально и запирает четвёртую стенку на всё время поездки.</li>
+        <li>При обрыве несущего каната или скачке нагрузки срабатывает механический стопор на монорельсе (аналог ловителя в лифте) — отсек фиксируется на направляющей, не падает.</li>
+        <li>Датчики препятствий на нижней кромке отсека останавливают спуск, если на пути оказался человек, ветка или кондиционер — а не просто доводят движение «по таймеру».</li>
+        <li>Ручной аварийный останов и сервисный режим — обслуживающая организация может заблокировать конкретную колонку или всё здание, не трогая остальную систему доставки в городе.</li>
+        <li>Здания с балконами по умолчанию используют более короткий и медленный ход монорельса — груз находится ближе к опоре (балконной плите), а не висит в воздухе у окна.</li>
+      </ul>
+    </section>
+
+  </div>
+</article>
+
+<footer>причал — демонстрационный прототип механики и архитектуры, не реальный продукт</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- small tween engine ---------- */
+  var tweens = [];
+  function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+  function tween(duration, onUpdate, onComplete){
+    tweens.push({ start: performance.now(), duration: duration, onUpdate: onUpdate, onComplete: onComplete });
+  }
+  function updateTweens(now){
+    for (var i = tweens.length - 1; i >= 0; i--){
+      var t = tweens[i];
+      var p = (now - t.start) / t.duration;
+      if (p >= 1) p = 1;
+      t.onUpdate(easeInOut(p));
+      if (p >= 1){
+        tweens.splice(i,1);
+        if (t.onComplete) t.onComplete();
+      }
+    }
+  }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  /* ---------- log ---------- */
+  var logBody = document.getElementById('logBody');
+  function log(msg){
+    var d = new Date();
+    var ts = ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);
+    var row = document.createElement('div');
+    row.innerHTML = '<span class="t">['+ts+']</span>'+msg;
+    logBody.appendChild(row);
+    logBody.scrollTop = logBody.scrollHeight;
+    while (logBody.children.length > 60){ logBody.removeChild(logBody.firstChild); }
+  }
+
+  /* ---------- scene setup ---------- */
+  var stage = document.getElementById('stage');
+  var scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x0B1013, 55, 165);
+
+  var camera = new THREE.PerspectiveCamera(45, stage.clientWidth/stage.clientHeight, 0.1, 500);
+  camera.position.set(30, 26, 46);
+
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(stage.clientWidth, stage.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.insertBefore(renderer.domElement, stage.firstChild);
+
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.maxPolarAngle = Math.PI * 0.49;
+  controls.minDistance = 8;
+  controls.maxDistance = 130;
+  controls.target.set(-34, 10, 0);
+
+  var droneCam = new THREE.PerspectiveCamera(55, 220/160, 0.05, 40);
+  var pipActive = false, pipDrone = null, pipTargetVec = null;
+  var closeUpActive = false;
+
+  scene.add(new THREE.HemisphereLight(0x9fc7ff, 0x1a1410, 0.55));
+  var sun = new THREE.DirectionalLight(0xfff2e0, 1.05);
+  sun.position.set(40, 60, 20);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left = -90; sun.shadow.camera.right = 90;
+  sun.shadow.camera.top = 90; sun.shadow.camera.bottom = -90;
+  sun.shadow.camera.far = 180;
+  scene.add(sun);
+  var fill = new THREE.DirectionalLight(0x3a6ea8, 0.25);
+  fill.position.set(-30,20,-30);
+  scene.add(fill);
+
+  /* ground */
+  var groundMat = new THREE.MeshStandardMaterial({ color: 0x11181C, roughness: 1 });
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400), groundMat);
+  ground.rotation.x = -Math.PI/2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+  var grid = new THREE.GridHelper(400, 160, 0x1E2A30, 0x161F24);
+  grid.position.y = 0.01;
+  scene.add(grid);
+
+  /* ---------- building data ---------- */
+  var ROOF_CLR = 0.7;      // clearance of rail above roof surface
+  var WINCH_CLR = 1.1;     // fixed cable-anchor height above roof surface
+  var HOME_Z = -0.62;      // compartment's parking spot next to the central pad (toward the back arm)
+  var SIDE_LABEL = { left:'слева', right:'справа', front:'спереди', back:'сзади' };
+  var ARM_KEYS = ['left','right','front','back'];
+  var COMP_HALF_X = 0.5;   // half the compartment's 1 m width — its reach along X on left/right arms
+  var COMP_HALF_Z = 0.35;  // half the compartment's 0.7 m depth — its reach along Z on front/back arms
+  var TIP_GAP = 0.12;      // extra visible clearance beyond the compartment's own edge, past the wall
+
+  function getArmTipLocal(spec, key){
+    var halfW = spec.width/2, halfD = spec.depth/2;
+    var clrX = COMP_HALF_X + TIP_GAP, clrZ = COMP_HALF_Z + TIP_GAP;
+    if (key === 'left')  return { x:-(halfW+clrX), z:0 };
+    if (key === 'right') return { x: (halfW+clrX), z:0 };
+    if (key === 'front') return { x:0, z: (halfD+clrZ) };
+    if (key === 'back')  return { x:0, z:-(halfD+clrZ) };
+    return { x:0, z:0 };
+  }
+  function facadeSpanForArm(spec, key){
+    return (key === 'left' || key === 'right') ? spec.depth : spec.width;
+  }
+  // how many window (or balcony) columns divide this facade — used to find safe gaps
+  function obstacleColsForArm(spec, key){
+    if (spec.hasBalconies && key === 'front'){
+      return Math.max(2, Math.floor(spec.width/3.2)); // matches addBalconies' slot count
+    }
+    return Math.max(2, Math.round(facadeSpanForArm(spec, key)/1.9)); // matches addWindows' column count
+  }
+  // pick `need` lateral positions that fall in the gaps between windows/balconies, not on top of them
+  function safeLateralOffsets(spec, key, need){
+    var span = facadeSpanForArm(spec, key);
+    var cols = obstacleColsForArm(spec, key);
+    var step = span/cols;
+    var internal = [];
+    for (var i=1; i<cols; i++) internal.push(-span/2 + i*step);
+    if (!internal.length) internal = [0];
+    var picks = [];
+    for (var k=0; k<need; k++){
+      var idx = Math.min(internal.length-1, Math.floor((k+0.5)*internal.length/need));
+      picks.push(internal[idx]);
+    }
+    return picks;
+  }
+
+  var buildingsSpec = [
+    {
+      key:'alpha', name:'Башня «Альфа»', kind:'Жилая высотка',
+      x:-34, z:0, width:10, depth:9, height:30, floors:10,
+      bodyColor:0x232C31, hasBalconies:false,
+      arms:{ left:[3,5], right:[6,8], front:[7], back:[] }
+    },
+    {
+      key:'court', name:'Дом «Балконный двор»', kind:'Жилой дом с балконами',
+      x:-12, z:0, width:14, depth:10, height:18, floors:6,
+      bodyColor:0x262019, hasBalconies:true,
+      arms:{ left:[2,4], right:[3], front:[5], back:[] }
+    },
+    {
+      key:'loft', name:'Блок «Офисный лофт»', kind:'Коммерческое здание',
+      x:17, z:0, width:20, depth:12, height:12, floors:4,
+      bodyColor:0x1E262B, hasBalconies:false,
+      arms:{ left:[1], right:[3], front:[2], back:[] }
+    },
+    {
+      key:'micro', name:'Дом «Компакт»', kind:'Малый частный дом',
+      x:39, z:0, width:6, depth:6, height:9, floors:3,
+      bodyColor:0x21231C, hasBalconies:false,
+      arms:{ left:[], right:[2], front:[], back:[] }
+    }
+  ];
+
+  var CLIENT_NAMES = ['Анна','Гурген','Лилит','Ваге','Марина','Давид','Сона','Артём'];
+  var nameIdx = 0;
+  buildingsSpec.forEach(function(b){
+    b.clients = [];
+    b.rails = {};
+    var floorH = b.height / b.floors;
+    ARM_KEYS.forEach(function(key){
+      var floors = b.arms[key] || [];
+      var need = Math.max(2, floors.length); // at least two monorails per side
+      var offsets = safeLateralOffsets(b, key, need);
+      var rails = offsets.map(function(off, idx){
+        var floor = floors[idx] || null;
+        var windowY = floor ? ((floor-1)*floorH + floorH*0.55) : null;
+        return { offset: off, floor: floor, windowY: windowY };
+      });
+      b.rails[key] = rails;
+      rails.forEach(function(r){
+        if (!r.floor) return;
+        var name = CLIENT_NAMES[nameIdx % CLIENT_NAMES.length]; nameIdx++;
+        var word = (b.hasBalconies && key === 'front') ? 'балкон' : 'окно';
+        b.clients.push({
+          name: name, floor: r.floor, side: key, windowY: r.windowY, offset: r.offset,
+          label: name+' — '+r.floor+' этаж ('+word+', '+SIDE_LABEL[key]+')'
+        });
+      });
+    });
+  });
+
+  /* ---------- geometry builders ---------- */
+  function addWindows(group, width, height, depth, floors){
+    var floorH = height/floors;
+    var faces = [
+      { span: width, axis:'z', sign: 1 },
+      { span: width, axis:'z', sign:-1 },
+      { span: depth, axis:'x', sign: 1 },
+      { span: depth, axis:'x', sign:-1 }
+    ];
+    faces.forEach(function(face){
+      var fcols = Math.max(2, Math.round(face.span/1.9));
+      var winW = (face.span/fcols)*0.6, winH = floorH*0.46;
+      for (var f=0; f<floors; f++){
+        var y = f*floorH + floorH*0.55;
+        for (var c=0; c<fcols; c++){
+          var lit = Math.random() > 0.6;
+          var mat = new THREE.MeshStandardMaterial({
+            color: lit ? 0xFFC97A : 0x0A1013,
+            emissive: lit ? 0xFFA23C : 0x000000,
+            emissiveIntensity: lit ? 0.65 : 0,
+            roughness: 0.5, metalness: 0.1
+          });
+          var w = new THREE.Mesh(new THREE.PlaneGeometry(winW*0.85, winH), mat);
+          var offset = -face.span/2 + (c+0.5)*(face.span/fcols);
+          if (face.axis === 'z'){
+            w.position.set(offset, y, face.sign*(depth/2+0.02));
+            if (face.sign < 0) w.rotation.y = Math.PI;
+          } else {
+            w.position.set(face.sign*(width/2+0.02), y, offset);
+            w.rotation.y = face.sign > 0 ? Math.PI/2 : -Math.PI/2;
+          }
+          group.add(w);
+        }
+      }
+    });
+  }
+
+  function addBalconies(group, width, height, depth, floors){
+    var floorH = height/floors;
+    var slots = Math.max(2, Math.floor(width/3.2));
+    var balMat = new THREE.MeshStandardMaterial({ color: 0x3A4147, roughness:0.8, metalness:0.15 });
+    for (var f=1; f<floors; f++){
+      var y = f*floorH;
+      for (var s=0; s<slots; s++){
+        var x = -width/2 + (s+0.5)*(width/slots);
+        var slab = new THREE.Mesh(new THREE.BoxGeometry(width/slots*0.72, 0.12, 1.1), balMat);
+        slab.position.set(x, y, depth/2+0.55);
+        slab.castShadow = true;
+        group.add(slab);
+        var railGeo = new THREE.BoxGeometry(width/slots*0.72, 0.5, 0.04);
+        var rail = new THREE.Mesh(railGeo, balMat);
+        rail.position.set(x, y+0.31, depth/2+1.08);
+        group.add(rail);
+      }
+    }
+  }
+
+  function buildBuildingMesh(spec){
+    var group = new THREE.Group();
+    var bodyMat = new THREE.MeshStandardMaterial({ color: spec.bodyColor, roughness:0.88, metalness:0.04 });
+    var body = new THREE.Mesh(new THREE.BoxGeometry(spec.width, spec.height, spec.depth), bodyMat);
+    body.position.y = spec.height/2;
+    body.castShadow = true; body.receiveShadow = true;
+    group.add(body);
+
+    var parapetMat = new THREE.MeshStandardMaterial({ color: 0x171E22, roughness:0.9 });
+    var parapet = new THREE.Mesh(new THREE.BoxGeometry(spec.width+0.3, 0.5, spec.depth+0.3), parapetMat);
+    parapet.position.y = spec.height + 0.25;
+    parapet.castShadow = true;
+    group.add(parapet);
+
+    addWindows(group, spec.width, spec.height, spec.depth, spec.floors);
+    if (spec.hasBalconies) addBalconies(group, spec.width, spec.height, spec.depth, spec.floors);
+
+    group.position.set(spec.x, 0, spec.z);
+    scene.add(group);
+    return group;
+  }
+
+  function buildPlatformSystem(spec, group){
+    var railMat = new THREE.MeshStandardMaterial({ color:0x4A5960, metalness:0.6, roughness:0.35 });
+    var roofY = spec.height + ROOF_CLR;
+    var bracketMat2 = new THREE.MeshStandardMaterial({ color:0x6B7B83, metalness:0.5, roughness:0.4 });
+
+    ARM_KEYS.forEach(function(key){
+      var tip = getArmTipLocal(spec, key);
+      var isGround = key === 'back';
+      var len = (key==='left'||key==='right') ? Math.abs(tip.x) : Math.abs(tip.z);
+      var rails = spec.rails[key];
+
+      rails.forEach(function(r){
+        var rx = (key==='left'||key==='right') ? tip.x : r.offset;
+        var rz = (key==='left'||key==='right') ? r.offset : tip.z;
+
+        if (len > 0.15){
+          var railMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05, len, 8), railMat);
+          if (key==='left' || key==='right'){
+            railMesh.rotation.z = Math.PI/2;
+            railMesh.position.set(tip.x/2, roofY-0.04, r.offset);
+          } else {
+            railMesh.rotation.x = Math.PI/2;
+            railMesh.position.set(r.offset, roofY-0.04, tip.z/2);
+          }
+          group.add(railMesh);
+        }
+
+        // every monorail now runs all the way down to the first floor / ground
+        var lowestY = 0.3;
+        var monoTop = roofY - 0.04;
+        var monoHeight = Math.max(0.3, monoTop - lowestY);
+        var monoMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045, monoHeight, 8), railMat);
+        monoMesh.position.set(rx, lowestY + monoHeight/2, rz);
+        group.add(monoMesh);
+
+        var anchor = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.18,0.24), railMat);
+        anchor.position.set(rx, spec.height+WINCH_CLR, rz);
+        group.add(anchor);
+
+        if (r.floor){
+          var bracket = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.06,0.4), bracketMat2);
+          bracket.position.set(rx, r.windowY, rz);
+          group.add(bracket);
+        }
+
+        if (isGround){
+          var padMat = new THREE.MeshStandardMaterial({ color:0x2A3439, roughness:0.9 });
+          var groundPad = new THREE.Mesh(new THREE.CylinderGeometry(0.65,0.65,0.08,18), padMat);
+          groundPad.position.set(spec.x+rx, 0.04, spec.z+rz);
+          groundPad.receiveShadow = true;
+          scene.add(groundPad);
+        }
+      });
+    });
+
+    // hub distributor rails — the compartment always transits through these to switch onto a
+    // specific monorail; together with the four arms they form the physical cross on the roof.
+    var lrOffsets = spec.rails.left.concat(spec.rails.right).map(function(r){ return r.offset; });
+    var fbOffsets = spec.rails.front.concat(spec.rails.back).map(function(r){ return r.offset; });
+    var zVals = [HOME_Z, 0].concat(lrOffsets);
+    var zMin = Math.min.apply(null, zVals), zMax = Math.max.apply(null, zVals);
+    var xVals = [0].concat(fbOffsets);
+    var xMin = Math.min.apply(null, xVals), xMax = Math.max.apply(null, xVals);
+    if (zMax - zMin > 0.05){
+      var zDist = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05, zMax-zMin, 8), railMat);
+      zDist.rotation.x = Math.PI/2;
+      zDist.position.set(0, roofY-0.04, (zMin+zMax)/2);
+      group.add(zDist);
+    }
+    if (xMax - xMin > 0.05){
+      var xDist = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05, xMax-xMin, 8), railMat);
+      xDist.rotation.z = Math.PI/2;
+      xDist.position.set((xMin+xMax)/2, roofY-0.04, 0);
+      group.add(xDist);
+    }
+
+    // central landing pad — fixed, always the same spot the drone drops onto
+    var padPivot = new THREE.Group();
+    padPivot.position.set(0, roofY, -0.45);
+    group.add(padPivot);
+    var padTopMat = new THREE.MeshStandardMaterial({ color:0xB9C4C9, metalness:0.2, roughness:0.6 });
+    var padMesh = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.08,0.9), padTopMat);
+    padMesh.position.set(0,0,0.45);
+    padMesh.castShadow = true; padMesh.receiveShadow = true;
+    padPivot.add(padMesh);
+    var padRim = new THREE.Mesh(new THREE.BoxGeometry(0.98,0.03,0.98),
+      new THREE.MeshStandardMaterial({ color:0x333F45, roughness:0.8 }));
+    padRim.position.set(0,0.055,0.45);
+    padPivot.add(padRim);
+    var marker = new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.5), new THREE.MeshBasicMaterial({ map: createMarkerTexture() }));
+    marker.rotation.x = -Math.PI/2;
+    marker.position.set(0,0.041,0.45);
+    padPivot.add(marker);
+
+    // compartment (carriage) — walls left/right/back, open toward the pad, plus a closing gate
+    var comp = new THREE.Group();
+    var wallMat = new THREE.MeshStandardMaterial({ color:0xB9C4C9, metalness:0.25, roughness:0.55 });
+    var base = new THREE.Mesh(new THREE.BoxGeometry(1,0.07,0.7), wallMat);
+    base.position.y = 0.035;
+    comp.add(base);
+    var wallH = 0.4;
+    var sideGeo = new THREE.BoxGeometry(0.05, wallH, 0.7);
+    var lw = new THREE.Mesh(sideGeo, wallMat); lw.position.set(-0.475, wallH/2+0.07, 0);
+    var rw = new THREE.Mesh(sideGeo, wallMat); rw.position.set(0.475, wallH/2+0.07, 0);
+    var endGeo = new THREE.BoxGeometry(1, wallH, 0.05);
+    var bw = new THREE.Mesh(endGeo, wallMat); bw.position.set(0, wallH/2+0.07, -0.325);
+    comp.add(lw,rw,bw);
+    [base,lw,rw,bw].forEach(function(m){ m.castShadow=true; m.receiveShadow=true; });
+
+    var trolley = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.3,0.14), bracketMat2);
+    trolley.position.set(0, wallH+0.22, -0.325);
+    comp.add(trolley);
+
+    // gate: hinged flap on the open (+Z) side — lies flat as a loading ramp when open, stands up to seal when closed
+    var gatePivot = new THREE.Group();
+    gatePivot.position.set(0, 0.07, 0.325);
+    comp.add(gatePivot);
+    var gateMesh = new THREE.Mesh(new THREE.BoxGeometry(1, wallH, 0.04), wallMat);
+    gateMesh.position.set(0, wallH/2, 0);
+    gateMesh.castShadow = true;
+    gatePivot.add(gateMesh);
+    gatePivot.rotation.x = Math.PI/2; // start open (flat)
+
+    comp.position.set(0, roofY, HOME_Z);
+    group.add(comp);
+
+    // package (starts on the pad, later re-parented into the compartment)
+    var pkgMat = new THREE.MeshStandardMaterial({ color:0xC79A63, roughness:0.9 });
+    var pkg = new THREE.Mesh(new THREE.BoxGeometry(0.46,0.32,0.38), pkgMat);
+    pkg.castShadow = true;
+    pkg.visible = false;
+    pkg.position.set(0, roofY+0.20, 0);
+    group.add(pkg);
+
+    // cable (dynamic length, follows the compartment on whichever monorail it's on)
+    var cableMat = new THREE.MeshBasicMaterial({ color: 0xAFC0C6 });
+    var cable = new THREE.Mesh(new THREE.CylinderGeometry(0.014,0.014,1,6), cableMat);
+    group.add(cable);
+
+    return { comp: comp, pkg: pkg, cable: cable, roofY: roofY, padPivot: padPivot, gatePivot: gatePivot };
+  }
+
+  function createMarkerTexture(){
+    var size = 128;
+    var c = document.createElement('canvas'); c.width = c.height = size;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#EDEFEF'; ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = '#0B1013';
+    var border = size*0.13;
+    ctx.fillRect(0,0,size,border);
+    ctx.fillRect(0,0,border,size);
+    ctx.fillRect(size-border,0,border,size);
+    ctx.fillRect(0,size-border,size,border);
+    var cells = 4, inner = size - border*2, cellSize = inner/cells;
+    var seed = 51;
+    function rand(){ seed = (seed*9301+49297) % 233280; return seed/233280; }
+    for (var i=0;i<cells;i++){
+      for (var j=0;j<cells;j++){
+        if (rand() > 0.52){
+          ctx.fillRect(border+i*cellSize, border+j*cellSize, cellSize, cellSize);
+        }
+      }
+    }
+    ctx.fillStyle = '#FF6A2B';
+    ctx.fillRect(border, border, cellSize*0.85, cellSize*0.85);
+    var tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  function buildDrone(){
+    var g = new THREE.Group();
+    var bodyMat = new THREE.MeshStandardMaterial({ color:0x2A3238, metalness:0.5, roughness:0.35 });
+    var body = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.14,0.42), bodyMat);
+    body.castShadow = true;
+    g.add(body);
+    var rotors = [];
+    var offsets = [[0.42,0.42],[-0.42,0.42],[0.42,-0.42],[-0.42,-0.42]];
+    offsets.forEach(function(o){
+      var arm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.55,6), bodyMat);
+      arm.rotation.z = Math.PI/2;
+      arm.rotation.y = Math.atan2(o[1], o[0]);
+      arm.position.set(o[0]/2, 0.02, o[1]/2);
+      g.add(arm);
+      var hub = new THREE.Group();
+      hub.position.set(o[0], 0.08, o[1]);
+      var rotor = new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,0.02,16),
+        new THREE.MeshStandardMaterial({ color:0x0D1113, transparent:true, opacity:0.55 }));
+      hub.add(rotor);
+      g.add(hub);
+      rotors.push(hub);
+    });
+    var beacon = new THREE.PointLight(0xFF6A2B, 1.1, 4);
+    beacon.position.set(0,-0.05,0);
+    g.add(beacon);
+    var beaconMesh = new THREE.Mesh(new THREE.SphereGeometry(0.045,8,8),
+      new THREE.MeshBasicMaterial({ color:0xFF6A2B }));
+    beaconMesh.position.set(0,-0.08,0);
+    g.add(beaconMesh);
+    g.visible = false;
+    scene.add(g);
+    return { group:g, rotors:rotors, beaconMesh:beaconMesh };
+  }
+
+  /* ---------- assemble buildings ---------- */
+  var labelsLayer = document.getElementById('labels-layer');
+  var dynamicLabels = [];
+  function addLabel(worldPos, text, cls){
+    var el = document.createElement('div');
+    el.className = 'label' + (cls ? ' '+cls : '');
+    el.textContent = text;
+    labelsLayer.appendChild(el);
+    dynamicLabels.push({ pos: worldPos, el: el });
+  }
+
+  var buildings = buildingsSpec.map(function(spec){
+    var group = buildBuildingMesh(spec);
+    var platform = buildPlatformSystem(spec, group);
+    var drone = buildDrone();
+
+    addLabel(new THREE.Vector3(spec.x, spec.height+2.2, spec.z), spec.name, 'building');
+    addLabel(new THREE.Vector3(spec.x, spec.height+ROOF_CLR+1.5, spec.z), 'посадка дрона', 'dock');
+    spec.clients.forEach(function(cl){
+      var tip = getArmTipLocal(spec, cl.side);
+      var lx = (cl.side==='left'||cl.side==='right') ? tip.x*1.15 : cl.offset;
+      var lz = (cl.side==='left'||cl.side==='right') ? cl.offset : tip.z*1.15;
+      addLabel(new THREE.Vector3(spec.x+lx, cl.windowY, spec.z+lz), cl.name, null);
+    });
+
+    return {
+      spec: spec, group: group, platform: platform, drone: drone,
+      busy: false, notified: false, notifiedClient: null, awaitingCourierPackage: false
+    };
+  });
+
+  /* ---------- flows ---------- */
+  function refreshUI(){ renderOpsRows(); }
+
+  function updateCable(b){
+    var comp = b.platform.comp;
+    var cable = b.platform.cable;
+    var roofY = b.platform.roofY;
+    var onMonorail = comp.position.y < roofY - 0.06;
+    cable.visible = onMonorail;
+    if (onMonorail){
+      var topY = b.spec.height + WINCH_CLR;
+      var botY = comp.position.y + 0.42;
+      var h = Math.max(0.05, topY - botY);
+      cable.position.set(comp.position.x, botY + h/2, comp.position.z);
+      cable.scale.y = h;
+    }
+  }
+
+  function openGate(b, cb){
+    var g = b.platform.gatePivot;
+    var from = g.rotation.x;
+    tween(400, function(e){ g.rotation.x = lerp(from, Math.PI/2, e); }, cb);
+  }
+  function closeGate(b, cb){
+    var g = b.platform.gatePivot;
+    var from = g.rotation.x;
+    tween(400, function(e){ g.rotation.x = lerp(from, 0, e); }, cb);
+  }
+
+  function tiltTransfer(b, cb){
+    openGate(b, function(){
+      var pad = b.platform.padPivot, pkg = b.platform.pkg, comp = b.platform.comp;
+      var startPos = new THREE.Vector3(0, b.platform.roofY+0.20, 0);
+      var endPos = new THREE.Vector3(comp.position.x, b.platform.roofY+0.23, comp.position.z);
+      tween(450, function(e){ pad.rotation.x = lerp(0, -0.22, e); }, function(){
+        tween(1100, function(e){ pkg.position.lerpVectors(startPos, endPos, e); }, function(){
+          tween(400, function(e){ pad.rotation.x = lerp(-0.22, 0, e); }, function(){
+            if (pkg.parent) pkg.parent.remove(pkg);
+            comp.add(pkg);
+            pkg.position.set(0, 0.23, 0);
+            closeGate(b, cb);
+          });
+        });
+      });
+    });
+  }
+
+  function travelHomeToArm(b, armKey, offset, cb){
+    var comp = b.platform.comp;
+    var tip = getArmTipLocal(b.spec, armKey);
+    if (armKey === 'left' || armKey === 'right'){
+      var fromZ = comp.position.z;
+      tween(700, function(e){ comp.position.z = lerp(fromZ, offset, e); }, function(){
+        var fromX = comp.position.x;
+        tween(1300, function(e){ comp.position.x = lerp(fromX, tip.x, e); }, cb);
+      });
+    } else {
+      var fromZ0 = comp.position.z;
+      tween(500, function(e){ comp.position.z = lerp(fromZ0, 0, e); }, function(){
+        var fromX0 = comp.position.x;
+        tween(700, function(e){ comp.position.x = lerp(fromX0, offset, e); }, function(){
+          var fromZ1 = comp.position.z;
+          tween(1300, function(e){ comp.position.z = lerp(fromZ1, tip.z, e); }, cb);
+        });
+      });
+    }
+  }
+  function travelArmToHome(b, armKey, offset, cb){
+    var comp = b.platform.comp;
+    if (armKey === 'left' || armKey === 'right'){
+      var fromX = comp.position.x;
+      tween(1300, function(e){ comp.position.x = lerp(fromX, 0, e); }, function(){
+        var fromZ = comp.position.z;
+        tween(700, function(e){ comp.position.z = lerp(fromZ, HOME_Z, e); }, cb);
+      });
+    } else {
+      var fromZ1 = comp.position.z;
+      tween(1300, function(e){ comp.position.z = lerp(fromZ1, 0, e); }, function(){
+        var fromX0 = comp.position.x;
+        tween(700, function(e){ comp.position.x = lerp(fromX0, 0, e); }, function(){
+          var fromZ0 = comp.position.z;
+          tween(500, function(e){ comp.position.z = lerp(fromZ0, HOME_Z, e); }, cb);
+        });
+      });
+    }
+  }
+
+  function sendDrone(bi, clientRef, opts){
+    var b = buildings[bi];
+    if (b.busy){ log('«'+b.spec.name+'»: платформа занята, ждите.'); return; }
+    b.busy = true; refreshUI();
+    var spec = b.spec, plat = b.platform;
+
+    if (plat.pkg.parent) plat.pkg.parent.remove(plat.pkg);
+    b.group.add(plat.pkg);
+    plat.pkg.position.set(0, plat.roofY+0.20, 0);
+    plat.pkg.visible = false;
+    plat.pkg.scale.set(1,1,1);
+
+    var hubWorld = new THREE.Vector3(spec.x, spec.height+2.0, spec.z);
+    var farStart = hubWorld.clone().add(new THREE.Vector3(-28,9,-14));
+    var farEnd = hubWorld.clone().add(new THREE.Vector3(30,10,16));
+    var drone = b.drone;
+    drone.group.position.copy(farStart);
+    drone.group.lookAt(hubWorld);
+    drone.group.visible = true;
+    log('«'+spec.name+'»: дрон вылетел с посылкой для '+clientRef.name+'.');
+    if (opts && opts.onPhase) opts.onPhase(1, 'Вылет к «'+spec.name+'» с посылкой для '+clientRef.name);
+
+    tween(1700, function(e){ drone.group.position.lerpVectors(farStart, hubWorld, e); }, function(){
+      log('«'+spec.name+'»: дрон завис над посадочной площадкой в центре крыши.');
+      if (opts && opts.onPhase) opts.onPhase(2, 'Дрон наводится по маркеру на посадочной площадке');
+      var hoverY = hubWorld.y;
+      var dropY = spec.height + 1.0;
+      if (opts && opts.onPhase) opts.onPhase(3, 'Точное снижение к площадке');
+      tween(1300, function(e){ drone.group.position.y = lerp(hoverY, dropY, e); }, function(){
+        plat.pkg.visible = true;
+        plat.pkg.scale.set(1,0.02,1);
+        tween(280, function(e){ plat.pkg.scale.y = lerp(0.02,1,e); }, function(){
+          log('«'+spec.name+'»: посылка размещена на приёмной площадке в центре крыши.');
+          if (opts && opts.onPhase) opts.onPhase(4, 'Контакт, датчик веса подтверждает — груз отпущен');
+          tween(700, function(e){ drone.group.position.y = lerp(dropY, hoverY, e); }, function(){
+            if (opts && opts.onPhase) opts.onPhase(5, 'Взлёт с крыши');
+            tween(1700, function(e){ drone.group.position.lerpVectors(hubWorld, farEnd, e); }, function(){
+              drone.group.visible = false;
+              b.busy = false;
+              b.notified = true;
+              b.notifiedClient = clientRef;
+              log('«'+spec.name+'»: дрон улетел. Клиенту '+clientRef.name+' отправлено уведомление.');
+              if (opts && opts.onPhase) opts.onPhase(6, 'Уведомление о доставке отправлено клиенту '+clientRef.name);
+              refreshUI();
+              if (opts && opts.onDone) opts.onDone();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  function deliverToClient(bi){
+    var b = buildings[bi];
+    if (b.busy || !b.notified) return;
+    var client = b.notifiedClient;
+    var spec = b.spec;
+    var comp = b.platform.comp;
+    b.busy = true; refreshUI();
+    log('«'+spec.name+'»: клиент '+client.name+' нажал «получить заказ».');
+
+    tiltTransfer(b, function(){
+      log('«'+spec.name+'»: приёмный лоток наклонился — посылка медленно перекатилась в отсек, борт закрыт.');
+      travelHomeToArm(b, client.side, client.offset, function(){
+        log('«'+spec.name+'»: платформа на позиции («'+SIDE_LABEL[client.side]+'»), спуск по монорельсу.');
+        var topY = comp.position.y;
+        tween(1700, function(e){ comp.position.y = lerp(topY, client.windowY, e); updateCable(b); }, function(){
+          log('«'+spec.name+'»: посылка у окна '+client.floor+'-го этажа («'+SIDE_LABEL[client.side]+'») — открыт борт для '+client.name+'.');
+          openGate(b, function(){
+            b.platform.pkg.visible = false;
+            tween(700, function(){}, function(){
+              closeGate(b, function(){
+                log('«'+spec.name+'»: заказ доставлен — '+client.name+'. Платформа возвращается на крышу.');
+                tween(1700, function(e){ comp.position.y = lerp(client.windowY, topY, e); updateCable(b); }, function(){
+                  travelArmToHome(b, client.side, client.offset, function(){
+                    log('«'+spec.name+'»: платформа на приёмной позиции, готова к следующему заказу.');
+                    b.busy = false; b.notified = false; b.notifiedClient = null;
+                    refreshUI();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+
+  function courierCallDown(bi){
+    var b = buildings[bi];
+    if (b.busy) return;
+    b.busy = true; refreshUI();
+    var spec = b.spec;
+    var comp = b.platform.comp;
+    var offset = spec.rails.back[0].offset;
+    log('«'+spec.name+'»: курьер вызывает платформу к земле.');
+    travelHomeToArm(b, 'back', offset, function(){
+      var fromY = comp.position.y;
+      tween(2000, function(e){ comp.position.y = lerp(fromY, 0.55, e); updateCable(b); }, function(){
+        openGate(b, function(){
+          log('«'+spec.name+'»: платформа у земли, борт открыт — ожидает посылку от курьера.');
+          b.busy = false; b.awaitingCourierPackage = true;
+          refreshUI();
+        });
+      });
+    });
+  }
+
+  function courierSendUp(bi){
+    var b = buildings[bi];
+    if (b.busy || !b.awaitingCourierPackage) return;
+    b.busy = true; refreshUI();
+    var spec = b.spec;
+    var comp = b.platform.comp;
+    var pkg = b.platform.pkg;
+    if (pkg.parent) pkg.parent.remove(pkg);
+    comp.add(pkg);
+    pkg.visible = true;
+    pkg.position.set(0,0.02,0);
+    pkg.scale.set(1,0.02,1);
+    tween(280, function(e){ pkg.scale.y = lerp(0.02,1,e); pkg.position.y = lerp(0.02,0.23,e); }, function(){
+      pkg.position.set(0,0.23,0);
+      log('«'+spec.name+'»: курьер разместил посылку. Борт закрывается, платформа поднимается наверх.');
+      closeGate(b, function(){
+        var fromY = comp.position.y;
+        tween(2000, function(e){ comp.position.y = lerp(fromY, b.platform.roofY, e); updateCable(b); }, function(){
+          travelArmToHome(b, 'back', spec.rails.back[0].offset, function(){
+            log('«'+spec.name+'»: платформа вернулась на крышу, отсек ждёт назначения клиенту.');
+            b.awaitingCourierPackage = false;
+            b.busy = false;
+            refreshUI();
+          });
+        });
+      });
+    });
+  }
+
+  /* ---------- close-up: how the drone places the order ---------- */
+  var pipEl = document.getElementById('pip');
+  var captionEl = document.getElementById('hudCaption');
+  var captionStepEl = document.getElementById('captionStep');
+  var captionTextEl = document.getElementById('captionText');
+
+  function showCaption(on){ captionEl.classList.toggle('active', on); }
+  function setCaptionStep(n, total, text){
+    captionStepEl.textContent = 'шаг '+n+' из '+total;
+    captionTextEl.textContent = text+'.';
+  }
+
+  function showDroneDelivery(){
+    if (closeUpActive) return;
+    var idle = buildings.filter(function(b){ return !b.busy && !b.notified && !b.awaitingCourierPackage; });
+    if (!idle.length){ log('Все платформы сейчас заняты — попробуйте через момент.'); return; }
+    var b = idle[Math.floor(Math.random()*idle.length)];
+    var bi = buildings.indexOf(b);
+    var client = b.spec.clients[Math.floor(Math.random()*b.spec.clients.length)];
+
+    closeUpActive = true;
+    setActiveViewBtn('closeup');
+    showCaption(true);
+    pipEl.classList.add('active');
+
+    var hubX = b.spec.x, hubZ = b.spec.z;
+    var camPos = new THREE.Vector3(hubX+6.2, b.spec.height+4.2, hubZ+8.4);
+    var camTarget = new THREE.Vector3(hubX, b.spec.height+1.0, hubZ);
+    var startCam = camera.position.clone(), startTarget = controls.target.clone();
+    tween(1100, function(e){
+      camera.position.lerpVectors(startCam, camPos, e);
+      controls.target.lerpVectors(startTarget, camTarget, e);
+    });
+
+    pipDrone = b.drone.group;
+    pipTargetVec = new THREE.Vector3(hubX, b.spec.height+ROOF_CLR+0.05, hubZ);
+    pipActive = true;
+
+    sendDrone(bi, client, {
+      onPhase: function(n, text){ setCaptionStep(n, 6, text); },
+      onDone: function(){
+        pipActive = false;
+        pipEl.classList.remove('active');
+        setTimeout(function(){
+          showCaption(false);
+          closeUpActive = false;
+          focusOverview();
+        }, 2400);
+      }
+    });
+  }
+
+  /* ---------- ops panel ---------- */
+  var opsRows = document.getElementById('opsRows');
+  function renderOpsRows(){
+    opsRows.innerHTML = '';
+    buildings.forEach(function(b, bi){
+      var row = document.createElement('div');
+      row.className = 'ops-row';
+
+      var stateCls = 'idle', stateText = 'свободна';
+      if (b.busy){ stateCls='busy'; stateText='в движении'; }
+      else if (b.notified){ stateCls='notified'; stateText='ожидает получения'; }
+      else if (b.awaitingCourierPackage){ stateCls='ground'; stateText='у земли'; }
+
+      var top = document.createElement('div');
+      top.className = 'ops-row-top';
+      top.innerHTML = '<span class="ops-row-name">'+b.spec.name+'</span>'+
+        '<span class="ops-state '+stateCls+'"><span class="dot"></span>'+stateText+'</span>';
+      row.appendChild(top);
+
+      var body = document.createElement('div');
+      body.className = 'ops-row-body';
+
+      if (!b.busy && !b.notified && !b.awaitingCourierPackage){
+        var sel = document.createElement('select');
+        sel.className = 'ops-select';
+        b.spec.clients.forEach(function(c, ci){
+          var opt = document.createElement('option');
+          opt.value = ci; opt.textContent = c.label;
+          sel.appendChild(opt);
+        });
+        sel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+        body.appendChild(sel);
+
+        var sendBtn = document.createElement('button');
+        sendBtn.className = 'ops-btn';
+        sendBtn.textContent = 'Отправить дрон';
+        sendBtn.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          sendDrone(bi, b.spec.clients[parseInt(sel.value,10)]);
+        });
+        body.appendChild(sendBtn);
+
+        var courierBtn = document.createElement('button');
+        courierBtn.className = 'ops-btn secondary';
+        courierBtn.textContent = 'Вызвать курьером';
+        courierBtn.addEventListener('click', function(ev){ ev.stopPropagation(); courierCallDown(bi); });
+        body.appendChild(courierBtn);
+      } else if (b.notified){
+        var recvBtn = document.createElement('button');
+        recvBtn.className = 'ops-btn';
+        recvBtn.textContent = 'Получить заказ';
+        recvBtn.addEventListener('click', function(ev){ ev.stopPropagation(); deliverToClient(bi); });
+        body.appendChild(recvBtn);
+        var note = document.createElement('div');
+        note.className = 'ops-note';
+        note.textContent = 'клиент: '+b.notifiedClient.name+' · '+b.notifiedClient.floor+' этаж';
+        row.appendChild(body); row.appendChild(note);
+        row.addEventListener('click', function(){ focusOn(b.spec); });
+        opsRows.appendChild(row);
+        return;
+      } else if (b.awaitingCourierPackage){
+        var upBtn = document.createElement('button');
+        upBtn.className = 'ops-btn';
+        upBtn.textContent = 'Отправить наверх';
+        upBtn.addEventListener('click', function(ev){ ev.stopPropagation(); courierSendUp(bi); });
+        body.appendChild(upBtn);
+      } else {
+        var busyNote = document.createElement('span');
+        busyNote.className = 'ops-note';
+        busyNote.textContent = 'выполняется маршрут…';
+        body.appendChild(busyNote);
+      }
+
+      row.appendChild(body);
+      row.addEventListener('click', function(){ focusOn(b.spec); });
+      opsRows.appendChild(row);
+    });
+  }
+
+  /* ---------- camera focus + view buttons ---------- */
+  function focusOn(spec){
+    var targetPos = new THREE.Vector3(spec.x, spec.height*0.4+2, spec.z);
+    var camPos = new THREE.Vector3(
+      spec.x + spec.width*1.15 + 7,
+      spec.height*0.85 + 7,
+      spec.z + spec.depth*1.7 + 11
+    );
+    var startTarget = controls.target.clone();
+    var startCam = camera.position.clone();
+    tween(1100, function(e){
+      controls.target.lerpVectors(startTarget, targetPos, e);
+      camera.position.lerpVectors(startCam, camPos, e);
+    });
+    setActiveViewBtn(spec.key);
+  }
+  function focusOverview(){
+    var startTarget = controls.target.clone();
+    var startCam = camera.position.clone();
+    tween(1200, function(e){
+      controls.target.lerpVectors(startTarget, new THREE.Vector3(0,9,0), e);
+      camera.position.lerpVectors(startCam, new THREE.Vector3(6,34,72), e);
+    });
+    setActiveViewBtn('overview');
+  }
+
+  var viewButtonsEl = document.getElementById('viewButtons');
+  var viewBtnEls = {};
+  function setActiveViewBtn(key){
+    Object.keys(viewBtnEls).forEach(function(k){
+      viewBtnEls[k].classList.toggle('active', k === key);
+    });
+  }
+  (function initViewButtons(){
+    var droneBtn = document.createElement('button');
+    droneBtn.className = 'view-btn accent-btn';
+    droneBtn.textContent = 'Как дрон ставит заказ';
+    droneBtn.addEventListener('click', showDroneDelivery);
+    viewButtonsEl.appendChild(droneBtn);
+    viewBtnEls['closeup'] = droneBtn;
+
+    var overviewBtn = document.createElement('button');
+    overviewBtn.className = 'view-btn active';
+    overviewBtn.textContent = 'Общий вид';
+    overviewBtn.addEventListener('click', focusOverview);
+    viewButtonsEl.appendChild(overviewBtn);
+    viewBtnEls['overview'] = overviewBtn;
+
+    buildingsSpec.forEach(function(spec){
+      var btn = document.createElement('button');
+      btn.className = 'view-btn';
+      btn.textContent = spec.name.replace(/«|»/g,'');
+      btn.addEventListener('click', function(){ focusOn(spec); });
+      viewButtonsEl.appendChild(btn);
+      viewBtnEls[spec.key] = btn;
+    });
+  })();
+
+  /* ---------- labels projection ---------- */
+  function updateLabels(){
+    var rect = renderer.domElement.getBoundingClientRect();
+    var stageRect = stage.getBoundingClientRect();
+    var offX = rect.left - stageRect.left, offY = rect.top - stageRect.top;
+    dynamicLabels.forEach(function(l){
+      var v = l.pos.clone().project(camera);
+      if (v.z > 1 || v.z < -1){ l.el.style.display = 'none'; return; }
+      var x = (v.x*0.5+0.5)*rect.width + offX;
+      var y = (-v.y*0.5+0.5)*rect.height + offY;
+      if (x < -60 || x > rect.width+60 || y < -30 || y > rect.height+30){ l.el.style.display='none'; return; }
+      l.el.style.display = 'block';
+      l.el.style.transform = 'translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px) translate(-50%,-100%)';
+    });
+  }
+
+  /* ---------- resize ---------- */
+  function onResize(){
+    var w = stage.clientWidth, h = stage.clientHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w,h);
+  }
+  window.addEventListener('resize', onResize);
+
+  /* ---------- animate ---------- */
+  function animate(now){
+    requestAnimationFrame(animate);
+    updateTweens(now);
+    buildings.forEach(function(b){
+      if (b.drone.group.visible){
+        b.drone.rotors.forEach(function(hub){ hub.rotation.y += 0.9; });
+      }
+    });
+    controls.update();
+    updateLabels();
+
+    var w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setViewport(0,0,w,h);
+    renderer.setScissor(0,0,w,h);
+    renderer.setScissorTest(false);
+    renderer.render(scene, camera);
+
+    if (pipActive && pipDrone && pipDrone.visible && pipTargetVec){
+      var pw = (w < 620) ? 150 : 220, ph = (w < 620) ? 110 : 160, margin = 16;
+      var px = Math.round((w-pw)/2), py = h - ph - margin;
+      droneCam.position.copy(pipDrone.position).add(new THREE.Vector3(0,0.04,0));
+      droneCam.up.set(0,0,-1);
+      droneCam.lookAt(pipTargetVec);
+      droneCam.aspect = pw/ph;
+      droneCam.updateProjectionMatrix();
+      renderer.setViewport(px, py, pw, ph);
+      renderer.setScissor(px, py, pw, ph);
+      renderer.setScissorTest(true);
+      renderer.render(scene, droneCam);
+      renderer.setScissorTest(false);
+    }
+  }
+
+  focusOn(buildingsSpec[0]);
+  renderOpsRows();
+  log('Система инициализирована. Четыре здания готовы принимать доставки.');
+  requestAnimationFrame(animate);
+
+})();
+</script>
+</body>
+</html>
