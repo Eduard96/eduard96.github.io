@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarify — пакет</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314201B'/%3E%3Cpath d='M14 34 L34 14 L50 14 L50 30 L30 50 Z' fill='none' stroke='%23E8792A' stroke-width='4' stroke-linejoin='round'/%3E%3Ccircle cx='41' cy='23' r='4' fill='%23E8792A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F8F7; --surface:#FFFFFF; --ink:#14201B; --ink-soft:#5A6A63;
+    --accent:#E8792A; --accent-dark:#C85F17; --teal:#1F6F5C; --teal-light:#E4F0EC;
+    --red:#B23B3B; --red-light:#FBEAEA;
+    --border:#DFE6E2; --radius:10px; --maxw:960px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Manrope',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  button{font-family:'Manrope',sans-serif;}
+
+  header.site{border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:40;}
+  .headbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;gap:16px;max-width:1180px;margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:16px;height:16px;}
+  .langsw{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:2px;}
+  .langsw button{border:none;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;cursor:pointer;color:var(--ink-soft);}
+  .langsw button.active{background:var(--ink);color:#fff;}
+
+  .back-link{display:inline-block;margin:22px 0 8px;color:var(--ink-soft);font-size:14px;font-weight:600;}
+  .back-link:hover{color:var(--ink);}
+
+  .page-head{padding:6px 0 20px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;}
+  .page-head h1{font-size:28px;}
+
+  .missing-note{background:#FFF6E8;border:1px solid #EFD9A8;color:#7A5A16;padding:10px 14px;border-radius:8px;font-size:13.5px;margin-bottom:18px;}
+
+  /* summary panel */
+  .summary-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:26px;margin-bottom:22px;}
+  .summary-hero{display:flex;gap:36px;flex-wrap:wrap;margin-bottom:20px;}
+  .summary-hero .big{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:38px;line-height:1;}
+  .summary-hero .big-label{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+  .currency-select{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);align-self:flex-start;}
+  .currency-select select{padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--bg);color:var(--ink);}
+
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;padding-top:18px;border-top:1px solid var(--border);}
+  .summary-item .num{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:17px;}
+  .summary-item .label{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
+  .niche-geo-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .mini-tag{font-size:12px;background:var(--bg);border:1px solid var(--border);color:var(--ink-soft);padding:3px 9px;border-radius:12px;}
+
+  .disclaimer{font-size:12px;color:var(--ink-soft);margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+  .disclaimer p{margin:3px 0;}
+
+  /* budget */
+  .budget-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:22px;}
+  .budget-panel h2{font-size:15px;margin-bottom:12px;}
+  .budget-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .budget-row input{width:160px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:15px;background:var(--bg);color:var(--ink);}
+  .budget-result{font-size:14.5px;font-weight:600;}
+  .budget-result.ok{color:var(--teal);}
+  .budget-result.over{color:var(--red);}
+
+  /* items */
+  .items-panel{margin-bottom:22px;}
+  .items-panel h2{font-size:17px;margin-bottom:12px;}
+  .item-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;}
+  .item-info{min-width:180px;}
+  .item-name{font-weight:700;font-size:15px;}
+  .item-meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .item-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .item-controls select{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;background:var(--bg);color:var(--ink);font-family:'Manrope',sans-serif;}
+  .qty-stepper{display:flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .qty-stepper button{width:28px;height:28px;border:none;background:var(--bg);color:var(--ink);font-size:15px;cursor:pointer;}
+  .qty-stepper button:hover{background:var(--teal-light);}
+  .qty-stepper span{width:26px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13.5px;}
+  .item-price{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:16px;color:var(--accent-dark);min-width:70px;text-align:right;}
+  .item-actions{display:flex;gap:12px;align-items:center;}
+  .link-btn{background:none;border:none;color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;}
+  .link-btn:hover{color:var(--ink);}
+  .remove-btn{color:var(--red);}
+
+  /* contact / send section */
+  .contact-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:60px;}
+  .contact-panel h2{font-size:17px;margin-bottom:6px;}
+  .contact-panel p.hint{font-size:13px;color:var(--ink-soft);margin-bottom:14px;}
+  .template-box textarea{width:100%;min-height:76px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Manrope',sans-serif;font-size:13.5px;background:var(--bg);color:var(--ink);resize:vertical;}
+  .contact-row{border-top:1px solid var(--border);padding:14px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
+  .contact-row .who{font-weight:700;font-size:14px;}
+  .contact-row .who-meta{font-size:12px;color:var(--ink-soft);font-weight:400;}
+  .contact-links{display:flex;gap:8px;flex-wrap:wrap;}
+  .contact-links a, .contact-links button{
+    font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--ink);cursor:pointer;
+  }
+  .contact-links a:hover, .contact-links button:hover{border-color:var(--teal);}
+  .contact-links .copy-btn.copied{background:var(--teal-light);border-color:var(--teal);color:var(--teal);}
+
+  .copylink-row{display:flex;justify-content:flex-end;margin-top:16px;}
+  .copylink-btn{background:var(--ink);color:#fff;border:none;padding:11px 18px;border-radius:8px;font-weight:600;font-size:13.5px;cursor:pointer;}
+  .copylink-btn.copied{background:var(--teal);}
+
+  /* empty state */
+  .empty-state{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:60px 30px;text-align:center;margin:30px 0 80px;}
+  .empty-state p{color:var(--ink-soft);max-width:44ch;margin:10px auto 22px;}
+  .empty-state a.btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 22px;border-radius:8px;font-weight:600;}
+  .empty-state a.btn:hover{background:var(--accent-dark);}
+
+  footer.site{border-top:1px solid var(--border);padding:26px 0;text-align:center;font-size:13px;color:var(--ink-soft);}
+
+  @media (max-width:640px){
+    .summary-hero{gap:20px;}
+    .summary-hero .big{font-size:30px;}
+    .currency-select{margin-left:0;}
+    .item-card{flex-direction:column;align-items:stretch;}
+    .item-price{text-align:left;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="headbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 34 L34 14 L50 14 L50 30 L30 50 Z" stroke="#E8792A" stroke-width="5" stroke-linejoin="round"/><circle cx="41" cy="23" r="4" fill="#E8792A"/></svg></span>
+      <span>Tarify</span>
+    </a>
+    <div class="langsw" role="group" aria-label="Language">
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+      <button data-lang="hy">HY</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <a class="back-link" href="index.html" data-i18n="back_catalog">← Назад в каталог</a>
+  <div id="content"></div>
+</div>
+
+<footer class="site">
+  <div class="wrap" data-i18n="footer_text">Демо-платформа. Все данные вымышленные.</div>
+</footer>
+
+<script>
+/* ---------- i18n ---------- */
+const I18N = {
+  ru:{
+    back_catalog:"← Назад в каталог", page_title:"Пакет",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Красота", niche_fashion:"Мода", niche_fitness:"Фитнес", niche_food:"Еда", niche_travel:"Путешествия",
+    niche_tech:"Технологии", niche_gaming:"Игры", niche_business:"Бизнес/Финансы", niche_family:"Семья/Дети",
+    niche_lifestyle:"Лайфстайл", niche_comedy:"Юмор", niche_music:"Музыка", niche_education:"Образование", niche_pets:"Питомцы", niche_auto:"Авто",
+    format_story:"Сторис 24ч", format_post:"Пост", format_reel:"Рилс",
+    total:"Итого", cpm:"Цена за 1000 просмотров",
+    bloggers:"Блогеры", placements:"Размещения", followers_sum:"Подписчики", views_sum:"Просмотры",
+    barter_count:"Готовы на бартер", niches_label:"Ниши пакета", geo_label:"География (топ-5)", gender_label:"Пол аудитории",
+    female:"жен.", male:"муж.",
+    no_overlap_hint:"без учёта пересечений аудиторий",
+    unverified:"Данные указаны блогерами и не проверены платформой",
+    overlap:"Аудитории могут пересекаться — реальный уникальный охват ниже",
+    rates_note:d=>`Курсы примерные, на ${d}`,
+    budget:"Мой бюджет", remaining:"Остаток", over:"Превышение", budget_placeholder:"Например, 400",
+    items_title:"Состав пакета",
+    add_format:"+ ещё формат",
+    remove:"Убрать",
+    contact_title:"Разослать", contact_hint:"Отредактируйте текст ниже — он подставится каждому со своим форматом и ценой.",
+    copy_message:"Скопировать текст", copied:"Скопировано",
+    copyLink:"Скопировать ссылку", link_copied:"Ссылка скопирована",
+    template_default:"Здравствуйте! Нашёл ваши расценки на Tarify. Интересует {формат} — по вашему прайсу {цена}. Готовы обсудить даты?",
+    tpl_format_token:"{формат}", tpl_price_token:"{цена}",
+    missing_note:n=> n===1 ? "1 анкета больше недоступна" : `${n} анкеты больше недоступны`,
+    empty_title:"В пакете пока пусто",
+    empty_sub:"Отметьте нескольких блогеров в каталоге — здесь появится общая стоимость и цена за 1000 просмотров.",
+    empty_cta:"Перейти в каталог",
+    footer_text:"Демо-платформа. Все данные вымышленные."
+  },
+  en:{
+    back_catalog:"← Back to catalog", page_title:"Package",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Beauty", niche_fashion:"Fashion", niche_fitness:"Fitness", niche_food:"Food", niche_travel:"Travel",
+    niche_tech:"Tech", niche_gaming:"Gaming", niche_business:"Business/Finance", niche_family:"Family/Kids",
+    niche_lifestyle:"Lifestyle", niche_comedy:"Comedy", niche_music:"Music", niche_education:"Education", niche_pets:"Pets", niche_auto:"Auto",
+    format_story:"Story 24h", format_post:"Post", format_reel:"Reel",
+    total:"Total", cpm:"Cost per 1,000 views",
+    bloggers:"Bloggers", placements:"Placements", followers_sum:"Followers", views_sum:"Views",
+    barter_count:"Open to barter", niches_label:"Package niches", geo_label:"Geography (top 5)", gender_label:"Audience gender",
+    female:"female", male:"male",
+    no_overlap_hint:"not adjusted for audience overlap",
+    unverified:"Figures are self-reported and not verified by the platform",
+    overlap:"Audiences may overlap — real unique reach is lower",
+    rates_note:d=>`Rates are approximate, as of ${d}`,
+    budget:"My budget", remaining:"Remaining", over:"Over budget", budget_placeholder:"E.g. 400",
+    items_title:"Package items",
+    add_format:"+ add format",
+    remove:"Remove",
+    contact_title:"Contact all", contact_hint:"Edit the message below — it will be personalized with each creator's format and price.",
+    copy_message:"Copy message", copied:"Copied",
+    copyLink:"Copy link", link_copied:"Link copied",
+    template_default:"Hi! I found your rates on Tarify. I'm interested in {format} — at your listed price of {price}. Are you available to discuss dates?",
+    tpl_format_token:"{format}", tpl_price_token:"{price}",
+    missing_note:n=> n===1 ? "1 listing is no longer available" : `${n} listings are no longer available`,
+    empty_title:"Your package is empty",
+    empty_sub:"Mark a few creators in the catalog — the total cost and cost per 1,000 views will show up here.",
+    empty_cta:"Go to catalog",
+    footer_text:"Demo platform. All data is fictional."
+  },
+  hy:{
+    back_catalog:"← Վերադառնալ ցանկ", page_title:"Փաթեթ",
+    platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
+    niche_beauty:"Գեղեցկություն", niche_fashion:"Նորաձևություն", niche_fitness:"Ֆիթնես", niche_food:"Սնունդ", niche_travel:"Ճամփորդություն",
+    niche_tech:"Տեխնոլոգիաներ", niche_gaming:"Խաղեր", niche_business:"Բիզնես/Ֆինանսներ", niche_family:"Ընտանիք/Երեխաներ",
+    niche_lifestyle:"Ապրելակերպ", niche_comedy:"Հումոր", niche_music:"Երաժշտություն", niche_education:"Կրթություն", niche_pets:"Ընտանի կենդանիներ", niche_auto:"Ավտո",
+    format_story:"Սթորի 24ժ", format_post:"Փոստ", format_reel:"Ռիլս",
+    total:"Ընդամենը", cpm:"Արժեքը 1000 դիտման համար",
+    bloggers:"Բլոգերներ", placements:"Հրապարակումներ", followers_sum:"Հետևորդներ", views_sum:"Դիտումներ",
+    barter_count:"Պատրաստ են բարտերի", niches_label:"Փաթեթի ոլորտները", geo_label:"Աշխարհագրություն (թոփ 5)", gender_label:"Լսարանի սեռը",
+    female:"կին", male:"տղամարդ",
+    no_overlap_hint:"առանց լսարանների համընկնումը հաշվի առնելու",
+    unverified:"Տվյալները նշված են բլոգերների կողմից և չեն ստուգվել հարթակի կողմից",
+    overlap:"Լսարանները կարող են համընկնել — իրական եզակի ծածկույթն ավելի ցածր է",
+    rates_note:d=>`Փոխարժեքները մոտավոր են, ${d} դրությամբ`,
+    budget:"Իմ բյուջեն", remaining:"Մնացորդ", over:"Գերազանցում", budget_placeholder:"Օրինակ՝ 400",
+    items_title:"Փաթեթի կազմը",
+    add_format:"+ ևս ձևաչափ",
+    remove:"Հեռացնել",
+    contact_title:"Կապվել բոլորի հետ", contact_hint:"Խմբագրեք տեքստը ներքևում — այն կհարմարեցվի յուրաքանչյուրի ձևաչափով և գնով։",
+    copy_message:"Պատճենել տեքստը", copied:"Պատճենված է",
+    copyLink:"Պատճենել հղումը", link_copied:"Հղումը պատճենվեց",
+    template_default:"Բարև Ձեզ! Ձեր գները տեսա Tarify-ում։ Հետաքրքրված եմ {ձևաչափ}-ով՝ ձեր գնով {գին}։ Կարո՞ղ ենք քննարկել ամսաթվերը։",
+    tpl_format_token:"{ձևաչափ}", tpl_price_token:"{գին}",
+    missing_note:n=> n===1 ? "1 էջ այլևս հասանելի չէ" : `${n} էջ այլևս հասանելի չեն`,
+    empty_title:"Փաթեթը դեռ դատարկ է",
+    empty_sub:"Նշեք մի քանի բլոգերի ցանկում — այստեղ կհայտնվի ընդհանուր արժեքը և գինը 1000 դիտման համար։",
+    empty_cta:"Անցնել ցանկ",
+    footer_text:"Փորձնական հարթակ։ Բոլոր տվյալները հորինված են։"
+  }
+};
+let lang = localStorage.getItem('tarify_lang') || 'ru';
+
+/* ---------- data ---------- */
+const SEED = [
+  {id:1,name:"Anna Petrosyan",handle:"@anna.style",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["fashion","lifestyle"],followers:128000,avgViews:45000,avgLikes:6200,avgShares:340,audFemale:78,audMale:22,audAge:"18–24",audGeo:["Armenia","Russia","USA"],hashtags:["fashion","yerevanstyle","ootd"],pastCollabs:["Zara Armenia","Yves Rocher","SAS Yerevan"],prices:{story:20,post:60,reel:90},currency:"USD",barter:true,bio:"Fashion & lifestyle content from Yerevan.",contacts:{telegram:"@anna_style",whatsapp:"+374 55 111 222",email:"anna@example.com",instagram:"@anna.style"}},
+  {id:2,name:"David Karapetyan",handle:"@david.fit",country:"Armenia",city:"Yerevan",platforms:["instagram","tiktok"],niches:["fitness"],followers:95000,avgViews:120000,avgLikes:8900,avgShares:510,audFemale:40,audMale:60,audAge:"18–34",audGeo:["Armenia","Georgia","Russia"],hashtags:["fitness","gymlife","armeniafit"],pastCollabs:["FitLine Gym","Nike Armenia"],prices:{story:15,post:50,reel:80},currency:"USD",barter:false,bio:"Strength training & nutrition tips.",contacts:{telegram:"@david_fit",whatsapp:"+374 55 222 333",email:"david@example.com",instagram:"@david.fit"}},
+  {id:3,name:"Mariam Hovhannisyan",handle:"@mari.beauty",country:"Armenia",city:"Yerevan",platforms:["instagram","youtube"],niches:["beauty"],followers:210000,avgViews:60000,avgLikes:15000,avgShares:900,audFemale:90,audMale:10,audAge:"18–24",audGeo:["Armenia","Iran","Russia"],hashtags:["beauty","makeup","skincare"],pastCollabs:["L'Oréal Armenia","Sephora AM","Notino"],prices:{story:30,post:100,reel:150},currency:"USD",barter:true,bio:"Makeup tutorials and skincare reviews.",contacts:{telegram:"@mari_beauty",whatsapp:"+374 55 333 444",email:"mariam@example.com",instagram:"@mari.beauty"}},
+  {id:4,name:"Alex Sarkisov",handle:"@alexeats",country:"Russia",city:"Moscow",platforms:["instagram","tiktok","youtube"],niches:["food"],followers:340000,avgViews:210000,avgLikes:22000,avgShares:1400,audFemale:55,audMale:45,audAge:"25–34",audGeo:["Russia","Kazakhstan","Belarus"],hashtags:["food","recipe","moscoweats"],prices:{story:50,post:180,reel:260},currency:"RUB",barter:false,bio:"Restaurant reviews & home recipes.",contacts:{telegram:"@alexeats",whatsapp:"+7 916 000 1122",email:"alex@example.com",instagram:"@alexeats"}},
+  {id:5,name:"Lilit Grigoryan",handle:"@lili.travels",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["travel","lifestyle"],followers:76000,avgViews:30000,avgLikes:5100,avgShares:280,audFemale:65,audMale:35,audAge:"18–24",audGeo:["Armenia","USA","France"],hashtags:["travel","wanderlust","armenia"],prices:{story:18,post:55,reel:85},currency:"USD",barter:true,bio:"Solo travel across the Caucasus and beyond.",contacts:{telegram:"@lili_travels",whatsapp:"+374 55 444 555",email:"lilit@example.com",instagram:"@lili.travels"}},
+  {id:6,name:"Narek Avanesyan",handle:"@narek.tech",country:"Armenia",city:"Yerevan",platforms:["youtube","telegram"],niches:["tech","gaming"],followers:58000,avgViews:40000,avgLikes:3900,avgShares:210,audFemale:20,audMale:80,audAge:"18–24",audGeo:["Armenia","Russia","Ukraine"],hashtags:["tech","gadgets","gaming"],prices:{story:10,post:40,reel:65},currency:"USD",barter:false,bio:"Gadget reviews and gaming setups.",contacts:{telegram:"@narek_tech",whatsapp:"+374 55 555 666",email:"narek@example.com",instagram:"@narek.tech"}},
+  {id:7,name:"Sofia Martirosyan",handle:"@sofia.mama",country:"Armenia",city:"Gyumri",platforms:["instagram"],niches:["family"],followers:41000,avgViews:18000,avgLikes:3100,avgShares:150,audFemale:88,audMale:12,audAge:"25–34",audGeo:["Armenia","Russia","USA"],hashtags:["mom","family","kids"],prices:{story:8,post:28,reel:45},currency:"USD",barter:true,bio:"Motherhood, parenting and family life.",contacts:{telegram:"@sofia_mama",whatsapp:"+374 55 666 777",email:"sofia@example.com",instagram:"@sofia.mama"}},
+  {id:8,name:"Gor Manukyan",handle:"@gor.comedy",country:"Armenia",city:"Yerevan",platforms:["instagram","tiktok"],niches:["comedy"],followers:512000,avgViews:890000,avgLikes:62000,avgShares:4100,audFemale:48,audMale:52,audAge:"18–24",audGeo:["Armenia","Russia","Georgia"],hashtags:["comedy","funny","armenia"],pastCollabs:["Ucom","Wolt Armenia","Team Telecom"],prices:{story:60,post:200,reel:320},currency:"USD",barter:false,bio:"Sketches and everyday humor.",contacts:{telegram:"@gor_comedy",whatsapp:"+374 55 777 888",email:"gor@example.com",instagram:"@gor.comedy"}},
+  {id:9,name:"Elena Kuznetsova",handle:"@elena.finance",country:"Russia",city:"Moscow",platforms:["telegram","youtube"],niches:["business"],followers:89000,avgViews:25000,avgLikes:2200,avgShares:190,audFemale:35,audMale:65,audAge:"25–44",audGeo:["Russia","Kazakhstan","Belarus"],hashtags:["finance","investing","money"],prices:{story:25,post:70,reel:95},currency:"RUB",barter:false,bio:"Personal finance and investing basics.",contacts:{telegram:"@elena_finance",whatsapp:"+7 916 111 2233",email:"elena@example.com",instagram:"@elena.finance"}},
+  {id:10,name:"Tatev Ghazaryan",handle:"@tatev.pets",country:"Armenia",city:"Yerevan",platforms:["instagram"],niches:["pets"],followers:33000,avgViews:14000,avgLikes:2600,avgShares:120,audFemale:70,audMale:30,audAge:"18–34",audGeo:["Armenia","Russia"],hashtags:["pets","dogsofinstagram","cats"],prices:{story:7,post:22,reel:35},currency:"USD",barter:true,bio:"Two dogs, one cat, daily chaos.",contacts:{telegram:"@tatev_pets",whatsapp:"+374 55 888 999",email:"tatev@example.com",instagram:"@tatev.pets"}}
+];
+function loadData(){
+  const stored = localStorage.getItem('tarify_influencers');
+  if(!stored){ localStorage.setItem('tarify_influencers', JSON.stringify(SEED)); return SEED.slice(); }
+  try{ return JSON.parse(stored); }catch(e){ return SEED.slice(); }
+}
+const DATA = loadData();
+
+/* ---------- rates ---------- */
+const FALLBACK_RATES = { updated:"2026-09-08", usdPerUnit:{ USD:1, AMD:0.0026, RUB:0.0109, EUR:1.08 } };
+let RATES = FALLBACK_RATES;
+
+/* ---------- analytics (local only) ---------- */
+function trackEvent(name, meta){
+  try{
+    const key='tarify_events';
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    list.push({name, meta, t:Date.now()});
+    if(list.length>300) list.splice(0, list.length-300);
+    localStorage.setItem(key, JSON.stringify(list));
+  }catch(e){}
+  /* To wire up real analytics, drop a Plausible/Umami <script data-domain="..."> tag
+     in <head> and call window.plausible?.(name, {props:meta}) here as well. */
+}
+
+/* ---------- package state ---------- */
+const PKG_KEY = 'tarify.package.v1';
+function loadPackage(){ try{ return JSON.parse(localStorage.getItem(PKG_KEY)) || []; }catch(e){ return []; } }
+function savePackage(pkg){ localStorage.setItem(PKG_KEY, JSON.stringify(pkg)); }
+
+function encodePackage(pkg){ return pkg.map(i=>`${i.id}:${i.format}:${i.qty}`).join(','); }
+function decodePackage(str){
+  if(!str) return [];
+  return str.split(',').map(s=>{
+    const parts = s.split(':');
+    const id = parseInt(parts[0]);
+    const format = parts[1];
+    const qty = Math.max(1, Math.min(10, parseInt(parts[2])||1));
+    if(!id || !['story','post','reel'].includes(format)) return null;
+    return {id, format, qty};
+  }).filter(Boolean);
+}
+
+let pkg = [];
+const params = new URLSearchParams(window.location.search);
+if(params.get('p')){
+  pkg = decodePackage(params.get('p'));
+  savePackage(pkg);
+} else {
+  pkg = loadPackage();
+}
+
+let baseCurrency = localStorage.getItem('tarify_base_currency') || 'USD';
+let budget = null;
+let template = null; // set to dict default on first render per language unless user edited
+
+function availableFormats(inf){ return ['story','post','reel'].filter(f=> (inf.prices[f]||0) > 0); }
+function formatLabel(dict, f){ return dict['format_'+f]; }
+function currencySymbol(cur){ return cur==='USD' ? '$' : cur==='RUB' ? '₽' : cur==='AMD' ? '֏' : cur==='EUR' ? '€' : cur; }
+function toBase(amount, fromCur){ const usd = amount * (RATES.usdPerUnit[fromCur]||1); return usd / (RATES.usdPerUnit[baseCurrency]||1); }
+function initials(name){ return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function round(n){ return Math.round(n*10)/10; }
+
+function computePackage(){
+  let missingCount = 0;
+  const rows = [];
+  pkg.forEach((pi, idx)=>{
+    const inf = DATA.find(x=>x.id===pi.id);
+    if(!inf){ missingCount++; return; }
+    rows.push({idx, pi, inf});
+  });
+
+  let totalBase=0, totalViews=0, placements=0;
+  const byBlogger = {};
+  rows.forEach(({pi, inf})=>{
+    const price = inf.prices[pi.format] || 0;
+    totalBase += toBase(price, inf.currency) * pi.qty;
+    const viewsContribution = (inf.avgViews||0) * pi.qty;
+    totalViews += viewsContribution;
+    placements += pi.qty;
+    if(!byBlogger[inf.id]) byBlogger[inf.id] = {inf, viewsWeight:0};
+    byBlogger[inf.id].viewsWeight += viewsContribution;
+  });
+
+  const bloggerList = Object.values(byBlogger);
+  const followersSum = bloggerList.reduce((s,b)=>s+(b.inf.followers||0),0);
+  const barterCount = bloggerList.filter(b=>b.inf.barter).length;
+
+  const nicheCounts = {};
+  bloggerList.forEach(b=> b.inf.niches.forEach(n=> nicheCounts[n]=(nicheCounts[n]||0)+1));
+
+  const geoWeighted = {};
+  let femaleSum=0, maleSum=0, weightTotal=0;
+  bloggerList.forEach(b=>{
+    const w = b.viewsWeight || 1;
+    weightTotal += w;
+    femaleSum += (b.inf.audFemale||0) * w;
+    maleSum += (b.inf.audMale||0) * w;
+    (b.inf.audGeo||[]).forEach(c=> geoWeighted[c] = (geoWeighted[c]||0) + w);
+  });
+  const genderFemale = weightTotal ? Math.round(femaleSum/weightTotal) : 0;
+  const genderMale = weightTotal ? Math.round(maleSum/weightTotal) : 0;
+  const geoTop = Object.entries(geoWeighted).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
+
+  const cpm = totalViews>0 ? totalBase / (totalViews/1000) : 0;
+
+  return { rows, missingCount, totalBase:round(totalBase), totalViews, placements,
+    bloggersCount: bloggerList.length, followersSum, barterCount, nicheCounts, geoTop,
+    genderFemale, genderMale, cpm: round(cpm) };
+}
+
+function updateItem(idx, changes){
+  pkg[idx] = Object.assign({}, pkg[idx], changes);
+  savePackage(pkg);
+  render();
+}
+function removeItem(idx){
+  pkg.splice(idx,1);
+  savePackage(pkg);
+  render();
+}
+function addFormatLine(inf){
+  const used = pkg.filter(p=>p.id===inf.id).map(p=>p.format);
+  const free = availableFormats(inf).filter(f=>!used.includes(f));
+  if(!free.length) return;
+  pkg.push({id:inf.id, format:free[0], qty:1});
+  savePackage(pkg);
+  render();
+}
+
+function render(){
+  const dict = I18N[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll('.langsw button').forEach(b=> b.classList.toggle('active', b.dataset.lang===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(dict[key]) el.textContent = dict[key];
+  });
+  document.title = 'Tarify — ' + dict.page_title;
+
+  if(template===null) template = dict.template_default;
+
+  const container = document.getElementById('content');
+  const summary = computePackage();
+
+  if(pkg.length===0 || summary.rows.length===0){
+    container.innerHTML = `
+      <div class="empty-state">
+        <h2>${dict.empty_title}</h2>
+        <p>${dict.empty_sub}</p>
+        <a class="btn" href="index.html">${dict.empty_cta}</a>
+      </div>`;
+    return;
+  }
+
+  const currencies = ['USD','AMD','RUB','EUR'];
+  const sym = currencySymbol(baseCurrency);
+
+  let html = '';
+  html += `<div class="page-head"><h1>${dict.page_title}</h1></div>`;
+
+  if(summary.missingCount>0){
+    html += `<div class="missing-note">${dict.missing_note(summary.missingCount)}</div>`;
+  }
+
+  html += `<div class="summary-panel">
+    <div class="summary-hero">
+      <div>
+        <div class="big">${sym}${summary.totalBase.toLocaleString()}</div>
+        <div class="big-label">${dict.total}</div>
+      </div>
+      <div>
+        <div class="big">${sym}${summary.cpm.toLocaleString()}</div>
+        <div class="big-label">${dict.cpm}</div>
+      </div>
+      <div class="currency-select">
+        <span>${dict.rates_note(RATES.updated)}</span>
+        <select id="currencySel">${currencies.map(c=>`<option value="${c}" ${c===baseCurrency?'selected':''}>${c}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-item"><div class="num">${summary.bloggersCount}</div><div class="label">${dict.bloggers}</div></div>
+      <div class="summary-item"><div class="num">${summary.placements}</div><div class="label">${dict.placements}</div></div>
+      <div class="summary-item"><div class="num">${summary.followersSum.toLocaleString()}</div><div class="label">${dict.followers_sum} (${dict.no_overlap_hint})</div></div>
+      <div class="summary-item"><div class="num">${summary.totalViews.toLocaleString()}</div><div class="label">${dict.views_sum}</div></div>
+      <div class="summary-item"><div class="num">${summary.barterCount}</div><div class="label">${dict.barter_count}</div></div>
+      <div class="summary-item"><div class="num">${summary.genderFemale}% / ${summary.genderMale}%</div><div class="label">${dict.gender_label} (${dict.female}/${dict.male})</div></div>
+    </div>
+    <div class="summary-item" style="margin-top:16px;">
+      <div class="label" style="margin-bottom:6px;">${dict.niches_label}</div>
+      <div class="niche-geo-row">${Object.entries(summary.nicheCounts).map(([n,c])=>`<span class="mini-tag">${dict['niche_'+n]||n} · ${c}</span>`).join('')}</div>
+    </div>
+    <div class="summary-item" style="margin-top:14px;">
+      <div class="label" style="margin-bottom:6px;">${dict.geo_label}</div>
+      <div class="niche-geo-row">${summary.geoTop.map(c=>`<span class="mini-tag">${c}</span>`).join('')}</div>
+    </div>
+    <div class="disclaimer">
+      <p>${dict.unverified}</p>
+      <p>${dict.overlap}</p>
+    </div>
+  </div>`;
+
+  html += `<div class="budget-panel">
+    <h2>${dict.budget}</h2>
+    <div class="budget-row">
+      <input type="number" id="budgetInput" placeholder="${dict.budget_placeholder}" value="${budget!==null?budget:''}">
+      <span id="budgetResult" class="budget-result"></span>
+    </div>
+  </div>`;
+
+  html += `<div class="items-panel"><h2>${dict.items_title}</h2>`;
+  summary.rows.forEach(({idx, pi, inf})=>{
+    const price = inf.prices[pi.format] || 0;
+    const priceSym = currencySymbol(inf.currency);
+    const formats = availableFormats(inf);
+    const canAddMore = formats.some(f=> !pkg.filter(p=>p.id===inf.id).map(p=>p.format).includes(f));
+    html += `<div class="item-card">
+      <div class="item-info">
+        <div class="item-name">${inf.name}</div>
+        <div class="item-meta">${inf.handle} · ${inf.city} · ${(dict['niche_'+inf.niches[0]]||inf.niches[0])}</div>
+      </div>
+      <div class="item-controls">
+        <select data-idx="${idx}" class="formatSel">
+          ${formats.map(f=>`<option value="${f}" ${f===pi.format?'selected':''}>${formatLabel(dict,f)}</option>`).join('')}
+        </select>
+        <div class="qty-stepper">
+          <button type="button" class="qtyDown" data-idx="${idx}">–</button>
+          <span>${pi.qty}</span>
+          <button type="button" class="qtyUp" data-idx="${idx}">+</button>
+        </div>
+        <div class="item-price">${priceSym}${price}</div>
+      </div>
+      <div class="item-actions">
+        ${canAddMore ? `<button type="button" class="link-btn addFormatBtn" data-idx="${idx}">${dict.add_format}</button>` : ''}
+        <button type="button" class="link-btn remove-btn removeBtn" data-idx="${idx}">${dict.remove}</button>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  const uniqueBloggers = [];
+  const seenIds = new Set();
+  summary.rows.forEach(({pi, inf})=>{ if(!seenIds.has(inf.id+':'+pi.format)){ seenIds.add(inf.id+':'+pi.format); uniqueBloggers.push({pi, inf}); } });
+
+  html += `<div class="contact-panel">
+    <h2>${dict.contact_title}</h2>
+    <p class="hint">${dict.contact_hint}</p>
+    <div class="template-box"><textarea id="templateInput">${template}</textarea></div>
+    <div id="contactRows">
+      ${uniqueBloggers.map(({pi, inf})=>{
+        const price = inf.prices[pi.format] || 0;
+        const priceStr = currencySymbol(inf.currency)+price;
+        const tgLink = inf.contacts.telegram ? `https://t.me/${inf.contacts.telegram.replace('@','')}` : null;
+        const waDigits = inf.contacts.whatsapp ? inf.contacts.whatsapp.replace(/[^\d]/g,'') : null;
+        const waLink = waDigits ? `https://wa.me/${waDigits}` : null;
+        return `<div class="contact-row" data-id="${inf.id}" data-format="${pi.format}" data-price="${priceStr}">
+          <div>
+            <div class="who">${inf.name}</div>
+            <div class="who-meta">${formatLabel(dict,pi.format)} · ${priceStr}</div>
+          </div>
+          <div class="contact-links">
+            ${tgLink ? `<a href="${tgLink}" target="_blank" rel="noopener" class="contactLink" data-src="package">Telegram</a>` : ''}
+            ${waLink ? `<a href="${waLink}" target="_blank" rel="noopener" class="contactLink" data-src="package">WhatsApp</a>` : ''}
+            <button type="button" class="copy-btn copyMsgBtn">${dict.copy_message}</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="copylink-row">
+      <button type="button" class="copylink-btn" id="copyLinkBtn">${dict.copyLink}</button>
+    </div>
+  </div>`;
+
+  container.innerHTML = html;
+
+  /* wire up events */
+  document.getElementById('currencySel').addEventListener('change', e=>{
+    baseCurrency = e.target.value;
+    localStorage.setItem('tarify_base_currency', baseCurrency);
+    render();
+  });
+  document.querySelectorAll('.formatSel').forEach(sel=>{
+    sel.addEventListener('change', e=> updateItem(parseInt(e.target.dataset.idx), {format:e.target.value}));
+  });
+  document.querySelectorAll('.qtyUp').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const i = parseInt(e.target.dataset.idx);
+      const cur = pkg[i].qty;
+      if(cur<10) updateItem(i, {qty:cur+1});
+    });
+  });
+  document.querySelectorAll('.qtyDown').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const i = parseInt(e.target.dataset.idx);
+      const cur = pkg[i].qty;
+      if(cur>1) updateItem(i, {qty:cur-1});
+    });
+  });
+  document.querySelectorAll('.removeBtn').forEach(b=>{
+    b.addEventListener('click', e=> removeItem(parseInt(e.target.dataset.idx)));
+  });
+  document.querySelectorAll('.addFormatBtn').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const i = parseInt(e.target.dataset.idx);
+      addFormatLine(pkg[i] ? DATA.find(x=>x.id===pkg[i].id) : null);
+    });
+  });
+  const budgetInput = document.getElementById('budgetInput');
+  budgetInput.addEventListener('input', e=>{
+    budget = e.target.value === '' ? null : parseFloat(e.target.value);
+    updateBudgetResult(summary, dict, sym);
+  });
+  updateBudgetResult(summary, dict, sym);
+
+  const templateInput = document.getElementById('templateInput');
+  templateInput.addEventListener('input', e=>{ template = e.target.value; });
+
+  document.querySelectorAll('.copyMsgBtn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const row = e.target.closest('.contact-row');
+      const format = row.dataset.format;
+      const price = row.dataset.price;
+      const msg = templateInput.value
+        .split(dict.tpl_format_token).join(formatLabel(dict, format))
+        .split(dict.tpl_price_token).join(price);
+      navigator.clipboard.writeText(msg).then(()=>{
+        e.target.textContent = dict.copied;
+        e.target.classList.add('copied');
+        setTimeout(()=>{ e.target.textContent = dict.copy_message; e.target.classList.remove('copied'); }, 1800);
+      });
+    });
+  });
+
+  document.querySelectorAll('.contactLink').forEach(a=>{
+    a.addEventListener('click', ()=> trackEvent('contact_click', {source:a.dataset.src}));
+  });
+
+  document.getElementById('copyLinkBtn').addEventListener('click', e=>{
+    const url = window.location.origin + window.location.pathname + '?p=' + encodeURIComponent(encodePackage(pkg));
+    navigator.clipboard.writeText(url).then(()=>{
+      trackEvent('package_share', {});
+      e.target.textContent = dict.link_copied;
+      e.target.classList.add('copied');
+      setTimeout(()=>{ e.target.textContent = dict.copyLink; e.target.classList.remove('copied'); }, 1800);
+    });
+  });
+}
+
+function updateBudgetResult(summary, dict, sym){
+  const el = document.getElementById('budgetResult');
+  if(!el) return;
+  if(budget===null || isNaN(budget)){ el.textContent=''; el.className='budget-result'; return; }
+  const diff = budget - summary.totalBase;
+  if(diff>=0){
+    el.textContent = `${dict.remaining}: ${sym}${round(diff).toLocaleString()}`;
+    el.className = 'budget-result ok';
+  } else {
+    el.textContent = `${dict.over}: ${sym}${round(Math.abs(diff)).toLocaleString()}`;
+    el.className = 'budget-result over';
+  }
+}
+
+document.querySelectorAll('.langsw button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    lang = b.dataset.lang;
+    localStorage.setItem('tarify_lang', lang);
+    template = null; // reset to new language's default unless changed again
+    render();
+  });
+});
+
+fetch('rates.json').then(r=>r.json()).then(r=>{ RATES = r; render(); }).catch(()=>{ RATES = FALLBACK_RATES; render(); });
+trackEvent('package_open', {});
+render();
+</script>
+</body>
+</html>

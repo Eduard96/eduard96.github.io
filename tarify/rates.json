@@ -1,0 +1,10 @@
+{
+  "updated": "2026-09-08",
+  "note": "Rates are set manually and refreshed occasionally, not pulled live. Value = how many USD one unit of the currency is worth.",
+  "usdPerUnit": {
+    "USD": 1,
+    "AMD": 0.0026,
+    "RUB": 0.0109,
+    "EUR": 1.08
+  }
+}

@@ -79,7 +79,12 @@
   .contact-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
   .contact-row:last-child{border-bottom:none;}
   .contact-row span:first-child{color:var(--ink-soft);}
-  .contact-row span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .contact-row a{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--teal);}
+  .contact-row a:hover{text-decoration:underline;}
+
+  .pkg-btn{margin-top:16px;width:100%;padding:11px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;}
+  .pkg-btn:hover{border-color:var(--teal);}
+  .pkg-btn.on{background:var(--teal);border-color:var(--teal);color:#fff;}
 
   .notfound{padding:80px 20px;text-align:center;color:var(--ink-soft);}
 
@@ -133,7 +138,7 @@ const I18N = {
     hashtags_title:"Основные хештеги",
     collabs_title:"С кем уже работали",
     prices_title:"Цены на рекламу", barter_note:"Открыт(а) к бартеру",
-    contacts_title:"Контакты",
+    contacts_title:"Контакты", pkg_add:"В подбор", pkg_added:"В подборе ✓",
     notfound_title:"Анкета не найдена", notfound_sub:"Возможно, она была удалена. ", notfound_link:"Вернуться в каталог",
     footer_text:"Демо-платформа. Все данные вымышленные."
   },
@@ -149,7 +154,7 @@ const I18N = {
     hashtags_title:"Main hashtags",
     collabs_title:"Past collaborations",
     prices_title:"Ad prices", barter_note:"Open to barter",
-    contacts_title:"Contacts",
+    contacts_title:"Contacts", pkg_add:"Add to package", pkg_added:"In package ✓",
     notfound_title:"Listing not found", notfound_sub:"It may have been removed. ", notfound_link:"Back to catalog",
     footer_text:"Demo platform. All data is fictional."
   },
@@ -165,7 +170,7 @@ const I18N = {
     hashtags_title:"Հիմնական հեշթեգներ",
     collabs_title:"Ում հետ արդեն աշխատել են",
     prices_title:"Գովազդի գներ", barter_note:"Բաց է բարտերի համար",
-    contacts_title:"Կոնտակտներ",
+    contacts_title:"Կոնտակտներ", pkg_add:"Ավելացնել", pkg_added:"Ավելացված է ✓",
     notfound_title:"Էջը չի գտնվել", notfound_sub:"Հնարավոր է՝ այն ջնջվել է։ ", notfound_link:"Վերադառնալ ցանկ",
     footer_text:"Փորձնական հարթակ։ Բոլոր տվյալները հորինված են։"
   }
@@ -194,6 +199,35 @@ const DATA = loadData();
 
 function currencySymbol(cur){ return cur==='USD' ? '$' : cur==='RUB' ? '₽' : cur==='AMD' ? '֏' : cur; }
 function initials(name){ return name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+
+/* ---------- package (budget builder) ---------- */
+const PKG_KEY = 'tarify.package.v1';
+function loadPackage(){ try{ return JSON.parse(localStorage.getItem(PKG_KEY)) || []; }catch(e){ return []; } }
+function savePackage(pkg){ localStorage.setItem(PKG_KEY, JSON.stringify(pkg)); }
+function trackEvent(name, meta){
+  try{
+    const key='tarify_events';
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    list.push({name, meta, t:Date.now()});
+    if(list.length>300) list.splice(0, list.length-300);
+    localStorage.setItem(key, JSON.stringify(list));
+  }catch(e){}
+}
+function togglePackage(inf){
+  let pkg = loadPackage();
+  if(pkg.some(x=>x.id===inf.id)){
+    pkg = pkg.filter(x=>x.id!==inf.id);
+  } else {
+    const formats = ['story','post','reel'].filter(f=>(inf.prices[f]||0)>0);
+    if(formats.length){
+      const cheapest = formats.reduce((a,b)=> inf.prices[a]<=inf.prices[b]?a:b);
+      pkg.push({id:inf.id, format:cheapest, qty:1});
+      trackEvent('package_add', {id:inf.id});
+    }
+  }
+  savePackage(pkg);
+  return pkg;
+}
 
 function getIdFromUrl(){
   const params = new URLSearchParams(window.location.search);
@@ -277,18 +311,32 @@ function render(){
           <div class="rate-row"><span class="rate-label">${dict.format_post}</span><span class="rate-fill"></span><span class="rate-price">${sym}${inf.prices.post}</span></div>
           <div class="rate-row"><span class="rate-label">${dict.format_reel}</span><span class="rate-fill"></span><span class="rate-price">${sym}${inf.prices.reel}</span></div>
           ${inf.barter ? `<div class="barter-note">${dict.barter_note}</div>` : ''}
+          <button type="button" id="pkgBtn" class="pkg-btn"></button>
         </div>
 
         <div class="panel">
           <h2>${dict.contacts_title}</h2>
-          ${inf.contacts.telegram ? `<div class="contact-row"><span>Telegram</span><span>${inf.contacts.telegram}</span></div>` : ''}
-          ${inf.contacts.whatsapp ? `<div class="contact-row"><span>WhatsApp</span><span>${inf.contacts.whatsapp}</span></div>` : ''}
-          ${inf.contacts.instagram ? `<div class="contact-row"><span>Instagram</span><span>${inf.contacts.instagram}</span></div>` : ''}
-          ${inf.contacts.email ? `<div class="contact-row"><span>Email</span><span>${inf.contacts.email}</span></div>` : ''}
+          ${inf.contacts.telegram ? `<div class="contact-row"><span>Telegram</span><a class="contactLink" data-src="profile" href="https://t.me/${inf.contacts.telegram.replace('@','')}" target="_blank" rel="noopener">${inf.contacts.telegram}</a></div>` : ''}
+          ${inf.contacts.whatsapp ? `<div class="contact-row"><span>WhatsApp</span><a class="contactLink" data-src="profile" href="https://wa.me/${inf.contacts.whatsapp.replace(/[^\d]/g,'')}" target="_blank" rel="noopener">${inf.contacts.whatsapp}</a></div>` : ''}
+          ${inf.contacts.instagram ? `<div class="contact-row"><span>Instagram</span><a class="contactLink" data-src="profile" href="https://instagram.com/${inf.contacts.instagram.replace('@','')}" target="_blank" rel="noopener">${inf.contacts.instagram}</a></div>` : ''}
+          ${inf.contacts.email ? `<div class="contact-row"><span>Email</span><a class="contactLink" data-src="profile" href="mailto:${inf.contacts.email}">${inf.contacts.email}</a></div>` : ''}
         </div>
       </div>
     </div>
   `;
+
+  const pkgBtn = document.getElementById('pkgBtn');
+  function refreshPkgBtn(){
+    const inPkg = loadPackage().some(p=>p.id===inf.id);
+    pkgBtn.textContent = inPkg ? dict.pkg_added : dict.pkg_add;
+    pkgBtn.classList.toggle('on', inPkg);
+  }
+  refreshPkgBtn();
+  pkgBtn.addEventListener('click', ()=>{ togglePackage(inf); refreshPkgBtn(); });
+
+  document.querySelectorAll('.contactLink').forEach(a=>{
+    a.addEventListener('click', ()=> trackEvent('contact_click', {source:a.dataset.src, id:inf.id}));
+  });
 }
 
 document.querySelectorAll('.langsw button').forEach(b=>{

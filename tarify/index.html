@@ -136,9 +136,27 @@
   .card-prices .row{display:flex;justify-content:space-between;padding:3px 0;}
   .card-prices .row span:first-child{color:var(--ink-soft);}
   .card-prices .row span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;}
-  .card-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:auto;}
+  .card-bottom{display:flex;justify-content:space-between;align-items:center;}
   .barter-badge{font-size:11px;background:var(--teal-light);color:var(--teal);padding:4px 9px;border-radius:20px;font-weight:700;position:relative;}
   .view-link{font-size:13.5px;font-weight:700;color:var(--accent-dark);}
+  .cpm-line{font-size:12px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-top:-6px;}
+  .card.in-package{border-color:var(--teal);background:var(--teal-light);}
+  .pkg-btn{margin-top:auto;width:100%;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;}
+  .pkg-btn:hover{border-color:var(--teal);}
+  .pkg-btn.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+  .package-bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:60;
+    background:var(--ink);color:#fff;
+    display:none;align-items:center;justify-content:space-between;
+    padding:14px 24px;box-shadow:0 -4px 16px rgba(0,0,0,.18);
+  }
+  .package-bar.visible{display:flex;}
+  .package-bar .pb-info{font-size:14px;}
+  .package-bar .pb-info b{font-family:'IBM Plex Mono',monospace;color:var(--accent);}
+  .package-bar .pb-open{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;}
+  .package-bar .pb-open:hover{background:var(--accent-dark);}
+  .grid-pad{padding-bottom:90px;}
 
   .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-soft);}
   .empty h3{margin-bottom:8px;color:var(--ink);}
@@ -222,6 +240,7 @@
             <option value="price_desc" data-i18n="sort_price_desc">Цена: сначала дороже</option>
             <option value="followers" data-i18n="sort_followers">По подписчикам</option>
             <option value="engagement" data-i18n="sort_engagement">По вовлечённости</option>
+            <option value="cpm" data-i18n="sort_cpm">Цена за 1000 просмотров</option>
           </select>
         </div>
       </div>
@@ -246,8 +265,8 @@
           <select id="f-followers"></select>
         </div>
         <div class="filter-group">
-          <h3 data-i18n="filter_price">Макс. цена (за формат)</h3>
-          <select id="f-price"></select>
+          <h3 data-i18n="filter_budget">Бюджет</h3>
+          <input type="number" id="f-budget" min="0" data-i18n-ph="filter_budget_ph" placeholder="Например, 400">
         </div>
         <div class="filter-group">
           <h3 data-i18n="filter_country">Страна аудитории</h3>
@@ -274,6 +293,11 @@
   <div class="wrap" data-i18n="footer_text">Демо-платформа. Все данные вымышленные.</div>
 </footer>
 
+<div class="package-bar" id="packageBar">
+  <div class="pb-info" id="pbInfo"></div>
+  <button type="button" class="pb-open" id="pbOpen" data-i18n="pkg_open">Открыть</button>
+</div>
+
 <script>
 /* ---------- i18n ---------- */
 const I18N = {
@@ -285,10 +309,12 @@ const I18N = {
     search_placeholder:"Поиск по имени или нику",
     filters_title:"Каталог блогеров",
     filter_platform:"Платформа", filter_niche:"Ниша", filter_format:"Формат рекламы",
-    filter_followers:"Подписчики", filter_price:"Макс. цена (за формат)", filter_country:"Страна аудитории",
+    filter_followers:"Подписчики", filter_budget:"Бюджет", filter_budget_ph:"Например, 400", filter_country:"Страна аудитории",
     filter_barter_label:"Готовы на бартер", filter_reset:"Сбросить фильтры",
     sort_default:"По умолчанию", sort_price_asc:"Цена: сначала дешевле", sort_price_desc:"Цена: сначала дороже",
-    sort_followers:"По подписчикам", sort_engagement:"По вовлечённости",
+    sort_followers:"По подписчикам", sort_engagement:"По вовлечённости", sort_cpm:"Цена за 1000 просмотров",
+    card_cpm:"Цена/1000 просм.", pkg_add:"В подбор", pkg_added:"В подборе ✓", pkg_open:"Открыть",
+    pkg_bloggers:"блогера(ов)", pkg_placements:"размещений",
     platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
     niche_beauty:"Красота", niche_fashion:"Мода", niche_fitness:"Фитнес", niche_food:"Еда", niche_travel:"Путешествия",
     niche_tech:"Технологии", niche_gaming:"Игры", niche_business:"Бизнес/Финансы", niche_family:"Семья/Дети",
@@ -312,10 +338,12 @@ const I18N = {
     search_placeholder:"Search by name or handle",
     filters_title:"Creator catalog",
     filter_platform:"Platform", filter_niche:"Niche", filter_format:"Ad format",
-    filter_followers:"Followers", filter_price:"Max price (per format)", filter_country:"Audience country",
+    filter_followers:"Followers", filter_budget:"Budget", filter_budget_ph:"E.g. 400", filter_country:"Audience country",
     filter_barter_label:"Open to barter", filter_reset:"Reset filters",
     sort_default:"Default", sort_price_asc:"Price: low to high", sort_price_desc:"Price: high to low",
-    sort_followers:"By followers", sort_engagement:"By engagement",
+    sort_followers:"By followers", sort_engagement:"By engagement", sort_cpm:"Cost per 1,000 views",
+    card_cpm:"Cost/1,000 views", pkg_add:"Add to package", pkg_added:"In package ✓", pkg_open:"Open",
+    pkg_bloggers:"creators", pkg_placements:"placements",
     platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
     niche_beauty:"Beauty", niche_fashion:"Fashion", niche_fitness:"Fitness", niche_food:"Food", niche_travel:"Travel",
     niche_tech:"Tech", niche_gaming:"Gaming", niche_business:"Business/Finance", niche_family:"Family/Kids",
@@ -339,10 +367,12 @@ const I18N = {
     search_placeholder:"Փնտրել ըստ անվան կամ նիքի",
     filters_title:"Բլոգերների ցանկ",
     filter_platform:"Հարթակ", filter_niche:"Ոլորտ", filter_format:"Գովազդի ձևաչափ",
-    filter_followers:"Հետևորդներ", filter_price:"Առավելագույն գին", filter_country:"Լսարանի երկիր",
+    filter_followers:"Հետևորդներ", filter_budget:"Բյուջե", filter_budget_ph:"Օրինակ՝ 400", filter_country:"Լսարանի երկիր",
     filter_barter_label:"Պատրաստ են բարտերի", filter_reset:"Զրոյացնել ֆիլտրերը",
     sort_default:"Լռելյայն", sort_price_asc:"Գին՝ էժանից թանկ", sort_price_desc:"Գին՝ թանկից էժան",
-    sort_followers:"Ըստ հետևորդների", sort_engagement:"Ըստ ներգրավվածության",
+    sort_followers:"Ըստ հետևորդների", sort_engagement:"Ըստ ներգրավվածության", sort_cpm:"Արժեքը 1000 դիտման համար",
+    card_cpm:"Արժեք/1000 դիտում", pkg_add:"Ավելացնել", pkg_added:"Ավելացված է ✓", pkg_open:"Բացել",
+    pkg_bloggers:"բլոգեր", pkg_placements:"հրապարակում",
     platform_instagram:"Instagram", platform_tiktok:"TikTok", platform_youtube:"YouTube", platform_telegram:"Telegram", platform_facebook:"Facebook",
     niche_beauty:"Գեղեցկություն", niche_fashion:"Նորաձևություն", niche_fitness:"Ֆիթնես", niche_food:"Սնունդ", niche_travel:"Ճամփորդություն",
     niche_tech:"Տեխնոլոգիաներ", niche_gaming:"Խաղեր", niche_business:"Բիզնես/Ֆինանսներ", niche_family:"Ընտանիք/Երեխաներ",
@@ -377,6 +407,7 @@ function applyI18n(){
   });
   renderFilters();
   renderGrid();
+  renderPackageBar();
 }
 document.querySelectorAll('.langsw button').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -410,6 +441,65 @@ function loadData(){
 }
 const DATA = loadData();
 
+/* ---------- package (budget builder) ---------- */
+const PKG_KEY = 'tarify.package.v1';
+function loadPackage(){ try{ return JSON.parse(localStorage.getItem(PKG_KEY)) || []; }catch(e){ return []; } }
+function savePackage(pkg){ localStorage.setItem(PKG_KEY, JSON.stringify(pkg)); }
+function trackEvent(name, meta){
+  try{
+    const key='tarify_events';
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    list.push({name, meta, t:Date.now()});
+    if(list.length>300) list.splice(0, list.length-300);
+    localStorage.setItem(key, JSON.stringify(list));
+  }catch(e){}
+}
+function togglePackage(inf){
+  let pkg = loadPackage();
+  if(pkg.some(x=>x.id===inf.id)){
+    pkg = pkg.filter(x=>x.id!==inf.id);
+  } else {
+    const formats = ['story','post','reel'].filter(f=>(inf.prices[f]||0)>0);
+    if(formats.length){
+      const cheapest = formats.reduce((a,b)=> inf.prices[a]<=inf.prices[b]?a:b);
+      pkg.push({id:inf.id, format:cheapest, qty:1});
+      trackEvent('package_add', {id:inf.id});
+    }
+  }
+  savePackage(pkg);
+}
+
+const FALLBACK_RATES = { updated:"2026-09-08", usdPerUnit:{ USD:1, AMD:0.0026, RUB:0.0109, EUR:1.08 } };
+let RATES = FALLBACK_RATES;
+
+function renderPackageBar(){
+  const dict = I18N[lang];
+  const pkg = loadPackage();
+  const bar = document.getElementById('packageBar');
+  const grid = document.getElementById('grid');
+  if(pkg.length===0){
+    bar.classList.remove('visible');
+    grid.classList.remove('grid-pad');
+    return;
+  }
+  bar.classList.add('visible');
+  grid.classList.add('grid-pad');
+  let totalUSD = 0, placements = 0;
+  const bloggerIds = new Set();
+  pkg.forEach(pi=>{
+    const inf = DATA.find(x=>x.id===pi.id);
+    if(!inf) return;
+    bloggerIds.add(inf.id);
+    const price = inf.prices[pi.format] || 0;
+    totalUSD += price * (RATES.usdPerUnit[inf.currency]||1) * pi.qty;
+    placements += pi.qty;
+  });
+  document.getElementById('pbInfo').innerHTML =
+    `${bloggerIds.size} ${dict.pkg_bloggers} · ${placements} ${dict.pkg_placements}&nbsp;&nbsp;&nbsp;<b>$${Math.round(totalUSD).toLocaleString()}</b>`;
+}
+document.getElementById('pbOpen').addEventListener('click', ()=>{ window.location.href = 'package.html'; });
+fetch('rates.json').then(r=>r.json()).then(r=>{ RATES = r; renderPackageBar(); }).catch(()=>{});
+
 /* ---------- filter state ---------- */
 const PLATFORMS = ["instagram","tiktok","youtube","telegram","facebook"];
 const NICHES = ["beauty","fashion","fitness","food","travel","tech","gaming","business","family","lifestyle","comedy","music","education","pets","auto"];
@@ -423,9 +513,7 @@ const FOLLOWER_BUCKETS = [
   {key:"4", min:100000, max:500000},
   {key:"5", min:500000, max:Infinity}
 ];
-const PRICE_OPTIONS = [0, 20, 50, 100, 200, 999999];
-
-const state = { platform:new Set(), niche:new Set(), format:new Set(), followers:"any", price:0, country:"any", barter:false, search:"", sort:"default" };
+const state = { platform:new Set(), niche:new Set(), format:new Set(), followers:"any", budget:null, country:"any", barter:false, search:"", sort:"default" };
 
 function renderFilters(){
   const dict = I18N[lang];
@@ -458,10 +546,9 @@ function renderFilters(){
   folSel.innerHTML = FOLLOWER_BUCKETS.map(b=>`<option value="${b.key}" ${state.followers===b.key?'selected':''}>${dict['followers_'+b.key]}</option>`).join('');
   folSel.onchange = ()=>{ state.followers = folSel.value; renderGrid(); };
 
-  const priceSel = document.getElementById('f-price');
-  priceSel.innerHTML = `<option value="0" ${state.price===0?'selected':''}>${dict.price_any}</option>` +
-    PRICE_OPTIONS.filter(p=>p>0 && p<999999).map(p=>`<option value="${p}" ${state.price==p?'selected':''}>≤ ${p}</option>`).join('');
-  priceSel.onchange = ()=>{ state.price = parseInt(priceSel.value); renderGrid(); };
+  const budgetInput = document.getElementById('f-budget');
+  budgetInput.value = state.budget===null ? '' : state.budget;
+  budgetInput.oninput = ()=>{ state.budget = budgetInput.value==='' ? null : parseFloat(budgetInput.value); renderGrid(); };
 
   const countrySel = document.getElementById('f-country');
   countrySel.innerHTML = `<option value="any" ${state.country==='any'?'selected':''}>${dict.country_any}</option>` +
@@ -475,13 +562,14 @@ document.getElementById('searchInput').addEventListener('input', e=>{ state.sear
 document.getElementById('sortSelect').addEventListener('change', e=>{ state.sort = e.target.value; renderGrid(); });
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   state.platform.clear(); state.niche.clear(); state.format.clear();
-  state.followers='any'; state.price=0; state.country='any'; state.barter=false; state.search='';
+  state.followers='any'; state.budget=null; state.country='any'; state.barter=false; state.search='';
   document.getElementById('searchInput').value='';
   renderFilters(); renderGrid();
 });
 
 function minPrice(inf){ return Math.min(inf.prices.story, inf.prices.post, inf.prices.reel); }
 function engagement(inf){ return inf.avgLikes + inf.avgShares; }
+function cpmValue(inf){ return inf.avgViews>0 ? minPrice(inf) / (inf.avgViews/1000) : 0; }
 
 function filterData(){
   return DATA.filter(inf=>{
@@ -492,7 +580,7 @@ function filterData(){
       const b = FOLLOWER_BUCKETS.find(x=>x.key===state.followers);
       if(!(inf.followers>=b.min && inf.followers<b.max)) return false;
     }
-    if(state.price>0 && minPrice(inf) > state.price) return false;
+    if(state.budget!==null && !isNaN(state.budget) && minPrice(inf) > state.budget) return false;
     if(state.country!=='any' && !inf.audGeo.includes(state.country)) return false;
     if(state.barter && !inf.barter) return false;
     if(state.search && !(inf.name.toLowerCase().includes(state.search) || inf.handle.toLowerCase().includes(state.search))) return false;
@@ -506,6 +594,7 @@ function sortData(list){
   else if(state.sort==='price_desc') arr.sort((a,b)=>minPrice(b)-minPrice(a));
   else if(state.sort==='followers') arr.sort((a,b)=>b.followers-a.followers);
   else if(state.sort==='engagement') arr.sort((a,b)=>engagement(b)-engagement(a));
+  else if(state.sort==='cpm') arr.sort((a,b)=>cpmValue(a)-cpmValue(b));
   return arr;
 }
 
@@ -523,11 +612,14 @@ function renderGrid(){
     grid.innerHTML = `<div class="empty"><h3>${dict.empty_title}</h3><p>${dict.empty_sub}</p></div>`;
     return;
   }
+  const pkg = loadPackage();
   list.forEach(inf=>{
     const sym = currencySymbol(inf.currency);
+    const cpm = Math.round(cpmValue(inf)*10)/10;
+    const inPkg = pkg.some(p=>p.id===inf.id);
     const card = document.createElement('a');
     card.href = `profile.html?id=${inf.id}`;
-    card.className = 'card';
+    card.className = 'card' + (inPkg ? ' in-package' : '');
     card.innerHTML = `
       <div class="card-top">
         <div class="avatar" style="width:40px;height:40px;font-size:13px;">${initials(inf.name)}</div>
@@ -544,11 +636,20 @@ function renderGrid(){
         <div class="row"><span>${dict.format_post}</span><span>${sym}${inf.prices.post}</span></div>
         <div class="row"><span>${dict.format_reel}</span><span>${sym}${inf.prices.reel}</span></div>
       </div>
+      <div class="cpm-line">${dict.card_cpm}: ${sym}${cpm}</div>
       <div class="card-bottom">
         ${inf.barter ? `<span class="barter-badge">${dict.barter_tag}</span>` : '<span></span>'}
         <span class="view-link">${dict.view_link}</span>
       </div>
+      <button type="button" class="pkg-btn ${inPkg?'on':''}" data-id="${inf.id}">${inPkg ? dict.pkg_added : dict.pkg_add}</button>
     `;
+    card.querySelector('.pkg-btn').addEventListener('click', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      togglePackage(inf);
+      renderGrid();
+      renderPackageBar();
+    });
     grid.appendChild(card);
   });
 }
