@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru" data-theme="blue-matte">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>just happened — how it works</title>
+<meta name="description" content="Posting rules, the person check, hashtags and where the data lives.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1822'/%3E%3Ccircle cx='32' cy='26' r='9' fill='%23C9A24B'/%3E%3Cpath d='M32 62c-9-14-14-22-14-30a14 14 0 1 1 28 0c0 8-5 16-14 30z' fill='none' stroke='%236E9AD6' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Noto+Sans+Armenian:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./jh.css">
+<style>
+main section{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;background-image:var(--sheen)}
+main h2{margin:0 0 10px;font-size:19px;font-weight:600;letter-spacing:-.01em}
+main p{margin:0 0 10px;max-width:66ch}
+main ul{margin:0;padding-left:20px}
+main li{margin-bottom:7px;max-width:64ch}
+.sig{display:grid;grid-template-columns:26px 1fr;gap:10px 12px;align-items:start;margin-top:12px}
+.sig b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--signal);color:#0A0E14;font-size:13px;font-weight:600}
+.back{display:inline-block;margin:6px 0 44px}
+.subline{color:var(--ink2);max-width:56ch;margin:0 0 26px}
+</style>
+</head>
+<body>
+<header class="top"></header>
+
+<main class="wrap">
+  <h1 style="margin:34px 0 10px;font-size:clamp(32px,7vw,50px)" data-h="h1"></h1>
+  <p class="subline" data-h="sub"></p>
+
+  <section>
+    <h2 data-h="s1_h"></h2>
+    <ul>
+      <li data-h="s1_a"></li><li data-h="s1_b"></li><li data-h="s1_c"></li><li data-h="s1_d"></li><li data-h="s1_e"></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 data-h="s2_h"></h2>
+    <p data-h="s2_p"></p>
+    <div class="sig"><b>1</b><div data-h="s2_1"></div></div>
+    <div class="sig"><b>2</b><div data-h="s2_2"></div></div>
+    <div class="sig"><b>3</b><div data-h="s2_3"></div></div>
+    <div class="sig"><b>4</b><div data-h="s2_4"></div></div>
+    <p style="margin-top:14px" data-h="s2_end"></p>
+  </section>
+
+  <section>
+    <h2 data-h="s5_h"></h2>
+    <p data-h="s5_p"></p>
+  </section>
+
+  <section>
+    <h2 data-h="s3_h"></h2>
+    <p data-h="s3_p"></p>
+  </section>
+
+  <section>
+    <h2 data-h="s4_h"></h2>
+    <p data-h="s4_p"></p>
+    <ul><li data-h="s4_a"></li><li data-h="s4_b"></li><li data-h="s4_c"></li></ul>
+  </section>
+
+  <a class="back" href="./index.html" data-h="back"></a>
+</main>
+
+<footer><div class="wrap"><p data-h="foot"></p></div></footer>
+
+<script src="./jh-core.js"></script>
+<script>
+JH.initChrome('how.html');
+var H = {
+en:{
+  h1:"How this works",
+  sub:"Rules of the feed, what the person check measures, and where your files go.",
+  s1_h:"What a post holds",
+  s1_a:"5 to 10 photos, or 2 to 3 clips of 15 to 20 seconds each — one or the other, from one moment.",
+  s1_b:"A few words, up to 280 characters: what you saw, in your own words.",
+  s1_c:"A place — a typed street or landmark, coordinates from your device, or both.",
+  s1_d:"At least one hashtag from the built-in set, plus any of your own.",
+  s1_e:"No account, no email, no posting limit.",
+  s2_h:"The person check",
+  s2_p:"Instead of asking you to read distorted letters, the check watches how the marker gets to the notch. Four signals decide:",
+  s2_1:"Trusted input. Events made by a script carry a flag that says so, and the check ignores them. Only a real pointer, finger or key counts.",
+  s2_2:"A moving target. The notch sits at a fresh random spot every attempt, so a fixed script cannot aim at it.",
+  s2_3:"Human timing. A drag from a hand arrives in uneven bursts. Machine-perfect intervals are rejected.",
+  s2_4:"A hidden field and a clock. A field invisible to people stays empty, and a post filled out in under five seconds gets sent back.",
+  s2_end:"The check stays valid for five minutes, then it asks again.",
+  s5_h:"Hashtags, the globe and sharing",
+  s5_p:"Every post carries a place, so it also becomes a point on the globe — spin it, narrow the period from an hour to a month, and open any marker. Hashtags come from a built-in set of 28 and you can add your own; tapping one filters the feed and the globe alike. Each post has share buttons for X, Telegram, WhatsApp, Facebook and VK, plus a link you can copy.",
+  s3_h:"What to keep out",
+  s3_p:"Post what you saw, not what you guessed. Faces, plates and documents in frame belong to other people — blur them or step back. Anything staged, generated or lifted from someone else's feed has no place here.",
+  s4_h:"Where the files live",
+  s4_p:"Right now the feed runs entirely on your device, with no shared server behind it:",
+  s4_a:"Photos are resized in the browser and kept locally. They never travel anywhere.",
+  s4_b:"Clips play back in the session where you posted them; a frame from each is kept as a still.",
+  s4_c:"The posts marked as examples are generated on the spot to show what a full feed looks like.",
+  back:"Back to the feed",
+  foot:"just happened — an open eyewitness feed."
+},
+ru:{
+  h1:"Как это устроено",
+  sub:"Правила ленты, что именно измеряет проверка на человека и куда попадают ваши файлы.",
+  s1_h:"Из чего состоит пост",
+  s1_a:"5–10 фото или 2–3 клипа по 15–20 секунд — что-то одно, из одного момента.",
+  s1_b:"Несколько слов, до 280 знаков: что вы видели, своими словами.",
+  s1_c:"Место — улица или ориентир текстом, координаты с устройства, либо и то и другое.",
+  s1_d:"Хотя бы один хэштег из встроенного набора плюс любые свои.",
+  s1_e:"Без аккаунта, без почты, без лимита на посты.",
+  s2_h:"Проверка на человека",
+  s2_p:"Вместо кривых букв проверка смотрит, как маркер добирается до выреза. Решают четыре признака:",
+  s2_1:"Доверенный ввод. События, созданные скриптом, несут соответствующий флаг, и проверка их игнорирует. Считаются только настоящие мышь, палец или клавиша.",
+  s2_2:"Подвижная цель. Вырез каждый раз оказывается в новом случайном месте, поэтому жёсткий скрипт мимо.",
+  s2_3:"Человеческий ритм. Рука ведёт маркер рывками, с неровными интервалами. Машинно-ровный ритм отклоняется.",
+  s2_4:"Скрытое поле и часы. Невидимое человеку поле остаётся пустым, а пост, заполненный быстрее пяти секунд, возвращается назад.",
+  s2_end:"Проверка действует пять минут, дальше просит пройти её снова.",
+  s5_h:"Хэштеги, глобус и обмен",
+  s5_p:"У каждого поста есть место, поэтому он становится и точкой на глобусе — крутите его, сужайте период от часа до месяца, открывайте любой маркер. Хэштеги идут из встроенного набора на 28 штук, свои добавляются рядом; нажатие на тег фильтрует и ленту, и глобус. У каждого поста есть кнопки для X, Telegram, WhatsApp, Facebook и VK плюс ссылка для копирования.",
+  s3_h:"Чего здесь лучше избегать",
+  s3_p:"Публикуйте увиденное, а не додуманное. Лица, номера и документы в кадре принадлежат другим людям — размойте их или отойдите дальше. Постановке, генерации и перепостам из чужих лент здесь места нет.",
+  s4_h:"Где лежат файлы",
+  s4_p:"Сейчас лента целиком работает на вашем устройстве, общего сервера за ней нет:",
+  s4_a:"Фото уменьшаются прямо в браузере и остаются локально. Они никуда не уходят.",
+  s4_b:"Клипы воспроизводятся в той сессии, где вы их опубликовали; от каждого сохраняется кадр-обложка.",
+  s4_c:"Посты с пометкой «пример» генерируются на месте, чтобы показать, как выглядит наполненная лента.",
+  back:"Назад в ленту",
+  foot:"just happened — открытая лента очевидцев."
+},
+hy:{
+  h1:"Ինչպես է սա աշխատում",
+  sub:"Հոսքի կանոնները, թե ինչ է չափում մարդու ստուգումը, և ուր են գնում ձեր ֆայլերը։",
+  s1_h:"Ինչից է բաղկացած գրառումը",
+  s1_a:"5–10 լուսանկար կամ 2–3 հոլովակ՝ 15–20 վայրկյան յուրաքանչյուրը — մեկը կամ մյուսը, մեկ պահից։",
+  s1_b:"Մի քանի բառ՝ մինչև 280 նիշ. ինչ եք տեսել՝ ձեր բառերով։",
+  s1_c:"Վայր՝ փողոց կամ ուղենիշ տեքստով, կոորդինատներ սարքից, կամ երկուսը միասին։",
+  s1_d:"Գոնե մեկ հեշթեգ ներկառուցված հավաքածուից և ցանկացած ձերը։",
+  s1_e:"Առանց հաշվի, առանց փոստի, առանց գրառումների սահմանափակման։",
+  s2_h:"Մարդու ստուգումը",
+  s2_p:"Ծուռ տառերի փոխարեն ստուգումը հետևում է, թե ինչպես է նշիչը հասնում բացվածքին։ Որոշում են չորս հատկանիշ․",
+  s2_1:"Վստահելի մուտք։ Սկրիպտի ստեղծած իրադարձությունները կրում են համապատասխան դրոշ, և ստուգումն անտեսում է դրանք։ Հաշվվում են միայն իրական մկնիկը, մատը կամ ստեղնը։",
+  s2_2:"Շարժվող թիրախ։ Բացվածքն ամեն փորձի ժամանակ հայտնվում է նոր պատահական տեղում, ուստի կոշտ սկրիպտը վրիպում է։",
+  s2_3:"Մարդկային ռիթմ։ Ձեռքը նշիչը տանում է թափով ու անհավասար ընդմիջումներով։ Մեքենայորեն հավասար ռիթմը մերժվում է։",
+  s2_4:"Թաքնված դաշտ և ժամացույց։ Մարդու համար անտեսանելի դաշտը մնում է դատարկ, իսկ հինգ վայրկյանից արագ լրացված գրառումը վերադարձվում է։",
+  s2_end:"Ստուգումը գործում է հինգ րոպե, հետո խնդրում է կրկին անցնել այն։",
+  s5_h:"Հեշթեգեր, գլոբուս և կիսվել",
+  s5_p:"Ամեն գրառում ունի վայր, ուստի այն դառնում է նաև կետ գլոբուսի վրա՝ պտտեք այն, նեղացրեք ժամանակահատվածը ժամից մինչև ամիս, բացեք ցանկացած նշիչ։ Հեշթեգերը գալիս են 28-անոց ներկառուցված հավաքածուից, ձերն ավելացվում է կողքին. թեգի սեղմումը զտում է և՛ հոսքը, և՛ գլոբուսը։ Ամեն գրառում ունի կոճակներ X-ի, Telegram-ի, WhatsApp-ի, Facebook-ի և VK-ի համար, ինչպես նաև պատճենվող հղում։",
+  s3_h:"Ինչից է լավ խուսափել",
+  s3_p:"Հրապարակեք տեսածը, ոչ թե ենթադրածը։ Կադրում եղած դեմքերը, համարանիշներն ու փաստաթղթերը պատկանում են այլ մարդկանց — մշուշեք դրանք կամ հեռու կանգնեք։ Բեմադրությանը, գեներացվածին և ուրիշի հոսքից վերցրածին այստեղ տեղ չկա։",
+  s4_h:"Որտեղ են ֆայլերը",
+  s4_p:"Այս պահին հոսքն ամբողջությամբ աշխատում է ձեր սարքում, ընդհանուր սերվեր դրա հետևում չկա․",
+  s4_a:"Լուսանկարները փոքրանում են հենց դիտարկիչում և մնում տեղում։ Դրանք ոչ մի տեղ չեն գնում։",
+  s4_b:"Հոլովակները նվագարկվում են այն սեսիայում, որտեղ հրապարակել եք դրանք. յուրաքանչյուրից պահվում է մեկ կադր։",
+  s4_c:"«Օրինակ» նշումով գրառումները ստեղծվում են տեղում՝ ցույց տալու համար, թե ինչպիսին է լցված հոսքը։",
+  back:"Վերադառնալ հոսք",
+  foot:"just happened — ականատեսների բաց հոսք։"
+}
+};
+function paint(){
+  var d = H[JH.lang] || H.en;
+  document.querySelectorAll('[data-h]').forEach(function(el){ el.textContent = d[el.dataset.h] || H.en[el.dataset.h] || ''; });
+}
+JH.on('lang', paint);
+paint();
+</script>
+</body>
+</html>

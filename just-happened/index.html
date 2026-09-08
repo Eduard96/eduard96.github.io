@@ -1,1 +1,588 @@
+<!doctype html>
+<html lang="ru" data-theme="blue-matte">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>just happened</title>
+<meta name="description" content="Anonymous eyewitness feed: photos or short clips, a few words, a place and a hashtag.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1822'/%3E%3Ccircle cx='32' cy='26' r='9' fill='%23C9A24B'/%3E%3Cpath d='M32 62c-9-14-14-22-14-30a14 14 0 1 1 28 0c0 8-5 16-14 30z' fill='none' stroke='%236E9AD6' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Noto+Sans+Armenian:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./jh.css">
+</head>
+<body>
+<header class="top"></header>
 
+<main class="wrap">
+  <section class="hero">
+    <h1><span data-i18n="h1"></span><span class="h-sub" data-i18n="lead"></span></h1>
+  </section>
+
+  <section class="panel composer" id="composer">
+    <div class="field">
+      <div class="flabel"><h2 data-i18n="l_media"></h2><span class="req" data-i18n="req"></span></div>
+      <div class="seg" role="group">
+        <button type="button" id="modePhotos" data-i18n="opt_photos" aria-pressed="true"></button>
+        <button type="button" id="modeVideos" data-i18n="opt_videos" aria-pressed="false"></button>
+      </div>
+      <p class="hint" id="mediaHint"></p>
+      <div class="row" style="margin-top:12px">
+        <button type="button" class="btn" id="pick" data-i18n="add_files"></button>
+        <button type="button" class="btn quiet" id="clearMedia" data-i18n="clear_files" hidden></button>
+      </div>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <div class="thumbs" id="thumbs"></div>
+      <p class="count" id="mediaCount"></p>
+    </div>
+
+    <div class="field">
+      <div class="flabel"><h2 data-i18n="l_text"></h2><span class="req" data-i18n="req"></span></div>
+      <textarea id="text" maxlength="280" data-i18n-ph="ph_text"></textarea>
+      <div class="chars"><span id="chars">280</span></div>
+    </div>
+
+    <div class="field">
+      <div class="flabel"><h2 data-i18n="l_place"></h2><span class="req" data-i18n="req"></span></div>
+      <input type="text" id="place" maxlength="120" data-i18n-ph="ph_place" autocomplete="off">
+      <div class="row" style="margin-top:10px">
+        <button type="button" class="btn quiet" id="geoBtn" data-i18n="geo_btn"></button>
+      </div>
+      <p class="geo" id="geoOut"></p>
+    </div>
+
+    <div class="field">
+      <div class="flabel"><h2 data-i18n="l_tags"></h2><span class="req" data-i18n="req"></span></div>
+      <p class="hint" data-i18n="tags_hint"></p>
+      <div class="chips" id="tagPick" style="margin-top:10px"></div>
+      <div class="tagline">
+        <input type="text" id="customTag" maxlength="24" data-i18n-ph="ph_custom" autocomplete="off">
+        <button type="button" class="btn quiet" id="addTag" data-i18n="add_tag"></button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="flabel"><h2 data-i18n="l_check"></h2><span class="req" data-i18n="req"></span></div>
+      <p class="hint" data-i18n="check_hint"></p>
+      <div class="track" id="track">
+        <div class="notch" id="notch"></div>
+        <div class="marker" id="marker" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria="check_aria"><span></span></div>
+      </div>
+      <p class="checkstate" id="checkState"></p>
+      <input class="hp" id="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+    </div>
+
+    <div class="publishbar">
+      <button type="button" class="btn primary" id="publish" data-i18n="publish"></button>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="feedhead">
+      <h2 data-i18n="feed_h"></h2>
+      <span class="n" id="feedCount"></span>
+      <input type="text" id="filter" data-i18n-ph="ph_filter" autocomplete="off">
+    </div>
+    <div class="chips tagbar" id="tagBar"></div>
+    <ul class="feed" id="feed"></ul>
+  </section>
+</main>
+
+<footer><div class="wrap"><p data-i18n="storage_note"></p></div></footer>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true">
+  <button class="close" id="lbClose" aria-label="Close">×</button>
+  <button class="nav prev" id="lbPrev" aria-label="Previous">‹</button>
+  <img id="lbImg" alt="">
+  <button class="nav next" id="lbNext" aria-label="Next">›</button>
+  <div class="idx" id="lbIdx"></div>
+</div>
+
+<script src="./jh-core.js"></script>
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var t = JH.t;
+JH.initChrome('index.html');
+
+var demo = JH.demoPosts();
+var mine = JH.loadPosts();
+var sessionVideos = new Map();
+function allPosts(){ return mine.concat(demo).sort(function(a,b){ return b.ts - a.ts; }); }
+
+/* ---------- composer ---------- */
+var state = { mode:'photos', photos:[], videos:[], lat:null, lng:null, tags:[] };
+var file = $('file'), thumbs = $('thumbs'), mediaHint = $('mediaHint'),
+    mediaCount = $('mediaCount'), clearMedia = $('clearMedia'), msg = $('msg');
+
+$('modePhotos').addEventListener('click', function(){ setMode('photos'); });
+$('modeVideos').addEventListener('click', function(){ setMode('videos'); });
+function setMode(m){
+  if (state.mode === m) return;
+  state.mode = m;
+  state.photos = []; state.videos.forEach(function(v){ URL.revokeObjectURL(v.url); }); state.videos = [];
+  $('modePhotos').setAttribute('aria-pressed', String(m === 'photos'));
+  $('modeVideos').setAttribute('aria-pressed', String(m === 'videos'));
+  file.accept = m === 'photos' ? 'image/*' : 'video/*';
+  mediaHint.textContent = t(m === 'photos' ? 'hint_photos' : 'hint_videos');
+  drawThumbs(); updateCount();
+}
+$('pick').addEventListener('click', function(){ file.click(); });
+clearMedia.addEventListener('click', function(){
+  state.photos = []; state.videos.forEach(function(v){ URL.revokeObjectURL(v.url); }); state.videos = [];
+  drawThumbs(); updateCount();
+});
+
+file.addEventListener('change', async function(){
+  var list = Array.from(file.files || []); file.value = '';
+  if (!list.length) return;
+  if (state.mode === 'photos'){
+    var imgs = list.filter(function(f){ return f.type.indexOf('image/') === 0; });
+    if (imgs.length < list.length) flash(t('e_type_photos'), false);
+    var room = 10 - state.photos.length, i;
+    var slice = imgs.slice(0, room);
+    for (i = 0; i < slice.length; i++){
+      try{ state.photos.push({ src: await shrink(slice[i], 1400, .82) }); }catch(e){}
+      drawThumbs(); updateCount();
+    }
+  } else {
+    var vids = list.filter(function(f){ return f.type.indexOf('video/') === 0; });
+    if (vids.length < list.length) flash(t('e_type_videos'), false);
+    var room2 = 3 - state.videos.length, j;
+    var slice2 = vids.slice(0, room2);
+    for (j = 0; j < slice2.length; j++){
+      var url = URL.createObjectURL(slice2[j]), meta = { duration:0, poster:'' };
+      try{ meta = await probeVideo(url); }catch(e){}
+      state.videos.push({ url:url, duration:meta.duration, poster:meta.poster });
+      drawThumbs(); updateCount();
+    }
+  }
+});
+
+function shrink(f, max, q){
+  return new Promise(function(res, rej){
+    var url = URL.createObjectURL(f), im = new Image();
+    im.onload = function(){
+      var s = Math.min(1, max / Math.max(im.width, im.height));
+      var c = document.createElement('canvas');
+      c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', q));
+    };
+    im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('image')); };
+    im.src = url;
+  });
+}
+function probeVideo(url){
+  return new Promise(function(res, rej){
+    var v = document.createElement('video');
+    v.preload = 'metadata'; v.muted = true; v.playsInline = true;
+    v.onloadedmetadata = function(){
+      var duration = v.duration || 0;
+      var grab = function(){
+        var poster = '';
+        try{
+          var c = document.createElement('canvas');
+          var s = Math.min(1, 640 / Math.max(v.videoWidth || 1, v.videoHeight || 1));
+          c.width = Math.round((v.videoWidth || 320) * s); c.height = Math.round((v.videoHeight || 240) * s);
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          poster = c.toDataURL('image/jpeg', .7);
+        }catch(e){}
+        res({ duration:duration, poster:poster });
+      };
+      v.onseeked = grab;
+      try{ v.currentTime = Math.min(1, Math.max(0, duration / 3)); }catch(e){ grab(); }
+      setTimeout(function(){ res({ duration:duration, poster:'' }); }, 2500);
+    };
+    v.onerror = function(){ rej(new Error('video')); };
+    v.src = url;
+  });
+}
+function drawThumbs(){
+  thumbs.innerHTML = '';
+  var items = state.mode === 'photos' ? state.photos : state.videos;
+  clearMedia.hidden = items.length === 0;
+  items.forEach(function(it, i){
+    var d = document.createElement('div'); d.className = 'thumb';
+    if (state.mode === 'photos'){
+      var im = document.createElement('img'); im.src = it.src; im.alt = ''; d.appendChild(im);
+    } else {
+      if (it.poster){ var im2 = document.createElement('img'); im2.src = it.poster; im2.alt = ''; d.appendChild(im2); }
+      var len = document.createElement('span'); len.className = 'len';
+      len.textContent = it.duration ? it.duration.toFixed(1) + ' ' + t('sec') : '—';
+      d.appendChild(len);
+      if (it.duration && (it.duration < 14.5 || it.duration > 20.9)) d.classList.add('bad');
+    }
+    var k = document.createElement('button');
+    k.className = 'kill'; k.type = 'button'; k.textContent = '×'; k.setAttribute('aria-label','remove');
+    k.addEventListener('click', function(){
+      if (state.mode === 'photos') state.photos.splice(i, 1);
+      else { URL.revokeObjectURL(state.videos[i].url); state.videos.splice(i, 1); }
+      drawThumbs(); updateCount();
+    });
+    d.appendChild(k); thumbs.appendChild(d);
+  });
+}
+function updateCount(){
+  var n = state.mode === 'photos' ? state.photos.length : state.videos.length;
+  mediaCount.textContent = n ? t(state.mode === 'photos' ? 'count_photos' : 'count_videos', { n:n }) : '';
+}
+
+var text = $('text');
+text.addEventListener('input', function(){ $('chars').textContent = 280 - text.value.length; });
+
+$('geoBtn').addEventListener('click', function(){
+  var out = $('geoOut');
+  if (!navigator.geolocation){ out.textContent = t('geo_err'); return; }
+  out.textContent = t('geo_wait');
+  navigator.geolocation.getCurrentPosition(function(p){
+    state.lat = p.coords.latitude; state.lng = p.coords.longitude;
+    out.innerHTML = t('geo_ok') + '<b>' + state.lat.toFixed(5) + ', ' + state.lng.toFixed(5) + '</b>';
+  }, function(){ out.textContent = t('geo_err'); }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+});
+
+/* tag picker */
+function tagKeys(){
+  var base = JH.TAGS.map(function(x){ return x[0]; });
+  var extra = JH.customTags().slice();
+  allPosts().forEach(function(p){
+    (p.tags || []).forEach(function(k){
+      if (base.indexOf(k) < 0 && extra.indexOf(k) < 0) extra.push(k);
+    });
+  });
+  return base.concat(extra);
+}
+function drawTagPick(){
+  var box = $('tagPick'); box.innerHTML = '';
+  tagKeys().forEach(function(k){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip' + (JH.TAGS.some(function(x){ return x[0] === k; }) ? '' : ' custom');
+    b.textContent = '#' + JH.tagLabel(k);
+    b.setAttribute('aria-pressed', String(state.tags.indexOf(k) >= 0));
+    b.addEventListener('click', function(){
+      var i = state.tags.indexOf(k);
+      if (i >= 0) state.tags.splice(i, 1); else state.tags.push(k);
+      b.setAttribute('aria-pressed', String(state.tags.indexOf(k) >= 0));
+    });
+    box.appendChild(b);
+  });
+}
+$('addTag').addEventListener('click', function(){
+  var k = JH.addCustomTag($('customTag').value);
+  if (!k) return;
+  if (state.tags.indexOf(k) < 0) state.tags.push(k);
+  $('customTag').value = '';
+  drawTagPick(); drawTagBar();
+});
+$('customTag').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); $('addTag').click(); } });
+
+/* ---------- human check ---------- */
+var track = $('track'), notch = $('notch'), marker = $('marker'), checkState = $('checkState');
+var openedAt = Date.now();
+var guard = { solved:false, at:0, target:0, pos:0, path:[], keys:0, moves:0, failed:false };
+var TOL = 9, MAX_AGE = 5 * 60 * 1000;
+function range(){ return Math.max(40, track.clientWidth - marker.offsetWidth - 8); }
+function placeNotch(){ var r = range(); guard.target = Math.round(r * (0.45 + Math.random() * 0.47)); notch.style.left = (guard.target + 4) + 'px'; }
+function setPos(px){
+  guard.pos = Math.max(0, Math.min(range(), px));
+  marker.style.left = (guard.pos + 4) + 'px';
+  marker.setAttribute('aria-valuenow', Math.round(guard.pos / range() * 100));
+}
+function resetCheck(){ guard.solved = false; guard.path = []; guard.failed = false; track.classList.remove('solved'); placeNotch(); setPos(0); }
+function paintCheckState(){
+  checkState.className = 'checkstate';
+  if (guard.solved){ checkState.classList.add('good'); checkState.textContent = t('check_done'); }
+  else if (guard.failed){ checkState.classList.add('bad'); checkState.textContent = t('check_retry'); }
+  else checkState.textContent = '';
+}
+function humanPath(){
+  var p = guard.path;
+  if (p.length < 9) return false;
+  var span = p[p.length-1].t - p[0].t;
+  if (span < 260 || span > 40000) return false;
+  var gaps = [], i;
+  for (i = 1; i < p.length; i++) gaps.push(p[i].t - p[i-1].t);
+  var mean = gaps.reduce(function(a,b){ return a+b; }, 0) / gaps.length;
+  if (mean <= 0) return false;
+  var varr = gaps.reduce(function(a,b){ return a + (b-mean)*(b-mean); }, 0) / gaps.length;
+  return Math.sqrt(varr) / mean > 0.08;
+}
+function judge(){
+  if (Math.abs(guard.pos - guard.target) <= TOL && humanPath()){
+    guard.solved = true; guard.at = Date.now(); guard.failed = false;
+    track.classList.add('solved'); setPos(guard.target);
+  } else {
+    guard.solved = false; guard.failed = true;
+    track.classList.remove('solved'); track.classList.add('miss');
+    setTimeout(function(){ track.classList.remove('miss'); }, 340);
+    guard.path = []; placeNotch(); setPos(0);
+  }
+  paintCheckState();
+}
+var dragging = false, grabDx = 0;
+marker.addEventListener('pointerdown', function(e){
+  if (!e.isTrusted) return;
+  dragging = true; guard.path = [];
+  grabDx = e.clientX - marker.getBoundingClientRect().left;
+  marker.setPointerCapture(e.pointerId);
+  track.classList.remove('solved'); guard.solved = false;
+});
+marker.addEventListener('pointermove', function(e){
+  if (!dragging || !e.isTrusted) return;
+  guard.moves++;
+  setPos(e.clientX - track.getBoundingClientRect().left - grabDx - 4);
+  guard.path.push({ x:guard.pos, t:performance.now() });
+  if (guard.path.length > 400) guard.path.shift();
+});
+marker.addEventListener('pointerup', function(e){
+  if (!dragging) return;
+  dragging = false;
+  try{ marker.releasePointerCapture(e.pointerId); }catch(err){}
+  judge();
+});
+marker.addEventListener('pointercancel', function(){ dragging = false; });
+marker.addEventListener('keydown', function(e){
+  if (!e.isTrusted) return;
+  var step = e.shiftKey ? 12 : 4;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+    e.preventDefault(); guard.keys++;
+    setPos(guard.pos + (e.key === 'ArrowRight' ? step : -step));
+    guard.path.push({ x:guard.pos, t:performance.now() });
+    track.classList.remove('solved'); guard.solved = false;
+  }
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); judge(); }
+});
+window.addEventListener('resize', function(){ if (!guard.solved) resetCheck(); });
+
+/* ---------- publish ---------- */
+function flash(m, good){ msg.textContent = m; msg.className = 'msg' + (good ? ' good' : ''); }
+$('publish').addEventListener('click', function(){
+  var items = state.mode === 'photos' ? state.photos : state.videos;
+  if (state.mode === 'photos' && (items.length < 5 || items.length > 10)) return flash(t('e_photos'), false);
+  if (state.mode === 'videos'){
+    if (items.length < 2 || items.length > 3) return flash(t('e_videos'), false);
+    var bad = items.filter(function(v){ return v.duration < 14.5 || v.duration > 20.9; });
+    if (bad.length) return flash(t('e_vlen') + bad.map(function(v){ return v.duration.toFixed(1) + ' ' + t('sec'); }).join(', '), false);
+  }
+  var body = text.value.trim();
+  if (body.length < 3) return flash(t('e_text'), false);
+  var place = $('place').value.trim();
+  if (place.length < 3 && state.lat === null) return flash(t('e_place'), false);
+  if (!state.tags.length) return flash(t('e_tags'), false);
+  if ($('hp').value !== '') return flash(t('e_check'), false);
+  if (Date.now() - openedAt < 5000) return flash(t('e_fast'), false);
+  if (!guard.solved) return flash(t('e_check'), false);
+  if (Date.now() - guard.at > MAX_AGE){ resetCheck(); checkState.className = 'checkstate bad'; checkState.textContent = t('check_stale'); return flash(t('e_check'), false); }
+  if (guard.moves < 12 && guard.keys < 10) return flash(t('e_check'), false);
+
+  var id = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  var post = {
+    id:id, ts:Date.now(), owner:JH.OWNER, text:body, tags:state.tags.slice(),
+    place:{ label:place, lat:state.lat, lng:state.lng },
+    type:state.mode,
+    media: state.mode === 'photos'
+      ? state.photos.map(function(p){ return { src:p.src }; })
+      : state.videos.map(function(v){ return { poster:v.poster, duration:v.duration }; })
+  };
+  if (state.mode === 'videos') sessionVideos.set(id, state.videos.map(function(v){ return v.url; }));
+
+  mine.unshift(post);
+  mine = JH.savePosts(mine, function(){ flash(t('e_full'), false); });
+
+  state.photos = []; state.videos = []; state.lat = null; state.lng = null; state.tags = [];
+  text.value = ''; $('chars').textContent = 280; $('place').value = ''; $('geoOut').textContent = '';
+  drawThumbs(); updateCount(); drawTagPick(); drawTagBar(); resetCheck(); paintCheckState();
+  render();
+  flash(t('posted'), true);
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+});
+
+/* ---------- feed ---------- */
+var feed = $('feed'), filterInput = $('filter'), activeTags = [];
+filterInput.addEventListener('input', render);
+
+function drawTagBar(){
+  var bar = $('tagBar'); bar.innerHTML = '';
+  var used = {};
+  allPosts().forEach(function(p){ (p.tags || []).forEach(function(k){ used[k] = (used[k] || 0) + 1; }); });
+  var all = document.createElement('button');
+  all.type = 'button'; all.className = 'chip'; all.textContent = t('all_tags');
+  all.setAttribute('aria-pressed', String(activeTags.length === 0));
+  all.addEventListener('click', function(){ activeTags = []; drawTagBar(); render(); });
+  bar.appendChild(all);
+  tagKeys().forEach(function(k){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip' + (JH.TAGS.some(function(x){ return x[0] === k; }) ? '' : ' custom');
+    b.textContent = '#' + JH.tagLabel(k) + (used[k] ? ' ' + used[k] : '');
+    b.setAttribute('aria-pressed', String(activeTags.indexOf(k) >= 0));
+    b.addEventListener('click', function(){
+      var i = activeTags.indexOf(k);
+      if (i >= 0) activeTags.splice(i, 1); else activeTags.push(k);
+      drawTagBar(); render();
+    });
+    bar.appendChild(b);
+  });
+}
+
+var pin = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.6 7-13a7 7 0 1 0-14 0c0 5.4 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>';
+
+function render(){
+  var q = filterInput.value.trim().toLowerCase();
+  var list = allPosts().filter(function(p){
+    if (activeTags.length && !(p.tags || []).some(function(k){ return activeTags.indexOf(k) >= 0; })) return false;
+    if (!q) return true;
+    var hay = (JH.textOf(p) + ' ' + JH.placeOf(p) + ' ' + (p.tags || []).map(JH.tagLabel).join(' ')).toLowerCase();
+    return hay.indexOf(q) >= 0;
+  });
+  $('feedCount').textContent = t('feed_n', { n:allPosts().length });
+  feed.innerHTML = '';
+  if (!list.length){
+    var li = document.createElement('li');
+    li.innerHTML = '<div class="empty">' + ((q || activeTags.length) ? t('empty_filter') : t('empty')) + '</div>';
+    feed.appendChild(li); return;
+  }
+  list.forEach(function(p){ feed.appendChild(card(p)); });
+  highlightFromHash();
+}
+
+function card(p){
+  var li = document.createElement('li');
+  li.className = 'post' + (Date.now() - p.ts < 3600000 ? ' fresh' : '');
+  li.id = p.id;
+  var c = document.createElement('div'); c.className = 'card';
+
+  var meta = document.createElement('div'); meta.className = 'meta';
+  meta.innerHTML = '<time datetime="' + new Date(p.ts).toISOString() + '">' + JH.ago(p.ts) + '</time><span>' + JH.stamp(p.ts) + '</span>'
+    + (p.demo ? '<span class="badge">' + t('demo') + '</span>' : '');
+  c.appendChild(meta);
+
+  var place = document.createElement('div'); place.className = 'place';
+  var inner = pin + '<span>' + JH.esc(JH.placeOf(p)) + '</span>';
+  if (p.place && p.place.lat !== null && p.place.lat !== undefined){
+    var u = 'https://www.openstreetmap.org/?mlat=' + p.place.lat + '&mlon=' + p.place.lng + '#map=15/' + p.place.lat + '/' + p.place.lng;
+    inner += '<a href="' + u + '" target="_blank" rel="noopener">' + p.place.lat.toFixed(4) + ', ' + p.place.lng.toFixed(4) + '</a>';
+  }
+  place.innerHTML = inner; c.appendChild(place);
+
+  var body = document.createElement('p'); body.className = 'body'; body.textContent = JH.textOf(p);
+  c.appendChild(body);
+
+  c.appendChild(p.type === 'photos' ? photoGrid(p) : videoBlock(p));
+
+  if ((p.tags || []).length){
+    var tg = document.createElement('div'); tg.className = 'posttags';
+    p.tags.forEach(function(k){
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = '#' + JH.tagLabel(k);
+      b.addEventListener('click', function(){
+        activeTags = [k]; drawTagBar(); render();
+        window.scrollTo({ top: $('tagBar').getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth' });
+      });
+      tg.appendChild(b);
+    });
+    c.appendChild(tg);
+  }
+
+  var tools = document.createElement('div'); tools.className = 'tools';
+  if (p.place && p.place.lat !== null && p.place.lat !== undefined){
+    var g = document.createElement('a');
+    g.href = './globe.html#' + p.id; g.className = 'lnk'; g.style.color = 'inherit'; g.style.textDecoration = 'none';
+    g.textContent = t('on_globe'); tools.appendChild(g);
+  }
+  if (p.owner === JH.OWNER){
+    var del = document.createElement('button'); del.type = 'button'; del.className = 'lnk'; del.textContent = t('del');
+    del.addEventListener('click', function(){
+      if (!confirm(t('del_confirm'))) return;
+      (sessionVideos.get(p.id) || []).forEach(function(u2){ URL.revokeObjectURL(u2); });
+      sessionVideos.delete(p.id);
+      mine = mine.filter(function(x){ return x.id !== p.id; });
+      mine = JH.savePosts(mine);
+      drawTagBar(); render();
+    });
+    tools.appendChild(del);
+  }
+  tools.appendChild(JH.shareBlock(p, t));
+  c.appendChild(tools);
+
+  li.appendChild(c);
+  return li;
+}
+
+function photoGrid(p){
+  var g = document.createElement('div');
+  var shown = p.media.slice(0, 6);
+  g.className = 'grid' + (shown.length === 1 ? ' n1' : shown.length === 2 ? ' n2' : '');
+  shown.forEach(function(m, i){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'cell';
+    var im = document.createElement('img'); im.src = m.src; im.alt = ''; im.loading = 'lazy';
+    b.appendChild(im);
+    if (i === 5 && p.media.length > 6){
+      var more = document.createElement('span'); more.className = 'more'; more.textContent = '+' + (p.media.length - 6);
+      b.appendChild(more);
+    }
+    b.addEventListener('click', function(){ openLb(p.media.map(function(x){ return x.src; }), i); });
+    g.appendChild(b);
+  });
+  return g;
+}
+function videoBlock(p){
+  var wrap = document.createElement('div'); wrap.className = 'vids';
+  var urls = sessionVideos.get(p.id) || [];
+  p.media.forEach(function(m, i){
+    var box = document.createElement('div'); box.className = 'vidwrap';
+    if (urls[i]){
+      var v = document.createElement('video');
+      v.src = urls[i]; v.controls = true; v.playsInline = true; v.preload = 'metadata';
+      if (m.poster) v.poster = m.poster;
+      box.appendChild(v);
+    } else {
+      var off = document.createElement('div'); off.className = 'vidoff';
+      if (m.poster) off.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.72)),url(' + m.poster + ')';
+      off.innerHTML = '<div>' + t('vid_offline') + '</div>';
+      box.appendChild(off);
+    }
+    wrap.appendChild(box);
+  });
+  return wrap;
+}
+
+function highlightFromHash(){
+  var id = location.hash.slice(1);
+  if (!id) return;
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('flash');
+  el.scrollIntoView({ block:'center' });
+  setTimeout(function(){ el.classList.remove('flash'); }, 2600);
+}
+window.addEventListener('hashchange', highlightFromHash);
+
+/* ---------- lightbox ---------- */
+var lb = $('lb'), lbImg = $('lbImg'), lbIdx = $('lbIdx'), lbList = [], lbAt = 0;
+function openLb(list, i){ lbList = list; lbAt = i; lb.classList.add('on'); paintLb(); }
+function paintLb(){ lbImg.src = lbList[lbAt]; lbIdx.textContent = (lbAt + 1) + ' / ' + lbList.length; }
+function closeLb(){ lb.classList.remove('on'); lbImg.src = ''; }
+$('lbClose').addEventListener('click', closeLb);
+$('lbPrev').addEventListener('click', function(){ lbAt = (lbAt - 1 + lbList.length) % lbList.length; paintLb(); });
+$('lbNext').addEventListener('click', function(){ lbAt = (lbAt + 1) % lbList.length; paintLb(); });
+lb.addEventListener('click', function(e){ if (e.target === lb) closeLb(); });
+document.addEventListener('keydown', function(e){
+  if (!lb.classList.contains('on')) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowLeft'){ lbAt = (lbAt - 1 + lbList.length) % lbList.length; paintLb(); }
+  if (e.key === 'ArrowRight'){ lbAt = (lbAt + 1) % lbList.length; paintLb(); }
+});
+
+/* ---------- boot ---------- */
+JH.on('lang', function(){
+  mediaHint.textContent = t(state.mode === 'photos' ? 'hint_photos' : 'hint_videos');
+  updateCount(); paintCheckState(); drawTagPick(); drawTagBar(); render();
+});
+resetCheck();
+drawThumbs(); drawTagPick(); drawTagBar(); render();
+setInterval(render, 60000);
+</script>
+</body>
+</html>

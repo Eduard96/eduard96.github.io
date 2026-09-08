@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ru" data-theme="blue-matte">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>just happened — globe</title>
+<meta name="description" content="Every post on a spinning globe, filtered by period and hashtag.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1822'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%236E9AD6' stroke-width='4'/%3E%3Cellipse cx='32' cy='32' rx='8' ry='17' fill='none' stroke='%236E9AD6' stroke-width='3'/%3E%3Ccircle cx='42' cy='22' r='5' fill='%23C9A24B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..700&family=Noto+Sans+Armenian:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./jh.css">
+</head>
+<body>
+<header class="top"></header>
+
+<main class="wrap wide">
+  <section class="hero">
+    <h1><span data-i18n="g_h1"></span><span class="h-sub" data-i18n="g_lead"></span></h1>
+  </section>
+
+  <div class="row" style="margin-bottom:14px">
+    <div class="seg" id="periods" role="group"></div>
+    <span class="n" id="gcount" style="color:var(--ink2);font-size:15px"></span>
+  </div>
+  <div class="chips tagbar" id="tagBar"></div>
+
+  <div class="globegrid">
+    <div>
+      <div class="globebox">
+        <canvas id="globe" width="900" height="700"></canvas>
+        <div class="globehud" data-i18n="g_hint"></div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="barlab"><span id="barFrom"></span><span id="barTo"></span></div>
+    </div>
+    <div>
+      <h2 style="margin:0 0 10px;font-size:17px" data-i18n="g_recent"></h2>
+      <ul class="sidelist" id="side"></ul>
+    </div>
+  </div>
+
+  <section class="detail" id="detail"></section>
+</main>
+
+<footer><div class="wrap"><p data-i18n="storage_note"></p></div></footer>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true">
+  <button class="close" id="lbClose" aria-label="Close">×</button>
+  <button class="nav prev" id="lbPrev" aria-label="Previous">‹</button>
+  <img id="lbImg" alt="">
+  <button class="nav next" id="lbNext" aria-label="Next">›</button>
+  <div class="idx" id="lbIdx"></div>
+</div>
+
+<script src="./jh-core.js"></script>
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var t = JH.t;
+JH.initChrome('globe.html');
+
+var posts = JH.loadPosts().concat(JH.demoPosts())
+  .filter(function(p){ return p.place && typeof p.place.lat === 'number'; })
+  .sort(function(a,b){ return b.ts - a.ts; });
+
+var PERIODS = [['1h',3600000],['24h',86400000],['7d',604800000],['30d',2592000000],['all',Infinity]];
+var period = '7d', activeTags = [], selected = null;
+
+/* ---------- coarse world outline (stylised) ---------- */
+var LAND = [
+[[-17,21],[-13,27],[-9,30],[-5,36],[10,37],[20,32],[25,32],[32,31],[35,23],[38,18],[43,12],[51,12],[43,3],[41,-2],[40,-10],[35,-18],[33,-26],[27,-34],[20,-35],[18,-30],[14,-23],[12,-17],[9,-2],[8,4],[3,6],[-5,5],[-10,6],[-13,9],[-16,13]],
+[[-9,43],[-9,39],[-6,36],[0,39],[4,43],[8,44],[12,45],[16,42],[19,40],[23,38],[26,40],[29,41],[35,36],[36,31],[34,28],[43,29],[48,30],[57,25],[62,25],[68,24],[70,22],[73,16],[76,9],[80,7],[81,13],[87,21],[90,22],[92,17],[95,16],[98,8],[103,1],[105,10],[109,15],[108,21],[117,24],[122,31],[122,40],[127,42],[131,46],[135,55],[143,59],[160,60],[170,66],[180,66],[180,71],[160,70],[140,73],[130,72],[110,76],[95,78],[80,74],[70,73],[60,71],[50,69],[40,66],[33,70],[28,71],[20,70],[15,68],[10,63],[5,58],[8,54],[4,52],[0,49],[-2,49],[-5,48]],
+[[-168,66],[-160,70],[-140,70],[-125,70],[-110,68],[-95,68],[-85,70],[-75,68],[-65,60],[-56,52],[-60,47],[-66,45],[-70,42],[-74,39],[-76,35],[-81,31],[-80,25],[-84,30],[-90,29],[-97,26],[-97,21],[-92,18],[-88,16],[-84,10],[-79,9],[-83,15],[-90,20],[-95,17],[-105,20],[-110,24],[-114,30],[-118,34],[-124,40],[-124,48],[-131,53],[-140,60],[-150,60],[-160,58],[-166,62]],
+[[-81,-3],[-79,2],[-76,8],[-71,11],[-64,10],[-60,8],[-52,5],[-50,0],[-44,-2],[-38,-5],[-35,-8],[-39,-14],[-41,-21],[-48,-25],[-53,-33],[-58,-38],[-62,-40],[-65,-45],[-68,-50],[-70,-54],[-73,-52],[-74,-45],[-73,-37],[-71,-30],[-70,-23],[-71,-18],[-76,-14],[-79,-8]],
+[[113,-22],[114,-26],[116,-32],[121,-34],[129,-32],[135,-35],[138,-35],[141,-38],[146,-39],[150,-37],[153,-28],[153,-25],[148,-20],[143,-14],[136,-12],[130,-12],[125,-14],[122,-18]],
+[[-45,60],[-50,65],[-55,70],[-50,76],[-40,80],[-25,80],[-20,74],[-25,68],[-38,62]],
+[[43,-16],[49,-13],[50,-19],[47,-25],[44,-22]],
+[[130,32],[135,34],[140,37],[142,42],[145,45],[141,45],[137,37],[132,34]],
+[[-5,50],[-3,54],[-3,58],[-5,58],[-6,55],[-6,51]],
+[[-22,64],[-18,66],[-14,66],[-14,64],[-18,63]],
+[[166,-46],[172,-43],[174,-37],[177,-38],[173,-41],[170,-45]]
+];
+
+/* ---------- globe ---------- */
+var cv = $('globe'), ctx = cv.getContext('2d');
+var view = { lon:44, lat:25, zoom:1, tLon:44, tLat:25, auto:true };
+var css = {};
+function readTheme(){
+  var s = getComputedStyle(document.documentElement);
+  ['--bg','--panel','--panel2','--line','--ink','--ink2','--signal','--live'].forEach(function(k){ css[k] = s.getPropertyValue(k).trim(); });
+}
+readTheme(); JH.on('theme', function(){ readTheme(); });
+
+function sizeCanvas(){
+  var w = cv.parentElement.clientWidth, h = Math.round(Math.min(640, Math.max(320, w * 0.78)));
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cv.__w = w; cv.__h = h;
+}
+window.addEventListener('resize', function(){ sizeCanvas(); });
+
+var D = Math.PI / 180;
+function project(lon, lat){
+  var la = lat * D, lo = (lon - view.lon) * D, p = view.lat * D;
+  var x = Math.cos(la) * Math.sin(lo);
+  var y = Math.cos(p) * Math.sin(la) - Math.sin(p) * Math.cos(la) * Math.cos(lo);
+  var z = Math.sin(p) * Math.sin(la) + Math.cos(p) * Math.cos(la) * Math.cos(lo);
+  var R = radius(), cx = cv.__w / 2, cy = cv.__h / 2;
+  return { x: cx + R * x, y: cy - R * y, z: z, vis: z > 0 };
+}
+function radius(){ return Math.min(cv.__w, cv.__h) * 0.42 * view.zoom; }
+
+function pathPoly(poly){
+  var R = radius(), cx = cv.__w / 2, cy = cv.__h / 2, started = false;
+  ctx.beginPath();
+  for (var i = 0; i < poly.length; i++){
+    var p = project(poly[i][0], poly[i][1]), x = p.x, y = p.y;
+    if (!p.vis){
+      var dx = p.x - cx, dy = p.y - cy, d = Math.hypot(dx, dy) || 1;
+      x = cx + dx / d * R; y = cy + dy / d * R;
+    }
+    if (!started){ ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function draw(){
+  if (!cv.__w) sizeCanvas();
+  var w = cv.__w, h = cv.__h, cx = w / 2, cy = h / 2, R = radius();
+  ctx.clearRect(0, 0, w, h);
+
+  var oc = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.1, cx, cy, R);
+  oc.addColorStop(0, css['--panel2']); oc.addColorStop(1, css['--bg']);
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fillStyle = oc; ctx.fill();
+  ctx.strokeStyle = css['--line']; ctx.lineWidth = 1; ctx.stroke();
+
+  ctx.strokeStyle = css['--line']; ctx.globalAlpha = .55; ctx.lineWidth = 1;
+  var i, j;
+  for (i = -180; i < 180; i += 30){
+    ctx.beginPath(); var on = false;
+    for (j = -90; j <= 90; j += 3){
+      var p = project(i, j);
+      if (!p.vis){ on = false; continue; }
+      if (!on){ ctx.moveTo(p.x, p.y); on = true; } else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+  }
+  for (i = -60; i <= 60; i += 30){
+    ctx.beginPath(); var on2 = false;
+    for (j = -180; j <= 180; j += 3){
+      var q = project(j, i);
+      if (!q.vis){ on2 = false; continue; }
+      if (!on2){ ctx.moveTo(q.x, q.y); on2 = true; } else ctx.lineTo(q.x, q.y);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  LAND.forEach(function(poly){
+    var anyVis = poly.some(function(pt){ return project(pt[0], pt[1]).vis; });
+    if (!anyVis) return;
+    pathPoly(poly);
+    ctx.fillStyle = css['--panel']; ctx.globalAlpha = .95; ctx.fill();
+    ctx.globalAlpha = 1; ctx.strokeStyle = css['--line']; ctx.lineWidth = 1.1; ctx.stroke();
+  });
+
+  var list = filtered();
+  var pts = list.map(function(p){ var pr = project(p.place.lng, p.place.lat); pr.post = p; return pr; })
+                .filter(function(pr){ return pr.vis; })
+                .sort(function(a,b){ return a.z - b.z; });
+  pts.forEach(function(pr){
+    var sel = selected && pr.post.id === selected.id;
+    var r = (sel ? 7 : 4.4) + pr.z * 2;
+    ctx.beginPath(); ctx.arc(pr.x, pr.y, r * 2.4, 0, 6.2832);
+    ctx.fillStyle = css[sel ? '--signal' : '--live']; ctx.globalAlpha = .16 + pr.z * .12; ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(pr.x, pr.y, r, 0, 6.2832);
+    ctx.fillStyle = css[sel ? '--signal' : '--live']; ctx.fill();
+    ctx.strokeStyle = css['--bg']; ctx.lineWidth = 1.4; ctx.stroke();
+    pr.r = Math.max(10, r * 2);
+  });
+  cv.__pts = pts;
+  requestAnimationFrame(tick);
+}
+var last = 0;
+function tick(ts){
+  if (view.auto) view.lon += 0.05;
+  view.lon += (view.tLon - view.lon) * 0.08 * (view.auto ? 0 : 1);
+  view.lat += (view.tLat - view.lat) * 0.08;
+  if (ts - last > 33){ last = ts; draw(); } else requestAnimationFrame(tick);
+}
+
+/* interaction */
+var drag = null;
+cv.addEventListener('pointerdown', function(e){
+  drag = { x:e.clientX, y:e.clientY, lon:view.lon, lat:view.lat, moved:0 };
+  view.auto = false; cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove', function(e){
+  if (!drag) return;
+  var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag.moved = Math.max(drag.moved, Math.hypot(dx, dy));
+  view.lon = drag.lon - dx * 0.35;
+  view.tLon = view.lon;
+  view.lat = Math.max(-85, Math.min(85, drag.lat + dy * 0.3));
+  view.tLat = view.lat;
+});
+cv.addEventListener('pointerup', function(e){
+  var wasDrag = drag && drag.moved > 6;
+  drag = null;
+  if (wasDrag) return;
+  var r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, best = null;
+  (cv.__pts || []).forEach(function(pr){
+    var d = Math.hypot(pr.x - mx, pr.y - my);
+    if (d < (pr.r || 12) && (!best || d < best.d)) best = { d:d, post:pr.post };
+  });
+  if (best) select(best.post, false);
+});
+cv.addEventListener('wheel', function(e){
+  e.preventDefault();
+  view.zoom = Math.max(0.75, Math.min(2.4, view.zoom * (e.deltaY > 0 ? 0.92 : 1.08)));
+}, { passive:false });
+
+/* ---------- filters ---------- */
+function windowMs(){ var p = PERIODS.filter(function(x){ return x[0] === period; })[0]; return p ? p[1] : Infinity; }
+function filtered(){
+  var ms = windowMs(), now = Date.now();
+  return posts.filter(function(p){
+    if (ms !== Infinity && now - p.ts > ms) return false;
+    if (activeTags.length && !(p.tags || []).some(function(k){ return activeTags.indexOf(k) >= 0; })) return false;
+    return true;
+  });
+}
+function drawPeriods(){
+  var box = $('periods'); box.innerHTML = '';
+  PERIODS.forEach(function(p){
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = t('p_' + p[0]);
+    b.setAttribute('aria-pressed', String(period === p[0]));
+    b.addEventListener('click', function(){ period = p[0]; refresh(); });
+    box.appendChild(b);
+  });
+}
+function tagKeys(){
+  var base = JH.TAGS.map(function(x){ return x[0]; }), extra = [];
+  posts.forEach(function(p){ (p.tags || []).forEach(function(k){ if (base.indexOf(k) < 0 && extra.indexOf(k) < 0) extra.push(k); }); });
+  var used = {};
+  posts.forEach(function(p){ (p.tags || []).forEach(function(k){ used[k] = (used[k] || 0) + 1; }); });
+  return base.concat(extra).filter(function(k){ return used[k]; });
+}
+function drawTagBar(){
+  var bar = $('tagBar'); bar.innerHTML = '';
+  var all = document.createElement('button');
+  all.type = 'button'; all.className = 'chip'; all.textContent = t('all_tags');
+  all.setAttribute('aria-pressed', String(activeTags.length === 0));
+  all.addEventListener('click', function(){ activeTags = []; refresh(); });
+  bar.appendChild(all);
+  tagKeys().forEach(function(k){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = '#' + JH.tagLabel(k);
+    b.setAttribute('aria-pressed', String(activeTags.indexOf(k) >= 0));
+    b.addEventListener('click', function(){
+      var i = activeTags.indexOf(k);
+      if (i >= 0) activeTags.splice(i, 1); else activeTags.push(k);
+      refresh();
+    });
+    bar.appendChild(b);
+  });
+}
+
+/* ---------- side list, bars, detail ---------- */
+function drawSide(){
+  var box = $('side'); box.innerHTML = '';
+  var list = filtered();
+  $('gcount').textContent = t('g_count', { n:list.length });
+  if (!list.length){
+    var li = document.createElement('li');
+    li.innerHTML = '<div class="empty">' + t('g_none') + '</div>';
+    box.appendChild(li); return;
+  }
+  list.forEach(function(p){
+    var li = document.createElement('li');
+    var b = document.createElement('button'); b.type = 'button';
+    b.setAttribute('aria-current', String(!!selected && selected.id === p.id));
+    b.innerHTML = '<span class="s1">' + JH.esc(JH.placeOf(p)) + '</span>'
+      + '<span class="s2">' + JH.ago(p.ts) + ' · ' + (p.tags || []).slice(0,3).map(function(k){ return '#' + JH.tagLabel(k); }).join(' ') + '</span>';
+    b.addEventListener('click', function(){ select(p, true); });
+    li.appendChild(b); box.appendChild(li);
+  });
+}
+function drawBars(){
+  var box = $('bars'); box.innerHTML = '';
+  var ms = windowMs(), now = Date.now();
+  var span = ms === Infinity ? (now - Math.min.apply(null, posts.map(function(p){ return p.ts; })) + 1) : ms;
+  var n = 16, buckets = new Array(n).fill(0);
+  filtered().forEach(function(p){
+    var k = Math.min(n - 1, Math.floor((now - p.ts) / span * n));
+    buckets[n - 1 - k]++;
+  });
+  var max = Math.max.apply(null, buckets) || 1;
+  buckets.forEach(function(v, i){
+    var d = document.createElement('div');
+    d.style.height = Math.round(4 + v / max * 42) + 'px';
+    if (v) d.className = 'hot';
+    d.title = v + '';
+    box.appendChild(d);
+  });
+  $('barFrom').textContent = JH.stamp(now - span);
+  $('barTo').textContent = JH.stamp(now);
+}
+function select(p, spin){
+  selected = p;
+  if (spin){ view.auto = false; view.tLon = p.place.lng; view.tLat = p.place.lat; }
+  else { view.auto = false; }
+  drawSide(); drawDetail();
+  $('detail').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function drawDetail(){
+  var box = $('detail'); box.innerHTML = '';
+  if (!selected){ box.innerHTML = '<div class="empty">' + t('g_pick') + '</div>'; return; }
+  var p = selected;
+  var c = document.createElement('div'); c.className = 'panel'; c.style.padding = '16px';
+  var meta = document.createElement('div'); meta.className = 'meta';
+  meta.innerHTML = '<time>' + JH.ago(p.ts) + '</time><span>' + JH.stamp(p.ts) + '</span>'
+    + (p.demo ? '<span class="badge">' + t('demo') + '</span>' : '');
+  c.appendChild(meta);
+  var place = document.createElement('div'); place.className = 'place';
+  place.innerHTML = '<span>' + JH.esc(JH.placeOf(p)) + '</span>'
+    + '<a href="https://www.openstreetmap.org/?mlat=' + p.place.lat + '&mlon=' + p.place.lng + '#map=15/' + p.place.lat + '/' + p.place.lng + '" target="_blank" rel="noopener">'
+    + p.place.lat.toFixed(4) + ', ' + p.place.lng.toFixed(4) + '</a>';
+  c.appendChild(place);
+  var body = document.createElement('p'); body.className = 'body'; body.textContent = JH.textOf(p); c.appendChild(body);
+  if (p.type === 'photos' && p.media && p.media.length){
+    var g = document.createElement('div'); g.className = 'grid';
+    p.media.slice(0, 6).forEach(function(m, i){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'cell';
+      var im = document.createElement('img'); im.src = m.src; im.alt = ''; im.loading = 'lazy'; b.appendChild(im);
+      b.addEventListener('click', function(){ openLb(p.media.map(function(x){ return x.src; }), i); });
+      g.appendChild(b);
+    });
+    c.appendChild(g);
+  }
+  if ((p.tags || []).length){
+    var tg = document.createElement('div'); tg.className = 'posttags';
+    p.tags.forEach(function(k){
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = '#' + JH.tagLabel(k);
+      b.addEventListener('click', function(){ activeTags = [k]; refresh(); });
+      tg.appendChild(b);
+    });
+    c.appendChild(tg);
+  }
+  var tools = document.createElement('div'); tools.className = 'tools';
+  var a = document.createElement('a'); a.href = './index.html#' + p.id; a.className = 'lnk';
+  a.style.color = 'inherit'; a.style.textDecoration = 'none'; a.textContent = t('g_open');
+  tools.appendChild(a);
+  tools.appendChild(JH.shareBlock(p, t));
+  c.appendChild(tools);
+  box.appendChild(c);
+}
+
+/* ---------- lightbox ---------- */
+var lb = $('lb'), lbImg = $('lbImg'), lbIdx = $('lbIdx'), lbList = [], lbAt = 0;
+function openLb(list, i){ lbList = list; lbAt = i; lb.classList.add('on'); paintLb(); }
+function paintLb(){ lbImg.src = lbList[lbAt]; lbIdx.textContent = (lbAt + 1) + ' / ' + lbList.length; }
+function closeLb(){ lb.classList.remove('on'); lbImg.src = ''; }
+$('lbClose').addEventListener('click', closeLb);
+$('lbPrev').addEventListener('click', function(){ lbAt = (lbAt - 1 + lbList.length) % lbList.length; paintLb(); });
+$('lbNext').addEventListener('click', function(){ lbAt = (lbAt + 1) % lbList.length; paintLb(); });
+lb.addEventListener('click', function(e){ if (e.target === lb) closeLb(); });
+document.addEventListener('keydown', function(e){
+  if (!lb.classList.contains('on')) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowLeft'){ lbAt = (lbAt - 1 + lbList.length) % lbList.length; paintLb(); }
+  if (e.key === 'ArrowRight'){ lbAt = (lbAt + 1) % lbList.length; paintLb(); }
+});
+
+/* ---------- boot ---------- */
+function refresh(){ drawPeriods(); drawTagBar(); drawSide(); drawBars(); drawDetail(); }
+JH.on('lang', refresh);
+sizeCanvas();
+refresh();
+draw();
+
+var hash = location.hash.slice(1);
+if (hash){
+  var p0 = posts.filter(function(p){ return p.id === hash; })[0];
+  if (p0){
+    if (Date.now() - p0.ts > windowMs()) period = 'all';
+    select(p0, true); refresh();
+  }
+}
+</script>
+</body>
+</html>
