@@ -1,1 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WiseWallet — demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312262F'/%3E%3Cpath d='M12 44 L12 30 M24 44 L24 22 M36 44 L36 26 M48 44 L48 14' stroke='%23C9A227' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@400;500;700&family=Noto+Serif+Armenian:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12262F;
+  --ink-soft:#3A5563;
+  --paper:#E7EDEE;
+  --card:#FFFFFF;
+  --line:#C8D5D8;
+  --gold:#C9A227;
+  --teal:#2E7D6E;
+  --clay:#B4443A;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Noto Sans Armenian","Segoe UI",system-ui,sans-serif;
+  font-size:16px;line-height:1.55;
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Noto Serif Armenian",Georgia,serif;font-weight:700;letter-spacing:-.01em;margin:0}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.1}
+h2{font-size:22px;margin-bottom:14px}
+h3{font-size:16px;font-weight:600}
+a{color:var(--ink)}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
 
+/* header */
+header{background:var(--ink);color:#EAF1F2;padding:14px 0}
+.hbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-family:"Noto Serif Armenian",serif;font-weight:700;font-size:19px}
+.logo svg{display:block}
+.hbar nav{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lang{display:flex;border:1px solid #3E5A66;border-radius:999px;overflow:hidden}
+.lang button{background:transparent;border:0;color:#9FB6BE;padding:5px 13px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--gold);color:var(--ink);font-weight:700}
+.hlink{color:#EAF1F2;text-decoration:none;border-bottom:1px solid var(--gold);padding-bottom:1px;font-size:15px}
+
+/* hero */
+.hero{background:var(--ink);color:#EAF1F2;padding:26px 0 34px}
+.hero p.lead{color:#A9C0C8;max-width:62ch;margin:10px 0 0}
+.today{display:grid;grid-template-columns:minmax(240px,1fr) 1fr 1fr;gap:22px;margin-top:26px;align-items:end}
+.big{font-family:"Noto Serif Armenian",serif;font-size:clamp(36px,7vw,60px);line-height:1;color:var(--gold)}
+.big small{display:block;font-family:"Noto Sans Armenian",sans-serif;font-size:14px;color:#A9C0C8;margin-bottom:6px;font-weight:500}
+.mid{font-size:26px;font-weight:700}
+.mid small{display:block;font-size:13px;color:#A9C0C8;font-weight:500;margin-bottom:4px}
+.verdict{margin-top:18px;font-size:15px;padding:9px 14px;border-radius:var(--radius);display:inline-block}
+.verdict.good{background:rgba(46,125,110,.22);color:#8FD8C6;border:1px solid #2E7D6E}
+.verdict.bad{background:rgba(180,68,58,.22);color:#F0A9A2;border:1px solid var(--clay)}
+
+/* day strip */
+.strip{margin-top:26px}
+.striprow{display:flex;gap:2px;align-items:flex-end;height:110px}
+.day{flex:1 1 0;position:relative;background:rgba(255,255,255,.10);border-radius:2px 2px 0 0;min-width:4px}
+.day i{position:absolute;left:0;right:0;bottom:0;display:block;border-radius:2px 2px 0 0}
+.day.today{outline:1px solid var(--gold);outline-offset:1px}
+.striplegend{display:flex;gap:18px;font-size:13px;color:#A9C0C8;margin-top:10px;flex-wrap:wrap}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* layout */
+main{padding:30px 0 60px}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:22px}
+.card > h2{display:flex;align-items:baseline;gap:10px}
+.card > h2 code{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink-soft);background:var(--paper);padding:2px 7px;border-radius:5px;font-weight:400}
+label{display:block;font-size:13px;color:var(--ink-soft);margin:12px 0 5px}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#FBFDFD}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:inline-block;background:var(--ink);color:#fff;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:500}
+.btn:hover{background:#1D3B48}
+.btn.gold{background:var(--gold);color:var(--ink);font-weight:700}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.slim{padding:7px 12px;font-size:14px}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* categories */
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:7px;margin-top:8px}
+.cat{background:#FBFDFD;border:1px solid var(--line);border-radius:8px;padding:8px 9px;cursor:pointer;text-align:left;font-size:13.5px;line-height:1.25}
+.cat span{display:block;font-size:17px}
+.cat[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:14px;color:var(--ink-soft)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;font-weight:600;color:var(--ink-soft);font-size:13px;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid #E9EFF0}
+td.num,th.num{text-align:right}
+.bar{height:6px;border-radius:3px;background:var(--gold);display:block}
+.muted{color:var(--ink-soft)}
+.over{color:var(--clay);font-weight:600}
+.under{color:var(--teal);font-weight:600}
+
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.charts .card{margin-bottom:0}
+svg.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap}
+
+.stack{background:var(--ink);color:#EAF1F2;border-radius:var(--radius);padding:22px}
+.stack h2{color:#fff}
+.stack p{color:#A9C0C8;max-width:64ch}
+.stack a.btn{text-decoration:none;margin-top:8px}
+
+.log{max-height:280px;overflow:auto}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .18s;z-index:9}
+.toast.on{opacity:1}
+footer{border-top:1px solid var(--line);padding:22px 0;color:var(--ink-soft);font-size:14px}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .charts{grid-template-columns:1fr}
+  .today{grid-template-columns:1fr;gap:14px;align-items:start}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hbar">
+    <div class="logo">
+      <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1D3B48"/><path d="M12 44V30M24 44V22M36 44V26M48 44V14" stroke="#C9A227" stroke-width="6" stroke-linecap="round"/></svg>
+      WiseWallet
+    </div>
+    <nav>
+      <a class="hlink" href="effect.html" data-i="nav.effect">Эффект дневной нормы</a>
+      <div class="lang" role="group" aria-label="Language">
+        <button data-lang="en" aria-pressed="false">EN</button>
+        <button data-lang="ru" aria-pressed="true">RU</button>
+        <button data-lang="hy" aria-pressed="false">ՀԱՅ</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1 data-i="hero.title">Сегодня можно потратить</h1>
+    <p class="lead" data-i="hero.lead"></p>
+
+    <div class="today">
+      <div class="big"><small data-i="today.can"></small><span id="v-can">—</span></div>
+      <div class="mid"><small data-i="today.spent"></small><span id="v-spent">—</span></div>
+      <div class="mid"><small data-i="today.tomorrow"></small><span id="v-tomorrow">—</span></div>
+    </div>
+    <div id="verdict" class="verdict good"></div>
+
+    <div class="strip">
+      <div class="striprow" id="strip"></div>
+      <div class="striplegend">
+        <span><i class="sw" style="background:rgba(255,255,255,.18)"></i><span data-i="strip.norm"></span></span>
+        <span><i class="sw" style="background:#2E7D6E"></i><span data-i="strip.under"></span></span>
+        <span><i class="sw" style="background:#B4443A"></i><span data-i="strip.over"></span></span>
+        <span id="strip-days"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+<div class="grid">
+
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="card">
+      <h2><span data-i="setup.title"></span> <code>/setbudget /setcurrency /changestartdate</code></h2>
+      <label for="f-cur" data-i="setup.currency"></label>
+      <select id="f-cur"></select>
+      <label for="f-budget" data-i="setup.budget"></label>
+      <input id="f-budget" type="number" min="0" step="100">
+      <div class="row2">
+        <div><label for="f-start" data-i="setup.start"></label><input id="f-start" type="date"></div>
+        <div><label for="f-end" data-i="setup.end"></label><input id="f-end" type="date"></div>
+      </div>
+      <div class="btns">
+        <button class="btn gold" id="b-apply" data-i="setup.apply"></button>
+        <button class="btn ghost slim" id="b-addbudget" data-i="setup.addbudget"></button>
+        <button class="btn ghost slim" id="b-reset" data-i="setup.reset"></button>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:12px" data-i="setup.hint"></p>
+    </div>
+
+    <div class="card">
+      <h2><span data-i="limit.title"></span> <code>/setcategorybudget</code></h2>
+      <label for="f-limcat" data-i="limit.category"></label>
+      <select id="f-limcat"></select>
+      <label for="f-limamt" data-i="limit.amount"></label>
+      <input id="f-limamt" type="number" min="0" step="100">
+      <div class="btns"><button class="btn slim" id="b-limit" data-i="limit.save"></button></div>
+      <div id="limits" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2><span data-i="log.title"></span></h2>
+      <div class="log"><table><tbody id="log"></tbody></table></div>
+      <div class="btns">
+        <button class="btn ghost slim" id="b-editlast" data-i="log.editlast"></button>
+        <button class="btn ghost slim" id="b-dellast" data-i="log.dellast"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <div class="card">
+      <h2><span data-i="add.title"></span> <code>/addexpense /updatelastexpense</code></h2>
+      <div class="row2">
+        <div><label for="f-amt" data-i="add.amount"></label><input id="f-amt" type="number" min="0" step="10" placeholder="1500"></div>
+        <div><label for="f-amtcur" data-i="add.currency"></label><select id="f-amtcur"></select></div>
+      </div>
+      <label for="f-comment" data-i="add.comment"></label>
+      <input id="f-comment" type="text" placeholder="">
+      <label data-i="add.pick"></label>
+      <div class="cats" id="cats"></div>
+      <div class="pager">
+        <button class="btn ghost slim" id="b-prev">&laquo; <span data-i="add.prev"></span></button>
+        <span id="pageinfo"></span>
+        <button class="btn ghost slim" id="b-next"><span data-i="add.next"></span> &raquo;</button>
+      </div>
+      <div class="btns">
+        <button class="btn gold" id="b-add" data-i="add.submit"></button>
+        <button class="btn ghost" id="b-update" data-i="add.update"></button>
+      </div>
+      <div id="analysis" style="margin-top:16px"></div>
+    </div>
+
+    <div class="charts">
+      <div class="card">
+        <h2><span data-i="pie.title"></span> <code>/breakdown</code></h2>
+        <svg class="chart" id="pie" viewBox="0 0 320 320" role="img"></svg>
+        <div class="legend" id="pielegend"></div>
+      </div>
+      <div class="card">
+        <h2><span data-i="burn.title"></span> <code>/burndown</code></h2>
+        <svg class="chart" id="burn" viewBox="0 0 420 300" role="img"></svg>
+        <div class="legend">
+          <span><i class="sw" style="background:#12262F"></i><span data-i="burn.ideal"></span></span>
+          <span><i class="sw" style="background:#C9A227"></i><span data-i="burn.actual"></span></span>
+          <span><i class="sw" style="background:#2E7D6E"></i><span data-i="burn.today"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:22px">
+      <h2><span data-i="report.title"></span> <code>/report</code></h2>
+      <div id="report"></div>
+    </div>
+
+    <div class="stack">
+      <h2 data-i="teaser.title"></h2>
+      <p data-i="teaser.body"></p>
+      <p><a class="btn gold" href="effect.html" data-i="teaser.cta"></a></p>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer><div class="wrap"><span data-i="footer"></span></div></footer>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ i18n ============ */
+const I = {
+en:{
+ "nav.effect":"The daily-allowance effect",
+ "hero.title":"Today you can spend",
+ "hero.lead":"A browser demo of the WiseWallet budget bot. Everything runs in this page: no server, no database. Set a budget and a period, log expenses, and watch how the daily allowance reacts.",
+ "today.can":"Available today","today.spent":"Already spent today","today.tomorrow":"Available tomorrow",
+ "verdict.good":"You are under the pace. Every unspent unit is added to the days ahead.",
+ "verdict.bad":"You are ahead of the pace. The remaining days now carry a smaller allowance.",
+ "strip.norm":"daily allowance","strip.under":"spent under it","strip.over":"spent over it",
+ "setup.title":"Budget and period","setup.currency":"Main currency","setup.budget":"Budget for the period",
+ "setup.start":"Start date","setup.end":"End date","setup.apply":"Apply","setup.addbudget":"Add to budget","setup.reset":"Clear and reset",
+ "setup.hint":"Expenses entered in another currency are converted into the main one at a fixed demo rate.",
+ "limit.title":"Category limit","limit.category":"Category","limit.amount":"Limit","limit.save":"Save limit",
+ "limit.none":"No limits set yet.","limit.head":"Active limits",
+ "add.title":"Log an expense","add.amount":"Amount","add.currency":"Currency","add.comment":"Comment",
+ "add.pick":"Pick a category","add.prev":"previous","add.next":"next","add.submit":"Add expense","add.update":"Rewrite the last one",
+ "log.title":"History","log.editlast":"Copy last into the form","log.dellast":"Delete last","log.empty":"The history is empty. Add the first expense.",
+ "pie.title":"Breakdown","burn.title":"Burndown","burn.ideal":"ideal","burn.actual":"actual","burn.today":"today",
+ "report.title":"Report","report.budget":"Budget","report.expenses":"Spent","report.remaining":"Left",
+ "report.cat":"Category","report.amount":"Amount","report.share":"Share","report.limit":"Limit","report.empty":"Nothing spent in this period yet.",
+ "an.spent":"Logged {a} on {c}.","an.catleft":"Left in this category: {a}.","an.catover":"This category is over its limit.",
+ "an.left":"Left in the whole budget: {a}.","an.over":"The whole budget is over.",
+ "an.pace":"Tomorrow's allowance: {a} ({d} against today).",
+ "teaser.title":"Why saving gets more tempting toward the end",
+ "teaser.body":"The allowance is recalculated every day: what is left, divided by the days that remain. Skip a little today and tomorrow's number goes up — and the closer the end of the period, the fewer days share that saving, so the number jumps higher for the same restraint.",
+ "teaser.cta":"Open the simulator",
+ "footer":"WiseWallet demo — a static page for GitHub Pages. The data lives in the browser tab and disappears on reload.",
+ "t.applied":"Budget applied","t.added":"Expense added","t.updated":"Last expense rewritten","t.deleted":"Last expense deleted",
+ "t.reset":"Everything cleared","t.limit":"Limit saved","t.needcat":"Pick a category","t.needamt":"Enter an amount","t.needlog":"The history is empty",
+ "t.addbudget":"Added to the budget","days.left":"{n} days left, including today"
+},
+ru:{
+ "nav.effect":"Эффект дневной нормы",
+ "hero.title":"Сегодня можно потратить",
+ "hero.lead":"Браузерное демо бюджетного бота WiseWallet. Всё работает внутри страницы: без сервера и базы. Задайте бюджет и период, вносите траты и смотрите, как дневная норма отвечает на каждую из них.",
+ "today.can":"Доступно сегодня","today.spent":"Уже потрачено сегодня","today.tomorrow":"Будет доступно завтра",
+ "verdict.good":"Вы идёте медленнее темпа. Каждая сэкономленная единица переходит на оставшиеся дни.",
+ "verdict.bad":"Вы идёте быстрее темпа. Оставшимся дням достаётся меньше.",
+ "strip.norm":"дневная норма","strip.under":"потрачено меньше","strip.over":"потрачено больше",
+ "setup.title":"Бюджет и период","setup.currency":"Основная валюта","setup.budget":"Бюджет на период",
+ "setup.start":"Начало","setup.end":"Конец","setup.apply":"Применить","setup.addbudget":"Добавить к бюджету","setup.reset":"Очистить и сбросить",
+ "setup.hint":"Траты в другой валюте пересчитываются в основную по фиксированному демо-курсу.",
+ "limit.title":"Лимит категории","limit.category":"Категория","limit.amount":"Лимит","limit.save":"Сохранить лимит",
+ "limit.none":"Лимиты пока пустые.","limit.head":"Активные лимиты",
+ "add.title":"Внести трату","add.amount":"Сумма","add.currency":"Валюта","add.comment":"Комментарий",
+ "add.pick":"Выберите категорию","add.prev":"предыдущие","add.next":"следующие","add.submit":"Добавить трату","add.update":"Переписать последнюю",
+ "log.title":"История","log.editlast":"Скопировать последнюю в форму","log.dellast":"Удалить последнюю","log.empty":"История пустая. Внесите первую трату.",
+ "pie.title":"Разбивка","burn.title":"Сгорание бюджета","burn.ideal":"идеал","burn.actual":"факт","burn.today":"сегодня",
+ "report.title":"Отчёт","report.budget":"Бюджет","report.expenses":"Потрачено","report.remaining":"Остаток",
+ "report.cat":"Категория","report.amount":"Сумма","report.share":"Доля","report.limit":"Лимит","report.empty":"В этом периоде трат пока нет.",
+ "an.spent":"Записано {a} на «{c}».","an.catleft":"В категории остаётся: {a}.","an.catover":"Категория вышла за лимит.",
+ "an.left":"В общем бюджете остаётся: {a}.","an.over":"Общий бюджет исчерпан.",
+ "an.pace":"Норма на завтра: {a} ({d} к сегодняшней).",
+ "teaser.title":"Почему ближе к концу экономить хочется сильнее",
+ "teaser.body":"Норма пересчитывается каждый день: остаток делится на оставшиеся дни. Сэкономили сегодня — завтрашнее число выросло. И чем ближе конец периода, тем меньше дней делят между собой эту экономию, поэтому за то же усилие число прыгает выше.",
+ "teaser.cta":"Открыть симулятор",
+ "footer":"Демо WiseWallet — статическая страница для GitHub Pages. Данные живут во вкладке и исчезают при перезагрузке.",
+ "t.applied":"Бюджет применён","t.added":"Трата добавлена","t.updated":"Последняя трата переписана","t.deleted":"Последняя трата удалена",
+ "t.reset":"Всё очищено","t.limit":"Лимит сохранён","t.needcat":"Выберите категорию","t.needamt":"Введите сумму","t.needlog":"История пустая",
+ "t.addbudget":"Добавлено к бюджету","days.left":"осталось дней: {n}, включая сегодня"
+},
+hy:{
+ "nav.effect":"Օրական նորմայի էֆեկտը",
+ "hero.title":"Այսօր կարող եք ծախսել",
+ "hero.lead":"WiseWallet բյուջեի բոտի բրաուզերային դեմո։ Ամեն ինչ աշխատում է էջի ներսում՝ առանց սերվերի և բազայի։ Դրեք բյուջեն ու ժամանակահատվածը, գրանցեք ծախսերը և տեսեք, թե ինչպես է օրական նորման արձագանքում։",
+ "today.can":"Հասանելի է այսօր","today.spent":"Այսօր արդեն ծախսվել է","today.tomorrow":"Վաղը հասանելի կլինի",
+ "verdict.good":"Դուք գնում եք տեմպից դանդաղ։ Ամեն խնայված միավոր անցնում է մնացած օրերին։",
+ "verdict.bad":"Դուք գնում եք տեմպից արագ։ Մնացած օրերին ավելի քիչ է մնում։",
+ "strip.norm":"օրական նորմա","strip.under":"ծախսվել է պակաս","strip.over":"ծախսվել է ավելի",
+ "setup.title":"Բյուջե և ժամանակահատված","setup.currency":"Հիմնական արժույթ","setup.budget":"Բյուջեն ժամանակահատվածի համար",
+ "setup.start":"Սկիզբ","setup.end":"Ավարտ","setup.apply":"Կիրառել","setup.addbudget":"Ավելացնել բյուջեին","setup.reset":"Մաքրել և զրոյացնել",
+ "setup.hint":"Այլ արժույթով ծախսերը վերահաշվարկվում են հիմնականի՝ ֆիքսված դեմո-փոխարժեքով։",
+ "limit.title":"Կատեգորիայի սահման","limit.category":"Կատեգորիա","limit.amount":"Սահման","limit.save":"Պահել սահմանը",
+ "limit.none":"Սահմանները դեռ դատարկ են։","limit.head":"Գործող սահմաններ",
+ "add.title":"Գրանցել ծախս","add.amount":"Գումար","add.currency":"Արժույթ","add.comment":"Մեկնաբանություն",
+ "add.pick":"Ընտրեք կատեգորիա","add.prev":"նախորդները","add.next":"հաջորդները","add.submit":"Ավելացնել ծախսը","add.update":"Վերագրել վերջինը",
+ "log.title":"Պատմություն","log.editlast":"Պատճենել վերջինը ձևի մեջ","log.dellast":"Ջնջել վերջինը","log.empty":"Պատմությունը դատարկ է։ Գրանցեք առաջին ծախսը։",
+ "pie.title":"Բաշխում","burn.title":"Բյուջեի այրում","burn.ideal":"իդեալ","burn.actual":"փաստ","burn.today":"այսօր",
+ "report.title":"Հաշվետվություն","report.budget":"Բյուջե","report.expenses":"Ծախսվել է","report.remaining":"Մնացորդ",
+ "report.cat":"Կատեգորիա","report.amount":"Գումար","report.share":"Բաժին","report.limit":"Սահման","report.empty":"Այս ժամանակահատվածում ծախս դեռ չկա։",
+ "an.spent":"Գրանցվեց {a}՝ «{c}»-ի համար։","an.catleft":"Կատեգորիայում մնում է՝ {a}։","an.catover":"Կատեգորիան անցել է սահմանը։",
+ "an.left":"Ընդհանուր բյուջեում մնում է՝ {a}։","an.over":"Ընդհանուր բյուջեն սպառված է։",
+ "an.pace":"Վաղվա նորման՝ {a} ({d} այսօրվա համեմատ)։",
+ "teaser.title":"Ինչու ավարտին մոտ խնայելու ցանկությունն ուժեղանում է",
+ "teaser.body":"Նորման վերահաշվարկվում է ամեն օր՝ մնացորդը բաժանվում է մնացած օրերի վրա։ Այսօր խնայեցիք՝ վաղվա թիվը մեծացավ։ Եվ որքան մոտ է ավարտը, այնքան քիչ օր է կիսում այդ խնայողությունը, ուստի նույն ջանքի դիմաց թիվը ցատկում է ավելի բարձր։",
+ "teaser.cta":"Բացել սիմուլյատորը",
+ "footer":"WiseWallet դեմո — ստատիկ էջ GitHub Pages-ի համար։ Տվյալները ապրում են ներդիրում և անհետանում վերաբեռնման ժամանակ։",
+ "t.applied":"Բյուջեն կիրառվեց","t.added":"Ծախսն ավելացվեց","t.updated":"Վերջին ծախսը վերագրվեց","t.deleted":"Վերջին ծախսը ջնջվեց",
+ "t.reset":"Ամեն ինչ մաքրվեց","t.limit":"Սահմանը պահվեց","t.needcat":"Ընտրեք կատեգորիա","t.needamt":"Մուտքագրեք գումարը","t.needlog":"Պատմությունը դատարկ է",
+ "t.addbudget":"Ավելացվեց բյուջեին","days.left":"մնաց {n} օր՝ ներառյալ այսօրը"
+}};
+
+/* ============ data ============ */
+const CATS=[
+ {id:1,e:"🛒",en:"Groceries",ru:"Продукты",hy:"Մթերք"},
+ {id:2,e:"🏠",en:"Rent",ru:"Аренда",hy:"Վարձակալություն"},
+ {id:3,e:"💡",en:"Utilities",ru:"Коммуналка",hy:"Կոմունալ"},
+ {id:4,e:"🚌",en:"Transport",ru:"Транспорт",hy:"Տրանսպորտ"},
+ {id:5,e:"🍽️",en:"Dining out",ru:"Кафе",hy:"Ռեստորան"},
+ {id:6,e:"🥡",en:"Take away",ru:"Навынос",hy:"Տուն տանելու"},
+ {id:7,e:"📱",en:"Phone/Internet",ru:"Связь",hy:"Կապ"},
+ {id:8,e:"🛡️",en:"Insurance",ru:"Страховка",hy:"Ապահովագրություն"},
+ {id:9,e:"🏥",en:"Healthcare",ru:"Здоровье",hy:"Առողջություն"},
+ {id:10,e:"💳",en:"Debt payment",ru:"Долг",hy:"Պարտք"},
+ {id:11,e:"💰",en:"Savings",ru:"Сбережения",hy:"Խնայողություն"},
+ {id:12,e:"👕",en:"Clothing",ru:"Одежда",hy:"Հագուստ"},
+ {id:13,e:"🎭",en:"Entertainment",ru:"Развлечения",hy:"Ժամանց"},
+ {id:14,e:"📺",en:"Subscriptions",ru:"Подписки",hy:"Բաժանորդագրություն"},
+ {id:15,e:"🚗",en:"Car",ru:"Машина",hy:"Ավտոմեքենա"},
+ {id:16,e:"🏪",en:"Supermarket",ru:"Супермаркет",hy:"Սուպերմարկետ"},
+ {id:17,e:"🏦",en:"Mortgage",ru:"Ипотека",hy:"Հիփոթեք"},
+ {id:18,e:"🔮",en:"Miscellaneous",ru:"Разное",hy:"Այլ"},
+ {id:19,e:"🚕",en:"Taxi",ru:"Такси",hy:"Տաքսի"},
+ {id:20,e:"🎁",en:"Gifts",ru:"Подарки",hy:"Նվերներ"},
+ {id:21,e:"✈️",en:"Travel",ru:"Путешествия",hy:"Ճամփորդություն"},
+ {id:22,e:"👶",en:"Kids",ru:"Дети",hy:"Երեխաներ"},
+ {id:23,e:"📚",en:"Education",ru:"Образование",hy:"Կրթություն"},
+ {id:24,e:"🎨",en:"Hobbies",ru:"Хобби",hy:"Հոբբի"},
+ {id:25,e:"🐾",en:"Pets",ru:"Питомцы",hy:"Ընտանի կենդանիներ"},
+ {id:26,e:"🎉",en:"Event",ru:"События",hy:"Միջոցառում"},
+ {id:27,e:"🏋️",en:"Gym",ru:"Спортзал",hy:"Մարզասրահ"},
+ {id:28,e:"🤝",en:"Lent to someone",ru:"Дал в долг",hy:"Պարտք տված"},
+ {id:29,e:"💼",en:"Work equipment",ru:"Рабочая техника",hy:"Աշխատանքային սարք"},
+ {id:30,e:"👥",en:"Coworking",ru:"Коворкинг",hy:"Կովորքինգ"}
+];
+/* units per 1 USD — fixed demo rates */
+const RATES={USD:1,EUR:.92,RUB:88,CAD:1.36,CNY:7.2,GBP:.78,AMD:387,IRR:42000,AZN:1.7,JPY:152,AUD:1.5,CHF:.88,SEK:10.5,NZD:1.62,INR:83,BRL:5.4,ZAR:18.4,KRW:1340,SGD:1.34,NOK:10.8,MXN:17.2,HKD:7.8,TRY:33};
+const CURS=Object.keys(RATES);
+const COLORS=["#B4443A","#12262F","#C9A227","#2E7D6E","#6E5AA8","#1F6F8B","#C1662F","#4A7C2F","#8C3E63","#3D5A80","#8A6D3B","#2F6D6A","#7A4B8C"];
+
+/* ============ state ============ */
+const state={lang:"ru",cur:"AMD",budget:0,start:"",end:"",exp:[],limits:{},sel:null,page:0};
+
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]);};
+const dayDiff=(a,b)=>Math.round((parse(b)-parse(a))/86400000);
+const todayIso=()=>iso(new Date());
+const t=k=>(I[state.lang][k]!==undefined?I[state.lang][k]:k);
+const catName=c=>c[state.lang]+" "+c.e;
+const catById=id=>CATS.find(c=>c.id===id);
+const conv=(from,to,a)=>a*RATES[to]/RATES[from];
+const money=(a,c)=>new Intl.NumberFormat(state.lang==="hy"?"hy-AM":state.lang==="ru"?"ru-RU":"en-US",{maximumFractionDigits:2,minimumFractionDigits:2}).format(a||0)+" "+(c||state.cur);
+
+/* ============ seed ============ */
+function seed(){
+  const now=new Date();
+  const s=new Date(now.getFullYear(),now.getMonth(),1);
+  const e=new Date(now.getFullYear(),now.getMonth()+1,0);
+  state.start=iso(s);state.end=iso(e);state.budget=400000;state.cur="AMD";
+  state.limits={1:70000,5:45000,19:20000};
+  state.exp=[];
+  const factors=[.72,.61,.88,.45,.79,.66,.9,.52,.7,.83,.58,.75,.64,.86,.5,.69,.77,.6,.81,.55];
+  const pick=[1,5,19,4,16,13,6,25,7,24,1,5,3,12,1,19,5,16,9,21];
+  let spent=0,fi=0,id=1;
+  const total=dayDiff(state.start,state.end)+1;
+  for(let i=0;i<total;i++){
+    const d=new Date(s.getFullYear(),s.getMonth(),s.getDate()+i);
+    if(iso(d)>todayIso())break;
+    const left=total-i;
+    const norm=(state.budget-spent)/left;
+    const f=factors[fi%factors.length];fi++;
+    let amount=Math.round(norm*(iso(d)===todayIso()?f*0.4:f)/50)*50;
+    if(amount<=0)continue;
+    const c1=pick[i%pick.length];
+    const a1=Math.round(amount*0.6/10)*10, a2=amount-a1;
+    state.exp.push({id:id++,cat:c1,amt:a1,oamt:a1,ocur:state.cur,date:iso(d),note:""});
+    if(a2>0)state.exp.push({id:id++,cat:pick[(i+4)%pick.length],amt:a2,oamt:a2,ocur:state.cur,date:iso(d),note:""});
+    spent+=amount;
+  }
+}
+
+/* ============ math (mirrors the bot) ============ */
+function clampToday(){const t0=todayIso();if(t0<state.start)return state.start;if(t0>state.end)return state.end;return t0;}
+function totalIn(from,to){return state.exp.filter(x=>x.date>=from&&x.date<=to).reduce((s,x)=>s+x.amt,0);}
+function catTotal(id){return state.exp.filter(x=>x.cat===id&&x.date>=state.start&&x.date<=state.end).reduce((s,x)=>s+x.amt,0);}
+function stats(){
+  const today=clampToday();
+  const totalDays=dayDiff(state.start,state.end)+1;
+  const spentAll=totalIn(state.start,state.end);
+  const spentToday=totalIn(today,today);
+  const leftDays=Math.max(1,dayDiff(today,state.end)+1);
+  const canToday=(state.budget-spentAll+spentToday)/leftDays;
+  const tomorrow=leftDays>1?(state.budget-spentAll)/(leftDays-1):0;
+  return {today,totalDays,spentAll,spentToday,leftDays,canToday,tomorrow,remaining:state.budget-spentAll};
+}
+/* daily allowance recomputed for each day of the period */
+function normSeries(){
+  const total=dayDiff(state.start,state.end)+1,out=[],b=parse(state.start),today=clampToday();
+  let spent=0,flat=null;
+  for(let i=0;i<total;i++){
+    const d=iso(new Date(b.getFullYear(),b.getMonth(),b.getDate()+i));
+    const future=d>today;
+    /* past and today: the allowance as it really was; ahead: the level held if every day spends exactly its allowance */
+    const norm=future?flat:(state.budget-spent)/(total-i);
+    if(d===today)flat=norm;
+    const day=totalIn(d,d);
+    out.push({date:d,norm:Math.max(0,norm||0),spent:day,future});
+    spent+=day;
+  }
+  return out;
+}
+
+/* ============ render ============ */
+function applyI18n(){
+  document.documentElement.lang=state.lang;
+  document.querySelectorAll("[data-i]").forEach(el=>{el.textContent=t(el.dataset.i);});
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===state.lang)));
+  document.getElementById("f-comment").placeholder={en:"lunch with a friend",ru:"обед с другом",hy:"ընկերոջ հետ ճաշ"}[state.lang];
+}
+function fillSelects(){
+  const cur=document.getElementById("f-cur"),amtcur=document.getElementById("f-amtcur");
+  cur.innerHTML=amtcur.innerHTML=CURS.map(c=>`<option>${c}</option>`).join("");
+  cur.value=state.cur;amtcur.value=state.cur;
+  document.getElementById("f-limcat").innerHTML=CATS.map(c=>`<option value="${c.id}">${catName(c)}</option>`).join("");
+  document.getElementById("f-budget").value=state.budget;
+  document.getElementById("f-start").value=state.start;
+  document.getElementById("f-end").value=state.end;
+}
+function renderCats(){
+  const box=document.getElementById("cats");
+  const per=15,pages=Math.ceil(CATS.length/per);
+  const list=CATS.slice(state.page*per,state.page*per+per);
+  box.innerHTML=list.map(c=>`<button class="cat" data-cat="${c.id}" aria-pressed="${state.sel===c.id}"><span>${c.e}</span>${c[state.lang]}</button>`).join("");
+  document.getElementById("pageinfo").textContent=(state.page+1)+" / "+pages;
+  box.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{state.sel=+b.dataset.cat;renderCats();});
+}
+function renderHero(){
+  const s=stats();
+  document.getElementById("v-can").textContent=money(s.canToday);
+  document.getElementById("v-spent").textContent=money(s.spentToday);
+  document.getElementById("v-tomorrow").textContent=money(s.tomorrow);
+  const v=document.getElementById("verdict");
+  const good=s.spentToday<=s.canToday;
+  v.className="verdict "+(good?"good":"bad");
+  v.textContent=good?t("verdict.good"):t("verdict.bad");
+  document.getElementById("strip-days").textContent=t("days.left").replace("{n}",s.leftDays);
+
+  const ns=normSeries(),maxv=Math.max(...ns.map(x=>Math.max(x.norm,x.spent)),1);
+  document.getElementById("strip").innerHTML=ns.map(x=>{
+    const h=(x.norm/maxv*100).toFixed(1), sh=(Math.min(x.spent,maxv)/maxv*100).toFixed(1);
+    const col=x.spent>x.norm?"#B4443A":"#2E7D6E";
+    return `<div class="day${x.date===clampToday()?" today":""}" style="height:${h}%" title="${x.date} · ${money(x.norm)} / ${money(x.spent)}">
+      <i style="height:${x.norm>0?(Math.min(x.spent,x.norm*1.6)/x.norm*100).toFixed(1):0}%;max-height:100%;background:${col};opacity:${x.future?.25:1}"></i></div>`;
+  }).join("");
+}
+function renderLimits(){
+  const box=document.getElementById("limits");
+  const ks=Object.keys(state.limits);
+  if(!ks.length){box.innerHTML=`<p class="muted" style="font-size:13px">${t("limit.none")}</p>`;return;}
+  box.innerHTML=`<h3 style="font-size:13px;color:var(--ink-soft);font-weight:600;margin-bottom:6px">${t("limit.head")}</h3><table><tbody>`+
+    ks.map(k=>{const c=catById(+k),used=catTotal(+k),lim=state.limits[k];
+      return `<tr><td>${c.e} ${c[state.lang]}</td><td class="num ${used>lim?"over":"under"}">${money(used)}</td><td class="num muted">/ ${money(lim)}</td></tr>`;}).join("")+`</tbody></table>`;
+}
+function renderLog(){
+  const rows=[...state.exp].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).slice(0,40);
+  const el=document.getElementById("log");
+  if(!rows.length){el.innerHTML=`<tr><td class="muted">${t("log.empty")}</td></tr>`;return;}
+  el.innerHTML=rows.map(x=>{const c=catById(x.cat);
+    return `<tr><td class="muted" style="white-space:nowrap">${x.date.slice(5)}</td><td>${c.e} ${c[state.lang]}${x.note?`<div class="muted" style="font-size:12.5px">${escapeHtml(x.note)}</div>`:""}</td><td class="num">${money(x.amt)}${x.ocur!==state.cur?`<div class="muted" style="font-size:12px">${money(x.oamt,x.ocur)}</div>`:""}</td></tr>`;}).join("");
+}
+function escapeHtml(s){return s.replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));}
+
+function catBreakdown(){
+  const m={};
+  state.exp.filter(x=>x.date>=state.start&&x.date<=state.end).forEach(x=>{m[x.cat]=(m[x.cat]||0)+x.amt;});
+  return Object.entries(m).map(([k,v])=>({cat:catById(+k),amt:v})).sort((a,b)=>b.amt-a.amt);
+}
+function renderReport(){
+  const s=stats(),list=catBreakdown();
+  const head=`<table><tbody>
+   <tr><td>${t("report.budget")}</td><td class="num"><b>${money(state.budget)}</b></td></tr>
+   <tr><td>${t("report.expenses")}</td><td class="num">${money(s.spentAll)}</td></tr>
+   <tr><td>${t("report.remaining")}</td><td class="num ${s.remaining<0?"over":"under"}">${money(s.remaining)}</td></tr>
+   <tr><td class="muted">${state.start} → ${state.end}</td><td class="num muted">${s.totalDays} d</td></tr>
+   </tbody></table>`;
+  if(!list.length){document.getElementById("report").innerHTML=head+`<p class="muted">${t("report.empty")}</p>`;return;}
+  const tot=list.reduce((a,b)=>a+b.amt,0);
+  const rows=list.map(x=>{
+    const lim=state.limits[x.cat.id];
+    return `<tr><td>${x.cat.e} ${x.cat[state.lang]}</td>
+      <td class="num">${money(x.amt)}</td>
+      <td class="num muted">${(x.amt/tot*100).toFixed(1)}%<span class="bar" style="width:${(x.amt/list[0].amt*100).toFixed(1)}%"></span></td>
+      <td class="num ${lim?(x.amt>lim?"over":"under"):"muted"}">${lim?money(lim):"—"}</td></tr>`;}).join("");
+  document.getElementById("report").innerHTML=head+
+    `<table style="margin-top:14px"><thead><tr><th>${t("report.cat")}</th><th class="num">${t("report.amount")}</th><th class="num">${t("report.share")}</th><th class="num">${t("report.limit")}</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function renderPie(){
+  const list=catBreakdown().slice(0,10),svg=document.getElementById("pie");
+  if(!list.length){svg.innerHTML=`<text x="160" y="160" text-anchor="middle" fill="#7B929B" font-size="13">—</text>`;document.getElementById("pielegend").innerHTML="";return;}
+  const tot=list.reduce((a,b)=>a+b.amt,0);let ang=-Math.PI/2,out="";
+  if(list.length===1){
+    out=`<circle cx="160" cy="160" r="101" fill="none" stroke="${COLORS[0]}" stroke-width="58"/>`;
+  } else list.forEach((x,i)=>{
+    const a=x.amt/tot*Math.PI*2,r=130,ri=72,cx=160,cy=160,e=ang+a;
+    const p=(rr,an)=>[cx+rr*Math.cos(an),cy+rr*Math.sin(an)];
+    const [x1,y1]=p(r,ang),[x2,y2]=p(r,e),[x3,y3]=p(ri,e),[x4,y4]=p(ri,ang);
+    out+=`<path d="M${x1} ${y1} A${r} ${r} 0 ${a>Math.PI?1:0} 1 ${x2} ${y2} L${x3} ${y3} A${ri} ${ri} 0 ${a>Math.PI?1:0} 0 ${x4} ${y4} Z" fill="${COLORS[i%COLORS.length]}" stroke="#fff" stroke-width="2"/>`;
+    ang=e;
+  });
+  out+=`<text x="160" y="153" text-anchor="middle" font-size="13" fill="#3A5563">${t("report.expenses")}</text>
+        <text x="160" y="177" text-anchor="middle" font-size="17" font-weight="700" fill="#12262F">${money(tot)}</text>`;
+  svg.innerHTML=out;
+  document.getElementById("pielegend").innerHTML=list.map((x,i)=>`<span><i class="sw" style="background:${COLORS[i%COLORS.length]}"></i>${x.cat.e} ${x.cat[state.lang]} · ${(x.amt/tot*100).toFixed(0)}%</span>`).join("");
+}
+function renderBurn(){
+  const svg=document.getElementById("burn"),W=420,H=300,L=52,R=12,T=14,B=30;
+  const total=dayDiff(state.start,state.end)+1,daily=state.budget/total;
+  const ns=normSeries();let rem=state.budget;const actual=[];
+  ns.forEach((d,i)=>{if(!d.future){rem-=d.spent;actual.push({i,v:Math.max(0,rem)});}});
+  const maxv=state.budget||1;
+  const X=i=>L+(W-L-R)*(total<=1?0:i/(total-1));
+  const Y=v=>T+(H-T-B)*(1-v/maxv);
+  const ideal=ns.map((_,i)=>`${X(i)},${Y(Math.max(0,state.budget-daily*i))}`).join(" ");
+  const act=actual.map(a=>`${X(a.i)},${Y(a.v)}`).join(" ");
+  const ti=ns.findIndex(d=>d.date===clampToday());
+  let g="";for(let k=0;k<=4;k++){const v=maxv*k/4;g+=`<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="#E1E9EA"/><text x="${L-7}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="#7B929B">${Math.round(v/1000)}k</text>`;}
+  svg.innerHTML=g+
+   `<polyline points="${ideal}" fill="none" stroke="#12262F" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <polyline points="${act}" fill="none" stroke="#C9A227" stroke-width="2.6" stroke-linejoin="round"/>
+    ${ti>=0?`<line x1="${X(ti)}" y1="${T}" x2="${X(ti)}" y2="${H-B}" stroke="#2E7D6E" stroke-width="1.4"/>`:""}
+    <text x="${L}" y="${H-10}" font-size="10" fill="#7B929B">${state.start.slice(5)}</text>
+    <text x="${W-R}" y="${H-10}" font-size="10" fill="#7B929B" text-anchor="end">${state.end.slice(5)}</text>`;
+}
+function renderAll(){applyI18n();fillSelects();renderCats();renderHero();renderLimits();renderLog();renderReport();renderPie();renderBurn();}
+
+/* ============ actions ============ */
+let toastTimer;
+function toast(msg){const el=document.getElementById("toast");el.textContent=msg;el.classList.add("on");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("on"),1900);}
+
+function analysisFor(catId,amount){
+  const s=stats(),c=catById(catId),box=document.getElementById("analysis");
+  const lines=[];
+  lines.push(t("an.spent").replace("{a}",money(amount)).replace("{c}",c[state.lang]));
+  const lim=state.limits[catId];
+  if(lim){const left=lim-catTotal(catId);
+    lines.push(t("an.catleft").replace("{a}",money(left)));
+    if(left<0)lines.push(t("an.catover"));}
+  if(s.remaining<0)lines.push(t("an.over"));else lines.push(t("an.left").replace("{a}",money(s.remaining)));
+  const dir=s.tomorrow>=s.canToday?"↑":"↓";
+  lines.push(t("an.pace").replace("{a}",money(s.tomorrow)).replace("{d}",dir));
+  box.innerHTML=`<div style="border-left:3px solid var(--gold);padding:8px 0 8px 12px">`+lines.map(l=>`<div>${l}</div>`).join("")+`</div>`;
+}
+function readForm(){
+  const amt=parseFloat(document.getElementById("f-amt").value);
+  const cur=document.getElementById("f-amtcur").value;
+  const note=document.getElementById("f-comment").value.trim();
+  if(!state.sel){toast(t("t.needcat"));return null;}
+  if(!(amt>0)){toast(t("t.needamt"));return null;}
+  return {amt,cur,note};
+}
+function bind(){
+  document.querySelectorAll(".lang button").forEach(b=>b.onclick=()=>{state.lang=b.dataset.lang;renderAll();});
+  document.getElementById("b-prev").onclick=()=>{state.page=(state.page+1)%2;renderCats();};
+  document.getElementById("b-next").onclick=()=>{state.page=(state.page+1)%2;renderCats();};
+  document.getElementById("b-apply").onclick=()=>{
+    const b=parseFloat(document.getElementById("f-budget").value)||0;
+    const s=document.getElementById("f-start").value,e=document.getElementById("f-end").value;
+    const newCur=document.getElementById("f-cur").value;
+    if(newCur!==state.cur){
+      state.exp.forEach(x=>{x.amt=conv(state.cur,newCur,x.amt);});
+      Object.keys(state.limits).forEach(k=>state.limits[k]=conv(state.cur,newCur,state.limits[k]));
+      state.budget=conv(state.cur,newCur,b);state.cur=newCur;
+    } else state.budget=b;
+    if(s&&e&&s<=e){state.start=s;state.end=e;}
+    renderAll();toast(t("t.applied"));
+  };
+  document.getElementById("b-addbudget").onclick=()=>{
+    const add=parseFloat(prompt("+ "+state.cur,"20000"));
+    if(add>0){state.budget+=add;renderAll();toast(t("t.addbudget"));}
+  };
+  document.getElementById("b-reset").onclick=()=>{state.exp=[];state.limits={};state.budget=0;state.sel=null;document.getElementById("analysis").innerHTML="";renderAll();toast(t("t.reset"));};
+  document.getElementById("b-limit").onclick=()=>{
+    const id=+document.getElementById("f-limcat").value,a=parseFloat(document.getElementById("f-limamt").value);
+    if(a>0)state.limits[id]=a;else delete state.limits[id];
+    renderLimits();renderReport();toast(t("t.limit"));
+  };
+  document.getElementById("b-add").onclick=()=>{
+    const f=readForm();if(!f)return;
+    const amt=conv(f.cur,state.cur,f.amt);
+    state.exp.push({id:Date.now(),cat:state.sel,amt,oamt:f.amt,ocur:f.cur,date:clampToday(),note:f.note});
+    renderAll();analysisFor(state.sel,amt);toast(t("t.added"));
+    document.getElementById("f-amt").value="";document.getElementById("f-comment").value="";
+  };
+  document.getElementById("b-update").onclick=()=>{
+    if(!state.exp.length){toast(t("t.needlog"));return;}
+    const f=readForm();if(!f)return;
+    const last=[...state.exp].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id).pop();
+    const amt=conv(f.cur,state.cur,f.amt);
+    Object.assign(last,{cat:state.sel,amt,oamt:f.amt,ocur:f.cur,note:f.note});
+    renderAll();analysisFor(state.sel,amt);toast(t("t.updated"));
+  };
+  document.getElementById("b-editlast").onclick=()=>{
+    if(!state.exp.length){toast(t("t.needlog"));return;}
+    const last=[...state.exp].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id).pop();
+    state.sel=last.cat;document.getElementById("f-amt").value=last.oamt.toFixed(2);
+    document.getElementById("f-amtcur").value=last.ocur;document.getElementById("f-comment").value=last.note;
+    renderCats();
+  };
+  document.getElementById("b-dellast").onclick=()=>{
+    if(!state.exp.length){toast(t("t.needlog"));return;}
+    const sorted=[...state.exp].sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id);
+    const last=sorted[sorted.length-1];
+    state.exp=state.exp.filter(x=>x!==last);renderAll();toast(t("t.deleted"));
+  };
+}
+seed();bind();renderAll();
+</script>
+</body>
+</html>

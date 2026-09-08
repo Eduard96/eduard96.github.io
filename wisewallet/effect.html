@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WiseWallet — эффект дневной нормы</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2312262F'/%3E%3Cpath d='M12 44 L12 30 M24 44 L24 22 M36 44 L36 26 M48 44 L48 14' stroke='%23C9A227' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@400;500;700&family=Noto+Serif+Armenian:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#12262F;--ink-soft:#3A5563;--paper:#E7EDEE;--card:#fff;--line:#C8D5D8;--gold:#C9A227;--teal:#2E7D6E;--clay:#B4443A;--radius:10px}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Noto Sans Armenian","Segoe UI",system-ui,sans-serif;font-size:16px;line-height:1.6;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Noto Serif Armenian",Georgia,serif;font-weight:700;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5.5vw,48px);line-height:1.08}
+h2{font-size:23px;margin-bottom:12px}
+h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+header{background:var(--ink);color:#EAF1F2;padding:14px 0}
+.hbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-family:"Noto Serif Armenian",serif;font-weight:700;font-size:19px}
+.hbar nav{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hlink{color:#EAF1F2;text-decoration:none;border-bottom:1px solid var(--gold);padding-bottom:1px;font-size:15px}
+.lang{display:flex;border:1px solid #3E5A66;border-radius:999px;overflow:hidden}
+.lang button{background:transparent;border:0;color:#9FB6BE;padding:5px 13px;cursor:pointer;font:inherit}
+.lang button[aria-pressed="true"]{background:var(--gold);color:var(--ink);font-weight:700}
+.hero{background:var(--ink);color:#EAF1F2;padding:30px 0 40px}
+.hero p{color:#A9C0C8;max-width:66ch}
+.formula{margin-top:26px;background:rgba(201,162,39,.10);border:1px solid rgba(201,162,39,.45);border-radius:var(--radius);padding:18px 20px;display:inline-block}
+.formula .f{font-family:"Noto Serif Armenian",Georgia,serif;font-size:clamp(20px,4vw,30px);color:var(--gold);white-space:nowrap}
+.formula .fn{color:#A9C0C8;font-size:14px;margin-top:8px;max-width:56ch}
+main{padding:34px 0 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:24px}
+p{margin:0 0 12px}
+p.body{max-width:70ch}
+label{display:block;font-size:13px;color:var(--ink-soft);margin:14px 0 5px}
+input[type=range]{width:100%;accent-color:var(--gold)}
+input[type=number]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#FBFDFD;font:inherit}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.val{font-weight:700;color:var(--ink)}
+svg.chart{width:100%;height:auto;display:block;margin-top:16px}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:8px}
+th{text-align:left;font-size:13px;color:var(--ink-soft);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid #E9EFF0}
+td.num,th.num{text-align:right}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.kpi{border-left:3px solid var(--gold);padding-left:12px}
+.kpi b{display:block;font-size:24px;font-family:"Noto Serif Armenian",serif}
+.kpi span{font-size:13px;color:var(--ink-soft)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.note{border-left:3px solid var(--clay);padding-left:14px;color:var(--ink-soft)}
+footer{border-top:1px solid var(--line);padding:22px 0;color:var(--ink-soft);font-size:14px}
+a.btn{display:inline-block;background:var(--gold);color:var(--ink);text-decoration:none;font-weight:700;border-radius:8px;padding:10px 16px}
+@media (max-width:840px){.controls,.two,.kpis{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap hbar">
+  <div class="logo"><svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1D3B48"/><path d="M12 44V30M24 44V22M36 44V26M48 44V14" stroke="#C9A227" stroke-width="6" stroke-linecap="round"/></svg> WiseWallet</div>
+  <nav>
+    <a class="hlink" href="index.html" data-i="nav.back"></a>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="en" aria-pressed="false">EN</button>
+      <button data-lang="ru" aria-pressed="true">RU</button>
+      <button data-lang="hy" aria-pressed="false">ՀԱՅ</button>
+    </div>
+  </nav>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <h1 data-i="h1"></h1>
+  <p data-i="lead"></p>
+  <div class="formula">
+    <div class="f">N<sub>next</sub> = N<sub>now</sub> · (D − k) / (D − 1)</div>
+    <div class="fn" data-i="formula.note"></div>
+  </div>
+</div></section>
+
+<main class="wrap">
+
+  <div class="card">
+    <h2 data-i="sim.title"></h2>
+    <p class="body" data-i="sim.intro"></p>
+    <div class="controls">
+      <div>
+        <label for="c-days"><span data-i="sim.days"></span>: <span class="val" id="l-days"></span></label>
+        <input id="c-days" type="range" min="7" max="45" value="30">
+      </div>
+      <div>
+        <label for="c-k"><span data-i="sim.k"></span>: <span class="val" id="l-k"></span></label>
+        <input id="c-k" type="range" min="50" max="130" value="85">
+      </div>
+      <div>
+        <label for="c-budget" data-i="sim.budget"></label>
+        <input id="c-budget" type="number" min="1000" step="1000" value="400000">
+      </div>
+    </div>
+
+    <svg class="chart" id="normchart" viewBox="0 0 760 340" role="img"></svg>
+    <div class="legend">
+      <span><i class="sw" style="background:#C9A227"></i><span data-i="leg.you"></span></span>
+      <span><i class="sw" style="background:#12262F"></i><span data-i="leg.even"></span></span>
+      <span><i class="sw" style="background:#B4443A"></i><span data-i="leg.over"></span></span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><b id="k-first"></b><span data-i="kpi.first"></span></div>
+      <div class="kpi"><b id="k-last"></b><span data-i="kpi.last"></span></div>
+      <div class="kpi"><b id="k-saved"></b><span data-i="kpi.saved"></span></div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <h2 data-i="lev.title"></h2>
+      <p class="body" data-i="lev.body"></p>
+      <table><thead><tr><th data-i="lev.d"></th><th class="num" data-i="lev.gain"></th><th class="num" data-i="lev.x"></th></tr></thead><tbody id="levtable"></tbody></table>
+    </div>
+    <div class="card">
+      <h2 data-i="half.title"></h2>
+      <p class="body" data-i="half.body"></p>
+      <svg class="chart" id="levchart" viewBox="0 0 360 220" role="img"></svg>
+      <p class="note" style="margin-top:14px" data-i="half.note"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 data-i="psy.title"></h2>
+    <div class="two">
+      <div>
+        <h3 data-i="psy.a.t"></h3><p class="body" data-i="psy.a.b"></p>
+        <h3 data-i="psy.b.t"></h3><p class="body" data-i="psy.b.b"></p>
+        <h3 data-i="psy.c.t"></h3><p class="body" data-i="psy.c.b"></p>
+      </div>
+      <div>
+        <h3 data-i="psy.d.t"></h3><p class="body" data-i="psy.d.b"></p>
+        <h3 data-i="psy.e.t"></h3><p class="body" data-i="psy.e.b"></p>
+        <h3 data-i="psy.f.t"></h3><p class="body" data-i="psy.f.b"></p>
+      </div>
+    </div>
+    <p style="margin-top:20px"><a class="btn" href="index.html" data-i="psy.cta"></a></p>
+  </div>
+
+</main>
+
+<footer><div class="wrap"><span data-i="footer"></span></div></footer>
+
+<script>
+const I={
+en:{
+ "nav.back":"Back to the tracker",
+ "h1":"The allowance that grows while you hold back",
+ "lead":"WiseWallet recalculates one number every day: what is left of the budget, divided by the days that remain. That single division produces a feedback loop — spend under the number and the number rises tomorrow, and it rises faster the closer you get to the end of the period.",
+ "formula.note":"N is the daily allowance, D is the days left including today, k is the share of the allowance you spend today. With k below 1 the ratio is above 1, and as D falls the same k lifts the allowance more.",
+ "sim.title":"Simulator","sim.intro":"Set the length of the period, the budget, and how much of each day's allowance you actually spend. The gold line is your allowance day by day.",
+ "sim.days":"Days in the period","sim.k":"You spend, share of the allowance","sim.budget":"Budget",
+ "leg.you":"your line","leg.even":"spending exactly the allowance","leg.over":"spending 115% of it",
+ "kpi.first":"allowance on day one","kpi.last":"allowance on the last day","kpi.saved":"growth over the period",
+ "lev.title":"What one saved unit buys","lev.body":"Skip 1,000 today and it is spread over the days that are left. The fewer days remain, the more each of them receives — the same restraint, a bigger visible reward.",
+ "lev.d":"Days left","lev.gain":"Tomorrow's allowance gains","lev.x":"vs. a 30-day period",
+ "half.title":"Why the second half feels different","half.body":"The leverage curve is flat for most of the month and then turns sharply upward. Halfway through the period a saved unit is worth roughly twice what it was on day one; in the final week it is worth several times more.",
+ "half.note":"The same acceleration works against you: overspending late in the period cuts the allowance just as sharply, and a large budget left unspent near the end can invite a use-it-or-lose-it splurge. The loop rewards steadiness, not heroics on the last day.",
+ "psy.title":"The psychological reading",
+ "psy.a.t":"The reward arrives the next morning","psy.a.b":"Classic budgeting punishes: you see what is gone. Here restraint produces a visible gain within a day, which is short enough for the mind to connect the act with its result.",
+ "psy.b.t":"The unit of self-control is one day","psy.b.b":"Nobody holds out for a month. Holding out until tomorrow morning is an easy promise, and the number renews the promise every 24 hours.",
+ "psy.c.t":"Growth becomes the goal","psy.c.b":"After a week of underspending the allowance is noticeably above where it started. The number turns into a score, and people protect a rising score.",
+ "psy.d.t":"Scarcity sharpens near the end","psy.d.b":"With few days left, each saved unit moves the number a lot. The same 1,000 that barely registered on day two visibly lifts the last three days — so the urge to save keeps growing as the period closes.",
+ "psy.e.t":"The end date is a finish line","psy.e.b":"A period with a real edge turns spending into a game with a score and a whistle. What is left on the final day reads as a win rather than as money you failed to use.",
+ "psy.f.t":"Where it breaks","psy.f.b":"The loop can push toward pointless deprivation, or toward a spree on the last day. A useful counterweight is a savings category: move the surplus out of the period instead of letting it stare at you.",
+ "psy.cta":"Back to the tracker",
+ "footer":"WiseWallet demo — a static page for GitHub Pages."
+},
+ru:{
+ "nav.back":"Назад к трекеру",
+ "h1":"Норма, которая растёт, пока вы сдерживаетесь",
+ "lead":"WiseWallet каждый день пересчитывает одно число: остаток бюджета делится на оставшиеся дни. Из этого деления рождается обратная связь — потратили меньше числа, и завтра оно выше; а чем ближе конец периода, тем сильнее оно прыгает за то же самое усилие.",
+ "formula.note":"N — дневная норма, D — оставшиеся дни вместе с сегодняшним, k — доля нормы, которую вы тратите сегодня. При k меньше единицы отношение больше единицы, и с падением D та же k поднимает норму сильнее.",
+ "sim.title":"Симулятор","sim.intro":"Задайте длину периода, бюджет и долю дневной нормы, которую реально тратите. Золотая линия — ваша норма по дням.",
+ "sim.days":"Дней в периоде","sim.k":"Трачу от нормы","sim.budget":"Бюджет",
+ "leg.you":"ваша линия","leg.even":"трата ровно по норме","leg.over":"трата 115% нормы",
+ "kpi.first":"норма в первый день","kpi.last":"норма в последний день","kpi.saved":"рост за период",
+ "lev.title":"Что покупает одна сэкономленная единица","lev.body":"Отложили 1 000 сегодня — она распределяется по оставшимся дням. Чем меньше дней остаётся, тем больше достаётся каждому: то же усилие, заметнее награда.",
+ "lev.d":"Осталось дней","lev.gain":"Завтрашняя норма прибавит","lev.x":"против 30-дневного периода",
+ "half.title":"Почему вторая половина ощущается иначе","half.body":"Кривая рычага почти плоская большую часть месяца, а потом резко идёт вверх. К середине периода сэкономленная единица стоит примерно вдвое больше, чем в первый день; в последнюю неделю — в несколько раз больше.",
+ "half.note":"То же ускорение работает и против вас: перерасход в конце срезает норму так же резко, а крупный неистраченный остаток под конец подталкивает к «спущу, раз всё равно сгорит». Петля вознаграждает ровность, а не подвиг в последний день.",
+ "psy.title":"Психологическое прочтение",
+ "psy.a.t":"Награда приходит на следующее утро","psy.a.b":"Обычный бюджет наказывает: вы видите, что ушло. Здесь сдержанность даёт видимую прибавку за сутки — этого срока хватает, чтобы разум связал поступок с результатом.",
+ "psy.b.t":"Единица самоконтроля — один день","psy.b.b":"Держаться месяц не выходит ни у кого. Дотерпеть до завтрашнего утра — лёгкое обещание, и число обновляет это обещание каждые 24 часа.",
+ "psy.c.t":"Рост становится целью","psy.c.b":"После недели экономии норма заметно выше стартовой. Число превращается в счёт, а растущий счёт хочется беречь.",
+ "psy.d.t":"Ближе к концу дефицит обостряется","psy.d.b":"Когда дней мало, каждая сэкономленная единица двигает число сильно. Та же 1 000, почти незаметная на второй день, ощутимо поднимает последние три — поэтому стремление накопить малой тратой растёт к концу периода.",
+ "psy.e.t":"Дата конца работает как финишная черта","psy.e.b":"Период с настоящим краем превращает траты в игру со счётом и свистком. Остаток на финише читается как выигрыш, а не как деньги, которые вы не сумели потратить.",
+ "psy.f.t":"Где эффект ломается","psy.f.b":"Петля способна толкать к бессмысленным лишениям или к загулу в последний день. Хороший противовес — категория сбережений: выводите излишек за пределы периода, вместо того чтобы он смотрел вам в глаза.",
+ "psy.cta":"Назад к трекеру",
+ "footer":"Демо WiseWallet — статическая страница для GitHub Pages."
+},
+hy:{
+ "nav.back":"Վերադառնալ թրեքերին",
+ "h1":"Նորմա, որն աճում է, քանի դեռ դուք զսպվում եք",
+ "lead":"WiseWallet-ը ամեն օր վերահաշվարկում է մեկ թիվ՝ բյուջեի մնացորդը բաժանվում է մնացած օրերի վրա։ Այդ բաժանումից ծնվում է հետադարձ կապը՝ ծախսեցիք թվից պակաս, և վաղը այն ավելի բարձր է. իսկ որքան մոտ է ժամանակահատվածի ավարտը, այնքան ուժեղ է ցատկը նույն ջանքի դիմաց։",
+ "formula.note":"N-ը օրական նորման է, D-ն՝ մնացած օրերը՝ ներառյալ այսօրը, k-ն՝ նորմայի այն բաժինը, որը ծախսում եք այսօր։ k-ն մեկից փոքր լինելիս հարաբերությունը մեկից մեծ է, և D-ի նվազման հետ նույն k-ն ավելի ուժեղ է բարձրացնում նորման։",
+ "sim.title":"Սիմուլյատոր","sim.intro":"Դրեք ժամանակահատվածի երկարությունը, բյուջեն և օրական նորմայի այն բաժինը, որը իրականում ծախսում եք։ Ոսկեգույն գիծը ձեր նորման է ըստ օրերի։",
+ "sim.days":"Օրեր ժամանակահատվածում","sim.k":"Ծախսում եմ նորմայից","sim.budget":"Բյուջե",
+ "leg.you":"ձեր գիծը","leg.even":"ծախս ճիշտ ըստ նորմայի","leg.over":"ծախս նորմայի 115%-ը",
+ "kpi.first":"նորման առաջին օրը","kpi.last":"նորման վերջին օրը","kpi.saved":"աճը ժամանակահատվածում",
+ "lev.title":"Ինչ է գնում մեկ խնայված միավորը","lev.body":"Այսօր հետաձգեցիք 1 000-ը՝ այն բաշխվում է մնացած օրերի վրա։ Որքան քիչ օր է մնում, այնքան շատ է բաժին ընկնում յուրաքանչյուրին՝ նույն ջանքը, ավելի տեսանելի պարգև։",
+ "lev.d":"Մնացած օրեր","lev.gain":"Վաղվա նորման կավելանա","lev.x":"30-օրյա ժամանակահատվածի դիմաց",
+ "half.title":"Ինչու երկրորդ կեսն այլ է զգացվում","half.body":"Լծակի կորը ամսվա մեծ մասում գրեթե հարթ է, ապա կտրուկ բարձրանում։ Ժամանակահատվածի կեսին խնայված միավորն արժե մոտավորապես երկու անգամ ավելի, քան առաջին օրը, իսկ վերջին շաբաթում՝ մի քանի անգամ ավելի։",
+ "half.note":"Նույն արագացումն աշխատում է նաև ձեր դեմ՝ ավարտին մոտ գերածախսը նույնքան կտրուկ կրճատում է նորման, իսկ մեծ չծախսված մնացորդը հրահրում է «այսպես թե այնպես կայրվի» տրամադրություն։ Օղակը պարգևատրում է հավասարաչափությունը, ոչ թե վերջին օրվա սխրանքը։",
+ "psy.title":"Հոգեբանական ընթերցում",
+ "psy.a.t":"Պարգևը գալիս է հաջորդ առավոտ","psy.a.b":"Սովորական բյուջեն պատժում է՝ տեսնում եք, թե ինչ գնաց։ Այստեղ զսպվածությունը մեկ օրում տալիս է տեսանելի հավելում, և այդ ժամկետը բավական է, որ միտքը կապի արարքն ու արդյունքը։",
+ "psy.b.t":"Ինքնատիրապետման միավորը մեկ օրն է","psy.b.b":"Ամբողջ ամիս դիմանալ ոչ ոքի չի հաջողվում։ Մինչև վաղվա առավոտ դիմանալը հեշտ խոստում է, և թիվը թարմացնում է այդ խոստումը յուրաքանչյուր 24 ժամը մեկ։",
+ "psy.c.t":"Աճը դառնում է նպատակ","psy.c.b":"Մեկ շաբաթ խնայելուց հետո նորման նկատելիորեն բարձր է մեկնարկայինից։ Թիվը վերածվում է հաշվի, իսկ աճող հաշիվը ուզում ես պահպանել։",
+ "psy.d.t":"Ավարտին մոտ սակավությունը սրվում է","psy.d.b":"Երբ օրերը քիչ են, ամեն խնայված միավորը թիվը շարժում է ուժեղ։ Նույն 1 000-ը, որը երկրորդ օրը գրեթե չէր զգացվում, զգալիորեն բարձրացնում է վերջին երեք օրը, ուստի փոքր ծախսով կուտակելու ձգտումն աճում է ավարտին մոտ։",
+ "psy.e.t":"Ավարտի ամսաթիվն աշխատում է որպես ֆինիշ","psy.e.b":"Իրական եզրով ժամանակահատվածը ծախսերը վերածում է հաշվով և սուլիչով խաղի։ Ֆինիշի մնացորդը կարդացվում է որպես շահում, ոչ թե որպես գումար, որը չհասցրիք ծախսել։",
+ "psy.f.t":"Որտեղ է էֆեկտը կոտրվում","psy.f.b":"Օղակը կարող է հրել դեպի անիմաստ զրկանք կամ վերջին օրվա խրախճանք։ Լավ հակակշիռ է խնայողության կատեգորիան՝ ավելցուկը հանեք ժամանակահատվածից դուրս, փոխանակ այն ձեզ նայի աչքերի մեջ։",
+ "psy.cta":"Վերադառնալ թրեքերին",
+ "footer":"WiseWallet դեմո — ստատիկ էջ GitHub Pages-ի համար։"
+}};
+
+let lang="ru";
+const t=k=>I[lang][k]!==undefined?I[lang][k]:k;
+const fmt=a=>new Intl.NumberFormat(lang==="hy"?"hy-AM":lang==="ru"?"ru-RU":"en-US",{maximumFractionDigits:0}).format(Math.round(a));
+
+function series(days,budget,k){
+  const out=[];let rem=budget;
+  for(let i=0;i<days;i++){const D=days-i;const norm=rem/D;out.push(norm);rem-=norm*k;}
+  return out;
+}
+function drawNorm(){
+  const days=+document.getElementById("c-days").value;
+  const k=+document.getElementById("c-k").value/100;
+  const budget=+document.getElementById("c-budget").value||1;
+  document.getElementById("l-days").textContent=days;
+  document.getElementById("l-k").textContent=Math.round(k*100)+"%";
+
+  const you=series(days,budget,k),even=series(days,budget,1),over=series(days,budget,1.15);
+  const W=760,H=340,L=64,R=16,T=16,B=32;
+  const maxv=Math.max(...you,...even,...over)*1.08;
+  const X=i=>L+(W-L-R)*(days<=1?0:i/(days-1));
+  const Y=v=>T+(H-T-B)*(1-v/maxv);
+  const line=(arr,color,w,dash)=>`<polyline points="${arr.map((v,i)=>X(i)+","+Y(v)).join(" ")}" fill="none" stroke="${color}" stroke-width="${w}" ${dash?'stroke-dasharray="5 4"':""} stroke-linejoin="round"/>`;
+  let g="";
+  for(let i=0;i<=4;i++){const v=maxv*i/4;g+=`<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="#E1E9EA"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="#7B929B">${fmt(v)}</text>`;}
+  const mid=Math.floor(days/2);
+  g+=`<line x1="${X(mid)}" y1="${T}" x2="${X(mid)}" y2="${H-B}" stroke="#C8D5D8" stroke-dasharray="3 5"/>`;
+  document.getElementById("normchart").innerHTML=g+line(even,"#12262F",1.6,true)+line(over,"#B4443A",1.8,false)+line(you,"#C9A227",3,false)+
+    `<text x="${L}" y="${H-9}" font-size="11" fill="#7B929B">1</text>
+     <text x="${X(mid)}" y="${H-9}" font-size="11" fill="#7B929B" text-anchor="middle">${mid+1}</text>
+     <text x="${W-R}" y="${H-9}" font-size="11" fill="#7B929B" text-anchor="end">${days}</text>`;
+
+  document.getElementById("k-first").textContent=fmt(you[0]);
+  document.getElementById("k-last").textContent=fmt(you[days-1]);
+  const g2=(you[days-1]/you[0]-1)*100;
+  document.getElementById("k-saved").textContent=(g2>=0?"+":"")+g2.toFixed(0)+"%";
+  document.getElementById("k-saved").style.color=g2>=0?"#2E7D6E":"#B4443A";
+}
+function drawLeverage(){
+  const rows=[30,20,14,10,7,5,3,2];
+  const base=1000/29;
+  document.getElementById("levtable").innerHTML=rows.map(D=>{
+    const gain=1000/(D-1);
+    return `<tr><td>${D}</td><td class="num">+${fmt(gain)}</td><td class="num" style="color:${gain/base>3?"#B4443A":"#3A5563"}">×${(gain/base).toFixed(1)}</td></tr>`;}).join("");
+
+  const W=360,H=220,L=44,R=10,T=12,B=26;
+  const pts=[];for(let D=30;D>=2;D--)pts.push({D,v:1000/(D-1)});
+  const maxv=Math.max(...pts.map(p=>p.v));
+  const X=i=>L+(W-L-R)*i/(pts.length-1);
+  const Y=v=>T+(H-T-B)*(1-v/maxv);
+  let g="";for(let i=0;i<=3;i++){const v=maxv*i/3;g+=`<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="#E1E9EA"/><text x="${L-6}" y="${Y(v)+4}" font-size="10" fill="#7B929B" text-anchor="end">${fmt(v)}</text>`;}
+  const half=pts.findIndex(p=>p.D===15);
+  g+=`<line x1="${X(half)}" y1="${T}" x2="${X(half)}" y2="${H-B}" stroke="#C8D5D8" stroke-dasharray="3 5"/>`;
+  document.getElementById("levchart").innerHTML=g+
+   `<polyline points="${pts.map((p,i)=>X(i)+","+Y(p.v)).join(" ")}" fill="none" stroke="#C9A227" stroke-width="3"/>
+    <text x="${L}" y="${H-8}" font-size="10" fill="#7B929B">30</text>
+    <text x="${X(half)}" y="${H-8}" font-size="10" fill="#7B929B" text-anchor="middle">15</text>
+    <text x="${W-R}" y="${H-8}" font-size="10" fill="#7B929B" text-anchor="end">2</text>`;
+}
+function applyI18n(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i]").forEach(el=>el.textContent=t(el.dataset.i));
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===lang)));
+}
+document.querySelectorAll(".lang button").forEach(b=>b.onclick=()=>{lang=b.dataset.lang;applyI18n();drawNorm();drawLeverage();});
+["c-days","c-k","c-budget"].forEach(id=>document.getElementById(id).addEventListener("input",drawNorm));
+applyI18n();drawNorm();drawLeverage();
+</script>
+</body>
+</html>
