@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artifact Links</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F4F1EA'/%3E%3Cpath d='M20 44 L32 18 L44 44 M25 36 H39' stroke='%23D97757' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --cream: #F4F1EA;
+    --cream-dim: #EAE6DC;
+    --ink: #2B2925;
+    --ink-soft: #6B665C;
+    --line: #DAD5C8;
+    --clay: #C4693B;
+    --clay-dark: #A8532B;
+    --ok-bg: #E8E3D6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:64px 24px 80px;
+  }
+  .wrap{
+    width:100%;
+    max-width:640px;
+  }
+  header{
+    margin-bottom:40px;
+  }
+  h1{
+    font-size:28px;
+    font-weight:500;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    max-width:52ch;
+  }
+  .save-hint{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .save-hint.on{ color:#5E8C61; }
+
+  .panel{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:22px 24px;
+    margin-bottom:20px;
+  }
+
+  button{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    border-radius:8px;
+    border:1px solid transparent;
+    padding:9px 16px;
+    cursor:pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn-primary{
+    background:var(--clay);
+    color:#fff;
+  }
+  .btn-primary:hover{background:var(--clay-dark);}
+
+  .btn-quiet{
+    background:transparent;
+    border-color:var(--line);
+    color:var(--ink);
+    padding:7px 12px;
+    font-size:12.5px;
+  }
+  .btn-quiet:hover{background:var(--cream-dim);}
+  .btn-quiet:disabled{opacity:.4;cursor:not-allowed;}
+
+  form.inline-form{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .field-row{
+    display:flex;
+    gap:10px;
+  }
+  input[type=text], input[type=url], select{
+    flex:1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:14px;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--cream);
+    color:var(--ink);
+    outline:none;
+  }
+  input:focus, select:focus{
+    border-color:var(--clay);
+    background:#fff;
+  }
+  input[type=url]{flex:1.4;}
+  select{flex:0.9;}
+
+  .panel-title{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin:0 0 14px;
+  }
+
+  .folder-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .folder-chip{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:13px;
+    background:var(--cream-dim);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:5px 8px 5px 12px;
+  }
+  .folder-chip .count{
+    color:var(--ink-soft);
+    font-size:11.5px;
+  }
+  .folder-chip button{
+    background:none;
+    border:none;
+    padding:2px 4px;
+    font-size:12px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .folder-chip button:hover{color:var(--clay-dark);}
+  .folder-chip button:disabled{opacity:.35;cursor:not-allowed;}
+
+  .group{
+    margin-bottom:22px;
+  }
+  .group:last-child{margin-bottom:0;}
+  .group-name{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--clay-dark);
+    margin-bottom:6px;
+  }
+  ul.links{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  ul.links li{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    padding:13px 0;
+    border-top:1px solid var(--line);
+  }
+  ul.links li:first-child{border-top:none;}
+  .link-main{
+    flex:1;
+    min-width:0;
+  }
+  .link-title{
+    font-size:15.5px;
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+  }
+  .link-title:hover{border-bottom-color:var(--clay);}
+  .link-url{
+    display:block;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:12px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-top:2px;
+  }
+  .remove{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:4px 6px;
+    flex-shrink:0;
+  }
+  .remove:hover{color:var(--clay-dark);}
+
+  .empty{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:14px;
+    color:var(--ink-soft);
+    padding:8px 0 4px;
+  }
+  .empty-folder{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:13px;
+    color:var(--ink-soft);
+    padding:4px 0 0;
+  }
+
+  .support-warning{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:13.5px;
+    line-height:1.6;
+    background:#F4E4DC;
+    border:1px solid #E3B9A4;
+    color:#7A3D22;
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:20px;
+  }
+
+  code{
+    background:var(--ok-bg);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:12.5px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Artifact Links</h1>
+    <div class="sub">Folders of artifact links.</div>
+    <div class="save-hint" id="save-hint">Not saving to disk yet — the first change will ask you to select this file.</div>
+  </header>
+
+  <div id="support-warning" class="support-warning" style="display:none">
+    This browser doesn't support direct file writes (File System Access API). Open this page in Chrome or Edge instead.
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Folders</div>
+    <div class="folder-chips" id="folder-chips"></div>
+    <form class="inline-form" id="folder-form">
+      <div class="field-row">
+        <input type="text" id="input-folder-name" placeholder="New folder name" autocomplete="off">
+        <button type="submit" class="btn-quiet" id="add-folder-btn">Add folder</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Add an artifact</div>
+    <form class="inline-form" id="add-form">
+      <div class="field-row">
+        <input type="text" id="input-title" placeholder="Title" autocomplete="off">
+        <select id="input-folder"></select>
+      </div>
+      <div class="field-row">
+        <input type="url" id="input-url" placeholder="https://claude.ai/public/artifacts/…" autocomplete="off">
+      </div>
+      <div class="field-row">
+        <button type="submit" class="btn-primary" id="add-btn">Add link</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" id="list-title">No links yet</div>
+    <div id="groups"></div>
+    <div class="empty" id="empty-msg">Create a folder and add your first link.</div>
+  </div>
+</div>
+
+<!-- directart:start -->
+<script type="application/json" id="directart-data">[{"id":"mtvkseo4ps2wd","name":"General","links":[]},{"id":"mtvkt7xncxfn3","name":"Games","links":[{"id":"mtvkuqelfvmor","title":"Durak","url":"https://claude.ai/public/artifacts/9975cdbf-fd37-46e7-9777-df3aae13bfc4","added":"2026-09-10T13:42:55.533Z"}]}]</script>
+<!-- directart:end -->
+
+<script>
+const DB_NAME = "artifact-links-db";
+const STORE_NAME = "handles";
+const HANDLE_KEY = "file";
+const MARK_START = "<!-- directart:start -->";
+const MARK_END = "<!-- directart:end -->";
+const DEFAULT_FOLDER = "General";
+
+let fileHandle = null;
+let rawTemplate = null;   // last known full source of the file on disk
+let folders = [];         // [{id, name, links: [{id, title, url}]}]
+
+const saveHint = document.getElementById("save-hint");
+const folderChips = document.getElementById("folder-chips");
+const folderForm = document.getElementById("folder-form");
+const inputFolderName = document.getElementById("input-folder-name");
+const addForm = document.getElementById("add-form");
+const inputTitle = document.getElementById("input-title");
+const inputUrl = document.getElementById("input-url");
+const inputFolderSelect = document.getElementById("input-folder");
+const groupsEl = document.getElementById("groups");
+const emptyMsg = document.getElementById("empty-msg");
+const listTitle = document.getElementById("list-title");
+const supportWarning = document.getElementById("support-warning");
+
+function supportsFS(){
+  return "showOpenFilePicker" in window;
+}
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// --- tiny IndexedDB wrapper so the file handle survives a page reload ---
+function idbOpen(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbSet(key, value){
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    tx.objectStore(STORE_NAME).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const req = tx.objectStore(STORE_NAME).get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function ensurePermission(handle, mode){
+  const opts = { mode };
+  if ((await handle.queryPermission(opts)) === "granted") return true;
+  if ((await handle.requestPermission(opts)) === "granted") return true;
+  return false;
+}
+
+function setSaveHint(on, name){
+  saveHint.textContent = on ? ("Saving to " + name) : "Not saving to disk yet — the first change will ask you to select this file.";
+  saveHint.classList.toggle("on", on);
+}
+
+function extractFolders(text){
+  const start = text.indexOf(MARK_START);
+  const end = text.indexOf(MARK_END);
+  if (start === -1 || end === -1) return null;
+  const chunk = text.slice(start, end);
+  const match = chunk.match(/<script[^>]*id=["']directart-data["'][^>]*>([\s\S]*?)<\/script>/);
+  if (!match) return null;
+  try { return JSON.parse(match[1]); } catch(e) { return null; }
+}
+
+// Reads existing folders/links straight out of THIS page's own embedded data,
+// so opening the file shows what was last saved — no connection needed just to view.
+function loadFromDom(){
+  const el = document.getElementById("directart-data");
+  let parsed = null;
+  if (el){
+    try { parsed = JSON.parse(el.textContent); } catch(e) { parsed = null; }
+  }
+  folders = (parsed && Array.isArray(parsed) && parsed.length) ? parsed : [{ id: uid(), name: DEFAULT_FOLDER, links: [] }];
+}
+
+// Asks the user to pick this same file (a user gesture, so call this from inside
+// a click/submit handler) and gets a writable handle to it.
+async function ensureFileHandle(){
+  if (fileHandle) return true;
+  try{
+    const [handle] = await window.showOpenFilePicker({
+      multiple: false,
+      types: [{ description: "HTML file", accept: { "text/html": [".html"] } }]
+    });
+    const ok = await ensurePermission(handle, "readwrite");
+    if (!ok) return false;
+    fileHandle = handle;
+    await idbSet(HANDLE_KEY, handle);
+    const file = await fileHandle.getFile();
+    rawTemplate = await file.text();
+    const parsed = extractFolders(rawTemplate);
+    if (parsed && parsed.length) folders = parsed;
+    setSaveHint(true, handle.name);
+    return true;
+  } catch(e){
+    if (e.name !== "AbortError") console.error(e);
+    return false;
+  }
+}
+
+async function persist(){
+  if (!fileHandle) return;
+  const dataBlock = MARK_START + '\n<script type="application/json" id="directart-data">' +
+    JSON.stringify(folders) + '</' + 'script>\n' + MARK_END;
+
+  const base = rawTemplate || document.documentElement.outerHTML;
+  let newText;
+  if (base.includes(MARK_START) && base.includes(MARK_END)){
+    newText = base.slice(0, base.indexOf(MARK_START)) + dataBlock + base.slice(base.indexOf(MARK_END) + MARK_END.length);
+  } else {
+    newText = base.replace("</body>", dataBlock + "\n</body>");
+  }
+  const writable = await fileHandle.createWritable();
+  await writable.write(newText);
+  await writable.close();
+  rawTemplate = newText;
+}
+
+function refreshFolderSelect(){
+  inputFolderSelect.innerHTML = "";
+  folders.forEach((f) => {
+    const opt = document.createElement("option");
+    opt.value = f.id;
+    opt.textContent = f.name;
+    inputFolderSelect.appendChild(opt);
+  });
+}
+
+function refreshFolderChips(){
+  folderChips.innerHTML = "";
+  folders.forEach((f) => {
+    const chip = document.createElement("div");
+    chip.className = "folder-chip";
+    const label = document.createElement("span");
+    label.textContent = f.name;
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = "· " + f.links.length;
+    const del = document.createElement("button");
+    del.textContent = "×";
+    del.title = f.links.length ? "Move or remove its links first" : "Delete folder";
+    del.disabled = f.links.length > 0 || folders.length === 1;
+    del.onclick = async () => {
+      const ok = await ensureFileHandle();
+      if (!ok) return;
+      folders = folders.filter((x) => x.id !== f.id);
+      await persist();
+      render();
+    };
+    chip.appendChild(label);
+    chip.appendChild(count);
+    chip.appendChild(del);
+    folderChips.appendChild(chip);
+  });
+}
+
+function render(){
+  refreshFolderChips();
+  refreshFolderSelect();
+
+  groupsEl.innerHTML = "";
+  const total = folders.reduce((n, f) => n + f.links.length, 0);
+
+  if (total === 0){
+    emptyMsg.style.display = "block";
+    listTitle.textContent = "No links yet";
+  } else {
+    emptyMsg.style.display = "none";
+    listTitle.textContent = total + (total === 1 ? " artifact" : " artifacts");
+
+    folders.forEach((f) => {
+      const group = document.createElement("div");
+      group.className = "group";
+      const name = document.createElement("div");
+      name.className = "group-name";
+      name.textContent = f.name;
+      group.appendChild(name);
+
+      if (!f.links.length){
+        const empty = document.createElement("div");
+        empty.className = "empty-folder";
+        empty.textContent = "No links in this folder yet.";
+        group.appendChild(empty);
+      } else {
+        const ul = document.createElement("ul");
+        ul.className = "links";
+        f.links.slice().reverse().forEach((item) => {
+          const li = document.createElement("li");
+          const main = document.createElement("div");
+          main.className = "link-main";
+          const a = document.createElement("a");
+          a.className = "link-title";
+          a.href = item.url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = item.title || item.url;
+          const urlLine = document.createElement("span");
+          urlLine.className = "link-url";
+          urlLine.textContent = item.url;
+          main.appendChild(a);
+          main.appendChild(urlLine);
+
+          const removeBtn = document.createElement("button");
+          removeBtn.className = "remove";
+          removeBtn.textContent = "Remove";
+          removeBtn.onclick = async () => {
+            const ok = await ensureFileHandle();
+            if (!ok) return;
+            f.links = f.links.filter((l) => l.id !== item.id);
+            await persist();
+            render();
+          };
+
+          li.appendChild(main);
+          li.appendChild(removeBtn);
+          ul.appendChild(li);
+        });
+        group.appendChild(ul);
+      }
+      groupsEl.appendChild(group);
+    });
+  }
+}
+
+folderForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = inputFolderName.value.trim();
+  if (!name) return;
+  const ok = await ensureFileHandle();
+  if (!ok) return;
+  folders.push({ id: uid(), name, links: [] });
+  await persist();
+  inputFolderName.value = "";
+  render();
+});
+
+addForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = inputTitle.value.trim();
+  const url = inputUrl.value.trim();
+  const folderId = inputFolderSelect.value;
+  if (!url || !folderId) return;
+  const ok = await ensureFileHandle();
+  if (!ok) return;
+  const folder = folders.find((f) => f.id === folderId) || folders[0];
+  folder.links.push({ id: uid(), title: title || url, url, added: new Date().toISOString() });
+  await persist();
+  inputTitle.value = "";
+  inputUrl.value = "";
+  inputTitle.focus();
+  render();
+});
+
+(async function init(){
+  if (!supportsFS()){
+    supportWarning.style.display = "block";
+  }
+  loadFromDom();
+  render();
+
+  const handle = await idbGet(HANDLE_KEY);
+  if (handle){
+    // Only *check* permission here (no prompt) — requestPermission needs a user
+    // gesture, which a page-load callback doesn't have. If it's still granted
+    // from a previous visit, reconnect silently and refresh from disk.
+    const status = await handle.queryPermission({ mode: "readwrite" });
+    if (status === "granted"){
+      fileHandle = handle;
+      const file = await fileHandle.getFile();
+      rawTemplate = await file.text();
+      const parsed = extractFolders(rawTemplate);
+      if (parsed && parsed.length) folders = parsed;
+      setSaveHint(true, handle.name);
+      render();
+    }
+  }
+})();
+</script>
+</body>
+</html>
