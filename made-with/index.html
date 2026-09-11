@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Made With — работы «человек + ИИ»</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ECEAE3'/%3E%3Ccircle cx='12' cy='16' r='7' fill='none' stroke='%23C97A2E' stroke-width='2.2'/%3E%3Crect x='15' y='9' width='12' height='12' fill='none' stroke='%233E4DE0' stroke-width='2.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ECEAE3; --paper-2:#E2E0D5; --ink:#171A16; --ink-soft:#5A5E54;
+    --line:#c9c7ba; --signal:#3E4DE0; --signal-soft:#e2e5fb; --human:#c97a2e; --human-soft:#f6e6d1;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.5;font-size:17px}
+  a{color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid var(--line)}
+  .mark{font-family:'Fraunces',serif;font-weight:700;font-size:22px;letter-spacing:-0.01em;text-decoration:none}
+  .mark span{color:var(--signal)}
+  .top-right{display:flex;align-items:center;gap:18px}
+  .lang{display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  .lang a{padding:4px 7px;border:1px solid var(--line);border-radius:3px;text-decoration:none;color:var(--ink-soft)}
+  .lang a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn-publish{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:3px;text-decoration:none;white-space:nowrap}
+
+  .hero{padding:64px 28px 40px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center}
+  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(32px,5vw,52px);line-height:1.08;margin:0 0 18px;max-width:11ch}
+  .hero p.sub{color:var(--ink-soft);max-width:46ch;font-size:18px;margin:0 0 26px}
+  .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
+  .cta a{text-decoration:none}
+  .cta .primary{background:var(--signal);color:#fff;padding:11px 20px;border-radius:3px;font-weight:500}
+  .cta .ghost{padding:11px 18px;border:1px solid var(--ink);border-radius:3px}
+  .diagram{justify-self:center}
+
+  section.how{padding:20px 28px 56px;border-top:1px solid var(--line)}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;margin-top:26px}
+  .how-grid h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin:0 0 8px}
+  .how-grid p{color:var(--ink-soft);font-size:15px;margin:0}
+  .how-num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--signal);display:block;margin-bottom:10px}
+
+  section.board{padding:8px 28px 20px;border-top:1px solid var(--line)}
+  .board-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:36px}
+  .board-head h2{font-family:'Fraunces',serif;font-size:26px;margin:0}
+  .count{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ink-soft)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 30px}
+  .filters input, .filters select{font-family:'Inter',sans-serif;font-size:14.5px;padding:9px 12px;border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--ink)}
+  .filters input{flex:1;min-width:180px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding-bottom:70px}
+  .card{border:1px solid var(--line);background:#fff;display:flex;flex-direction:column;text-decoration:none;color:var(--ink);position:relative}
+  .card:hover{border-color:var(--ink)}
+  .thumb{height:150px;position:relative;overflow:hidden;clip-path:polygon(0 0,100% 0,100% 88%,0 100%)}
+  .thumb svg{width:100%;height:100%;display:block}
+  .card-body{padding:16px 18px 18px;border-left:3px solid var(--line);flex:1;display:flex;flex-direction:column}
+  .card-body.stage-team{border-left-color:var(--human)}
+  .card-body.stage-showing{border-left-color:var(--signal)}
+  .card h3{font-family:'Fraunces',serif;font-size:19px;margin:0 0 8px;line-height:1.2}
+  .card .problem{font-size:14.5px;color:var(--ink-soft);margin:0 0 12px;flex:1}
+  .tags{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);margin:0 0 10px}
+  .tags span{margin-right:8px}
+  .card-foot{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11.5px}
+  .stage-tag{padding:3px 7px;border-radius:2px}
+  .stage-tag.team{background:var(--human-soft);color:#8a541c}
+  .stage-tag.showing{background:var(--signal-soft);color:#2a37b0}
+  .author{color:var(--ink-soft)}
+
+  .empty{padding:40px 0;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:14px}
+
+  footer{border-top:1px solid var(--line);padding:30px 28px 50px}
+  footer p{max-width:60ch;color:var(--ink-soft);font-size:14.5px;margin:0}
+  footer .brand{font-family:'Fraunces',serif;font-size:15px;margin-bottom:10px}
+
+  @media(max-width:820px){
+    .hero{grid-template-columns:1fr}
+    .diagram{display:none}
+    .how-grid{grid-template-columns:1fr}
+    .grid{grid-template-columns:1fr}
+  }
+  @media(max-width:560px){
+    header.top{flex-wrap:wrap;gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="mark" href="index.html" id="mark" data-i18n="brandName"></a>
+  <div class="top-right">
+    <nav class="lang" id="langSwitch"></nav>
+    <a class="btn-publish" id="publishLink" href="publish.html" data-i18n="navPublish"></a>
+  </div>
+</header>
+
+<section class="hero wrap" style="padding-left:0;padding-right:0">
+  <div>
+    <h1 data-i18n="heroTitle"></h1>
+    <p class="sub" data-i18n="heroSub"></p>
+    <div class="cta">
+      <a class="primary" href="#board" data-i18n="heroCtaBrowse"></a>
+      <a class="ghost" id="heroPublish" href="publish.html" data-i18n="heroCtaPublish"></a>
+    </div>
+  </div>
+  <div class="diagram">
+    <svg width="260" height="220" viewBox="0 0 260 220">
+      <path d="M20 190 Q 70 40 130 110 T 240 30" fill="none" stroke="#c97a2e" stroke-width="2.4" stroke-linecap="round"/>
+      <g stroke="#3E4DE0" stroke-width="1.4" opacity="0.85">
+        <line x1="150" y1="20" x2="150" y2="200"/>
+        <line x1="190" y1="20" x2="190" y2="200"/>
+        <line x1="230" y1="20" x2="230" y2="200"/>
+        <line x1="110" y1="60" x2="250" y2="60"/>
+        <line x1="110" y1="100" x2="250" y2="100"/>
+        <line x1="110" y1="140" x2="250" y2="140"/>
+      </g>
+      <circle cx="130" cy="110" r="6.5" fill="#171A16"/>
+    </svg>
+  </div>
+</section>
+
+<section class="how wrap">
+  <div class="how-grid">
+    <div>
+      <span class="how-num">01</span>
+      <h3 data-i18n="how1Title"></h3>
+      <p data-i18n="how1Text"></p>
+    </div>
+    <div>
+      <span class="how-num">02</span>
+      <h3 data-i18n="how2Title"></h3>
+      <p data-i18n="how2Text"></p>
+    </div>
+    <div>
+      <span class="how-num">03</span>
+      <h3 data-i18n="how3Title"></h3>
+      <p data-i18n="how3Text"></p>
+    </div>
+  </div>
+</section>
+
+<section class="board wrap" id="board">
+  <div class="board-head">
+    <h2 data-i18n="boardTitle"></h2>
+    <span class="count" id="resultCount"></span>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="fSearch" data-i18n-ph="filterSearch">
+    <select id="fType"></select>
+    <select id="fSkill"></select>
+    <select id="fStage"></select>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="emptyMsg" style="display:none" data-i18n="emptyState"></div>
+</section>
+
+<footer>
+  <div class="wrap" style="padding:0">
+    <div class="brand" data-i18n="brandName"></div>
+    <p data-i18n="footerNote"></p>
+  </div>
+</footer>
+
+<script>
+const LANGS = ['en','ru','hy'];
+const params = new URLSearchParams(location.search);
+let LANG = params.get('lang');
+if(!LANGS.includes(LANG)) LANG='ru';
+
+const I18N = {
+  en:{
+    brandName:'Made With',
+    navPublish:'Publish work',
+    heroTitle:'Made by a person and an AI.',
+    heroSub:'A showcase for anything built together with AI — an object, a visual, a piece of code, or a business idea just getting started. Watch it, read the code, reach out directly.',
+    heroCtaBrowse:'Browse the board',
+    heroCtaPublish:'Publish your work',
+    how1Title:'Show it, don\'t just describe it',
+    how1Text:'Every post carries a short video and the code behind it — open, closed, or shown on request. That\'s the one rule, not the subject or the size.',
+    how2Title:'Name the problem and the mix',
+    how2Text:'What problem does it solve, personal or market? And how exactly did the person, the AI, and the technology work together to make it?',
+    how3Title:'Use it as you need it',
+    how3Text:'A profile can read as a résumé, showing what someone can do, or as a startup page, showing a business already taking its first steps.',
+    boardTitle:'The board',
+    filterSearch:'Search by title or tag…',
+    typeAll:'All types', typeCode:'Code', typeHardware:'Hardware', typeVisual:'Visual & generative', typeBusiness:'Business idea',
+    skillAll:'All skills',
+    stageAll:'All stages', stageTeam:'Looking for a team', stageShowing:'Just showing',
+    cardTeam:'Looking for team', cardShowing:'Just showing',
+    watchCode:'video + code',
+    emptyState:'Nothing matches these filters yet — try clearing one.',
+    footerNote:'No matching, no applications — just a board with filters. Anyone visiting, client or partner or investor, finds a piece of work and reaches out directly. Success here isn\'t how many profiles exist — it\'s people posting, finding, and connecting.'
+  },
+  ru:{
+    brandName:'Made With',
+    navPublish:'Опубликовать работу',
+    heroTitle:'Сделано человеком и ИИ.',
+    heroSub:'Витрина того, что создано вместе с ИИ — вещь, визуал, код или бизнес-идея на старте. Единственное условие — видео и код в открытом доступе или по запросу.',
+    heroCtaBrowse:'Смотреть витрину',
+    heroCtaPublish:'Опубликовать работу',
+    how1Title:'Показывайте, а не описывайте',
+    how1Text:'В каждом посте — короткое видео и код: открытый, закрытый или по запросу. Это единственное условие, не тема и не масштаб работы.',
+    how2Title:'Назовите проблему и связку',
+    how2Text:'Какую проблему решает работа — личную или рыночную — и как именно человек, ИИ и технология были связаны при её создании.',
+    how3Title:'Используйте профиль по своей задаче',
+    how3Text:'Профиль может работать как резюме — показать, что человек умеет, — или как страница стартапа, показывающая уже начатый бизнес.',
+    boardTitle:'Витрина',
+    filterSearch:'Поиск по названию или тегу…',
+    typeAll:'Все типы', typeCode:'Код', typeHardware:'Материальное', typeVisual:'Визуал и генеративное', typeBusiness:'Бизнес-идея',
+    skillAll:'Все навыки',
+    stageAll:'Все стадии', stageTeam:'Ищу команду', stageShowing:'Просто показываю',
+    cardTeam:'Ищу команду', cardShowing:'Просто показываю',
+    watchCode:'видео + код',
+    emptyState:'По этим фильтрам пока пусто — попробуйте снять один.',
+    footerNote:'Без мэтчинга и заявок — просто витрина с фильтрами. Любой посетитель — заказчик, партнёр, инвестор — сам находит работу и связывается напрямую. Успех здесь — не число профилей, а живой цикл: постят, находят, связываются.'
+  },
+  hy:{
+    brandName:'Made With',
+    navPublish:'Հրապարակել աշխատանք',
+    heroTitle:'Ստեղծված մարդու և ԱԲ-ի կողմից.',
+    heroSub:'Ցուցափեղկ այն ամենի, ինչ ստեղծված է ԱԲ-ի հետ միասին՝ առարկա, վիզուալ, կոդ կամ նոր սկսվող բիզնես գաղափար։ Միակ պայմանը՝ տեսանյութ և կոդ, բաց կամ ցուցադրվող հարցումով։',
+    heroCtaBrowse:'Դիտել ցուցափեղկը',
+    heroCtaPublish:'Հրապարակել աշխատանք',
+    how1Title:'Ցույց տվեք, մի պարզապես նկարագրեք',
+    how1Text:'Յուրաքանչյուր գրառում ունի կարճ տեսանյութ և կոդ՝ բաց, փակ կամ ցուցադրվող հարցումով։ Սա միակ պայմանն է, ոչ թե թեման կամ մասշտաբը։',
+    how2Title:'Նշեք խնդիրը և կապը',
+    how2Text:'Ինչ խնդիր է լուծում աշխատանքը՝ անձնական կամ շուկայական, և կոնկրետ ինչպես են մարդը, ԱԲ-ն ու տեխնոլոգիան կապված եղել դրա ստեղծման ընթացքում։',
+    how3Title:'Օգտագործեք պրոֆիլը ըստ ձեր նպատակի',
+    how3Text:'Պրոֆիլը կարող է ծառայել որպես ինքնակենսագրական՝ ցույց տալով, թե ինչ գիտի անել մարդը, կամ որպես ստարտափի էջ՝ ցույց տալով արդեն սկսված բիզնես։',
+    boardTitle:'Ցուցափեղկ',
+    filterSearch:'Փնտրել վերնագրով կամ թեգով…',
+    typeAll:'Բոլոր տեսակները', typeCode:'Կոդ', typeHardware:'Նյութական', typeVisual:'Վիզուալ և գեներատիվ', typeBusiness:'Բիզնես գաղափար',
+    skillAll:'Բոլոր հմտությունները',
+    stageAll:'Բոլոր փուլերը', stageTeam:'Փնտրում եմ թիմ', stageShowing:'Պարզապես ցուցադրում եմ',
+    cardTeam:'Փնտրում է թիմ', cardShowing:'Պարզապես ցուցադրում',
+    watchCode:'տեսանյութ + կոդ',
+    emptyState:'Այս ֆիլտրերով դեռ ոչինչ չկա․ փորձեք հանել մեկը։',
+    footerNote:'Առանց մեթչինգի և հայտերի՝ պարզապես ցուցափեղկ՝ ֆիլտրերով։ Ցանկացած այցելու՝ պատվիրատու, գործընկեր, ներդրող՝ ինքն է գտնում աշխատանքը և կապվում ուղղակիորեն։ Հաջողությունը՝ ոչ թե պրոֆիլների քանակն է, այլ կենդանի ցիկլը՝ հրապարակում են, գտնում, կապվում։'
+  }
+};
+
+const PROFILES = [
+  {id:'p1', name:'Nare Petrosyan', mode:'resume', location:'Yerevan'},
+  {id:'p2', name:'Karen Avanesyan', mode:'resume', location:'Yerevan'},
+  {id:'p3', name:'Lilit Sargsyan', mode:'startup', location:'Gyumri'},
+  {id:'p4', name:'Armen Ghukasyan', mode:'startup', location:'Yerevan'}
+];
+
+const WORKS = [
+  {id:'w1', type:'code', stage:'team', author:'p1', tags:['RL','Python','Robotics'], seed:11,
+    t:{en:'Adaptive gait for a two-legged robot',ru:'Адаптивная походка для двуногого робота',hy:'Հարմարվող քայլվածք երկոտանի ռոբոտի համար'},
+    p:{en:'Testing a walking robot on hardware is slow and expensive; every failed step costs a rebuild.',ru:'Испытывать походку на реальном роботе — долго и дорого: каждый неудачный шаг стоит переделки.',hy:'Ռոբոտի քայլվածքը իրական սարքով փորձարկելը դանդաղ ու թանկ է․ ամեն ձախողված քայլ վերանորոգում է պահանջում։'},
+    c:{en:'The person set the training curriculum and reward shape by hand; the AI (reinforcement learning agent) explored millions of simulated steps to find the gait.',ru:'Человек вручную задавал программу обучения и форму вознаграждения; ИИ (агент обучения с подкреплением) перебирал миллионы шагов в симуляции, чтобы найти походку.',hy:'Մարդը ձեռքով սահմանել է ուսուցման ծրագիրը և պարգևատրման ձևը․ ԱԲ-ն (ամրապնդման ուսուցման գործակալ) սիմուլյացիայում փորձարկել է միլիոնավոր քայլեր՝ քայլվածքը գտնելու համար։'}},
+  {id:'w2', type:'hardware', stage:'showing', author:'p2', tags:['CAD','Woodworking','Generative design'], seed:27,
+    t:{en:'Modular shelf, generative-designed',ru:'Модульная полка с генеративным дизайном',hy:'Մոդուլային դարակ՝ գեներատիվ դիզայնով'},
+    p:{en:'Custom furniture is priced out of reach for a small apartment; standard shelves never fit odd corners.',ru:'Мебель на заказ не по карману для небольшой квартиры; готовые полки не подходят под нестандартные углы.',hy:'Պատվերով կահույքը թանկ է փոքր բնակարանի համար․ պատրաստի դարակները չեն տեղավորվում ոչ ստանդարտ անկյուններում։'},
+    c:{en:'The person measured the space and described the constraints in plain language; the AI generated the cut list and joinery, then the person built it by hand.',ru:'Человек замерил пространство и описал ограничения простыми словами; ИИ сгенерировал раскрой и соединения, а человек собрал полку своими руками.',hy:'Մարդը չափել է տարածքը և հասարակ լեզվով նկարագրել սահմանափակումները․ ԱԲ-ն ստեղծել է կտրվածքների ցանկը և միացումները, իսկ մարդը ինքն է հավաքել դարակը։'}},
+  {id:'w3', type:'visual', stage:'team', author:'p3', tags:['Generative art','Canvas','Textile'], seed:44,
+    t:{en:'Living pattern generator for textile prints',ru:'Живой генератор узоров для тканей',hy:'Կենդանի նախշերի գեներատոր՝ գործվածքների համար'},
+    p:{en:'A small textile studio can\'t afford licensed prints, and hand-drawing a new pattern for every run is too slow.',ru:'Небольшая текстильная студия не может позволить себе лицензионные принты, а рисовать новый узор вручную для каждой партии — слишком долго.',hy:'Փոքր տեքստիլ ստուդիան չի կարող թույլ տալ լիցենզավորված տպագրություններ, իսկ ամեն խմբաքանակի համար ձեռքով նոր նախշ նկարելը շատ դանդաղ է։'},
+    c:{en:'The person set the aesthetic rules — palette, rhythm, motifs; the AI runs those rules as a generative program that produces endless, never-repeating variants.',ru:'Человек задал эстетические правила — палитру, ритм, мотивы; ИИ выполняет эти правила как генеративную программу, выдающую бесконечные неповторяющиеся варианты.',hy:'Մարդը սահմանել է գեղագիտական կանոնները՝ գունապնակ, ռիթմ, մոտիվներ․ ԱԲ-ն այդ կանոնները վարում է որպես գեներատիվ ծրագիր, որը արտադրում է անվերջ, չկրկնվող տարբերակներ։'}},
+  {id:'w4', type:'business', stage:'team', author:'p4', tags:['FinTech','Market analysis','Matching'], seed:63,
+    t:{en:'A lending match for local repair shops',ru:'Микрокредитный матчер для локальных мастерских',hy:'Միկրովարկային համապատասխանեցում տեղական վերանորոգման կետերի համար'},
+    p:{en:'In a local district, idle savings and idle repair capacity sit side by side without ever meeting each other.',ru:'В районе рядом друг с другом простаивают свободные деньги и свободные мощности мастерских — но они никогда не встречаются.',hy:'Թաղամասում կողք կողքի պարապ են ազատ գումարները և վերանորոգման ազատ հզորությունը, բայց նրանք երբեք չեն հանդիպում։'},
+    c:{en:'The person mapped the local market on foot, shop by shop; the AI drafted the matching logic and a simple financial model behind the idea.',ru:'Человек вручную обошёл район и составил карту рынка, мастерская за мастерской; ИИ набросал логику подбора и простую финмодель для идеи.',hy:'Մարդը ոտքով շրջել է թաղամասը՝ քարտեզագրելով շուկան կետ առ կետ, ԱԲ-ն կազմել է համապատասխանեցման տրամաբանությունը և գաղափարի պարզ ֆինանսական մոդելը։'}},
+  {id:'w5', type:'code', stage:'showing', author:'p2', tags:['Computer vision','Archiving','Voice'], seed:78,
+    t:{en:'A voice-tagged photo archive for a family shop',ru:'Голосовой архив фотографий для семейного магазина',hy:'Ձայնային նշագրված լուսանկարների արխիվ ընտանեկան խանութի համար'},
+    p:{en:'A family shop has thirty years of untagged photos in boxes; nobody has time to sort or caption them.',ru:'В семейном магазине тридцать лет неподписанных фотографий в коробках — разбирать и подписывать их некому.',hy:'Ընտանեկան խանութն ունի երեսուն տարվա չնշագրված լուսանկարներ արկղերում. դասավորելու ու ստորագրելու ժամանակ ոչ ոք չունի։'},
+    c:{en:'The person set which faces and events mattered most; the AI captioned and indexed the archive so any photo can be found by describing it out loud.',ru:'Человек определил, какие лица и события важнее всего; ИИ подписал и проиндексировал архив так, что любое фото находится по устному описанию.',hy:'Մարդը որոշել է, թե որ դեմքերն ու իրադարձություններն են ամենակարևորը, ԱԲ-ն ստորագրել և ինդեքսավորել է արխիվը, որ ցանկացած լուսանկար կարելի է գտնել բանավոր նկարագրությամբ։'}},
+  {id:'w6', type:'hardware', stage:'team', author:'p3', tags:['Structural engineering','Simulation','Civic tech'], seed:92,
+    t:{en:'A footbridge repair, load-simulated',ru:'Ремонт пешеходного мостика с расчётом нагрузок',hy:'Հետիոտն կամրջի վերանորոգում՝ ծանրաբեռնվածության հաշվարկով'},
+    p:{en:'A footbridge in a small town has been closed for a year; the town has no engineer on hand to certify a fix.',ru:'Пешеходный мостик в маленьком городе закрыт уже год — своего инженера, чтобы утвердить ремонт, у города нет.',hy:'Փոքր քաղաքի հետիոտն կամուրջը փակ է մեկ տարուց ի վեր. քաղաքն իր ինժեներ չունի վերանորոգումը հաստատելու համար։'},
+    c:{en:'The person surveyed the site and took the real measurements; the AI ran the structural load simulations that shaped the repair plan.',ru:'Человек обследовал место и снял реальные замеры; ИИ провёл расчёт нагрузок, который лёг в основу плана ремонта.',hy:'Մարդը հետազոտել է տեղանքը և վերցրել իրական չափագրումները, ԱԲ-ն կատարել է ծանրաբեռնվածության հաշվարկները, որոնք ձևավորել են վերանորոգման ծրագիրը։'}}
+];
+
+function t(k){ return I18N[LANG][k] || ''; }
+
+function withLang(url){
+  const u = new URL(url, location.href);
+  u.searchParams.set('lang', LANG);
+  return u.pathname.split('/').pop() + '?' + u.searchParams.toString();
+}
+
+function pattern(seed, w=400,h=300){
+  const hues = [ ['#3E4DE0','#e2e5fb'], ['#c97a2e','#f6e6d1'], ['#171A16','#dedcd0'] ];
+  const pick = hues[seed % hues.length];
+  let dots='';
+  for(let i=0;i<7;i++){
+    const x = (seed*13 + i*57) % w;
+    const y = (seed*29 + i*41) % h;
+    dots += `<circle cx="${x}" cy="${y}" r="${3+((seed+i)%4)}" fill="${pick[0]}" opacity="0.55"/>`;
+  }
+  const path = `M0 ${h*0.7} Q ${w*0.3} ${((seed*7)%h)}, ${w*0.55} ${h*0.4} T ${w} ${h*0.55}`;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><rect width="${w}" height="${h}" fill="${pick[1]}"/>${dots}<path d="${path}" fill="none" stroke="${pick[0]}" stroke-width="3"/></svg>`;
+}
+
+function renderLangSwitch(){
+  const el = document.getElementById('langSwitch');
+  el.innerHTML = LANGS.map(l => `<a href="${'?'+new URLSearchParams({...Object.fromEntries(params), lang:l})}" class="${l===LANG?'on':''}">${l.toUpperCase()}</a>`).join('');
+}
+
+function renderStatic(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.getAttribute('data-i18n')));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))));
+  document.getElementById('publishLink').href = withLang('publish.html');
+  document.getElementById('heroPublish').href = withLang('publish.html');
+}
+
+function fillFilters(){
+  const fType = document.getElementById('fType');
+  fType.innerHTML = `<option value="">${t('typeAll')}</option>
+    <option value="code">${t('typeCode')}</option>
+    <option value="hardware">${t('typeHardware')}</option>
+    <option value="visual">${t('typeVisual')}</option>
+    <option value="business">${t('typeBusiness')}</option>`;
+
+  const fStage = document.getElementById('fStage');
+  fStage.innerHTML = `<option value="">${t('stageAll')}</option>
+    <option value="team">${t('stageTeam')}</option>
+    <option value="showing">${t('stageShowing')}</option>`;
+
+  const allSkills = [...new Set(WORKS.flatMap(w=>w.tags))].sort();
+  const fSkill = document.getElementById('fSkill');
+  fSkill.innerHTML = `<option value="">${t('skillAll')}</option>` + allSkills.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+
+function renderGrid(){
+  const search = document.getElementById('fSearch').value.trim().toLowerCase();
+  const ty = document.getElementById('fType').value;
+  const sk = document.getElementById('fSkill').value;
+  const st = document.getElementById('fStage').value;
+
+  const filtered = WORKS.filter(w=>{
+    if(ty && w.type!==ty) return false;
+    if(st && w.stage!==st) return false;
+    if(sk && !w.tags.includes(sk)) return false;
+    if(search){
+      const hay = (w.t[LANG]+' '+w.tags.join(' ')).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = filtered.length + ' / ' + WORKS.length;
+  const grid = document.getElementById('grid');
+  document.getElementById('emptyMsg').style.display = filtered.length ? 'none':'block';
+
+  grid.innerHTML = filtered.map(w=>{
+    const author = PROFILES.find(p=>p.id===w.author);
+    return `<a class="card" href="${withLang('work.html')}&id=${w.id}">
+      <div class="thumb">${pattern(w.seed)}</div>
+      <div class="card-body stage-${w.stage}">
+        <h3>${w.t[LANG]}</h3>
+        <p class="problem">${w.p[LANG]}</p>
+        <div class="tags">${w.tags.map(x=>`<span>#${x}</span>`).join('')}</div>
+        <div class="card-foot">
+          <span class="stage-tag ${w.stage}">${w.stage==='team'?t('cardTeam'):t('cardShowing')}</span>
+          <span class="author">${author.name}</span>
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function init(){
+  renderLangSwitch();
+  renderStatic();
+  fillFilters();
+  renderGrid();
+  ['fSearch','fType','fSkill','fStage'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderGrid);
+  });
+}
+init();
+</script>
+</body>
+</html>
