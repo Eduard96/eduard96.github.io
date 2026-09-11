@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Made With — опубликовать</title>
+<title>SimProof — опубликовать</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ECEAE3'/%3E%3Ccircle cx='12' cy='16' r='7' fill='none' stroke='%23C97A2E' stroke-width='2.2'/%3E%3Crect x='15' y='9' width='12' height='12' fill='none' stroke='%233E4DE0' stroke-width='2.2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -47,7 +47,8 @@
   .preview-side{position:sticky;top:26px;align-self:start}
   .preview-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-bottom:10px}
   .card{border:1px solid var(--line);background:#fff;display:block}
-  .thumb{height:150px;background:var(--signal-soft);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:12px;clip-path:polygon(0 0,100% 0,100% 88%,0 100%)}
+  .thumb{height:150px;background:var(--signal-soft);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:12px;clip-path:polygon(0 0,100% 0,100% 88%,0 100%);position:relative}
+  .thumb .tool-tag{position:absolute;bottom:8px;left:10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;background:rgba(255,255,255,0.85);padding:2px 6px;border-radius:2px;color:var(--ink)}
   .card-body{padding:16px 18px 18px;border-left:3px solid var(--line)}
   .card-body.stage-team{border-left-color:var(--human)}
   .card-body.stage-showing{border-left-color:var(--signal)}
@@ -67,7 +68,7 @@
 </head>
 <body>
 <header class="top">
-  <a class="mark" href="index.html" id="mark">Made With</a>
+  <a class="mark" href="index.html" id="mark">SimProof</a>
   <nav class="lang" id="langSwitch"></nav>
 </header>
 
@@ -89,9 +90,14 @@
           <select id="fType"></select>
         </div>
         <div class="field">
-          <label data-i18n="lSkills"></label>
-          <input id="fSkills" type="text" data-i18n-ph="phSkills">
+          <label data-i18n="lTool"></label>
+          <input id="fTool" type="text" data-i18n-ph="phTool">
         </div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="lSkills"></label>
+        <input id="fSkills" type="text" data-i18n-ph="phSkills">
       </div>
 
       <div class="field">
@@ -101,9 +107,9 @@
       </div>
 
       <div class="field">
-        <label data-i18n="lConnection"></label>
-        <textarea id="fConnection" data-i18n-ph="phConnection"></textarea>
-        <p class="hint" data-i18n="hintConnection"></p>
+        <label data-i18n="lProof"></label>
+        <textarea id="fConnection" data-i18n-ph="phProof"></textarea>
+        <p class="hint" data-i18n="hintProof"></p>
       </div>
 
       <div class="field">
@@ -112,8 +118,8 @@
       </div>
 
       <div class="field">
-        <label data-i18n="lCode"></label>
-        <input id="fCode" type="text" data-i18n-ph="phCode">
+        <label data-i18n="lSim"></label>
+        <input id="fCode" type="text" data-i18n-ph="phSim">
       </div>
 
       <div class="field">
@@ -134,7 +140,7 @@
   <div class="preview-side">
     <div class="preview-label" data-i18n="previewLabel"></div>
     <div class="card">
-      <div class="thumb" id="pvThumb" data-i18n="pvThumbText"></div>
+      <div class="thumb" id="pvThumb"><span data-i18n="pvThumbText"></span><span class="tool-tag" id="pvTool"></span></div>
       <div class="card-body stage-team" id="pvBody">
         <h3 id="pvTitle"></h3>
         <p class="problem" id="pvProblem"></p>
@@ -155,51 +161,54 @@ const params=new URLSearchParams(location.search);
 let LANG=params.get('lang'); if(!LANGS.includes(LANG)) LANG='ru';
 
 const I18N={
-  en:{ backToBoard:'back to the board', pageTitle:'Publish a work',
-    pageLede:'Any work made with AI — material, visual, code, or a business idea just starting. The only requirement is how it\u2019s shown, not its subject or size.',
-    lTitle:'Title', lType:'Type', lSkills:'Skills (comma-separated)', phSkills:'e.g. Python, RL, Robotics',
-    lProblem:'What problem it solves', phProblem:'Personal or market — describe it in a sentence or two.',
-    hintProblem:'Say what it fixes, for whom.',
-    lConnection:'How human, AI and tech connect', phConnection:'What did you decide, and what did the AI do?',
-    hintConnection:'This is the part visitors read to understand how the work actually got made.',
-    lVideo:'Video', videoDropText:'Drop a short video here, or leave it \u2014 shown on request works too',
-    lCode:'Code link (optional)', phCode:'github.com/... or leave blank to show on request',
-    lStage:'Stage', stageTeam:'Looking for a team', stageShowing:'Just showing',
+  en:{ backToBoard:'back to the board', pageTitle:'Publish a proof',
+    pageLede:'For a hardware idea you can\u2019t yet afford to build. The only requirement is how it\u2019s proven \u2014 video plus the simulation itself \u2014 not the domain or the scale.',
+    lTitle:'Title', lType:'Domain', lTool:'Simulation tool', phTool:'e.g. MuJoCo, physics sandbox, CAD + FEA',
+    lSkills:'Skills (comma-separated)', phSkills:'e.g. Kinematics, Fluid dynamics, MuJoCo',
+    lProblem:'What problem the technology solves', phProblem:'Personal or market \u2014 describe it in a sentence or two.',
+    hintProblem:'Say what it fixes, for whom, and why building a prototype outright wasn\u2019t an option.',
+    lProof:'What this shows', phProof:'What exactly does the simulation or the real footage show, and how does that prove the idea works?',
+    hintProof:'This is the part that lets someone with resources trust the idea, wherever it is on the path from model to reality.',
+    lVideo:'Video', videoDropText:'Drop a short video here \u2014 the simulation running, the real thing, or both \u2014 or leave it, shown on request works too',
+    lSim:'Simulation / sandbox link (optional)', phSim:'link, or leave blank to show on request',
+    lStage:'Stage', stageTeam:'Looking to build it', stageShowing:'Just showing the proof',
     submitBtn:'Publish (demo)', submitNote:'This is a demo form \u2014 nothing is sent anywhere yet.',
-    requiredNote:'One condition, not a topic or a scale: a video and the code, open or shown on request.',
+    requiredNote:'One condition, not a domain or a scale: a video of the simulation running, plus the simulation or sandbox itself, open or shown on request.',
     previewLabel:'How your card will look', pvThumbText:'thumbnail',
-    typeCode:'Code', typeHardware:'Hardware', typeVisual:'Visual & generative', typeBusiness:'Business idea',
-    pvTitlePlaceholder:'Your title appears here', pvProblemPlaceholder:'The problem it solves appears here.'},
-  ru:{ backToBoard:'назад к витрине', pageTitle:'Опубликовать работу',
-    pageLede:'Любая работа, сделанная с ИИ — материальная, визуальная, код или бизнес-идея на старте. Единственное условие — способ показа, а не тема или масштаб.',
-    lTitle:'Название', lType:'Тип', lSkills:'Навыки (через запятую)', phSkills:'например: Python, RL, робототехника',
-    lProblem:'Какую проблему решает', phProblem:'Личную или рыночную — опишите в одном-двух предложениях.',
-    hintProblem:'Скажите, что она чинит и для кого.',
-    lConnection:'Как связаны человек, ИИ и технология', phConnection:'Что решали вы, а что делал ИИ?',
-    hintConnection:'Это то, что читают посетители, чтобы понять, как работа была сделана на самом деле.',
-    lVideo:'Видео', videoDropText:'Перетащите короткое видео сюда — или оставьте пустым, показ по запросу тоже подходит',
-    lCode:'Ссылка на код (необязательно)', phCode:'github.com/... или оставьте пустым для показа по запросу',
-    lStage:'Стадия', stageTeam:'Ищу команду', stageShowing:'Просто показываю',
+    typeMechanism:'Robotics & mechanisms', typeEnergy:'Energy systems', typeStructural:'Structural & civil', typeFluid:'Water & fluid systems',
+    pvTitlePlaceholder:'Your title appears here', pvProblemPlaceholder:'The problem it solves appears here.', pvToolPlaceholder:'tool'},
+  ru:{ backToBoard:'назад к витрине', pageTitle:'Опубликовать доказательство',
+    pageLede:'Для идеи материальной технологии, на прототип которой пока нет ресурсов. Единственное условие — способ доказательства: видео плюс сама симуляция, а не тема или масштаб.',
+    lTitle:'Название', lType:'Область', lTool:'Инструмент симуляции', phTool:'например: MuJoCo, физический sandbox, CAD + FEA',
+    lSkills:'Навыки (через запятую)', phSkills:'например: кинематика, гидродинамика, MuJoCo',
+    lProblem:'Какую проблему решает технология', phProblem:'Личную или рыночную — опишите в одном-двух предложениях.',
+    hintProblem:'Скажите, что она чинит, для кого, и почему сразу построить прототип было не вариант.',
+    lProof:'Что это показывает', phProof:'Что именно показывает симуляция или реальные кадры, и как это доказывает, что идея рабочая?',
+    hintProof:'Это то, что позволяет человеку с ресурсами поверить в идею — на любой стадии пути от модели до реальности.',
+    lVideo:'Видео', videoDropText:'Перетащите короткое видео сюда — работу симуляции, реальную вещь или и то, и другое — или оставьте пустым, показ по запросу тоже подходит',
+    lSim:'Ссылка на симуляцию / sandbox (необязательно)', phSim:'ссылка, или оставьте пустым для показа по запросу',
+    lStage:'Стадия', stageTeam:'Ищу, кто построит', stageShowing:'Просто показываю доказательство',
     submitBtn:'Опубликовать (демо)', submitNote:'Это демо-форма — пока никуда ничего не отправляется.',
-    requiredNote:'Одно условие, не тема и не масштаб: видео и код — открытый или по запросу.',
+    requiredNote:'Одно условие, не область и не масштаб: видео работы симуляции плюс сама симуляция или sandbox — открытая или по запросу.',
     previewLabel:'Так будет выглядеть карточка', pvThumbText:'превью',
-    typeCode:'Код', typeHardware:'Материальное', typeVisual:'Визуал и генеративное', typeBusiness:'Бизнес-идея',
-    pvTitlePlaceholder:'Здесь появится название', pvProblemPlaceholder:'Здесь появится решаемая проблема.'},
-  hy:{ backToBoard:'վերադառնալ ցուցափեղկ', pageTitle:'Հրապարակել աշխատանք',
-    pageLede:'Ցանկացած աշխատանք, որ ստեղծված է ԱԲ-ի հետ՝ նյութական, վիզուալ, կոդ կամ նոր սկսվող բիզնես գաղափար։ Միակ պայմանը՝ ցուցադրման ձևն է, ոչ թե թեման կամ մասշտաբը։',
-    lTitle:'Վերնագիր', lType:'Տեսակ', lSkills:'Հմտություններ (ստորակետով)', phSkills:'օր.՝ Python, RL, ռոբոտաշինություն',
-    lProblem:'Ինչ խնդիր է լուծում', phProblem:'Անձնական կամ շուկայական՝ նկարագրեք մեկ-երկու նախադասությամբ։',
-    hintProblem:'Ասեք, ինչ է շտկում և ում համար։',
-    lConnection:'Ինչպես են կապված մարդը, ԱԲ-ն և տեխնոլոգիան', phConnection:'Ինչ որոշեցիք դուք, և ինչ արեց ԱԲ-ն?',
-    hintConnection:'Սա այն մասն է, որ այցելուները կարդում են՝ հասկանալու, թե ինչպես է աշխատանքն իրականում ստեղծվել։',
-    lVideo:'Տեսանյութ', videoDropText:'Կցեք կարճ տեսանյութ այստեղ, կամ թողեք դատարկ՝ հարցումով ցուցադրումը նույնպես ընդունելի է',
-    lCode:'Կոդի հղում (ոչ պարտադիր)', phCode:'github.com/... կամ թողեք դատարկ՝ հարցումով ցուցադրելու համար',
-    lStage:'Փուլ', stageTeam:'Փնտրում եմ թիմ', stageShowing:'Պարզապես ցուցադրում եմ',
+    typeMechanism:'Робототехника и механизмы', typeEnergy:'Энергетика', typeStructural:'Строительство и конструкции', typeFluid:'Вода и гидросистемы',
+    pvTitlePlaceholder:'Здесь появится название', pvProblemPlaceholder:'Здесь появится решаемая проблема.', pvToolPlaceholder:'инструмент'},
+  hy:{ backToBoard:'վերադառնալ ցուցափեղկ', pageTitle:'Հրապարակել ապացույցը',
+    pageLede:'Նյութական տեխնոլոգիայի գաղափարի համար, որի նախատիպի ռեսուրս դեռ չկա։ Միակ պայմանը՝ ապացուցման ձևն է՝ տեսանյութ և հենց սիմուլյացիան, ոչ թե ոլորտը կամ մասշտաբը։',
+    lTitle:'Վերնագիր', lType:'Ոլորտ', lTool:'Սիմուլյացիայի գործիք', phTool:'օր.՝ MuJoCo, ֆիզիկական sandbox, CAD + FEA',
+    lSkills:'Հմտություններ (ստորակետով)', phSkills:'օր.՝ կինեմատիկա, հեղուկների դինամիկա, MuJoCo',
+    lProblem:'Ինչ խնդիր է լուծում տեխնոլոգիան', phProblem:'Անձնական կամ շուկայական՝ նկարագրեք մեկ-երկու նախադասությամբ։',
+    hintProblem:'Ասեք, ինչ է շտկում, ում համար, և ինչու անմիջապես նախատիպ կառուցելը տարբերակ չէր։',
+    lProof:'Ինչ է ցույց տալիս սա', phProof:'Կոնկրետ ինչ է ցույց տալիս սիմուլյացիան կամ իրական կադրերը, և ինչպես է դա ապացուցում, որ գաղափարն աշխատում է?',
+    hintProof:'Սա այն մասն է, որ թույլ է տալիս ռեսուրս ունեցող մարդուն վստահել գաղափարին՝ մոդելից մինչև իրականություն ուղու ցանկացած փուլում։',
+    lVideo:'Տեսանյութ', videoDropText:'Կցեք կարճ տեսանյութ այստեղ՝ սիմուլյացիայի աշխատանք, իրական բան կամ երկուսը՝ կամ թողեք դատարկ, հարցումով ցուցադրումը նույնպես ընդունելի է',
+    lSim:'Սիմուլյացիայի / sandbox-ի հղում (ոչ պարտադիր)', phSim:'հղում, կամ թողեք դատարկ՝ հարցումով ցուցադրելու համար',
+    lStage:'Փուլ', stageTeam:'Փնտրում եմ, ով կկառուցի', stageShowing:'Պարզապես ցուցադրում եմ ապացույցը',
     submitBtn:'Հրապարակել (դեմո)', submitNote:'Սա դեմո ձև է․ ոչինչ դեռ ոչ մի տեղ չի ուղարկվում։',
-    requiredNote:'Մեկ պայման, ոչ թե թեմա կամ մասշտաբ՝ տեսանյութ և կոդ, բաց կամ ցուցադրվող հարցումով։',
+    requiredNote:'Մեկ պայման, ոչ թե ոլորտ կամ մասշտաբ՝ սիմուլյացիայի աշխատանքի տեսանյութ և հենց սիմուլյացիան կամ sandbox-ը՝ բաց կամ ցուցադրվող հարցումով։',
     previewLabel:'Ինչպես կերևա ձեր քարտը', pvThumbText:'մանրապատկեր',
-    typeCode:'Կոդ', typeHardware:'Նյութական', typeVisual:'Վիզուալ և գեներատիվ', typeBusiness:'Բիզնես գաղափար',
-    pvTitlePlaceholder:'Ձեր վերնագիրը կհայտնվի այստեղ', pvProblemPlaceholder:'Լուծվող խնդիրը կհայտնվի այստեղ։'}
+    typeMechanism:'Ռոբոտաշինություն և մեխանիզմներ', typeEnergy:'Էներգետիկա', typeStructural:'Շինարարություն և կոնստրուկցիաներ', typeFluid:'Ջուր և հեղուկային համակարգեր',
+    pvTitlePlaceholder:'Ձեր վերնագիրը կհայտնվի այստեղ', pvProblemPlaceholder:'Լուծվող խնդիրը կհայտնվի այստեղ։', pvToolPlaceholder:'գործիք'}
 };
 
 function t(k){ return I18N[LANG][k] || ''; }
@@ -218,6 +227,7 @@ let stage = 'team';
 function updatePreview(){
   document.getElementById('pvTitle').textContent = document.getElementById('fTitle').value || t('pvTitlePlaceholder');
   document.getElementById('pvProblem').textContent = document.getElementById('fProblem').value || t('pvProblemPlaceholder');
+  document.getElementById('pvTool').textContent = document.getElementById('fTool').value || t('pvToolPlaceholder');
   const skills = document.getElementById('fSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
   document.getElementById('pvTags').innerHTML = skills.map(s=>`<span>#${s}</span>`).join('');
   document.getElementById('pvBody').className = 'card-body stage-' + stage;
@@ -240,21 +250,21 @@ function init(){
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))));
 
   document.getElementById('fType').innerHTML = `
-    <option value="code">${t('typeCode')}</option>
-    <option value="hardware">${t('typeHardware')}</option>
-    <option value="visual">${t('typeVisual')}</option>
-    <option value="business">${t('typeBusiness')}</option>`;
+    <option value="mechanism">${t('typeMechanism')}</option>
+    <option value="energy">${t('typeEnergy')}</option>
+    <option value="structural">${t('typeStructural')}</option>
+    <option value="fluid">${t('typeFluid')}</option>`;
 
   document.getElementById('pvAuthor').textContent = LANG==='ru' ? 'Вы' : LANG==='hy' ? 'Դուք' : 'You';
 
-  ['fTitle','fProblem','fSkills'].forEach(id=>{
+  ['fTitle','fProblem','fSkills','fTool'].forEach(id=>{
     document.getElementById(id).addEventListener('input', updatePreview);
   });
 
   document.getElementById('videoDrop').addEventListener('click', function(){
     this.classList.toggle('filled');
     this.textContent = this.classList.contains('filled')
-      ? (LANG==='ru' ? 'clip.mp4 — прикреплено' : LANG==='hy' ? 'clip.mp4 — կցված է' : 'clip.mp4 — attached')
+      ? (LANG==='ru' ? 'sim-run.mp4 — прикреплено' : LANG==='hy' ? 'sim-run.mp4 — կցված է' : 'sim-run.mp4 — attached')
       : t('videoDropText');
   });
 
@@ -269,7 +279,7 @@ function init(){
       document.getElementById('fTitle').focus();
       return;
     }
-    alert(LANG==='ru' ? 'Демо: в реальной версии работа появится на витрине.' : LANG==='hy' ? 'Դեմո. իրական տարբերակում աշխատանքը կհայտնվի ցուցափեղկում։' : 'Demo: in a live version this would appear on the board.');
+    alert(LANG==='ru' ? 'Демо: в реальной версии доказательство появится на витрине.' : LANG==='hy' ? 'Դեմո. իրական տարբերակում ապացույցը կհայտնվի ցուցափեղկում։' : 'Demo: in a live version this would appear on the board.');
   });
 }
 init();

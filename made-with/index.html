@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Made With — работы «человек + ИИ»</title>
+<title>SimProof — доказано в симуляции</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ECEAE3'/%3E%3Ccircle cx='12' cy='16' r='7' fill='none' stroke='%23C97A2E' stroke-width='2.2'/%3E%3Crect x='15' y='9' width='12' height='12' fill='none' stroke='%233E4DE0' stroke-width='2.2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,7 +19,6 @@
   .wrap{max-width:1100px;margin:0 auto;padding:0 28px}
   header.top{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid var(--line)}
   .mark{font-family:'Fraunces',serif;font-weight:700;font-size:22px;letter-spacing:-0.01em;text-decoration:none}
-  .mark span{color:var(--signal)}
   .top-right{display:flex;align-items:center;gap:18px}
   .lang{display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
   .lang a{padding:4px 7px;border:1px solid var(--line);border-radius:3px;text-decoration:none;color:var(--ink-soft)}
@@ -27,8 +26,8 @@
   .btn-publish{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:3px;text-decoration:none;white-space:nowrap}
 
   .hero{padding:64px 28px 40px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center}
-  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(32px,5vw,52px);line-height:1.08;margin:0 0 18px;max-width:11ch}
-  .hero p.sub{color:var(--ink-soft);max-width:46ch;font-size:18px;margin:0 0 26px}
+  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.6vw,48px);line-height:1.1;margin:0 0 18px;max-width:15ch}
+  .hero p.sub{color:var(--ink-soft);max-width:48ch;font-size:17.5px;margin:0 0 26px}
   .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
   .cta a{text-decoration:none}
   .cta .primary{background:var(--signal);color:#fff;padding:11px 20px;border-radius:3px;font-weight:500}
@@ -55,6 +54,7 @@
   .card:hover{border-color:var(--ink)}
   .thumb{height:150px;position:relative;overflow:hidden;clip-path:polygon(0 0,100% 0,100% 88%,0 100%)}
   .thumb svg{width:100%;height:100%;display:block}
+  .thumb .tool-tag{position:absolute;bottom:8px;left:10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;background:rgba(255,255,255,0.85);padding:2px 6px;border-radius:2px;color:var(--ink)}
   .card-body{padding:16px 18px 18px;border-left:3px solid var(--line);flex:1;display:flex;flex-direction:column}
   .card-body.stage-team{border-left-color:var(--human)}
   .card-body.stage-showing{border-left-color:var(--signal)}
@@ -71,7 +71,7 @@
   .empty{padding:40px 0;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:14px}
 
   footer{border-top:1px solid var(--line);padding:30px 28px 50px}
-  footer p{max-width:60ch;color:var(--ink-soft);font-size:14.5px;margin:0}
+  footer p{max-width:62ch;color:var(--ink-soft);font-size:14.5px;margin:0}
   footer .brand{font-family:'Fraunces',serif;font-size:15px;margin-bottom:10px}
 
   @media(max-width:820px){
@@ -106,16 +106,20 @@
   </div>
   <div class="diagram">
     <svg width="260" height="220" viewBox="0 0 260 220">
-      <path d="M20 190 Q 70 40 130 110 T 240 30" fill="none" stroke="#c97a2e" stroke-width="2.4" stroke-linecap="round"/>
-      <g stroke="#3E4DE0" stroke-width="1.4" opacity="0.85">
-        <line x1="150" y1="20" x2="150" y2="200"/>
-        <line x1="190" y1="20" x2="190" y2="200"/>
-        <line x1="230" y1="20" x2="230" y2="200"/>
-        <line x1="110" y1="60" x2="250" y2="60"/>
-        <line x1="110" y1="100" x2="250" y2="100"/>
-        <line x1="110" y1="140" x2="250" y2="140"/>
+      <g stroke="#3E4DE0" stroke-width="1.2" opacity="0.85">
+        <line x1="140" y1="20" x2="140" y2="200"/>
+        <line x1="180" y1="20" x2="180" y2="200"/>
+        <line x1="220" y1="20" x2="220" y2="200"/>
+        <line x1="100" y1="55" x2="250" y2="55"/>
+        <line x1="100" y1="95" x2="250" y2="95"/>
+        <line x1="100" y1="135" x2="250" y2="135"/>
+        <line x1="100" y1="175" x2="250" y2="175"/>
       </g>
-      <circle cx="130" cy="110" r="6.5" fill="#171A16"/>
+      <path d="M20 170 Q 55 60 95 95 T 175 95" fill="none" stroke="#c97a2e" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="20" cy="170" r="4" fill="#c97a2e"/>
+      <circle cx="175" cy="95" r="6" fill="#171A16"/>
+      <text x="20" y="196" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5A5E54">idea</text>
+      <text x="196" y="204" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5A5E54">sim</text>
     </svg>
   </div>
 </section>
@@ -172,108 +176,105 @@ if(!LANGS.includes(LANG)) LANG='ru';
 
 const I18N = {
   en:{
-    brandName:'Made With',
-    navPublish:'Publish work',
-    heroTitle:'Made by a person and an AI.',
-    heroSub:'A showcase for anything built together with AI — an object, a visual, a piece of code, or a business idea just getting started. Watch it, read the code, reach out directly.',
+    brandName:'SimProof',
+    navPublish:'Publish a proof',
+    heroTitle:'From simulation to real life.',
+    heroSub:'A board for hardware ideas at any stage of that path — from a first model in MuJoCo or a physics sandbox to real footage of it running. Whatever stage you\u2019re at, show that it works and let people with the resources to take it further find you.',
     heroCtaBrowse:'Browse the board',
-    heroCtaPublish:'Publish your work',
-    how1Title:'Show it, don\'t just describe it',
-    how1Text:'Every post carries a short video and the code behind it — open, closed, or shown on request. That\'s the one rule, not the subject or the size.',
-    how2Title:'Name the problem and the mix',
-    how2Text:'What problem does it solve, personal or market? And how exactly did the person, the AI, and the technology work together to make it?',
-    how3Title:'Use it as you need it',
-    how3Text:'A profile can read as a résumé, showing what someone can do, or as a startup page, showing a business already taking its first steps.',
+    heroCtaPublish:'Publish a proof',
+    how1Title:'Show the path, not just a claim',
+    how1Text:'Every post carries a video — of the simulation running, of the real thing, or both — plus the simulation or sandbox itself: open, closed, or shown on request. That\u2019s the one rule, not the domain or the stage.',
+    how2Title:'Name the problem and what the model proves',
+    how2Text:'What problem does the technology solve, personal or market? And what exactly does the simulation show that proves the idea actually works?',
+    how3Title:'Use the profile as you need it',
+    how3Text:'Résumé mode says what you know how to design. Startup mode says: here\u2019s an idea, already simulated, looking for people to help build it for real.',
     boardTitle:'The board',
     filterSearch:'Search by title or tag…',
-    typeAll:'All types', typeCode:'Code', typeHardware:'Hardware', typeVisual:'Visual & generative', typeBusiness:'Business idea',
+    typeAll:'All domains', typeMechanism:'Robotics & mechanisms', typeEnergy:'Energy systems', typeStructural:'Structural & civil', typeFluid:'Water & fluid systems',
     skillAll:'All skills',
-    stageAll:'All stages', stageTeam:'Looking for a team', stageShowing:'Just showing',
-    cardTeam:'Looking for team', cardShowing:'Just showing',
-    watchCode:'video + code',
+    stageAll:'All stages', stageTeam:'Looking to build it', stageShowing:'Just showing the proof',
+    cardTeam:'Looking to build it', cardShowing:'Just showing',
     emptyState:'Nothing matches these filters yet — try clearing one.',
-    footerNote:'No matching, no applications — just a board with filters. Anyone visiting, client or partner or investor, finds a piece of work and reaches out directly. Success here isn\'t how many profiles exist — it\'s people posting, finding, and connecting.'
+    footerNote:'No matching, no applications — just a board with filters. Anyone with the resources to build — an investor, a manufacturer, an engineer — finds an idea already proven in simulation and can take it toward something physical.'
   },
   ru:{
-    brandName:'Made With',
-    navPublish:'Опубликовать работу',
-    heroTitle:'Сделано человеком и ИИ.',
-    heroSub:'Витрина того, что создано вместе с ИИ — вещь, визуал, код или бизнес-идея на старте. Единственное условие — видео и код в открытом доступе или по запросу.',
+    brandName:'SimProof',
+    navPublish:'Опубликовать доказательство',
+    heroTitle:'От симуляции до жизни.',
+    heroSub:'Витрина для идей материальной технологии на любой стадии этого пути — от первой модели в MuJoCo или физическом sandbox до реальных кадров, где это уже работает. На какой бы стадии вы ни были, покажите, что оно работает, и пусть вас найдут те, у кого есть ресурсы довести это дальше.',
     heroCtaBrowse:'Смотреть витрину',
-    heroCtaPublish:'Опубликовать работу',
-    how1Title:'Показывайте, а не описывайте',
-    how1Text:'В каждом посте — короткое видео и код: открытый, закрытый или по запросу. Это единственное условие, не тема и не масштаб работы.',
-    how2Title:'Назовите проблему и связку',
-    how2Text:'Какую проблему решает работа — личную или рыночную — и как именно человек, ИИ и технология были связаны при её создании.',
-    how3Title:'Используйте профиль по своей задаче',
-    how3Text:'Профиль может работать как резюме — показать, что человек умеет, — или как страница стартапа, показывающая уже начатый бизнес.',
+    heroCtaPublish:'Опубликовать доказательство',
+    how1Title:'Покажите путь, а не только заявление',
+    how1Text:'В каждом посте — видео: работы симуляции, реальной вещи или того и другого — и сама симуляция или sandbox: открытая, закрытая или по запросу. Это единственное условие, не область и не стадия.',
+    how2Title:'Назовите проблему и что доказывает модель',
+    how2Text:'Какую проблему решает технология — личную или рыночную — и что именно показывает симуляция, доказывая, что идея действительно рабочая.',
+    how3Title:'Используйте профиль по своей цели',
+    how3Text:'Режим резюме — «вот что я умею проектировать». Режим стартапа — «вот идея, я уже её смоделировал, ищу тех, кто поможет реализовать физически».',
     boardTitle:'Витрина',
     filterSearch:'Поиск по названию или тегу…',
-    typeAll:'Все типы', typeCode:'Код', typeHardware:'Материальное', typeVisual:'Визуал и генеративное', typeBusiness:'Бизнес-идея',
+    typeAll:'Все области', typeMechanism:'Робототехника и механизмы', typeEnergy:'Энергетика', typeStructural:'Строительство и конструкции', typeFluid:'Вода и гидросистемы',
     skillAll:'Все навыки',
-    stageAll:'Все стадии', stageTeam:'Ищу команду', stageShowing:'Просто показываю',
-    cardTeam:'Ищу команду', cardShowing:'Просто показываю',
-    watchCode:'видео + код',
+    stageAll:'Все стадии', stageTeam:'Ищу, кто построит', stageShowing:'Просто показываю доказательство',
+    cardTeam:'Ищу, кто построит', cardShowing:'Просто показываю',
     emptyState:'По этим фильтрам пока пусто — попробуйте снять один.',
-    footerNote:'Без мэтчинга и заявок — просто витрина с фильтрами. Любой посетитель — заказчик, партнёр, инвестор — сам находит работу и связывается напрямую. Успех здесь — не число профилей, а живой цикл: постят, находят, связываются.'
+    footerNote:'Без мэтчинга и заявок — просто витрина с фильтрами. Тот, у кого есть ресурсы построить — инвестор, производитель, инженер — находит идею, уже доказанную симуляцией, и может довести её до материального воплощения.'
   },
   hy:{
-    brandName:'Made With',
-    navPublish:'Հրապարակել աշխատանք',
-    heroTitle:'Ստեղծված մարդու և ԱԲ-ի կողմից.',
-    heroSub:'Ցուցափեղկ այն ամենի, ինչ ստեղծված է ԱԲ-ի հետ միասին՝ առարկա, վիզուալ, կոդ կամ նոր սկսվող բիզնես գաղափար։ Միակ պայմանը՝ տեսանյութ և կոդ, բաց կամ ցուցադրվող հարցումով։',
+    brandName:'SimProof',
+    navPublish:'Հրապարակել ապացույցը',
+    heroTitle:'Սիմուլյացիայից մինչև իրական կյանք.',
+    heroSub:'Ցուցափեղկ նյութական տեխնոլոգիայի գաղափարների համար՝ այս ուղու ցանկացած փուլում՝ MuJoCo-ում կամ ֆիզիկական sandbox-ում առաջին մոդելից մինչև իրական կադրեր, որտեղ այն արդեն աշխատում է։ Ցանկացած փուլում լինեք, ցույց տվեք, որ այն աշխատում է, և թող ձեզ գտնեն նրանք, ովքեր ունեն ռեսուրս այն ավելի հեռու տանելու համար։',
     heroCtaBrowse:'Դիտել ցուցափեղկը',
-    heroCtaPublish:'Հրապարակել աշխատանք',
-    how1Title:'Ցույց տվեք, մի պարզապես նկարագրեք',
-    how1Text:'Յուրաքանչյուր գրառում ունի կարճ տեսանյութ և կոդ՝ բաց, փակ կամ ցուցադրվող հարցումով։ Սա միակ պայմանն է, ոչ թե թեման կամ մասշտաբը։',
-    how2Title:'Նշեք խնդիրը և կապը',
-    how2Text:'Ինչ խնդիր է լուծում աշխատանքը՝ անձնական կամ շուկայական, և կոնկրետ ինչպես են մարդը, ԱԲ-ն ու տեխնոլոգիան կապված եղել դրա ստեղծման ընթացքում։',
+    heroCtaPublish:'Հրապարակել ապացույցը',
+    how1Title:'Ցույց տվեք ուղին, ոչ միայն հայտարարությունը',
+    how1Text:'Յուրաքանչյուր գրառում ունի տեսանյութ՝ սիմուլյացիայի աշխատանքի, իրական բանի կամ երկուսի էլ՝ և հենց սիմուլյացիան կամ sandbox-ը՝ բաց, փակ կամ ցուցադրվող հարցումով։ Սա միակ պայմանն է, ոչ թե ոլորտը կամ փուլը։',
+    how2Title:'Նշեք խնդիրը և ինչ է ապացուցում մոդելը',
+    how2Text:'Ինչ խնդիր է լուծում տեխնոլոգիան՝ անձնական կամ շուկայական, և կոնկրետ ինչ է ցույց տալիս սիմուլյացիան՝ ապացուցելով, որ գաղափարն իսկապես աշխատում է։',
     how3Title:'Օգտագործեք պրոֆիլը ըստ ձեր նպատակի',
-    how3Text:'Պրոֆիլը կարող է ծառայել որպես ինքնակենսագրական՝ ցույց տալով, թե ինչ գիտի անել մարդը, կամ որպես ստարտափի էջ՝ ցույց տալով արդեն սկսված բիզնես։',
+    how3Text:'Ինքնակենսագրական ռեժիմ՝ «ահա, թե ինչ գիտեմ նախագծել»։ Ստարտափի ռեժիմ՝ «ահա գաղափարը, արդեն սիմուլյացրել եմ, փնտրում եմ նրանց, ովքեր կօգնեն ֆիզիկապես իրականացնել»։',
     boardTitle:'Ցուցափեղկ',
     filterSearch:'Փնտրել վերնագրով կամ թեգով…',
-    typeAll:'Բոլոր տեսակները', typeCode:'Կոդ', typeHardware:'Նյութական', typeVisual:'Վիզուալ և գեներատիվ', typeBusiness:'Բիզնես գաղափար',
+    typeAll:'Բոլոր ոլորտները', typeMechanism:'Ռոբոտաշինություն և մեխանիզմներ', typeEnergy:'Էներգետիկա', typeStructural:'Շինարարություն և կոնստրուկցիաներ', typeFluid:'Ջուր և հեղուկային համակարգեր',
     skillAll:'Բոլոր հմտությունները',
-    stageAll:'Բոլոր փուլերը', stageTeam:'Փնտրում եմ թիմ', stageShowing:'Պարզապես ցուցադրում եմ',
-    cardTeam:'Փնտրում է թիմ', cardShowing:'Պարզապես ցուցադրում',
-    watchCode:'տեսանյութ + կոդ',
+    stageAll:'Բոլոր փուլերը', stageTeam:'Փնտրում եմ, ով կկառուցի', stageShowing:'Պարզապես ցուցադրում եմ ապացույցը',
+    cardTeam:'Փնտրում է, ով կկառուցի', cardShowing:'Պարզապես ցուցադրում',
     emptyState:'Այս ֆիլտրերով դեռ ոչինչ չկա․ փորձեք հանել մեկը։',
-    footerNote:'Առանց մեթչինգի և հայտերի՝ պարզապես ցուցափեղկ՝ ֆիլտրերով։ Ցանկացած այցելու՝ պատվիրատու, գործընկեր, ներդրող՝ ինքն է գտնում աշխատանքը և կապվում ուղղակիորեն։ Հաջողությունը՝ ոչ թե պրոֆիլների քանակն է, այլ կենդանի ցիկլը՝ հրապարակում են, գտնում, կապվում։'
+    footerNote:'Առանց մեթչինգի և հայտերի՝ պարզապես ցուցափեղկ՝ ֆիլտրերով։ Ում ունի կառուցելու ռեսուրս՝ ներդրող, արտադրող, ինժեներ՝ գտնում է սիմուլյացիայով արդեն ապացուցված գաղափարը և կարող է այն հասցնել նյութական մարմնավորման։'
   }
 };
 
 const PROFILES = [
   {id:'p1', name:'Nare Petrosyan', mode:'resume', location:'Yerevan'},
-  {id:'p2', name:'Karen Avanesyan', mode:'resume', location:'Yerevan'},
+  {id:'p2', name:'Karen Avanesyan', mode:'startup', location:'Yerevan'},
   {id:'p3', name:'Lilit Sargsyan', mode:'startup', location:'Gyumri'},
-  {id:'p4', name:'Armen Ghukasyan', mode:'startup', location:'Yerevan'}
+  {id:'p4', name:'Armen Ghukasyan', mode:'resume', location:'Yerevan'}
 ];
 
 const WORKS = [
-  {id:'w1', type:'code', stage:'team', author:'p1', tags:['RL','Python','Robotics'], seed:11,
-    t:{en:'Adaptive gait for a two-legged robot',ru:'Адаптивная походка для двуногого робота',hy:'Հարմարվող քայլվածք երկոտանի ռոբոտի համար'},
-    p:{en:'Testing a walking robot on hardware is slow and expensive; every failed step costs a rebuild.',ru:'Испытывать походку на реальном роботе — долго и дорого: каждый неудачный шаг стоит переделки.',hy:'Ռոբոտի քայլվածքը իրական սարքով փորձարկելը դանդաղ ու թանկ է․ ամեն ձախողված քայլ վերանորոգում է պահանջում։'},
-    c:{en:'The person set the training curriculum and reward shape by hand; the AI (reinforcement learning agent) explored millions of simulated steps to find the gait.',ru:'Человек вручную задавал программу обучения и форму вознаграждения; ИИ (агент обучения с подкреплением) перебирал миллионы шагов в симуляции, чтобы найти походку.',hy:'Մարդը ձեռքով սահմանել է ուսուցման ծրագիրը և պարգևատրման ձևը․ ԱԲ-ն (ամրապնդման ուսուցման գործակալ) սիմուլյացիայում փորձարկել է միլիոնավոր քայլեր՝ քայլվածքը գտնելու համար։'}},
-  {id:'w2', type:'hardware', stage:'showing', author:'p2', tags:['CAD','Woodworking','Generative design'], seed:27,
-    t:{en:'Modular shelf, generative-designed',ru:'Модульная полка с генеративным дизайном',hy:'Մոդուլային դարակ՝ գեներատիվ դիզայնով'},
-    p:{en:'Custom furniture is priced out of reach for a small apartment; standard shelves never fit odd corners.',ru:'Мебель на заказ не по карману для небольшой квартиры; готовые полки не подходят под нестандартные углы.',hy:'Պատվերով կահույքը թանկ է փոքր բնակարանի համար․ պատրաստի դարակները չեն տեղավորվում ոչ ստանդարտ անկյուններում։'},
-    c:{en:'The person measured the space and described the constraints in plain language; the AI generated the cut list and joinery, then the person built it by hand.',ru:'Человек замерил пространство и описал ограничения простыми словами; ИИ сгенерировал раскрой и соединения, а человек собрал полку своими руками.',hy:'Մարդը չափել է տարածքը և հասարակ լեզվով նկարագրել սահմանափակումները․ ԱԲ-ն ստեղծել է կտրվածքների ցանկը և միացումները, իսկ մարդը ինքն է հավաքել դարակը։'}},
-  {id:'w3', type:'visual', stage:'team', author:'p3', tags:['Generative art','Canvas','Textile'], seed:44,
-    t:{en:'Living pattern generator for textile prints',ru:'Живой генератор узоров для тканей',hy:'Կենդանի նախշերի գեներատոր՝ գործվածքների համար'},
-    p:{en:'A small textile studio can\'t afford licensed prints, and hand-drawing a new pattern for every run is too slow.',ru:'Небольшая текстильная студия не может позволить себе лицензионные принты, а рисовать новый узор вручную для каждой партии — слишком долго.',hy:'Փոքր տեքստիլ ստուդիան չի կարող թույլ տալ լիցենզավորված տպագրություններ, իսկ ամեն խմբաքանակի համար ձեռքով նոր նախշ նկարելը շատ դանդաղ է։'},
-    c:{en:'The person set the aesthetic rules — palette, rhythm, motifs; the AI runs those rules as a generative program that produces endless, never-repeating variants.',ru:'Человек задал эстетические правила — палитру, ритм, мотивы; ИИ выполняет эти правила как генеративную программу, выдающую бесконечные неповторяющиеся варианты.',hy:'Մարդը սահմանել է գեղագիտական կանոնները՝ գունապնակ, ռիթմ, մոտիվներ․ ԱԲ-ն այդ կանոնները վարում է որպես գեներատիվ ծրագիր, որը արտադրում է անվերջ, չկրկնվող տարբերակներ։'}},
-  {id:'w4', type:'business', stage:'team', author:'p4', tags:['FinTech','Market analysis','Matching'], seed:63,
-    t:{en:'A lending match for local repair shops',ru:'Микрокредитный матчер для локальных мастерских',hy:'Միկրովարկային համապատասխանեցում տեղական վերանորոգման կետերի համար'},
-    p:{en:'In a local district, idle savings and idle repair capacity sit side by side without ever meeting each other.',ru:'В районе рядом друг с другом простаивают свободные деньги и свободные мощности мастерских — но они никогда не встречаются.',hy:'Թաղամասում կողք կողքի պարապ են ազատ գումարները և վերանորոգման ազատ հզորությունը, բայց նրանք երբեք չեն հանդիպում։'},
-    c:{en:'The person mapped the local market on foot, shop by shop; the AI drafted the matching logic and a simple financial model behind the idea.',ru:'Человек вручную обошёл район и составил карту рынка, мастерская за мастерской; ИИ набросал логику подбора и простую финмодель для идеи.',hy:'Մարդը ոտքով շրջել է թաղամասը՝ քարտեզագրելով շուկան կետ առ կետ, ԱԲ-ն կազմել է համապատասխանեցման տրամաբանությունը և գաղափարի պարզ ֆինանսական մոդելը։'}},
-  {id:'w5', type:'code', stage:'showing', author:'p2', tags:['Computer vision','Archiving','Voice'], seed:78,
-    t:{en:'A voice-tagged photo archive for a family shop',ru:'Голосовой архив фотографий для семейного магазина',hy:'Ձայնային նշագրված լուսանկարների արխիվ ընտանեկան խանութի համար'},
-    p:{en:'A family shop has thirty years of untagged photos in boxes; nobody has time to sort or caption them.',ru:'В семейном магазине тридцать лет неподписанных фотографий в коробках — разбирать и подписывать их некому.',hy:'Ընտանեկան խանութն ունի երեսուն տարվա չնշագրված լուսանկարներ արկղերում. դասավորելու ու ստորագրելու ժամանակ ոչ ոք չունի։'},
-    c:{en:'The person set which faces and events mattered most; the AI captioned and indexed the archive so any photo can be found by describing it out loud.',ru:'Человек определил, какие лица и события важнее всего; ИИ подписал и проиндексировал архив так, что любое фото находится по устному описанию.',hy:'Մարդը որոշել է, թե որ դեմքերն ու իրադարձություններն են ամենակարևորը, ԱԲ-ն ստորագրել և ինդեքսավորել է արխիվը, որ ցանկացած լուսանկար կարելի է գտնել բանավոր նկարագրությամբ։'}},
-  {id:'w6', type:'hardware', stage:'team', author:'p3', tags:['Structural engineering','Simulation','Civic tech'], seed:92,
-    t:{en:'A footbridge repair, load-simulated',ru:'Ремонт пешеходного мостика с расчётом нагрузок',hy:'Հետիոտն կամրջի վերանորոգում՝ ծանրաբեռնվածության հաշվարկով'},
-    p:{en:'A footbridge in a small town has been closed for a year; the town has no engineer on hand to certify a fix.',ru:'Пешеходный мостик в маленьком городе закрыт уже год — своего инженера, чтобы утвердить ремонт, у города нет.',hy:'Փոքր քաղաքի հետիոտն կամուրջը փակ է մեկ տարուց ի վեր. քաղաքն իր ինժեներ չունի վերանորոգումը հաստատելու համար։'},
-    c:{en:'The person surveyed the site and took the real measurements; the AI ran the structural load simulations that shaped the repair plan.',ru:'Человек обследовал место и снял реальные замеры; ИИ провёл расчёт нагрузок, который лёг в основу плана ремонта.',hy:'Մարդը հետազոտել է տեղանքը և վերցրել իրական չափագրումները, ԱԲ-ն կատարել է ծանրաբեռնվածության հաշվարկները, որոնք ձևավորել են վերանորոգման ծրագիրը։'}}
+  {id:'w1', type:'mechanism', stage:'team', author:'p1', tool:'MuJoCo', tags:['MuJoCo','Reinforcement learning','Kinematics'], seed:11,
+    t:{en:'Adaptive gait for a two-legged rescue robot',ru:'Адаптивная походка для двуногого спасательного робота',hy:'Հարմարվող քայլվածք երկոտանի փրկարարական ռոբոտի համար'},
+    p:{en:'Search-and-rescue teams need a legged robot for rubble, but building and breaking hardware on every failed step is too slow and too expensive to test at all.',ru:'Спасательным командам нужен шагающий робот для завалов, но перестраивать и ломать железо на каждом неудачном шаге — слишком долго и дорого, чтобы вообще испытывать идею.',hy:'Փրկարարական խմբերին անհրաժեշտ է քայլող ռոբոտ փլատակների համար, բայց ամեն ձախողված քայլի վրա սարքը վերակառուցելը շատ դանդաղ ու թանկ է՝ ընդհանրապես գաղափարը փորձարկելու համար։'},
+    c:{en:'The simulation runs the gait over broken, uneven terrain generated on the fly and shows it recovering balance after a stumble — proof the control approach holds before any part is machined.',ru:'Симуляция прогоняет походку по неровной, ломаной поверхности, сгенерированной на лету, и показывает, как робот восстанавливает баланс после спотыкания — доказательство, что подход к управлению работает ещё до изготовления деталей.',hy:'Սիմուլյացիան քայլվածքն անցկացնում է թեժ ստեղծված անհարթ, ջարդված մակերևույթով և ցույց է տալիս, թե ինչպես ռոբոտը վերականգնում է հավասարակշռությունը սայթաքումից հետո՝ ապացույց, որ կառավարման մոտեցումն աշխատում է դեռ մինչև որևէ դետալի պատրաստումը։'}},
+  {id:'w2', type:'mechanism', stage:'team', author:'p2', tool:'Physics sandbox', tags:['Kinematics','Foldable structures','Sandbox'], seed:27,
+    t:{en:'Self-folding balcony sun shade, kinematics tested',ru:'Складной балконный солнцезащитный экран с проверенной кинематикой',hy:'Ինքնաբերաբար ծալվող պատշգամբի արևապաշտպան էկրան՝ ստուգված կինեմատիկայով'},
+    p:{en:'A folding shade that reacts to sun and wind needs a linkage that won\u2019t jam or bind, and a sheet-metal mockup to test that costs more than the idea is worth at this stage.',ru:'Складной экран, реагирующий на солнце и ветер, нуждается в шарнирном механизме, который не заклинит, а тестовый макет из металла на этой стадии стоит дороже, чем оправдана идея.',hy:'Ծալվող էկրանին, որը արձագանքում է արևին և քամուն, անհրաժեշտ է հոդակապային մեխանիզմ, որը չի խրվի, իսկ մետաղյա փորձնական մոդելը այս փուլում ավելի թանկ է, քան արժե գաղափարը։'},
+    c:{en:'The sandbox model runs the fold-and-unfold cycle under simulated wind load thousands of times and flags exactly where the linkage would bind — proving the geometry before any sheet metal is cut.',ru:'Модель в sandbox прогоняет цикл складывания-раскладывания под смоделированной ветровой нагрузкой тысячи раз и показывает, где именно механизм заклинит — доказывая геометрию до раскроя металла.',hy:'Sandbox-ի մոդելը հազարավոր անգամ անցկացնում է ծալման ու բացման ցիկլը սիմուլյացված քամու բեռնվածքի ներքո և ցույց է տալիս, թե կոնկրետ որտեղ կխրվի մեխանիզմը՝ ապացուցելով երկրաչափությունը դեռ մինչև մետաղի կտրումը։'}},
+  {id:'w3', type:'energy', stage:'showing', author:'p3', tool:'Fluid sandbox', tags:['Fluid dynamics','Blade design','Renewable energy'], seed:44,
+    t:{en:'Micro wind-turbine blade shape, airflow-tested',ru:'Форма лопасти микроветрогенератора, проверенная на потоке воздуха',hy:'Միկրովերգեներատորի թիակի ձևը՝ ստուգված օդային հոսքով'},
+    p:{en:'A rooftop micro-turbine only pays for itself if the blade catches low, gusty urban wind well; a wrong blade shape means a cast mold made for nothing.',ru:'Крышный микроветрогенератор окупается только если лопасть хорошо ловит слабый порывистый городской ветер; неверная форма лопасти — это форма для литья, отлитая впустую.',hy:'Տանիքային միկրովերգեներատորը իրեն արդարացնում է միայն այն դեպքում, եթե թիակը լավ է բռնում քաղաքային թույլ ու պոռթկումային քամին. սխալ ձևը նշանակում է իզուր ձուլված ձևանմուշ։'},
+    c:{en:'The sandbox visualizes airflow over a dozen blade shapes side by side and ranks them by simulated power output — proving which shape earns a physical mold before any material is cast.',ru:'Sandbox визуализирует обтекание воздухом дюжины форм лопасти рядом и ранжирует их по смоделированной выработке энергии — доказывая, какая форма заслуживает литейной формы, ещё до отливки материала.',hy:'Sandbox-ը վիզուալիզացնում է օդի հոսքը մեկ տասնյակ թիակի ձևերի շուրջ կողք կողքի և դասակարգում է դրանք սիմուլյացված էներգիայի արտադրանքով՝ ապացուցելով, թե որ ձևն է արժանի ֆիզիկական ձևանմուշի, դեռ մինչև նյութի ձուլումը։'}},
+  {id:'w4', type:'structural', stage:'team', author:'p4', tool:'Structural sandbox', tags:['Structural engineering','Damping','Civic tech'], seed:63,
+    t:{en:'Vibration-damping mount for a pedestrian bridge',ru:'Виброгасящее крепление для пешеходного моста',hy:'Թրթռազսպող ամրակ հետիոտն կամրջի համար'},
+    p:{en:'A footbridge in a small town sways under crowds and has been closed for a year; the town has no budget to test a fix before installing it for real.',ru:'Пешеходный мост в маленьком городе раскачивается под толпой и закрыт уже год; у города нет бюджета проверить решение до его установки на месте.',hy:'Փոքր քաղաքի հետիոտն կամուրջը ցնցվում է ամբոխի ներքո և փակ է մեկ տարուց ի վեր. քաղաքն ունի ոչ մի բյուջե՝ լուծումը փորձարկելու համար դեռ մինչև այն տեղադրելը։'},
+    c:{en:'The model applies real recorded footfall loads to the bridge geometry and shows the sway dropping to a safe range once the damping mount is added — proving the fix works before a single bolt is bought.',ru:'Модель прикладывает реальные записанные нагрузки от шагов толпы к геометрии моста и показывает, как раскачивание падает до безопасного уровня после установки виброгасителя — доказывая решение до покупки хотя бы одного болта.',hy:'Մոդելը կամրջի երկրաչափությանը կիրառում է քայլերի իրական գրանցված բեռնվածքները և ցույց է տալիս, թե ինչպես է ցնցումն իջնում անվտանգ մակարդակի՝ թրթռազսպիչի ավելացումից հետո՝ ապացուցելով լուծումը դեռ մինչև գոնե մեկ պտուտակի գնումը։'}},
+  {id:'w5', type:'energy', stage:'team', author:'p1', tool:'Interactive 3D', tags:['Kinematics','Solar','Interactive model'], seed:78,
+    t:{en:'Sun-tracking mount for a balcony solar panel',ru:'Солнце-следящее крепление для балконной солнечной панели',hy:'Արևին հետևող ամրակ պատշգամբի արևային վահանակի համար'},
+    p:{en:'A tilting mount can raise a small balcony panel\u2019s output noticeably, but a motorized frame is expensive to get wrong twice on a real balcony.',ru:'Наклонное крепление может заметно повысить выработку небольшой балконной панели, но моторизованную раму дорого переделывать дважды на реальном балконе.',hy:'Թեքվող ամրակը կարող է նկատելիորեն բարձրացնել պատշգամբի փոքր վահանակի արտադրանքը, բայց մոտորացված շրջանակը թանկ է սխալվել երկու անգամ իրական պատշգամբի վրա։'},
+    c:{en:'The interactive model lets you drag the sun across a full day and watch the mount track it in real time, with the output gain shown live — proving the mechanism and the payoff before any motor is bought.',ru:'Интерактивная модель позволяет провести солнце через весь день и в реальном времени увидеть, как крепление следит за ним, с наглядным приростом выработки — доказывая и механизм, и выгоду до покупки мотора.',hy:'Ինտերակտիվ մոդելը թույլ է տալիս արևը տեղաշարժել ողջ օրվա ընթացքում և իրական ժամանակում տեսնել, թե ինչպես է ամրակը հետևում դրան, արտադրանքի աճը ցուցադրելով ուղիղ եթերում՝ ապացուցելով և մեխանիզմը, և օգուտը դեռ մինչև մոտորի գնումը։'}},
+  {id:'w6', type:'fluid', stage:'showing', author:'p3', tool:'Fluid sandbox', tags:['Fluid dynamics','Filtration','Water systems'], seed:92,
+    t:{en:'Modular rainwater filter valve, flow-tested',ru:'Модульный фильтрующий клапан для дождевой воды, проверенный на потоке',hy:'Անձրևաջրի մոդուլային ֆիլտրող փական՝ ստուգված հոսքով'},
+    p:{en:'A cheap gravity filter for collected rainwater only works if debris doesn\u2019t clog the valve within a week; building and re-building the part to find that out wastes weeks of material.',ru:'Дешёвый гравитационный фильтр для собранной дождевой воды работает только если мусор не забивает клапан за неделю; переделывать деталь ради проверки этого — недели впустую потраченного материала.',hy:'Հավաքված անձրևաջրի համար էժան ինքնահոս ֆիլտրն աշխատում է միայն այն դեպքում, եթե աղբը շաբաթվա ընթացքում չի խցանում փականը. դետալը վերակառուցելը դա ստուգելու համար նյութի շաբաթներով վատնում է։'},
+    c:{en:'The sandbox runs debris-laden water through the valve geometry over simulated weeks and shows exactly where clogging starts — proving the design before a single valve is printed or cast.',ru:'Sandbox прогоняет воду с мусором через геометрию клапана в течение смоделированных недель и показывает, где именно начинается засор — доказывая конструкцию до печати или литья хотя бы одного клапана.',hy:'Sandbox-ը աղբով ջուրն անցկացնում է փականի երկրաչափության միջով սիմուլյացված շաբաթների ընթացքում և ցույց է տալիս, թե կոնկրետ որտեղ է սկսվում խցանումը՝ ապացուցելով նախագիծը դեռ մինչև գոնե մեկ փականի տպումը կամ ձուլումը։'}}
 ];
 
 function t(k){ return I18N[LANG][k] || ''; }
@@ -287,14 +288,14 @@ function withLang(url){
 function pattern(seed, w=400,h=300){
   const hues = [ ['#3E4DE0','#e2e5fb'], ['#c97a2e','#f6e6d1'], ['#171A16','#dedcd0'] ];
   const pick = hues[seed % hues.length];
-  let dots='';
-  for(let i=0;i<7;i++){
-    const x = (seed*13 + i*57) % w;
-    const y = (seed*29 + i*41) % h;
-    dots += `<circle cx="${x}" cy="${y}" r="${3+((seed+i)%4)}" fill="${pick[0]}" opacity="0.55"/>`;
+  let ticks='';
+  for(let i=0;i<8;i++){
+    const x = (seed*13 + i*47) % w;
+    const y1 = h*0.15, y2 = h*0.85;
+    ticks += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${pick[0]}" stroke-width="1" opacity="0.3"/>`;
   }
   const path = `M0 ${h*0.7} Q ${w*0.3} ${((seed*7)%h)}, ${w*0.55} ${h*0.4} T ${w} ${h*0.55}`;
-  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><rect width="${w}" height="${h}" fill="${pick[1]}"/>${dots}<path d="${path}" fill="none" stroke="${pick[0]}" stroke-width="3"/></svg>`;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice"><rect width="${w}" height="${h}" fill="${pick[1]}"/>${ticks}<path d="${path}" fill="none" stroke="${pick[0]}" stroke-width="3"/></svg>`;
 }
 
 function renderLangSwitch(){
@@ -313,10 +314,10 @@ function renderStatic(){
 function fillFilters(){
   const fType = document.getElementById('fType');
   fType.innerHTML = `<option value="">${t('typeAll')}</option>
-    <option value="code">${t('typeCode')}</option>
-    <option value="hardware">${t('typeHardware')}</option>
-    <option value="visual">${t('typeVisual')}</option>
-    <option value="business">${t('typeBusiness')}</option>`;
+    <option value="mechanism">${t('typeMechanism')}</option>
+    <option value="energy">${t('typeEnergy')}</option>
+    <option value="structural">${t('typeStructural')}</option>
+    <option value="fluid">${t('typeFluid')}</option>`;
 
   const fStage = document.getElementById('fStage');
   fStage.innerHTML = `<option value="">${t('stageAll')}</option>
@@ -352,7 +353,7 @@ function renderGrid(){
   grid.innerHTML = filtered.map(w=>{
     const author = PROFILES.find(p=>p.id===w.author);
     return `<a class="card" href="${withLang('work.html')}&id=${w.id}">
-      <div class="thumb">${pattern(w.seed)}</div>
+      <div class="thumb">${pattern(w.seed)}<span class="tool-tag">${w.tool}</span></div>
       <div class="card-body stage-${w.stage}">
         <h3>${w.t[LANG]}</h3>
         <p class="problem">${w.p[LANG]}</p>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Made With — профиль</title>
+<title>SimProof — профиль</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ECEAE3'/%3E%3Ccircle cx='12' cy='16' r='7' fill='none' stroke='%23C97A2E' stroke-width='2.2'/%3E%3Crect x='15' y='9' width='12' height='12' fill='none' stroke='%233E4DE0' stroke-width='2.2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -56,7 +56,7 @@
 </head>
 <body>
 <header class="top">
-  <a class="mark" href="index.html" id="mark">Made With</a>
+  <a class="mark" href="index.html" id="mark">SimProof</a>
   <nav class="lang" id="langSwitch"></nav>
 </header>
 
@@ -95,40 +95,40 @@ const ID=params.get('id') || 'p1';
 
 const I18N={
   en:{ backToBoard:'back to the board', modeResume:'Résumé view', modeStartup:'Startup view',
-    resumeTitle:'What this person can do', startupTitle:'What this business is building',
-    skillsLabel:'Skills', worksTitle:'Their work on the board',
+    resumeTitle:'What this person knows how to design', startupTitle:'The idea, already proven in simulation',
+    skillsLabel:'Skills', worksTitle:'Their proofs on the board',
     contactText:'Reach out directly — no matching, no application form.', contactCta:'Contact',
-    stageTeam:'Looking for a team', stageShowing:'Just showing', notFound:'This profile was not found.'},
+    stageTeam:'Looking to build it', stageShowing:'Just showing the proof', notFound:'This profile was not found.'},
   ru:{ backToBoard:'назад к витрине', modeResume:'Как резюме', modeStartup:'Как стартап',
-    resumeTitle:'Что умеет этот человек', startupTitle:'Что строит этот бизнес',
-    skillsLabel:'Навыки', worksTitle:'Его работы на витрине',
+    resumeTitle:'Что умеет проектировать этот человек', startupTitle:'Идея, уже доказанная симуляцией',
+    skillsLabel:'Навыки', worksTitle:'Его доказательства на витрине',
     contactText:'Свяжитесь напрямую — без мэтчинга и заявок.', contactCta:'Связаться',
-    stageTeam:'Ищу команду', stageShowing:'Просто показываю', notFound:'Такой профиль не найден.'},
+    stageTeam:'Ищу, кто построит', stageShowing:'Просто показываю доказательство', notFound:'Такой профиль не найден.'},
   hy:{ backToBoard:'վերադառնալ ցուցափեղկ', modeResume:'Ինքնակենսագրական', modeStartup:'Ստարտափի տեսք',
-    resumeTitle:'Ինչ գիտի անել այս մարդը', startupTitle:'Ինչ է կառուցում այս բիզնեսը',
-    skillsLabel:'Հմտություններ', worksTitle:'Իր աշխատանքները ցուցափեղկում',
+    resumeTitle:'Ինչ գիտի նախագծել այս մարդը', startupTitle:'Գաղափարը, արդեն ապացուցված սիմուլյացիայով',
+    skillsLabel:'Հմտություններ', worksTitle:'Իր ապացույցները ցուցափեղկում',
     contactText:'Կապվեք ուղղակիորեն՝ առանց մեթչինգի և հայտերի։', contactCta:'Կապ հաստատել',
-    stageTeam:'Փնտրում է թիմ', stageShowing:'Պարզապես ցուցադրում', notFound:'Այս պրոֆիլը չի գտնվել։'}
+    stageTeam:'Փնտրում է, ով կկառուցի', stageShowing:'Պարզապես ցուցադրում է ապացույցը', notFound:'Այս պրոֆիլը չի գտնվել։'}
 };
 
 const PROFILES=[
-  {id:'p1', name:'Nare Petrosyan', location:'Yerevan, Armenia', skills:['RL','Robotics','Python','Control systems'],
-    resume:{en:'Builds and trains control policies for legged robots, from simulation to hardware; comfortable owning a project end to end.',ru:'Строит и обучает управляющие политики для шагающих роботов — от симуляции до железа; берёт проект от начала и до конца.',hy:'Կառուցում և ուսուցանում է կառավարման քաղաքականություններ քայլող ռոբոտների համար՝ սիմուլյացիայից մինչև սարք. պատրաստ է ամբողջությամբ վարել նախագիծը։'}},
-  {id:'p2', name:'Karen Avanesyan', location:'Yerevan, Armenia', skills:['CAD','Computer vision','Woodworking','Archiving'],
-    resume:{en:'Pairs hands-on craft — woodworking, fixing physical things — with small AI tools that make the process faster or better documented.',ru:'Соединяет ручное ремесло — столярку, ремонт вещей — с небольшими ИИ-инструментами, ускоряющими или документирующими процесс.',hy:'Համադրում է ձեռքի արհեստը՝ ատաղձագործություն, իրերի վերանորոգում, ԱԲ-ի փոքր գործիքների հետ, որոնք արագացնում կամ ավելի լավ են փաստագրում գործընթացը։'}},
-  {id:'p3', name:'Lilit Sargsyan', location:'Gyumri, Armenia', skills:['Generative art', 'Structural engineering', 'Simulation'],
-    startup:{en:'Building a small studio that turns hand-set aesthetic or engineering rules into generative tools — for textile prints today, for civic infrastructure checks next.',ru:'Строит небольшую студию, превращающую заданные вручную эстетические или инженерные правила в генеративные инструменты — сегодня для тканей, дальше — для проверки городской инфраструктуры.',hy:'Կառուցում է փոքր ստուդիա, որը ձեռքով սահմանված գեղագիտական կամ ինժեներական կանոնները վերածում է գեներատիվ գործիքների՝ այսօր տեքստիլի, հետո՝ քաղաքային ենթակառուցվածքի ստուգման համար։'}},
-  {id:'p4', name:'Armen Ghukasyan', location:'Yerevan, Armenia', skills:['FinTech','Market analysis','Matching systems'],
-    startup:{en:'Early-stage fintech idea matching idle local capital with idle local capacity, starting with repair shops in one district.',ru:'Ранняя финтех-идея: подбор свободного локального капитала под свободные локальные мощности, начиная с мастерских в одном районе.',hy:'Վաղ փուլի ֆինտեխ գաղափար՝ ազատ տեղական կապիտալի համապատասխանեցում ազատ տեղական հզորության հետ՝ սկսած մեկ թաղամասի վերանորոգման կետերից։'}}
+  {id:'p1', name:'Nare Petrosyan', location:'Yerevan, Armenia', skills:['MuJoCo','Reinforcement learning','Kinematics','Control systems'],
+    resume:{en:'Designs and simulates control systems for legged and moving mechanisms — from MuJoCo gait training to interactive kinematic models — before any hardware is built.',ru:'Проектирует и симулирует системы управления для шагающих и подвижных механизмов — от обучения походки в MuJoCo до интерактивных кинематических моделей — до постройки любого железа.',hy:'Նախագծում և սիմուլյացնում է կառավարման համակարգեր քայլող և շարժական մեխանիզմների համար՝ MuJoCo-ում քայլվածքի ուսուցումից մինչև ինտերակտիվ կինեմատիկ մոդելներ, դեռ մինչև որևէ սարքի կառուցումը։'}},
+  {id:'p2', name:'Karen Avanesyan', location:'Yerevan, Armenia', skills:['Kinematics','Foldable structures','Physics sandbox'],
+    startup:{en:'Simulated a self-folding sun-shade mechanism that survives thousands of wind cycles without jamming — looking for a manufacturer to take it to a physical run.',ru:'Смоделировал складной солнцезащитный механизм, выдерживающий тысячи ветровых циклов без заклинивания, — ищет производителя для перехода к физической партии.',hy:'Սիմուլյացրել է ինքնաբերաբար ծալվող արևապաշտպան մեխանիզմ, որը դիմանում է քամու հազարավոր ցիկլերի առանց խրվելու․ փնտրում է արտադրող՝ ֆիզիկական խմբաքանակի անցնելու համար։'}},
+  {id:'p3', name:'Lilit Sargsyan', location:'Gyumri, Armenia', skills:['Fluid dynamics','Blade design','Structural sandbox'],
+    startup:{en:'Runs fluid and structural sandboxes to prove small energy and water hardware — a turbine blade, a filter valve — before a single mold is cut.',ru:'Использует гидро- и структурные sandbox-модели, чтобы доказать работоспособность небольших устройств для энергетики и воды — лопасть турбины, фильтрующий клапан — до вырезки хотя бы одной формы.',hy:'Օգտագործում է հեղուկային և կառուցվածքային sandbox մոդելներ՝ ապացուցելու էներգետիկայի և ջրի փոքր սարքերի աշխատունակությունը՝ տուրբինի թիակ, ֆիլտրող փական, դեռ մինչև գոնե մեկ ձևանմուշի կտրումը։'}},
+  {id:'p4', name:'Armen Ghukasyan', location:'Yerevan, Armenia', skills:['Structural engineering','Damping','Civic tech'],
+    resume:{en:'Models load and vibration on real structures — bridges, walkways — to prove a fix works before a town spends its repair budget.',ru:'Моделирует нагрузки и вибрации на реальных конструкциях — мостах, переходах, — доказывая, что решение работает, до того как город потратит бюджет на ремонт.',hy:'Մոդելավորում է բեռնվածությունը և թրթռումը իրական կառույցների վրա՝ կամուրջներ, անցումներ, ապացուցելով, որ լուծումն աշխատում է, դեռ մինչև քաղաքը ծախսի վերանորոգման բյուջեն։'}}
 ];
 
 const WORKS=[
-  {id:'w1', author:'p1', stage:'team', t:{en:'Adaptive gait for a two-legged robot',ru:'Адаптивная походка для двуногого робота',hy:'Հարմարվող քայլվածք երկոտանի ռոբոտի համար'}, p:{en:'Robotics, RL',ru:'Робототехника, RL',hy:'Ռոբոտաշինություն, RL'}},
-  {id:'w2', author:'p2', stage:'showing', t:{en:'Modular shelf, generative-designed',ru:'Модульная полка с генеративным дизайном',hy:'Մոդուլային դարակ՝ գեներատիվ դիզայնով'}, p:{en:'Hardware, CAD',ru:'Материальное, CAD',hy:'Նյութական, CAD'}},
-  {id:'w3', author:'p3', stage:'team', t:{en:'Living pattern generator for textile prints',ru:'Живой генератор узоров для тканей',hy:'Կենդանի նախշերի գեներատոր գործվածքների համար'}, p:{en:'Visual, generative art',ru:'Визуал, генеративное искусство',hy:'Վիզուալ, գեներատիվ արվեստ'}},
-  {id:'w4', author:'p4', stage:'team', t:{en:'A lending match for local repair shops',ru:'Микрокредитный матчер для локальных мастерских',hy:'Միկրովարկային համապատասխանեցում տեղական վերանորոգման կետերի համար'}, p:{en:'Business idea',ru:'Бизнес-идея',hy:'Բիզնես գաղափար'}},
-  {id:'w5', author:'p2', stage:'showing', t:{en:'A voice-tagged photo archive for a family shop',ru:'Голосовой архив фотографий для семейного магазина',hy:'Ձայնային նշագրված լուսանկարների արխիվ ընտանեկան խանութի համար'}, p:{en:'Code, archiving',ru:'Код, архивирование',hy:'Կոդ, արխիվացում'}},
-  {id:'w6', author:'p3', stage:'team', t:{en:'A footbridge repair, load-simulated',ru:'Ремонт пешеходного мостика с расчётом нагрузок',hy:'Հետիոտն կամրջի վերանորոգում ծանրաբեռնվածության հաշվարկով'}, p:{en:'Hardware, civic',ru:'Материальное, civic',hy:'Նյութական, քաղաքացիական'}}
+  {id:'w1', author:'p1', stage:'team', t:{en:'Adaptive gait for a two-legged rescue robot',ru:'Адаптивная походка для двуногого спасательного робота',hy:'Հարմարվող քայլվածք երկոտանի փրկարարական ռոբոտի համար'}, p:{en:'Robotics, MuJoCo',ru:'Робототехника, MuJoCo',hy:'Ռոբոտաշինություն, MuJoCo'}},
+  {id:'w2', author:'p2', stage:'team', t:{en:'Self-folding balcony sun shade, kinematics tested',ru:'Складной балконный солнцезащитный экран с проверенной кинематикой',hy:'Ինքնաբերաբար ծալվող պատշգամբի արևապաշտպան էկրան'}, p:{en:'Mechanism, sandbox',ru:'Механизм, sandbox',hy:'Մեխանիզմ, sandbox'}},
+  {id:'w3', author:'p3', stage:'showing', t:{en:'Micro wind-turbine blade shape, airflow-tested',ru:'Форма лопасти микроветрогенератора, проверенная на потоке воздуха',hy:'Միկրովերգեներատորի թիակի ձևը'}, p:{en:'Energy, fluid sandbox',ru:'Энергетика, fluid sandbox',hy:'Էներգետիկա, fluid sandbox'}},
+  {id:'w4', author:'p4', stage:'team', t:{en:'Vibration-damping mount for a pedestrian bridge',ru:'Виброгасящее крепление для пешеходного моста',hy:'Թրթռազսպող ամրակ հետիոտն կամրջի համար'}, p:{en:'Structural, civic',ru:'Конструкции, civic',hy:'Կառուցվածք, քաղաքացիական'}},
+  {id:'w5', author:'p1', stage:'team', t:{en:'Sun-tracking mount for a balcony solar panel',ru:'Солнце-следящее крепление для балконной солнечной панели',hy:'Արևին հետևող ամրակ պատշգամբի արևային վահանակի համար'}, p:{en:'Energy, interactive 3D',ru:'Энергетика, интерактив 3D',hy:'Էներգետիկա, ինտերակտիվ 3D'}},
+  {id:'w6', author:'p3', stage:'showing', t:{en:'Modular rainwater filter valve, flow-tested',ru:'Модульный фильтрующий клапан для дождевой воды',hy:'Անձրևաջրի մոդուլային ֆիլտրող փական'}, p:{en:'Fluid, water systems',ru:'Гидро, водные системы',hy:'Հեղուկ, ջրային համակարգեր'}}
 ];
 
 function t(k){ return I18N[LANG][k] || ''; }
