@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Made With — профиль</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ECEAE3'/%3E%3Ccircle cx='12' cy='16' r='7' fill='none' stroke='%23C97A2E' stroke-width='2.2'/%3E%3Crect x='15' y='9' width='12' height='12' fill='none' stroke='%233E4DE0' stroke-width='2.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ECEAE3; --ink:#171A16; --ink-soft:#5A5E54; --line:#c9c7ba;
+    --signal:#3E4DE0; --signal-soft:#e2e5fb; --human:#c97a2e; --human-soft:#f6e6d1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.55;font-size:17px}
+  a{color:inherit}
+  .wrap{max-width:840px;margin:0 auto;padding:0 28px}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid var(--line)}
+  .mark{font-family:'Fraunces',serif;font-weight:700;font-size:22px;text-decoration:none}
+  .lang{display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  .lang a{padding:4px 7px;border:1px solid var(--line);border-radius:3px;text-decoration:none;color:var(--ink-soft)}
+  .lang a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .back{font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:var(--ink-soft)}
+
+  .head{padding:34px 28px 0}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,4vw,40px);margin:14px 0 6px}
+  .location{color:var(--ink-soft);font-size:15px;margin:0 0 20px}
+
+  .mode-toggle{display:inline-flex;border:1px solid var(--ink);border-radius:3px;overflow:hidden;margin-bottom:28px;font-family:'IBM Plex Mono',monospace;font-size:13px}
+  .mode-toggle button{padding:9px 16px;border:none;background:transparent;color:var(--ink);cursor:pointer}
+  .mode-toggle button.active{background:var(--ink);color:var(--paper)}
+
+  .panel{padding:0 28px 6px}
+  .panel h2{font-family:'Fraunces',serif;font-size:20px;margin:0 0 10px}
+  .panel p{color:var(--ink-soft);font-size:15.5px;margin:0 0 26px;max-width:60ch}
+
+  .skills{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 30px;padding:0 28px}
+  .skills span{font-family:'IBM Plex Mono',monospace;font-size:12.5px;border:1px solid var(--line);padding:5px 10px;border-radius:3px;color:var(--ink-soft)}
+
+  .works-title{padding:0 28px;font-family:'Fraunces',serif;font-size:20px;margin:6px 0 16px}
+  .works{padding:0 28px 10px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .wcard{border:1px solid var(--line);background:#fff;padding:16px;text-decoration:none;color:var(--ink);display:block}
+  .wcard:hover{border-color:var(--ink)}
+  .wcard h3{font-family:'Fraunces',serif;font-size:16.5px;margin:0 0 6px}
+  .wcard p{color:var(--ink-soft);font-size:13.5px;margin:0}
+
+  .contact{margin:30px 28px 60px;padding:20px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  .contact p{margin:0;color:var(--ink-soft);font-size:14.5px;max-width:40ch}
+  .contact button{font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:11px 18px;border-radius:3px;border:none;background:var(--signal);color:#fff;cursor:pointer}
+
+  footer{border-top:1px solid var(--line);padding:24px 28px 50px;color:var(--ink-soft);font-size:13.5px;font-family:'IBM Plex Mono',monospace;display:none}
+
+  @media(max-width:640px){ .works{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="mark" href="index.html" id="mark">Made With</a>
+  <nav class="lang" id="langSwitch"></nav>
+</header>
+
+<div class="head wrap" style="padding-left:0;padding-right:0">
+  <a class="back" id="backLink" href="index.html">&larr; <span data-i18n="backToBoard"></span></a>
+  <h1 id="pName"></h1>
+  <p class="location" id="pLocation"></p>
+  <div class="mode-toggle">
+    <button id="btnResume" data-i18n="modeResume"></button>
+    <button id="btnStartup" data-i18n="modeStartup"></button>
+  </div>
+</div>
+
+<div class="panel wrap" style="padding-left:0;padding-right:0">
+  <h2 id="panelTitle"></h2>
+  <p id="panelText"></p>
+</div>
+
+<div class="skills wrap" id="skillsBox" style="padding-left:0;padding-right:0"></div>
+
+<h2 class="works-title" id="worksTitle"></h2>
+<div class="works wrap" id="worksBox" style="padding-left:0;padding-right:0"></div>
+
+<div class="contact wrap" style="padding-left:0;padding-right:0">
+  <p id="contactText"></p>
+  <button id="contactBtn" data-i18n="contactCta"></button>
+</div>
+
+<footer id="fallback" data-i18n="notFound"></footer>
+</body>
+<script>
+const LANGS=['en','ru','hy'];
+const params=new URLSearchParams(location.search);
+let LANG=params.get('lang'); if(!LANGS.includes(LANG)) LANG='ru';
+const ID=params.get('id') || 'p1';
+
+const I18N={
+  en:{ backToBoard:'back to the board', modeResume:'Résumé view', modeStartup:'Startup view',
+    resumeTitle:'What this person can do', startupTitle:'What this business is building',
+    skillsLabel:'Skills', worksTitle:'Their work on the board',
+    contactText:'Reach out directly — no matching, no application form.', contactCta:'Contact',
+    stageTeam:'Looking for a team', stageShowing:'Just showing', notFound:'This profile was not found.'},
+  ru:{ backToBoard:'назад к витрине', modeResume:'Как резюме', modeStartup:'Как стартап',
+    resumeTitle:'Что умеет этот человек', startupTitle:'Что строит этот бизнес',
+    skillsLabel:'Навыки', worksTitle:'Его работы на витрине',
+    contactText:'Свяжитесь напрямую — без мэтчинга и заявок.', contactCta:'Связаться',
+    stageTeam:'Ищу команду', stageShowing:'Просто показываю', notFound:'Такой профиль не найден.'},
+  hy:{ backToBoard:'վերադառնալ ցուցափեղկ', modeResume:'Ինքնակենսագրական', modeStartup:'Ստարտափի տեսք',
+    resumeTitle:'Ինչ գիտի անել այս մարդը', startupTitle:'Ինչ է կառուցում այս բիզնեսը',
+    skillsLabel:'Հմտություններ', worksTitle:'Իր աշխատանքները ցուցափեղկում',
+    contactText:'Կապվեք ուղղակիորեն՝ առանց մեթչինգի և հայտերի։', contactCta:'Կապ հաստատել',
+    stageTeam:'Փնտրում է թիմ', stageShowing:'Պարզապես ցուցադրում', notFound:'Այս պրոֆիլը չի գտնվել։'}
+};
+
+const PROFILES=[
+  {id:'p1', name:'Nare Petrosyan', location:'Yerevan, Armenia', skills:['RL','Robotics','Python','Control systems'],
+    resume:{en:'Builds and trains control policies for legged robots, from simulation to hardware; comfortable owning a project end to end.',ru:'Строит и обучает управляющие политики для шагающих роботов — от симуляции до железа; берёт проект от начала и до конца.',hy:'Կառուցում և ուսուցանում է կառավարման քաղաքականություններ քայլող ռոբոտների համար՝ սիմուլյացիայից մինչև սարք. պատրաստ է ամբողջությամբ վարել նախագիծը։'}},
+  {id:'p2', name:'Karen Avanesyan', location:'Yerevan, Armenia', skills:['CAD','Computer vision','Woodworking','Archiving'],
+    resume:{en:'Pairs hands-on craft — woodworking, fixing physical things — with small AI tools that make the process faster or better documented.',ru:'Соединяет ручное ремесло — столярку, ремонт вещей — с небольшими ИИ-инструментами, ускоряющими или документирующими процесс.',hy:'Համադրում է ձեռքի արհեստը՝ ատաղձագործություն, իրերի վերանորոգում, ԱԲ-ի փոքր գործիքների հետ, որոնք արագացնում կամ ավելի լավ են փաստագրում գործընթացը։'}},
+  {id:'p3', name:'Lilit Sargsyan', location:'Gyumri, Armenia', skills:['Generative art', 'Structural engineering', 'Simulation'],
+    startup:{en:'Building a small studio that turns hand-set aesthetic or engineering rules into generative tools — for textile prints today, for civic infrastructure checks next.',ru:'Строит небольшую студию, превращающую заданные вручную эстетические или инженерные правила в генеративные инструменты — сегодня для тканей, дальше — для проверки городской инфраструктуры.',hy:'Կառուցում է փոքր ստուդիա, որը ձեռքով սահմանված գեղագիտական կամ ինժեներական կանոնները վերածում է գեներատիվ գործիքների՝ այսօր տեքստիլի, հետո՝ քաղաքային ենթակառուցվածքի ստուգման համար։'}},
+  {id:'p4', name:'Armen Ghukasyan', location:'Yerevan, Armenia', skills:['FinTech','Market analysis','Matching systems'],
+    startup:{en:'Early-stage fintech idea matching idle local capital with idle local capacity, starting with repair shops in one district.',ru:'Ранняя финтех-идея: подбор свободного локального капитала под свободные локальные мощности, начиная с мастерских в одном районе.',hy:'Վաղ փուլի ֆինտեխ գաղափար՝ ազատ տեղական կապիտալի համապատասխանեցում ազատ տեղական հզորության հետ՝ սկսած մեկ թաղամասի վերանորոգման կետերից։'}}
+];
+
+const WORKS=[
+  {id:'w1', author:'p1', stage:'team', t:{en:'Adaptive gait for a two-legged robot',ru:'Адаптивная походка для двуногого робота',hy:'Հարմարվող քայլվածք երկոտանի ռոբոտի համար'}, p:{en:'Robotics, RL',ru:'Робототехника, RL',hy:'Ռոբոտաշինություն, RL'}},
+  {id:'w2', author:'p2', stage:'showing', t:{en:'Modular shelf, generative-designed',ru:'Модульная полка с генеративным дизайном',hy:'Մոդուլային դարակ՝ գեներատիվ դիզայնով'}, p:{en:'Hardware, CAD',ru:'Материальное, CAD',hy:'Նյութական, CAD'}},
+  {id:'w3', author:'p3', stage:'team', t:{en:'Living pattern generator for textile prints',ru:'Живой генератор узоров для тканей',hy:'Կենդանի նախշերի գեներատոր գործվածքների համար'}, p:{en:'Visual, generative art',ru:'Визуал, генеративное искусство',hy:'Վիզուալ, գեներատիվ արվեստ'}},
+  {id:'w4', author:'p4', stage:'team', t:{en:'A lending match for local repair shops',ru:'Микрокредитный матчер для локальных мастерских',hy:'Միկրովարկային համապատասխանեցում տեղական վերանորոգման կետերի համար'}, p:{en:'Business idea',ru:'Бизнес-идея',hy:'Բիզնես գաղափար'}},
+  {id:'w5', author:'p2', stage:'showing', t:{en:'A voice-tagged photo archive for a family shop',ru:'Голосовой архив фотографий для семейного магазина',hy:'Ձայնային նշագրված լուսանկարների արխիվ ընտանեկան խանութի համար'}, p:{en:'Code, archiving',ru:'Код, архивирование',hy:'Կոդ, արխիվացում'}},
+  {id:'w6', author:'p3', stage:'team', t:{en:'A footbridge repair, load-simulated',ru:'Ремонт пешеходного мостика с расчётом нагрузок',hy:'Հետիոտն կամրջի վերանորոգում ծանրաբեռնվածության հաշվարկով'}, p:{en:'Hardware, civic',ru:'Материальное, civic',hy:'Նյութական, քաղաքացիական'}}
+];
+
+function t(k){ return I18N[LANG][k] || ''; }
+function withLang(file){ const u=new URLSearchParams(); u.set('lang',LANG); return file+'?'+u.toString(); }
+
+function renderLangSwitch(){
+  const el=document.getElementById('langSwitch');
+  el.innerHTML = LANGS.map(l=>{
+    const u=new URLSearchParams(params); u.set('lang',l);
+    return `<a href="?${u.toString()}" class="${l===LANG?'on':''}">${l.toUpperCase()}</a>`;
+  }).join('');
+}
+
+let currentMode = null;
+
+function renderMode(profile){
+  const hasResume = !!profile.resume;
+  const hasStartup = !!profile.startup;
+  if(!currentMode) currentMode = hasResume ? 'resume' : 'startup';
+
+  document.getElementById('btnResume').style.display = hasResume ? 'inline-block' : 'none';
+  document.getElementById('btnStartup').style.display = hasStartup ? 'inline-block' : 'none';
+  document.getElementById('btnResume').className = currentMode==='resume' ? 'active' : '';
+  document.getElementById('btnStartup').className = currentMode==='startup' ? 'active' : '';
+
+  document.getElementById('panelTitle').textContent = currentMode==='resume' ? t('resumeTitle') : t('startupTitle');
+  document.getElementById('panelText').textContent = currentMode==='resume' ? profile.resume[LANG] : profile.startup[LANG];
+}
+
+function init(){
+  document.documentElement.lang = LANG;
+  renderLangSwitch();
+  document.getElementById('backLink').href = withLang('index.html') + '#board';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.getAttribute('data-i18n')));
+
+  const profile = PROFILES.find(p=>p.id===ID);
+  if(!profile){
+    document.querySelectorAll('.head, .panel, .skills, .works-title, .works, .contact').forEach(el=>el.style.display='none');
+    document.getElementById('fallback').style.display='block';
+    return;
+  }
+
+  document.getElementById('pName').textContent = profile.name;
+  document.getElementById('pLocation').textContent = profile.location;
+  document.getElementById('skillsBox').innerHTML = profile.skills.map(s=>`<span>${s}</span>`).join('');
+  document.getElementById('worksTitle').textContent = t('worksTitle');
+  document.getElementById('contactText').textContent = t('contactText');
+
+  const authored = WORKS.filter(w=>w.author===ID);
+  document.getElementById('worksBox').innerHTML = authored.map(w=>
+    `<a class="wcard" href="${withLang('work.html')}&id=${w.id}"><h3>${w.t[LANG]}</h3><p>${w.p[LANG]}</p></a>`
+  ).join('');
+
+  renderMode(profile);
+  document.getElementById('btnResume').addEventListener('click', ()=>{ currentMode='resume'; renderMode(profile); });
+  document.getElementById('btnStartup').addEventListener('click', ()=>{ currentMode='startup'; renderMode(profile); });
+  document.getElementById('contactBtn').addEventListener('click', ()=>{
+    alert(LANG==='ru' ? 'Демо: здесь появится способ связи, который выбрал автор.' : LANG==='hy' ? 'Դեմո. այստեղ կհայտնվի կապի եղանակը, որը ընտրել է հեղինակը։' : 'Demo: the contact method the author chose would appear here.');
+  });
+}
+init();
+</script>
+</html>

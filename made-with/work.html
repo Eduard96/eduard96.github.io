@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Made With — работа</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23ECEAE3'/%3E%3Ccircle cx='12' cy='16' r='7' fill='none' stroke='%23C97A2E' stroke-width='2.2'/%3E%3Crect x='15' y='9' width='12' height='12' fill='none' stroke='%233E4DE0' stroke-width='2.2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ECEAE3; --paper-2:#E2E0D5; --ink:#171A16; --ink-soft:#5A5E54;
+    --line:#c9c7ba; --signal:#3E4DE0; --signal-soft:#e2e5fb; --human:#c97a2e; --human-soft:#f6e6d1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.55;font-size:17px}
+  a{color:inherit}
+  .wrap{max-width:840px;margin:0 auto;padding:0 28px}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid var(--line)}
+  .mark{font-family:'Fraunces',serif;font-weight:700;font-size:22px;text-decoration:none}
+  .top-right{display:flex;align-items:center;gap:18px}
+  .lang{display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  .lang a{padding:4px 7px;border:1px solid var(--line);border-radius:3px;text-decoration:none;color:var(--ink-soft)}
+  .lang a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .back{font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:none;color:var(--ink-soft)}
+
+  .stage-line{padding:34px 28px 0}
+  .stage-tag{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 9px;border-radius:2px}
+  .stage-tag.team{background:var(--human-soft);color:#8a541c}
+  .stage-tag.showing{background:var(--signal-soft);color:#2a37b0}
+
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,4vw,40px);margin:14px 0 6px;padding:0 28px}
+  .byline{padding:0 28px;color:var(--ink-soft);font-size:15px;margin-bottom:26px}
+  .byline a{border-bottom:1px solid var(--line);text-decoration:none}
+
+  .video-block{margin:0 28px 34px;border:1px solid var(--line);background:#fff;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative}
+  .video-block .play{width:58px;height:58px;border-radius:50%;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center}
+  .video-block .play::after{content:'';border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent var(--ink);margin-left:4px}
+  .video-block .label{position:absolute;bottom:14px;left:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft)}
+
+  .cols{padding:0 28px;display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:20px}
+  .block h2{font-family:'Fraunces',serif;font-size:20px;margin:0 0 10px}
+  .block p{color:var(--ink-soft);font-size:15.5px;margin:0}
+
+  .meta-row{padding:22px 28px 8px;display:flex;flex-wrap:wrap;gap:10px 26px;border-top:1px solid var(--line);margin-top:12px}
+  .meta-row div{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  .meta-row .k{color:var(--ink-soft);display:block;margin-bottom:2px}
+  .tags{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft)}
+  .tags span{margin-right:8px}
+
+  .code-cta{margin:26px 28px 60px;display:flex;gap:14px;flex-wrap:wrap}
+  .code-cta a, .code-cta button{font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:11px 18px;border-radius:3px;text-decoration:none;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+  .code-cta .primary{background:var(--ink);color:var(--paper)}
+
+  footer{border-top:1px solid var(--line);padding:24px 28px 50px;color:var(--ink-soft);font-size:13.5px;font-family:'IBM Plex Mono',monospace}
+
+  @media(max-width:640px){ .cols{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="mark" href="index.html" id="mark">Made With</a>
+  <div class="top-right">
+    <nav class="lang" id="langSwitch"></nav>
+  </div>
+</header>
+
+<div class="stage-line wrap">
+  <a class="back" id="backLink" href="index.html">&larr; <span data-i18n="backToBoard"></span></a>
+</div>
+
+<h1 id="wTitle"></h1>
+<div class="byline" id="wByline"></div>
+
+<div class="video-block">
+  <div class="play"></div>
+  <span class="label" id="videoLabel"></span>
+</div>
+
+<div class="cols">
+  <div class="block">
+    <h2 data-i18n="problemTitle"></h2>
+    <p id="wProblem"></p>
+  </div>
+  <div class="block">
+    <h2 data-i18n="connectionTitle"></h2>
+    <p id="wConnection"></p>
+  </div>
+</div>
+
+<div class="meta-row wrap" style="padding-left:0;padding-right:0">
+  <div><span class="k" data-i18n="metaType"></span><span id="wType"></span></div>
+  <div><span class="k" data-i18n="metaStage"></span><span id="wStage"></span></div>
+  <div style="flex:1"><span class="k" data-i18n="metaSkills"></span><span class="tags" id="wTags"></span></div>
+</div>
+
+<div class="code-cta wrap" style="padding-left:0;padding-right:0">
+  <button class="primary" id="codeBtn" data-i18n="codeCta"></button>
+  <a id="profileBtn" href="#" data-i18n="profileCta"></a>
+</div>
+
+<footer id="fallback" data-i18n="notFound" style="display:none"></footer>
+</body>
+<script>
+const LANGS=['en','ru','hy'];
+const params=new URLSearchParams(location.search);
+let LANG=params.get('lang'); if(!LANGS.includes(LANG)) LANG='ru';
+const ID=params.get('id');
+
+const I18N={
+  en:{ backToBoard:'back to the board', problemTitle:'What problem it solves', connectionTitle:'How human, AI and tech connect',
+    metaType:'Type', metaStage:'Stage', metaSkills:'Skills',
+    codeCta:'Code — on request', profileCta:'See the author\u2019s profile',
+    typeCode:'Code', typeHardware:'Hardware', typeVisual:'Visual & generative', typeBusiness:'Business idea',
+    stageTeam:'Looking for a team', stageShowing:'Just showing',
+    videoLabel:'video demo · shown on request', notFound:'This work was not found.'},
+  ru:{ backToBoard:'назад к витрине', problemTitle:'Какую проблему решает', connectionTitle:'Как связаны человек, ИИ и технология',
+    metaType:'Тип', metaStage:'Стадия', metaSkills:'Навыки',
+    codeCta:'Код — по запросу', profileCta:'Профиль автора',
+    typeCode:'Код', typeHardware:'Материальное', typeVisual:'Визуал и генеративное', typeBusiness:'Бизнес-идея',
+    stageTeam:'Ищу команду', stageShowing:'Просто показываю',
+    videoLabel:'видео-демо · показывается по запросу', notFound:'Такая работа не найдена.'},
+  hy:{ backToBoard:'վերադառնալ ցուցափեղկ', problemTitle:'Ինչ խնդիր է լուծում', connectionTitle:'Ինչպես են կապված մարդը, ԱԲ-ն և տեխնոլոգիան',
+    metaType:'Տեսակ', metaStage:'Փուլ', metaSkills:'Հմտություններ',
+    codeCta:'Կոդ — հարցումով', profileCta:'Հեղինակի պրոֆիլը',
+    typeCode:'Կոդ', typeHardware:'Նյութական', typeVisual:'Վիզուալ և գեներատիվ', typeBusiness:'Բիզնես գաղափար',
+    stageTeam:'Փնտրում է թիմ', stageShowing:'Պարզապես ցուցադրում',
+    videoLabel:'տեսանյութ-ցուցադրություն · ցուցադրվում է հարցումով', notFound:'Այս աշխատանքը չի գտնվել։'}
+};
+
+const PROFILES=[
+  {id:'p1', name:'Nare Petrosyan'}, {id:'p2', name:'Karen Avanesyan'},
+  {id:'p3', name:'Lilit Sargsyan'}, {id:'p4', name:'Armen Ghukasyan'}
+];
+
+const WORKS=[
+  {id:'w1', type:'code', stage:'team', author:'p1', tags:['RL','Python','Robotics'],
+    t:{en:'Adaptive gait for a two-legged robot',ru:'Адаптивная походка для двуногого робота',hy:'Հարմարվող քայլվածք երկոտանի ռոբոտի համար'},
+    p:{en:'Testing a walking robot on hardware is slow and expensive; every failed step costs a rebuild.',ru:'Испытывать походку на реальном роботе — долго и дорого: каждый неудачный шаг стоит переделки.',hy:'Ռոբոտի քայլվածքը իրական սարքով փորձարկելը դանդաղ ու թանկ է․ ամեն ձախողված քայլ վերանորոգում է պահանջում։'},
+    c:{en:'The person set the training curriculum and reward shape by hand; the AI (reinforcement learning agent) explored millions of simulated steps to find the gait.',ru:'Человек вручную задавал программу обучения и форму вознаграждения; ИИ (агент обучения с подкреплением) перебирал миллионы шагов в симуляции, чтобы найти походку.',hy:'Մարդը ձեռքով սահմանել է ուսուցման ծրագիրը և պարգևատրման ձևը․ ԱԲ-ն (ամրապնդման ուսուցման գործակալ) սիմուլյացիայում փորձարկել է միլիոնավոր քայլեր՝ քայլվածքը գտնելու համար։'}},
+  {id:'w2', type:'hardware', stage:'showing', author:'p2', tags:['CAD','Woodworking','Generative design'],
+    t:{en:'Modular shelf, generative-designed',ru:'Модульная полка с генеративным дизайном',hy:'Մոդուլային դարակ՝ գեներատիվ դիզայնով'},
+    p:{en:'Custom furniture is priced out of reach for a small apartment; standard shelves never fit odd corners.',ru:'Мебель на заказ не по карману для небольшой квартиры; готовые полки не подходят под нестандартные углы.',hy:'Պատվերով կահույքը թանկ է փոքր բնակարանի համար․ պատրաստի դարակները չեն տեղավորվում ոչ ստանդարտ անկյուններում։'},
+    c:{en:'The person measured the space and described the constraints in plain language; the AI generated the cut list and joinery, then the person built it by hand.',ru:'Человек замерил пространство и описал ограничения простыми словами; ИИ сгенерировал раскрой и соединения, а человек собрал полку своими руками.',hy:'Մարդը չափել է տարածքը և հասարակ լեզվով նկարագրել սահմանափակումները․ ԱԲ-ն ստեղծել է կտրվածքների ցանկը և միացումները, իսկ մարդը ինքն է հավաքել դարակը։'}},
+  {id:'w3', type:'visual', stage:'team', author:'p3', tags:['Generative art','Canvas','Textile'],
+    t:{en:'Living pattern generator for textile prints',ru:'Живой генератор узоров для тканей',hy:'Կենդանի նախշերի գեներատոր՝ գործվածքների համար'},
+    p:{en:'A small textile studio can\u2019t afford licensed prints, and hand-drawing a new pattern for every run is too slow.',ru:'Небольшая текстильная студия не может позволить себе лицензионные принты, а рисовать новый узор вручную для каждой партии — слишком долго.',hy:'Փոքր տեքստիլ ստուդիան չի կարող թույլ տալ լիցենզավորված տպագրություններ, իսկ ամեն խմբաքանակի համար ձեռքով նոր նախշ նկարելը շատ դանդաղ է։'},
+    c:{en:'The person set the aesthetic rules — palette, rhythm, motifs; the AI runs those rules as a generative program that produces endless, never-repeating variants.',ru:'Человек задал эстетические правила — палитру, ритм, мотивы; ИИ выполняет эти правила как генеративную программу, выдающую бесконечные неповторяющиеся варианты.',hy:'Մարդը սահմանել է գեղագիտական կանոնները՝ գունապնակ, ռիթմ, մոտիվներ․ ԱԲ-ն այդ կանոնները վարում է որպես գեներատիվ ծրագիր, որը արտադրում է անվերջ, չկրկնվող տարբերակներ։'}},
+  {id:'w4', type:'business', stage:'team', author:'p4', tags:['FinTech','Market analysis','Matching'],
+    t:{en:'A lending match for local repair shops',ru:'Микрокредитный матчер для локальных мастерских',hy:'Միկրովարկային համապատասխանեցում տեղական վերանորոգման կետերի համար'},
+    p:{en:'In a local district, idle savings and idle repair capacity sit side by side without ever meeting each other.',ru:'В районе рядом друг с другом простаивают свободные деньги и свободные мощности мастерских — но они никогда не встречаются.',hy:'Թաղամասում կողք կողքի պարապ են ազատ գումարները և վերանորոգման ազատ հզորությունը, բայց նրանք երբեք չեն հանդիպում։'},
+    c:{en:'The person mapped the local market on foot, shop by shop; the AI drafted the matching logic and a simple financial model behind the idea.',ru:'Человек вручную обошёл район и составил карту рынка, мастерская за мастерской; ИИ набросал логику подбора и простую финмодель для идеи.',hy:'Մարդը ոտքով շրջել է թաղամասը՝ քարտեզագրելով շուկան կետ առ կետ, ԱԲ-ն կազմել է համապատասխանեցման տրամաբանությունը և գաղափարի պարզ ֆինանսական մոդելը։'}},
+  {id:'w5', type:'code', stage:'showing', author:'p2', tags:['Computer vision','Archiving','Voice'],
+    t:{en:'A voice-tagged photo archive for a family shop',ru:'Голосовой архив фотографий для семейного магазина',hy:'Ձայնային նշագրված լուսանկարների արխիվ ընտանեկան խանութի համար'},
+    p:{en:'A family shop has thirty years of untagged photos in boxes; nobody has time to sort or caption them.',ru:'В семейном магазине тридцать лет неподписанных фотографий в коробках — разбирать и подписывать их некому.',hy:'Ընտանեկան խանութն ունի երեսուն տարվա չնշագրված լուսանկարներ արկղերում. դասավորելու ու ստորագրելու ժամանակ ոչ ոք չունի։'},
+    c:{en:'The person set which faces and events mattered most; the AI captioned and indexed the archive so any photo can be found by describing it out loud.',ru:'Человек определил, какие лица и события важнее всего; ИИ подписал и проиндексировал архив так, что любое фото находится по устному описанию.',hy:'Մարդը որոշել է, թե որ դեմքերն ու իրադարձություններն են ամենակարևորը, ԱԲ-ն ստորագրել և ինդեքսավորել է արխիվը, որ ցանկացած լուսանկար կարելի է գտնել բանավոր նկարագրությամբ։'}},
+  {id:'w6', type:'hardware', stage:'team', author:'p3', tags:['Structural engineering','Simulation','Civic tech'],
+    t:{en:'A footbridge repair, load-simulated',ru:'Ремонт пешеходного мостика с расчётом нагрузок',hy:'Հետիոտն կամրջի վերանորոգում՝ ծանրաբեռնվածության հաշվարկով'},
+    p:{en:'A footbridge in a small town has been closed for a year; the town has no engineer on hand to certify a fix.',ru:'Пешеходный мостик в маленьком городе закрыт уже год — своего инженера, чтобы утвердить ремонт, у города нет.',hy:'Փոքր քաղաքի հետիոտն կամուրջը փակ է մեկ տարուց ի վեր. քաղաքն իր ինժեներ չունի վերանորոգումը հաստատելու համար։'},
+    c:{en:'The person surveyed the site and took the real measurements; the AI ran the structural load simulations that shaped the repair plan.',ru:'Человек обследовал место и снял реальные замеры; ИИ провёл расчёт нагрузок, который лёг в основу плана ремонта.',hy:'Մարդը հետազոտել է տեղանքը և վերցրել իրական չափագրումները, ԱԲ-ն կատարել է ծանրաբեռնվածության հաշվարկները, որոնք ձևավորել են վերանորոգման ծրագիրը։'}}
+];
+
+function t(k){ return I18N[LANG][k] || ''; }
+function withLang(file){ const u=new URLSearchParams(); u.set('lang',LANG); return file+'?'+u.toString(); }
+
+function renderLangSwitch(){
+  const el=document.getElementById('langSwitch');
+  el.innerHTML = LANGS.map(l=>{
+    const u=new URLSearchParams(params); u.set('lang',l);
+    return `<a href="?${u.toString()}" class="${l===LANG?'on':''}">${l.toUpperCase()}</a>`;
+  }).join('');
+}
+
+function init(){
+  document.documentElement.lang = LANG;
+  renderLangSwitch();
+  document.getElementById('backLink').href = withLang('index.html') + '#board';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    if(el.id!=='fallback' || true) el.textContent = t(el.getAttribute('data-i18n'));
+  });
+
+  const w = WORKS.find(x=>x.id===ID);
+  if(!w){
+    document.querySelector('h1').style.display='none';
+    document.querySelector('.byline').style.display='none';
+    document.querySelector('.video-block').style.display='none';
+    document.querySelector('.cols').style.display='none';
+    document.querySelector('.meta-row').style.display='none';
+    document.querySelector('.code-cta').style.display='none';
+    document.getElementById('fallback').style.display='block';
+    return;
+  }
+  const author = PROFILES.find(p=>p.id===w.author);
+  document.getElementById('wTitle').textContent = w.t[LANG];
+  document.getElementById('wByline').innerHTML = `<a href="${withLang('profile.html')}&id=${author.id}">${author.name}</a>`;
+  document.getElementById('videoLabel').textContent = t('videoLabel');
+  document.getElementById('wProblem').textContent = w.p[LANG];
+  document.getElementById('wConnection').textContent = w.c[LANG];
+  document.getElementById('wType').textContent = t('type'+w.type.charAt(0).toUpperCase()+w.type.slice(1));
+  document.getElementById('wStage').textContent = w.stage==='team' ? t('stageTeam') : t('stageShowing');
+  document.getElementById('wTags').innerHTML = w.tags.map(x=>`<span>#${x}</span>`).join('');
+  document.getElementById('profileBtn').href = withLang('profile.html') + '&id=' + author.id;
+  document.getElementById('codeBtn').addEventListener('click', ()=>{
+    alert(LANG==='ru' ? 'Демо: ссылка на код или контакт для показа появится здесь.' : LANG==='hy' ? 'Դեմո. կոդի հղումը կամ ցուցադրության կոնտակտը կհայտնվի այստեղ։' : 'Demo: a code link or a contact for a live demo would appear here.');
+  });
+}
+init();
+</script>
+</html>
