@@ -6,6 +6,7 @@ I didn't add the backend part, cause it's easy and there is logic and AI is good
 It's just a joke, just a joke, I love to utilze blackground.
 
 
+https://eduard96.github.io/green-energy-planner/
 
 https://eduard96.github.io/just-happened/
 
