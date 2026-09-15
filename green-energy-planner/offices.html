@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenEnergy для офисов — расчёт генерации и хранения</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238BC53F'/%3E%3Cstop offset='1' stop-color='%232FA88A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cg fill='none' stroke='%230E1712' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='16' y='22' width='32' height='26' rx='2'/%3E%3Cpath d='M24 22v-6h16v6M24 48v6M40 48v6'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F3FAEF;
+    --panel: #FFFFFF;
+    --panel-2: #EFF8E9;
+    --line: #D8EACB;
+    --ink: #1C2A18;
+    --muted: #5B6E55;
+    --lime: #5FA82A;
+    --teal: #1F8F72;
+    --amber: #B9791C;
+    --rose: #C1554B;
+    --soft-yellow: #92A03A;
+    --blue-teal: #256E85;
+    --custom: #728768;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:
+      radial-gradient(1100px 480px at 12% -10%, rgba(139,197,63,0.16), transparent 60%),
+      radial-gradient(900px 420px at 100% 0%, rgba(47,168,138,0.13), transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:'Inter',sans-serif; line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Fraunces',serif; font-weight:600; margin:0; }
+  a{ color:var(--teal); }
+  .wrap{ max-width:1180px; margin:0 auto; padding:28px 20px 60px; }
+
+  header.top{ display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo{
+    width:44px; height:44px; border-radius:12px; flex-shrink:0;
+    background:linear-gradient(135deg, var(--lime), var(--teal));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 10px rgba(95,168,42,0.25);
+  }
+  .logo svg{ width:22px; height:22px; }
+  header.top h1{ font-size:22px; color:var(--ink); }
+  header.top p{ margin:2px 0 0; font-size:13px; color:var(--muted); font-family:'Inter',sans-serif; }
+  header.top .spacer{ flex:1; }
+  .slogan{
+    font-family:'Fraunces',serif; font-weight:600; font-size:15px; font-style:italic;
+    color:var(--teal); margin:-6px 0 16px; padding-left:58px;
+  }
+  @media (max-width:700px){ .slogan{ padding-left:0; } }
+
+  .pillswitch{ display:flex; gap:6px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:4px; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+  .pillswitch a, .pillswitch button{
+    border:none; background:transparent; color:var(--muted); font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600;
+    padding:7px 12px; border-radius:999px; cursor:pointer; transition:.15s; text-decoration:none; display:inline-block;
+  }
+  .pillswitch a.active, .pillswitch button.active{ background:linear-gradient(90deg, var(--lime), var(--teal)); color:#FFFFFF; }
+  .navbar{ display:flex; justify-content:flex-end; gap:10px; margin-bottom:18px; }
+
+  /* HERO */
+  .hero{
+    display:flex; align-items:center; gap:26px; flex-wrap:wrap;
+    background:linear-gradient(120deg, rgba(139,197,63,0.16), rgba(47,168,138,0.12));
+    border:1px solid var(--line); border-radius:20px; padding:20px 24px; margin-bottom:22px;
+  }
+  .hero-icons{ display:flex; gap:10px; flex-shrink:0; }
+  .hero-icons .hicon{
+    width:64px; height:64px; border-radius:14px; background:var(--panel); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.05);
+  }
+  .hero-text{ flex:1; min-width:220px; }
+  .hero-text .htitle{ font-size:15px; font-weight:600; color:var(--teal); margin-bottom:4px; }
+  .hero-text .hsub{ font-size:13px; color:var(--muted); max-width:640px; }
+  @media (max-width:700px){ .hero{ padding:16px; } .hero-icons .hicon{ width:52px; height:52px; } }
+
+  .grid{
+    display:grid; gap:16px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "profile goal"
+      "appliances appliances"
+      "techparams techparams"
+      "charts charts"
+      "variants variants"
+      "maintenance maintenance"
+      "shopagent shopagent";
+  }
+  @media (max-width: 860px){
+    .grid{ grid-template-columns: 1fr; grid-template-areas:
+      "profile" "goal" "appliances" "techparams" "charts" "variants" "maintenance" "shopagent"; }
+    header.top{ flex-wrap:wrap; }
+  }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px; box-shadow:0 1px 3px rgba(30,50,20,0.05);
+  }
+  .panel > h2{ font-size:17px; display:flex; align-items:center; gap:8px; margin-bottom:16px; color:var(--ink); }
+  .panel > h2 .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+
+  #profile{ grid-area:profile; }
+  #goal{ grid-area:goal; }
+  #appliances{ grid-area:appliances; }
+  #techParams{ grid-area:techparams; }
+  #charts{ grid-area:charts; }
+  #variants{ grid-area:variants; }
+  #maintenance{ grid-area:maintenance; }
+  #shopAgent{ grid-area:shopagent; }
+
+  .field{ margin-bottom:16px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{ font-size:12.5px; color:var(--muted); display:block; margin-bottom:8px; }
+
+  .pillrow{ display:flex; flex-wrap:wrap; gap:8px; }
+  .pill{
+    padding:8px 13px; border-radius:999px; font-size:13px; cursor:pointer; user-select:none;
+    border:1px solid var(--line); background:var(--panel-2); color:var(--muted); transition:.15s;
+  }
+  .pill.active{ border-color:var(--lime); color:#3E7A1B; background:rgba(139,197,63,0.16); font-weight:600; }
+
+  .stepper{ display:flex; align-items:center; gap:10px; }
+  .stepper button{
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:var(--panel-2);
+    color:var(--ink); cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center;
+  }
+  .stepper span{ min-width:24px; text-align:center; font-family:'Fraunces',serif; font-weight:600; }
+
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:4px; border-radius:4px; background:var(--line); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--lime); cursor:pointer;
+    box-shadow:0 0 0 4px rgba(139,197,63,0.2);
+  }
+  .rangeval{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .rangeval b{ color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+
+  input[type=text], input[type=number], select{
+    width:100%; padding:9px 11px; border-radius:9px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--ink); font-family:'Inter',sans-serif; font-size:13.5px;
+  }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+  .legend span{ font-size:11.5px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .legend i{ width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+  .catalog{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .chip{
+    display:flex; align-items:center; gap:7px; padding:8px 12px; border-radius:10px;
+    border:1px solid var(--line); background:var(--panel-2); color:var(--ink); font-size:13px; cursor:pointer;
+  }
+  .chip:hover{ border-color:var(--lime); }
+  .chip i{ width:8px; height:8px; border-radius:2px; }
+
+  .custom-form{
+    display:grid; grid-template-columns: 1.6fr 0.8fr 1fr 0.7fr 1fr auto; gap:10px; align-items:end;
+    padding:14px; border:1px dashed var(--custom); border-radius:12px; background:rgba(114,135,104,0.07); margin-bottom:20px;
+  }
+  @media (max-width:760px){ .custom-form{ grid-template-columns: 1fr 1fr; } }
+  .custom-form .field{ margin-bottom:0; }
+  .custom-form label{ font-size:11px; }
+  .add-btn{
+    padding:10px 16px; border-radius:9px; border:none; cursor:pointer; font-weight:600; font-size:13px;
+    background:linear-gradient(90deg, var(--lime), #3E8F19); color:#FFFFFF; white-space:nowrap;
+  }
+
+  .app-list{ display:flex; flex-direction:column; gap:10px; }
+  .app-row{
+    display:grid; grid-template-columns: 4px 1fr 170px 90px 90px 24px; align-items:center; gap:14px;
+    padding:12px 14px; background:var(--panel-2); border-radius:10px; border:1px solid var(--line);
+  }
+  @media (max-width:760px){ .app-row{ grid-template-columns: 4px 1fr; row-gap:10px; } }
+  .app-row .bar{ align-self:stretch; border-radius:3px; }
+  .app-row .name{ font-size:13.5px; font-weight:500; }
+  .app-row .sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .app-row .hours-wrap input[type=range]{ width:120px; }
+  .app-row .kwh{ font-family:'Fraunces',serif; font-weight:600; font-size:13.5px; color:var(--teal); text-align:right; }
+  .app-row .rm{ background:none; border:none; color:#94A38C; cursor:pointer; font-size:16px; }
+  .app-row .rm:hover{ color:var(--rose); }
+
+  .total-bar{
+    display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding:14px 16px;
+    background:rgba(139,197,63,0.12); border:1px solid var(--lime); border-radius:12px;
+  }
+  .total-bar span{ font-size:13.5px; }
+  .total-bar b{ font-family:'Fraunces',serif; font-size:20px; font-weight:600; }
+
+  .adv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 24px; margin-top:16px; }
+  @media (max-width:760px){ .adv-grid{ grid-template-columns:1fr; } }
+
+  .charts-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap:20px; }
+  @media (max-width:900px){ .charts-grid{ grid-template-columns:1fr; } }
+  .chart-title{ font-size:13px; color:var(--muted); margin-bottom:10px; }
+  .chart-note{ font-size:11px; color:var(--muted); margin-top:8px; }
+
+  .bars{ display:flex; flex-direction:column; gap:8px; }
+  .bar-row{ display:grid; grid-template-columns:110px 1fr 46px; align-items:center; gap:8px; }
+  .bar-row .lbl{ font-size:11.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bar-row .track{ height:14px; background:var(--line); border-radius:4px; overflow:hidden; }
+  .bar-row .fill{ height:100%; border-radius:4px; background:linear-gradient(90deg, var(--lime), var(--teal)); }
+  .bar-row .val{ font-size:11px; color:var(--muted); text-align:right; }
+
+  .variant-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:14px; }
+  @media (max-width:900px){ .variant-grid{ grid-template-columns:1fr; } }
+  .vcard{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius); padding:18px;
+  }
+  .vcard.optimal{ border-color:var(--lime); box-shadow:0 0 0 1px var(--lime) inset; }
+  .vcard h3{ font-size:15.5px; margin-bottom:14px; }
+  .metrics{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .metric .mlabel{ font-size:11px; color:var(--muted); display:flex; align-items:center; gap:5px; margin-bottom:4px; }
+  .metric .mvalue{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; }
+  .metric .msub{ font-size:10.5px; color:#7C8C75; }
+  .vfoot{ border-top:1px solid var(--line); padding-top:12px; display:flex; flex-direction:column; gap:6px; }
+  .vfoot .row{ display:flex; justify-content:space-between; font-size:12.5px; }
+  .vfoot .row b{ font-family:'Fraunces',serif; }
+
+  .disclaimer{ display:flex; gap:9px; font-size:12px; color:var(--muted); margin-top:16px; }
+
+  .panel-sub{ font-size:12px; color:var(--muted); margin:-10px 0 16px; }
+
+  .calib-badge{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px;
+    padding:10px 13px; border-radius:10px; background:var(--panel-2); border:1px solid var(--line);
+  }
+  .calib-badge .tag{
+    font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:999px; white-space:nowrap;
+  }
+  .calib-badge .tag.auto{ background:rgba(139,197,63,0.2); color:#3E7A1B; }
+  .calib-badge .tag.manual{ background:rgba(185,121,28,0.18); color:var(--amber); }
+  .calib-badge .txt{ font-size:12px; color:var(--muted); flex:1; }
+  .calib-badge button{
+    border:1px solid var(--lime); background:transparent; color:#3E7A1B; font-family:'Inter',sans-serif;
+    font-size:12px; font-weight:600; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;
+  }
+  .calib-badge button:hover{ background:rgba(139,197,63,0.14); }
+
+  .recommend-box{
+    margin-top:18px; padding:14px 16px; border-radius:12px; background:rgba(31,143,114,0.08);
+    border:1px solid var(--teal);
+  }
+  .recommend-box .rtitle{ font-size:12.5px; font-weight:600; color:var(--teal); margin-bottom:6px; display:flex; align-items:center; gap:7px; }
+  .recommend-box .rtext{ font-size:13px; color:var(--ink); line-height:1.5; }
+
+  input[type=password]{
+    width:100%; padding:9px 11px; border-radius:9px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--ink); font-family:'Inter',sans-serif; font-size:13.5px;
+    letter-spacing:1px;
+  }
+
+  /* ОБСЛУЖИВАНИЕ */
+  .maint-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 24px; margin-bottom:16px; }
+  @media (max-width:760px){ .maint-grid{ grid-template-columns:1fr; } }
+  .maint-row{ display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .maint-row:last-child{ border-bottom:none; }
+  .maint-row .mlbl{ color:var(--muted); }
+  .maint-row .mval{ font-family:'Fraunces',serif; font-weight:600; }
+  .maint-total{
+    display:flex; justify-content:space-between; align-items:center; margin-top:6px; padding:14px 16px;
+    background:rgba(37,110,133,0.08); border:1px solid var(--blue-teal); border-radius:12px;
+  }
+  .maint-total b{ font-family:'Fraunces',serif; font-size:19px; }
+  .maint-variants{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+  @media (max-width:760px){ .maint-variants{ grid-template-columns:1fr; } }
+  .maint-vcard{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:13px 14px; }
+  .maint-vcard h4{ font-family:'Fraunces',serif; font-size:13.5px; font-weight:600; margin-bottom:8px; }
+  .maint-vcard .row{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:3px; }
+  .maint-vcard .row b{ color:var(--ink); font-weight:600; }
+
+  /* АГЕНТ ПОИСКА — вкладки */
+  .shop-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .shop-tab{
+    padding:9px 14px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:var(--panel-2); color:var(--muted); transition:.15s;
+  }
+  .shop-tab.active{ border-color:var(--amber); color:#8A5A12; background:rgba(185,121,28,0.14); }
+
+  .shop-controls{ display:grid; grid-template-columns:1fr 1fr; gap:16px 24px; }
+  @media (max-width:760px){ .shop-controls{ grid-template-columns:1fr; } }
+  .apikey-guide{
+    margin-top:14px; padding:13px 15px; border-radius:12px; background:var(--panel-2);
+    border:1px dashed var(--custom);
+  }
+  .apikey-guide .ag-title{ font-size:12.5px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .apikey-guide .ag-link{ margin-bottom:8px; }
+  .apikey-guide .ag-link a{ font-size:12.5px; font-weight:600; color:var(--teal); text-decoration:none; }
+  .apikey-guide .ag-link a:hover{ text-decoration:underline; }
+  .apikey-guide ol{ margin:0; padding-left:18px; font-size:12.5px; color:var(--muted); line-height:1.6; }
+  .apikey-guide ol li{ margin-bottom:2px; }
+  .shop-actions{ display:flex; align-items:center; gap:14px; margin-top:16px; flex-wrap:wrap; }
+  .shop-status{ font-size:12.5px; color:var(--muted); }
+  .shop-status.loading{ color:var(--amber); }
+  .shop-status.error{ color:var(--rose); }
+  .shop-status.ok{ color:#3E7A1B; }
+  .add-btn:disabled{ opacity:0.55; cursor:default; }
+  .add-btn.ghost{ display:inline-flex; align-items:center; gap:8px; background:linear-gradient(90deg, var(--amber), #A5620F); }
+
+  .shop-results{ margin-top:16px; display:flex; flex-direction:column; gap:10px; }
+  .shop-card{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:13px 15px;
+  }
+  .shop-card .sname{ font-size:14px; font-weight:600; }
+  .shop-card .sname a{ color:var(--teal); text-decoration:none; }
+  .shop-card .sname a:hover{ text-decoration:underline; }
+  .shop-card .snote{ font-size:12.5px; color:var(--muted); margin-top:5px; line-height:1.5; }
+  .shop-raw{ white-space:pre-wrap; font-size:12.5px; color:var(--ink); line-height:1.6; }
+  .shop-raw a{ color:var(--teal); }
+
+  .spin{
+    width:13px; height:13px; border-radius:50%; border:2px solid rgba(255,255,255,0.4);
+    border-top-color:#fff; display:inline-block; animation:spin .7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  ::selection{ background:rgba(139,197,63,0.35); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="8" width="16" height="12" rx="1"></rect>
+        <path d="M8 8V4h8v4M9 20v2M15 20v2"></path>
+      </svg>
+    </div>
+    <div>
+      <h1 id="t_title">GreenEnergy Planner — офисы</h1>
+      <p id="t_subtitle">Живой расчёт генерации, хранения и запаса энергии для офиса</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="pillswitch" id="langSwitch">
+      <button data-lang="ru">RU</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="hy">HY</button>
+    </div>
+  </header>
+
+  <div class="slogan" id="t_slogan">Green Energy — Найди своё лучшее решение</div>
+
+  <div class="navbar">
+    <div class="pillswitch">
+      <a href="index.html" id="t_nav_home">Дом</a>
+      <a href="offices.html" class="active" id="t_nav_offices">Для офисов</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-icons">
+      <div class="hicon" title="Солнечные панели">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="6" width="16" height="16" rx="1.5" fill="#EFF8E9" stroke="#5FA82A" stroke-width="2"/>
+          <path d="M6 12h16M6 18h16M12 6v16M18 6v16" stroke="#5FA82A" stroke-width="1.4"/>
+          <rect x="26" y="6" width="16" height="16" rx="1.5" fill="#EFF8E9" stroke="#1F8F72" stroke-width="2"/>
+          <path d="M26 12h16M26 18h16M32 6v16M38 6v16" stroke="#1F8F72" stroke-width="1.4"/>
+          <path d="M4 40l6-10 5 6 5-8 6 12 5-7 5 7H4z" fill="#B9791C" opacity="0.35"/>
+          <circle cx="24" cy="26" r="3.4" fill="#F4C452" stroke="#B9791C" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div class="hicon" title="Офисное здание">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <rect x="10" y="10" width="28" height="32" rx="1.5" fill="#EFF8E9" stroke="#256E85" stroke-width="2"/>
+          <path d="M16 18h4M24 18h4M32 18h0M16 26h4M24 26h4M32 26h0M16 34h4M24 34h4" stroke="#256E85" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M6 42h36" stroke="#92A03A" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="hicon" title="Аккумулятор">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="14" width="32" height="20" rx="3" fill="#EFF8E9" stroke="#1F8F72" stroke-width="2"/>
+          <rect x="38" y="20" width="4" height="8" rx="1.5" fill="#1F8F72"/>
+          <path d="M14 24l5-6 3 4 4-5 4 7" stroke="#5FA82A" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="hero-text">
+      <div class="htitle" id="t_hero_title">Считайте, а не угадывайте</div>
+      <div class="hsub" id="t_hero_sub">Подберите солнечные панели и накопители энергии под реальное потребление вашего офиса — с расчётом стоимости и обслуживания.</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ПРОФИЛЬ ОФИСА -->
+    <section class="panel" id="profile">
+      <h2><span class="dot" style="background:var(--lime)"></span><span id="t_panel_home"></span></h2>
+      <div class="field">
+        <label id="t_lbl_climate"></label>
+        <div class="pillrow" id="climatePills"></div>
+      </div>
+      <div class="field">
+        <label id="t_lbl_hometype"></label>
+        <div class="pillrow" id="homePills">
+          <div class="pill" data-val="small"></div>
+          <div class="pill" data-val="medium"></div>
+          <div class="pill" data-val="large"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label id="t_lbl_usage"></label>
+        <div class="pillrow" id="usagePills"></div>
+      </div>
+      <div class="field">
+        <label id="t_lbl_occupants"></label>
+        <div class="stepper">
+          <button data-step="occupants" data-delta="-5">–</button>
+          <span id="occupantsVal">10</span>
+          <button data-step="occupants" data-delta="5">+</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ЦЕЛЬ ПО ЗАПАСУ -->
+    <section class="panel" id="goal">
+      <h2><span class="dot" style="background:var(--teal)"></span><span id="t_panel_goal"></span></h2>
+      <div class="field">
+        <label id="t_lbl_reserve_desired"></label>
+        <div class="pillrow" id="reservePills"></div>
+      </div>
+      <div class="field">
+        <div class="rangeval"><span id="t_lbl_reserve_exact"></span><b id="reserveDaysLbl">30</b></div>
+        <input type="range" id="reserveDays" min="3" max="365" step="1" value="30">
+      </div>
+      <div class="field">
+        <label id="t_lbl_battery_type"></label>
+        <div class="pillrow" id="batteryPills"></div>
+      </div>
+    </section>
+
+    <!-- ПРИБОРЫ -->
+    <section class="panel" id="appliances">
+      <h2><span class="dot" style="background:var(--amber)"></span><span id="t_panel_appliances"></span></h2>
+
+      <div class="legend">
+        <span><i style="background:var(--amber)"></i><span id="t_legend_kitchen"></span></span>
+        <span><i style="background:var(--rose)"></i><span id="t_legend_climate"></span></span>
+        <span><i style="background:var(--lime)"></i><span id="t_legend_electronics"></span></span>
+        <span><i style="background:var(--soft-yellow)"></i><span id="t_legend_lighting"></span></span>
+        <span><i style="background:var(--blue-teal)"></i><span id="t_legend_water"></span></span>
+        <span><i style="background:var(--custom)"></i><span id="t_legend_custom"></span></span>
+      </div>
+
+      <div class="catalog" id="catalog"></div>
+
+      <div class="custom-form">
+        <div class="field">
+          <label id="t_custom_name_label"></label>
+          <input type="text" id="customName">
+        </div>
+        <div class="field">
+          <label id="t_custom_power_label"></label>
+          <input type="number" id="customPower" value="100" min="1">
+        </div>
+        <div class="field">
+          <label><span id="t_custom_hours_label"></span>: <b id="customHoursLbl">3</b></label>
+          <input type="range" id="customHours" min="0" max="24" step="0.5" value="3">
+        </div>
+        <div class="field">
+          <label id="t_custom_count_label"></label>
+          <input type="number" id="customCount" value="1" min="1">
+        </div>
+        <div class="field">
+          <label id="t_custom_seasonal_label"></label>
+          <select id="customSeasonal">
+            <option value="" id="opt_year"></option>
+            <option value="summer" id="opt_summer"></option>
+            <option value="winter" id="opt_winter"></option>
+          </select>
+        </div>
+        <button class="add-btn" id="addCustomBtn"></button>
+      </div>
+
+      <div class="app-list" id="appList"></div>
+
+      <div class="total-bar">
+        <span id="t_total_today_label"></span>
+        <b id="totalToday">0</b>
+      </div>
+    </section>
+
+    <!-- ТЕХНИЧЕСКИЕ / РЕЗЕРВНЫЕ ПАРАМЕТРЫ -->
+    <section class="panel" id="techParams">
+      <h2><span class="dot" style="background:var(--custom)"></span><span id="t_panel_techparams"></span></h2>
+      <p class="panel-sub" id="t_techparams_note"></p>
+
+      <div class="calib-badge" id="calibBadge">
+        <span class="tag" id="calibTag"></span>
+        <span class="txt" id="calibTxt"></span>
+        <button id="calibResetBtn"></button>
+      </div>
+
+      <div class="adv-grid">
+        <div class="field">
+          <div class="rangeval"><span id="t_lbl_panel_watt"></span><b id="panelWattLbl">450 W</b></div>
+          <input type="range" id="panelWatt" min="200" max="700" step="10" value="450">
+        </div>
+        <div class="field">
+          <div class="rangeval"><span id="t_lbl_module_kwh"></span><b id="moduleKWhLbl">5</b></div>
+          <input type="range" id="moduleKWh" min="1" max="15" step="0.5" value="5">
+        </div>
+        <div class="field">
+          <div class="rangeval"><span id="t_lbl_loss_coef"></span><b id="lossCoefLbl">0.80</b></div>
+          <input type="range" id="lossCoef" min="0.6" max="0.95" step="0.01" value="0.8">
+        </div>
+        <div class="field">
+          <div class="rangeval"><span id="t_lbl_price_watt"></span><b id="priceWLbl">$0.45</b></div>
+          <input type="range" id="priceW" min="0.2" max="1.2" step="0.01" value="0.45">
+        </div>
+        <div class="field">
+          <div class="rangeval"><span id="t_lbl_price_kwh"></span><b id="priceKWhLbl">$280</b></div>
+          <input type="range" id="priceKWh" min="100" max="600" step="10" value="280">
+        </div>
+      </div>
+
+      <div class="recommend-box">
+        <div class="rtitle"><span>🛒</span><span id="t_recommend_title"></span></div>
+        <div class="rtext" id="recommendText"></div>
+      </div>
+    </section>
+
+    <!-- ГРАФИКИ -->
+    <section class="panel" id="charts">
+      <h2><span class="dot" style="background:var(--blue-teal)"></span><span id="t_panel_charts"></span></h2>
+      <div class="charts-grid">
+        <div>
+          <div class="chart-title" id="t_chart_monthly_title"></div>
+          <svg id="lineChart" viewBox="0 0 360 150" width="100%" height="150"></svg>
+          <div class="chart-note" id="lineChartNote"></div>
+        </div>
+        <div>
+          <div class="chart-title" id="t_chart_top_title"></div>
+          <div class="bars" id="barChart"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- РЕЗУЛЬТАТЫ -->
+    <section class="panel" id="variants">
+      <h2><span class="dot" style="background:var(--lime)"></span><span id="t_panel_variants"></span></h2>
+      <div class="variant-grid" id="variantGrid"></div>
+      <div class="disclaimer">
+        <span>ⓘ</span>
+        <span id="t_disclaimer"></span>
+      </div>
+    </section>
+
+    <!-- ОБСЛУЖИВАНИЕ -->
+    <section class="panel" id="maintenance">
+      <h2><span class="dot" style="background:var(--blue-teal)"></span><span id="t_panel_maintenance"></span></h2>
+      <p class="panel-sub" id="t_maintenance_note"></p>
+
+      <div class="maint-grid">
+        <div class="maint-row"><span class="mlbl" id="t_maint_cleaning"></span><span class="mval" id="maintCleaning"></span></div>
+        <div class="maint-row"><span class="mlbl" id="t_maint_battery"></span><span class="mval" id="maintBattery"></span></div>
+        <div class="maint-row"><span class="mlbl" id="t_maint_inverter"></span><span class="mval" id="maintInverter"></span></div>
+        <div class="maint-row"><span class="mlbl" id="t_maint_monitoring"></span><span class="mval" id="maintMonitoring"></span></div>
+      </div>
+
+      <div class="maint-total">
+        <span id="t_maint_total_label"></span>
+        <b id="maintTotal">$0</b>
+      </div>
+
+      <div class="maint-variants" id="maintVariantGrid"></div>
+
+      <div class="disclaimer">
+        <span>ⓘ</span>
+        <span id="t_maint_disclaimer"></span>
+      </div>
+    </section>
+
+    <!-- АГЕНТ ПОДБОРА -->
+    <section class="panel" id="shopAgent">
+      <h2><span class="dot" style="background:var(--amber)"></span><span id="t_panel_shop"></span></h2>
+
+      <div class="shop-tabs" id="shopTabs">
+        <div class="shop-tab active" data-cat="equipment" id="t_shop_tab_equipment"></div>
+        <div class="shop-tab" data-cat="supplies" id="t_shop_tab_supplies"></div>
+        <div class="shop-tab" data-cat="services" id="t_shop_tab_services"></div>
+      </div>
+
+      <p class="panel-sub" id="shopNote"></p>
+
+      <div class="shop-controls">
+        <div class="field">
+          <label id="t_lbl_region"></label>
+          <input type="text" id="regionInput">
+        </div>
+        <div class="field">
+          <label id="t_lbl_apikey"></label>
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+          <div class="apikey-guide">
+            <div class="ag-title" id="t_apikey_guide_title"></div>
+            <div class="ag-link"><a href="https://platform.claude.com/settings/workspaces/default/keys" target="_blank" rel="noopener noreferrer" id="t_apikey_link_label"></a></div>
+            <ol>
+              <li id="t_apikey_step1"></li>
+              <li id="t_apikey_step2"></li>
+              <li id="t_apikey_step3"></li>
+              <li id="t_apikey_step4"></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="shop-actions">
+        <button class="add-btn ghost" id="suggestBtn"><span id="suggestBtnLbl"></span></button>
+        <span class="shop-status" id="shopStatus"></span>
+      </div>
+
+      <div class="shop-results" id="shopResults"></div>
+
+      <div class="disclaimer">
+        <span>ⓘ</span>
+        <span id="t_shop_disclaimer"></span>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+/* ---------------------------------------------------------------- */
+/*  Переводы                                                          */
+/* ---------------------------------------------------------------- */
+
+const LANG = {
+ru: {
+  title:"GreenEnergy Planner — офисы",
+  subtitle:"Живой расчёт генерации, хранения и запаса энергии для офиса",
+  nav_home:"Дом", nav_offices:"Для офисов",
+  slogan:"Green Energy — Найди своё лучшее решение",
+  hero_title:"Считайте, а не угадывайте",
+  hero_sub:"Подберите солнечные панели и накопители энергии под реальное потребление вашего офиса — с расчётом стоимости и обслуживания.",
+  panel_home:"Офис", panel_goal:"Резерв и параметры", panel_appliances:"Оргтехника и оборудование",
+  panel_charts:"Картина потребления", panel_variants:"Рекомендованные варианты",
+  panel_techparams:"Технические параметры системы",
+  panel_maintenance:"Обслуживание системы",
+  techparams_note:"Подобраны автоматически на основе размера офиса, режима работы и выбранного оборудования — можно скорректировать вручную.",
+  calib_auto:"Автоподбор", calib_manual:"Ручной режим",
+  calib_txt_auto:"Параметры пересчитываются сами при изменении профиля офиса или оборудования.",
+  calib_txt_manual:"Вы изменили параметры вручную — автопересчёт приостановлен.",
+  calib_reset_btn:"Вернуть автоподбор",
+  recommend_title:"Что покупать: рекомендуемый диапазон",
+  recommend_template:"Панели: {panelLow}–{panelHigh} Вт, ориентировочно ${priceWLow}–${priceWHigh} за Вт. Аккумуляторы: «{batt}», модулями по {module} кВт·ч, ориентировочно ${priceKWhLow}–${priceKWhHigh} за кВт·ч.",
+  lbl_climate:"Климатическая зона", lbl_hometype:"Размер офиса",
+  office_small:"Малый (до 10 чел.)", office_medium:"Средний (10–50 чел.)", office_large:"Крупный (50+ чел.)",
+  lbl_occupants:"Число сотрудников",
+  lbl_usage:"Режим работы", usage_single_shift:"Одна смена (рабочие часы)", usage_two_shift:"Две смены", usage_continuous:"Непрерывно (24/7)",
+  clim_temperate:"Умеренный (сред. полоса)", clim_south:"Южный / средиземноморский",
+  clim_north:"Северный", clim_tropical:"Тропический", clim_desert:"Пустынный / сухой",
+  lbl_reserve_desired:"Желаемый резерв на случай нехватки",
+  reserve_7:"1 неделя", reserve_30:"1 месяц", reserve_90:"3 месяца", reserve_180:"6 месяцев", reserve_365:"12 месяцев",
+  lbl_reserve_exact:"Точное число дней", days_short:"дн.",
+  lbl_battery_type:"Тип аккумулятора",
+  batt_lifepo4:"LiFePO4", batt_lead:"Свинцово-кислотная", batt_gel:"Гелевая",
+  lbl_panel_watt:"Мощность одной панели", unit_watt:"Вт",
+  lbl_module_kwh:"Ёмкость батарейного модуля", unit_kwh:"кВт·ч",
+  lbl_loss_coef:"Коэфф. потерь системы",
+  lbl_price_watt:"Цена за Вт панелей", lbl_price_kwh:"Цена за кВт·ч батарей",
+  legend_kitchen:"Кухня и печать", legend_climate:"Климат", legend_electronics:"Электроника",
+  legend_lighting:"Освещение", legend_water:"Вода / сервер", legend_custom:"Своё",
+  appl_pc:"Настольный компьютер", appl_monitor:"Монитор", appl_printer:"Принтер / МФУ",
+  appl_server:"Серверная стойка", appl_router:"Сетевое оборудование", appl_laptop:"Ноутбук",
+  appl_ac:"Кондиционер офиса", appl_heater:"Обогреватель офиса",
+  appl_light:"Офисное освещение (светильник)", appl_water:"Кулер для воды",
+  appl_coffee:"Кофемашина", appl_fridge:"Холодильник (кухня)",
+  custom_name_label:"Название своего оборудования", custom_name_placeholder:"Например, кассовый терминал",
+  custom_power_label:"Мощность, Вт", custom_hours_label:"Часы/день",
+  custom_count_label:"Кол-во", custom_seasonal_label:"Сезонность",
+  seasonal_year:"Круглый год", seasonal_summer:"Летний", seasonal_winter:"Зимний",
+  add_btn:"+ Добавить",
+  sub_seasonal:"сезонный", sub_winter:"зима", sub_summer:"лето", hours_per_day_short:"ч/день",
+  total_today_label:"Итого сегодня (в сезон)",
+  chart_monthly_title:"Потребление по месяцам, кВт·ч/день",
+  chart_note_template:"Пунктир — среднегодовое ({avg} кВт·ч/день). Пик — {month} ({worst} кВт·ч/день).",
+  chart_top_title:"Основные потребители, кВт·ч/день",
+  chart_empty:"Добавьте оборудование, чтобы увидеть график",
+  variant_econom:"Эконом", variant_optimal:"Оптимальный", variant_max:"Максимальная автономность",
+  metric_panels:"Солнечных панелей", metric_kw_peak:"кВт пик.", metric_modules:"Батарейных модулей",
+  metric_autonomy:"Автономность без солнца", metric_cost:"Ориентировочная стоимость",
+  unit_pcs:"шт",
+  disclaimer:"Расчёт ориентировочный — на основе усреднённых климатических данных и паспортных характеристик оборудования. Перед покупкой уточните точные параметры у поставщика.",
+  maintenance_note:"Ориентировочные ежегодные расходы на обслуживание системы (вариант «Оптимальный») — чистка панелей, проверка аккумуляторов, диагностика инвертора и мониторинг.",
+  maint_cleaning:"Чистка и осмотр панелей", maint_battery:"Обслуживание аккумуляторов",
+  maint_inverter:"Диагностика инвертора", maint_monitoring:"Мониторинг и ПО",
+  maint_total_label:"Итого в год",
+  maint_disclaimer:"Реальная стоимость обслуживания зависит от региона, подрядчика и условий гарантии. Это ориентировочная оценка для планирования бюджета.",
+  panel_shop:"Где купить и кто обслужит",
+  shop_tab_equipment:"🛠️ Оборудование", shop_tab_supplies:"🧰 Расходники", shop_tab_services:"🧑‍🔧 Сервисы",
+  shop_note_equipment:"ИИ-агент найдёт в интернете магазины и площадки, где можно купить панели, аккумуляторы и инверторы под ваш расчёт и регион (в масштабе офисной системы).",
+  shop_note_supplies:"ИИ-агент найдёт, где купить расходные материалы для обслуживания: чистящие средства и щётки для панелей, разъёмы, клеммы, предохранители, инструменты для батарейного отсека.",
+  shop_note_services:"ИИ-агент найдёт компании и мастеров в вашем регионе, которые выполняют монтаж и регулярное обслуживание солнечных систем для коммерческих зданий (чистка, диагностика, ремонт).",
+  shop_key_common:" Нужен собственный Anthropic API-ключ — он используется только в вашем браузере и никуда, кроме api.anthropic.com, не отправляется.",
+  lbl_region:"Ваш регион (страна, город)", region_placeholder:"Например, Армения, Ереван",
+  lbl_apikey:"Anthropic API-ключ", apikey_hint:"Ключ хранится только локально, в этой вкладке, и не сохраняется.",
+  apikey_guide_title:"Как получить Anthropic API-ключ:",
+  apikey_link_label:"Открыть страницу API-ключей →",
+  apikey_step1:"Войдите в свой аккаунт Anthropic (или зарегистрируйтесь) по ссылке выше",
+  apikey_step2:"Нажмите «Create Key» (Создать ключ)",
+  apikey_step3:"Заполните форму (укажите название ключа) и подтвердите создание",
+  apikey_step4:"Скопируйте получившийся ключ и вставьте его в поле «Anthropic API-ключ» выше",
+  btn_suggest:"Предложить варианты", btn_suggest_loading:"Ищу варианты…",
+  shop_status_need_key:"Введите API-ключ, чтобы запустить поиск.",
+  shop_status_need_region:"Укажите регион для поиска.",
+  shop_status_error:"Не удалось получить ответ: ",
+  shop_status_ok:"Готово — вот что удалось найти.",
+  shop_empty_equipment:"Пока пусто. Заполните регион и ключ, затем нажмите «Предложить варианты», чтобы найти магазины оборудования.",
+  shop_empty_supplies:"Пока пусто. Заполните регион и ключ, затем нажмите «Предложить варианты», чтобы найти расходники для обслуживания.",
+  shop_empty_services:"Пока пусто. Заполните регион и ключ, затем нажмите «Предложить варианты», чтобы найти сервисные компании.",
+  shop_disclaimer:"Результаты подбираются автоматически по открытым данным из интернета и могут быть неточными или устаревшими. Всегда проверяйте магазин, цену и наличие перед заказом.",
+  months:["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"],
+},
+en: {
+  title:"GreenEnergy Planner — Offices",
+  subtitle:"A live calculator for office energy generation, storage and reserve",
+  nav_home:"Home", nav_offices:"For offices",
+  slogan:"Green Energy — Find Your Best Solution",
+  hero_title:"Calculate, don't guess",
+  hero_sub:"Size solar panels and energy storage to your office's real consumption — with cost and maintenance estimates included.",
+  panel_home:"Office", panel_goal:"Reserve & parameters", panel_appliances:"Office equipment",
+  panel_charts:"Consumption overview", panel_variants:"Recommended configurations",
+  panel_techparams:"System technical parameters",
+  panel_maintenance:"System maintenance",
+  techparams_note:"Auto-calibrated from your office size, work mode and selected equipment — you can still fine-tune manually.",
+  calib_auto:"Auto-calibrated", calib_manual:"Manual mode",
+  calib_txt_auto:"Values recalculate automatically when your office profile or equipment change.",
+  calib_txt_manual:"You adjusted values manually — auto-recalculation is paused.",
+  calib_reset_btn:"Restore auto-calibration",
+  recommend_title:"What to buy: recommended range",
+  recommend_template:"Panels: {panelLow}–{panelHigh} W, roughly ${priceWLow}–${priceWHigh} per W. Batteries: \"{batt}\", in {module} kWh modules, roughly ${priceKWhLow}–${priceKWhHigh} per kWh.",
+  lbl_climate:"Climate zone", lbl_hometype:"Office size",
+  office_small:"Small (up to 10 people)", office_medium:"Medium (10–50 people)", office_large:"Large (50+ people)",
+  lbl_occupants:"Number of employees",
+  lbl_usage:"Work mode", usage_single_shift:"Single shift (business hours)", usage_two_shift:"Two shifts", usage_continuous:"Continuous (24/7)",
+  clim_temperate:"Temperate (mid-latitude)", clim_south:"Southern / Mediterranean",
+  clim_north:"Northern", clim_tropical:"Tropical", clim_desert:"Desert / arid",
+  lbl_reserve_desired:"Desired reserve for shortfalls",
+  reserve_7:"1 week", reserve_30:"1 month", reserve_90:"3 months", reserve_180:"6 months", reserve_365:"12 months",
+  lbl_reserve_exact:"Exact number of days", days_short:"days",
+  lbl_battery_type:"Battery type",
+  batt_lifepo4:"LiFePO4", batt_lead:"Lead-acid", batt_gel:"Gel",
+  lbl_panel_watt:"Power of a single panel", unit_watt:"W",
+  lbl_module_kwh:"Capacity of a battery module", unit_kwh:"kWh",
+  lbl_loss_coef:"System loss coefficient",
+  lbl_price_watt:"Price per W of panels", lbl_price_kwh:"Price per kWh of batteries",
+  legend_kitchen:"Pantry & printing", legend_climate:"Climate", legend_electronics:"Electronics",
+  legend_lighting:"Lighting", legend_water:"Water / server", legend_custom:"Custom",
+  appl_pc:"Desktop computer", appl_monitor:"Monitor", appl_printer:"Printer / MFP",
+  appl_server:"Server rack", appl_router:"Network equipment", appl_laptop:"Laptop",
+  appl_ac:"Office air conditioner", appl_heater:"Office heater",
+  appl_light:"Office lighting (fixture)", appl_water:"Water cooler",
+  appl_coffee:"Coffee machine", appl_fridge:"Fridge (pantry)",
+  custom_name_label:"Name of your equipment", custom_name_placeholder:"E.g. POS terminal",
+  custom_power_label:"Power, W", custom_hours_label:"Hours/day",
+  custom_count_label:"Qty", custom_seasonal_label:"Seasonality",
+  seasonal_year:"Year-round", seasonal_summer:"Summer", seasonal_winter:"Winter",
+  add_btn:"+ Add",
+  sub_seasonal:"seasonal", sub_winter:"winter", sub_summer:"summer", hours_per_day_short:"h/day",
+  total_today_label:"Total today (in-season)",
+  chart_monthly_title:"Monthly consumption, kWh/day",
+  chart_note_template:"Dashed line — yearly average ({avg} kWh/day). Peak — {month} ({worst} kWh/day).",
+  chart_top_title:"Top consumers, kWh/day",
+  chart_empty:"Add equipment to see the chart",
+  variant_econom:"Economy", variant_optimal:"Optimal", variant_max:"Maximum autonomy",
+  metric_panels:"Solar panels", metric_kw_peak:"kW peak", metric_modules:"Battery modules",
+  metric_autonomy:"Autonomy without sun", metric_cost:"Estimated cost",
+  unit_pcs:"pcs",
+  disclaimer:"This is an approximate estimate based on averaged climate data and equipment nameplate specs. Confirm exact parameters with a supplier before purchasing.",
+  maintenance_note:"Approximate yearly maintenance cost for the system (\"Optimal\" configuration) — panel cleaning, battery service, inverter check-up and monitoring.",
+  maint_cleaning:"Panel cleaning & inspection", maint_battery:"Battery servicing",
+  maint_inverter:"Inverter diagnostics", maint_monitoring:"Monitoring & software",
+  maint_total_label:"Total per year",
+  maint_disclaimer:"Actual maintenance cost depends on your region, the contractor and warranty terms. This is an approximate figure for budget planning.",
+  panel_shop:"Where to buy & who to hire",
+  shop_tab_equipment:"🛠️ Equipment", shop_tab_supplies:"🧰 Supplies", shop_tab_services:"🧑‍🔧 Services",
+  shop_note_equipment:"The AI agent will search the web for stores and marketplaces where you can buy panels, batteries and inverters sized for an office-scale system, matching your region.",
+  shop_note_supplies:"The AI agent will search for where to buy maintenance supplies: panel cleaning kits and brushes, connectors, terminals, fuses, and battery-compartment tools.",
+  shop_note_services:"The AI agent will search for companies and technicians in your region who install and regularly service solar systems for commercial buildings (cleaning, diagnostics, repairs).",
+  shop_key_common:" Requires your own Anthropic API key — it's used only in your browser and sent nowhere but api.anthropic.com.",
+  lbl_region:"Your region (country, city)", region_placeholder:"E.g. Germany, Berlin",
+  lbl_apikey:"Anthropic API key", apikey_hint:"The key stays local to this tab and is never saved.",
+  apikey_guide_title:"How to get an Anthropic API key:",
+  apikey_link_label:"Open the API keys page →",
+  apikey_step1:"Log in to your Anthropic account (or sign up) using the link above",
+  apikey_step2:"Click \"Create Key\"",
+  apikey_step3:"Fill in the form (give the key a name) and confirm creation",
+  apikey_step4:"Copy the generated key and paste it into the \"Anthropic API key\" field above",
+  btn_suggest:"Suggest options", btn_suggest_loading:"Searching…",
+  shop_status_need_key:"Enter an API key to run the search.",
+  shop_status_need_region:"Enter a region to search in.",
+  shop_status_error:"Couldn't get a response: ",
+  shop_status_ok:"Done — here's what turned up.",
+  shop_empty_equipment:"Nothing yet. Fill in a region and key, then click \"Suggest options\" to find equipment stores.",
+  shop_empty_supplies:"Nothing yet. Fill in a region and key, then click \"Suggest options\" to find maintenance supplies.",
+  shop_empty_services:"Nothing yet. Fill in a region and key, then click \"Suggest options\" to find service companies.",
+  shop_disclaimer:"Results are generated automatically from public web data and may be inaccurate or outdated. Always verify the store, price and availability before ordering.",
+  months:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+},
+hy: {
+  title:"GreenEnergy Planner — Օֆիսներ",
+  subtitle:"Օֆիսի էներգիայի արտադրության, պահպանման և պաշարի կենդանի հաշվարկ",
+  nav_home:"Տուն", nav_offices:"Օֆիսների համար",
+  slogan:"Green Energy — Գտեք ձեր լավագույն լուծումը",
+  hero_title:"Հաշվեք, չկռահեք",
+  hero_sub:"Ընտրեք արևային վահանակներ և էներգիայի կուտակիչներ ձեր օֆիսի իրական սպառման համար՝ արժեքի և սպասարկման հաշվարկով։",
+  panel_home:"Օֆիս", panel_goal:"Պաշար և պարամետրեր", panel_appliances:"Օֆիսային տեխնիկա",
+  panel_charts:"Սպառման պատկերը", panel_variants:"Առաջարկվող տարբերակներ",
+  panel_techparams:"Համակարգի տեխնիկական պարամետրերը",
+  panel_maintenance:"Համակարգի սպասարկումը",
+  techparams_note:"Ընտրված են ավտոմատ՝ ըստ օֆիսի չափի, աշխատանքային ռեժիմի և ընտրված տեխնիկայի. կարող եք նաև ինքնուրույն ճշտել։",
+  calib_auto:"Ավտոընտրություն", calib_manual:"Ձեռքով ռեժիմ",
+  calib_txt_auto:"Պարամետրերը վերահաշվարկվում են ինքնաբերաբար՝ օֆիսի պրոֆիլի կամ տեխնիկայի փոփոխման դեպքում։",
+  calib_txt_manual:"Դուք փոփոխել եք պարամետրերը ձեռքով՝ ավտովերահաշվարկը դադարեցված է։",
+  calib_reset_btn:"Վերադարձնել ավտոընտրությունը",
+  recommend_title:"Ինչ գնել՝ առաջարկվող միջակայքը",
+  recommend_template:"Վահանակներ՝ {panelLow}–{panelHigh} Վտ, մոտավորապես ${priceWLow}–${priceWHigh} մեկ Վտ-ի համար։ Մարտկոցներ՝ «{batt}»,​ {module} կՎտ·ժ մոդուլներով, մոտավորապես ${priceKWhLow}–${priceKWhHigh} մեկ կՎտ·ժ-ի համար։",
+  lbl_climate:"Կլիմայական գոտի", lbl_hometype:"Օֆիսի չափը",
+  office_small:"Փոքր (մինչև 10 մարդ)", office_medium:"Միջին (10–50 մարդ)", office_large:"Մեծ (50+ մարդ)",
+  lbl_occupants:"Աշխատակիցների թիվը",
+  lbl_usage:"Աշխատանքային ռեժիմ", usage_single_shift:"Մեկ հերթափոխ (աշխ. ժամեր)", usage_two_shift:"Երկու հերթափոխ", usage_continuous:"Անընդմեջ (24/7)",
+  clim_temperate:"Չափավոր (միջին գոտի)", clim_south:"Հարավային / միջերկրածովային",
+  clim_north:"Հյուսիսային", clim_tropical:"Արևադարձային", clim_desert:"Անապատային / չոր",
+  lbl_reserve_desired:"Ցանկալի պաշարը՝ պակասի դեպքի համար",
+  reserve_7:"1 շաբաթ", reserve_30:"1 ամիս", reserve_90:"3 ամիս", reserve_180:"6 ամիս", reserve_365:"12 ամիս",
+  lbl_reserve_exact:"Օրերի ճշգրիտ քանակը", days_short:"օր",
+  lbl_battery_type:"Մարտկոցի տեսակը",
+  batt_lifepo4:"LiFePO4", batt_lead:"Կապար-թթվային", batt_gel:"Գելային",
+  lbl_panel_watt:"Մեկ վահանակի հզորությունը", unit_watt:"Վտ",
+  lbl_module_kwh:"Մարտկոցի մոդուլի ունակությունը", unit_kwh:"կՎտ·ժ",
+  lbl_loss_coef:"Համակարգի կորուստների գործակիցը",
+  lbl_price_watt:"Վահանակների գինը (1 Վտ)", lbl_price_kwh:"Մարտկոցների գինը (1 կՎտ·ժ)",
+  legend_kitchen:"Խոհանոց և տպիչ", legend_climate:"Կլիմա", legend_electronics:"Էլեկտրոնիկա",
+  legend_lighting:"Լուսավորություն", legend_water:"Ջուր / սերվեր", legend_custom:"Սեփական",
+  appl_pc:"Համակարգիչ", appl_monitor:"Մոնիտոր", appl_printer:"Տպիչ / ՄՖՀ",
+  appl_server:"Սերվերային կաբինետ", appl_router:"Ցանցային սարքավորում", appl_laptop:"Նոութբուք",
+  appl_ac:"Օֆիսի կոնդիցիոներ", appl_heater:"Օֆիսի ջեռուցիչ",
+  appl_light:"Օֆիսի լուսավորություն (լամպ)", appl_water:"Ջրի կուլեր",
+  appl_coffee:"Սուրճի ապարատ", appl_fridge:"Սառնարան (խոհանոց)",
+  custom_name_label:"Ձեր սարքի անվանումը", custom_name_placeholder:"Օրինակ՝ POS տերմինալ",
+  custom_power_label:"Հզորություն, Վտ", custom_hours_label:"Ժամ/օր",
+  custom_count_label:"Քանակ", custom_seasonal_label:"Սեզոնայնություն",
+  seasonal_year:"Ամբողջ տարին", seasonal_summer:"Ամառային", seasonal_winter:"Ձմեռային",
+  add_btn:"+ Ավելացնել",
+  sub_seasonal:"սեզոնային", sub_winter:"ձմեռ", sub_summer:"ամառ", hours_per_day_short:"ժ/օր",
+  total_today_label:"Ընդամենը այսօր (սեզոնին)",
+  chart_monthly_title:"Ամսական սպառումը, կՎտ·ժ/օր",
+  chart_note_template:"Կետագիծը՝ միջին տարեկան ({avg} կՎտ·ժ/օր)։ Գագաթնակետը՝ {month} ({worst} կՎտ·ժ/օր)։",
+  chart_top_title:"Հիմնական սպառողները, կՎտ·ժ/օր",
+  chart_empty:"Ավելացրեք տեխնիկա՝ գրաֆիկը տեսնելու համար",
+  variant_econom:"Տնտեսող", variant_optimal:"Օպտիմալ", variant_max:"Առավելագույն ինքնավարություն",
+  metric_panels:"Արևային վահանակներ", metric_kw_peak:"կՎտ գագ.", metric_modules:"Մարտկոցի մոդուլներ",
+  metric_autonomy:"Ինքնավարություն առանց արևի", metric_cost:"Մոտավոր արժեքը",
+  unit_pcs:"հատ",
+  disclaimer:"Հաշվարկը մոտավոր է՝ հիմնված միջինացված կլիմայական տվյալների և տեխնիկայի անձնագրային բնութագրերի վրա։ Գնելուց առաջ ճշտեք ճշգրիտ պարամետրերը մատակարարի հետ։",
+  maintenance_note:"Համակարգի սպասարկման մոտավոր տարեկան ծախսերը («Օպտիմալ» տարբերակի համար)՝ վահանակների մաքրում, մարտկոցների ստուգում, ինվերտորի ախտորոշում և մոնիտորինգ։",
+  maint_cleaning:"Վահանակների մաքրում և ստուգում", maint_battery:"Մարտկոցների սպասարկում",
+  maint_inverter:"Ինվերտորի ախտորոշում", maint_monitoring:"Մոնիտորինգ և ծրագրակազմ",
+  maint_total_label:"Ընդամենը տարեկան",
+  maint_disclaimer:"Սպասարկման իրական արժեքը կախված է տարածաշրջանից, կապալառուից և երաշխիքի պայմաններից։ Սա մոտավոր գնահատում է բյուջեի պլանավորման համար։",
+  panel_shop:"Որտեղ գնել և ում վարձել",
+  shop_tab_equipment:"🛠️ Սարքավորում", shop_tab_supplies:"🧰 Նյութեր", shop_tab_services:"🧑‍🔧 Ծառայություններ",
+  shop_note_equipment:"ԱԲ գործակալը ինտերնետում կփնտրի խանութներ ու հարթակներ, որտեղից կարելի է գնել վահանակներ, մարտկոցներ և ինվերտորներ՝ ըստ ձեր հաշվարկի և տարածաշրջանի (օֆիսային մասշտաբով)։",
+  shop_note_supplies:"ԱԲ գործակալը կփնտրի, թե որտեղից գնել սպասարկման նյութեր՝ մաքրման միջոցներ, միակցիչներ, կցամասեր, ապահովիչներ, գործիքներ։",
+  shop_note_services:"ԱԲ գործակալը կփնտրի ձեր տարածաշրջանում ընկերություններ ու վարպետներ, ովքեր տեղադրում և սպասարկում են արևային համակարգեր առևտրային շենքերի համար։",
+  shop_key_common:" Անհրաժեշտ է ձեր սեփական Anthropic API-բանալին. այն օգտագործվում է միայն ձեր բրաուզերում և ուղարկվում է միայն api.anthropic.com հասցեին։",
+  lbl_region:"Ձեր տարածաշրջանը (երկիր, քաղաք)", region_placeholder:"Օրինակ՝ Հայաստան, Երևան",
+  lbl_apikey:"Anthropic API-բանալի", apikey_hint:"Բանալին պահվում է միայն տեղում, այս ներդիրում, և երբեք չի պահպանվում։",
+  apikey_guide_title:"Ինչպես ստանալ Anthropic API-բանալի.",
+  apikey_link_label:"Բացել API-բանալիների էջը →",
+  apikey_step1:"Մուտք գործեք ձեր Anthropic հաշիվ (կամ գրանցվեք) վերևի հղումով",
+  apikey_step2:"Սեղմեք «Create Key» (Ստեղծել բանալի)",
+  apikey_step3:"Լրացրեք ձևը (նշեք բանալու անվանումը) և հաստատեք ստեղծումը",
+  apikey_step4:"Պատճենեք ստացված բանալին և տեղադրեք այն վերևի «Anthropic API-բանալի» դաշտում",
+  btn_suggest:"Առաջարկել տարբերակներ", btn_suggest_loading:"Փնտրում եմ…",
+  shop_status_need_key:"Մուտքագրեք API-բանալի՝ որոնումն սկսելու համար։",
+  shop_status_need_region:"Նշեք տարածաշրջանը որոնման համար։",
+  shop_status_error:"Չհաջողվեց ստանալ պատասխան՝ ",
+  shop_status_ok:"Պատրաստ է՝ ահա ինչ գտնվեց։",
+  shop_empty_equipment:"Առայժմ դատարկ է։ Լրացրեք տարածաշրջանը և բանալին, ապա սեղմեք «Առաջարկել տարբերակներ»։",
+  shop_empty_supplies:"Առայժմ դատարկ է։ Լրացրեք տարածաշրջանը և բանալին, ապա սեղմեք «Առաջարկել տարբերակներ»։",
+  shop_empty_services:"Առայժմ դատարկ է։ Լրացրեք տարածաշրջանը և բանալին, ապա սեղմեք «Առաջարկել տարբերակներ»։",
+  shop_disclaimer:"Արդյունքներն ստացվում են ինքնաբերաբար՝ ինտերնետի բաց տվյալների հիման վրա, և կարող են լինել ոչ ճշգրիտ կամ հնացած։ Պատվիրելուց առաջ միշտ ստուգեք խանութը, գինը և առկայությունը։",
+  months:["Հնվ","Փտվ","Մար","Ապր","Մայ","Հնս","Հլս","Օգս","Սեպ","Հոկ","Նոյ","Դեկ"],
+},
+};
+
+function t(key){ return (LANG[state.lang] && LANG[state.lang][key]) || key; }
+
+/* ---------------------------------------------------------------- */
+/*  Справочники                                                       */
+/* ---------------------------------------------------------------- */
+
+const CAT_HEX = {
+  printer:'#B9791C', coffee:'#B9791C', fridge:'#B9791C',
+  ac:'#C1554B', heater:'#C1554B',
+  pc:'#5FA82A', monitor:'#5FA82A', laptop:'#5FA82A', router:'#5FA82A',
+  light:'#92A03A', water:'#256E85', server:'#256E85', custom:'#728768'
+};
+
+const CATALOG = [
+  { id:'pc', cat:'pc', power:120, hours:9, duty:0.85, seasonal:null },
+  { id:'monitor', cat:'monitor', power:30, hours:9, duty:0.9, seasonal:null },
+  { id:'printer', cat:'printer', power:400, hours:1, duty:0.3, seasonal:null },
+  { id:'server', cat:'server', power:800, hours:24, duty:0.75, seasonal:null },
+  { id:'router', cat:'router', power:15, hours:24, duty:1, seasonal:null },
+  { id:'ac', cat:'ac', power:3500, hours:8, duty:0.6, seasonal:'summer' },
+  { id:'heater', cat:'heater', power:2000, hours:6, duty:0.5, seasonal:'winter' },
+  { id:'light', cat:'light', power:18, hours:10, duty:1, seasonal:null },
+  { id:'water', cat:'water', power:100, hours:24, duty:0.3, seasonal:null },
+  { id:'coffee', cat:'coffee', power:1200, hours:1, duty:0.4, seasonal:null },
+  { id:'fridge', cat:'fridge', power:150, hours:24, duty:0.32, seasonal:null },
+];
+
+const CLIMATE_KEYS = ['temperate','south','north','tropical','desert'];
+const CLIMATE_PSH = {
+  temperate:[1.5,2.2,3.3,4.2,5.0,5.5,5.6,5.0,3.8,2.5,1.4,1.1],
+  south:[2.5,3.3,4.3,5.3,6.3,7.0,7.2,6.7,5.5,4.0,2.7,2.2],
+  north:[0.5,1.3,2.5,3.6,4.5,5.0,4.8,3.8,2.5,1.2,0.4,0.2],
+  tropical:[4.5,4.8,4.9,4.7,4.3,4.0,4.1,4.4,4.6,4.7,4.6,4.5],
+  desert:[4.0,4.6,5.5,6.5,7.3,7.8,7.6,7.2,6.3,5.2,4.1,3.7],
+};
+
+const RESERVE_DAYS_LIST = [7,30,90,180,365];
+const BATTERY_KEYS = ['lifepo4','lead','gel'];
+const BATTERY_DOD = { lifepo4:0.9, lead:0.5, gel:0.6 };
+
+const WINTER_COEF = [1,1,0.85,0.5,0.15,0,0,0,0,0.2,0.7,1];
+const SUMMER_COEF = [0,0,0.05,0.3,0.7,1,1,1,0.6,0.2,0,0];
+
+/* Ежегодное обслуживание, $ */
+const MAINT_CLEAN_PER_PANEL = 4;
+const MAINT_BATTERY_PER_MODULE = 18;
+const MAINT_INVERTER_FLAT = 90;
+const MAINT_MONITORING_FLAT = 60;
+
+let uid = 1000;
+
+/* ---------------------------------------------------------------- */
+/*  Состояние                                                          */
+/* ---------------------------------------------------------------- */
+
+const state = {
+  lang:'ru',
+  climate:'temperate', homeType:'small', usageType:'single_shift', occupants:10,
+  reserveDays:30, dodType:'lifepo4',
+  panelWatt:450, moduleKWh:5, lossCoef:0.8, priceW:0.45, priceKWh:280,
+  appliances: [],
+  autoCalib: true,
+};
+
+const USAGE_KEYS = ['single_shift','two_shift','continuous'];
+
+const shopAgentState = { running:false, category:'equipment', resultsByCat:{ equipment:null, supplies:null, services:null } };
+
+function seedTypicalHome(){
+  const n = Math.max(1, state.occupants);
+  const perNPeople = (per) => Math.max(1, Math.round(n/per));
+  const countFor = {
+    pc: n, monitor: n,
+    printer: perNPeople(15), server: 1, router: perNPeople(20),
+    ac: perNPeople(10), heater: perNPeople(10),
+    light: perNPeople(3), water: perNPeople(20), coffee: perNPeople(25), fridge: perNPeople(30),
+  };
+  state.appliances = CATALOG.map(tpl => ({
+    catalogId: tpl.id, cat:tpl.cat, power:tpl.power, hours:tpl.hours, duty:tpl.duty,
+    seasonal:tpl.seasonal, instanceId: uid++, count: countFor[tpl.id] || 1
+  }));
+}
+seedTypicalHome();
+
+function applianceName(a){ return a.catalogId ? t('appl_'+a.catalogId) : a.name; }
+
+/* ---------------------------------------------------------------- */
+/*  Расчёты                                                            */
+/* ---------------------------------------------------------------- */
+
+function applianceDailyBase(a){ return (a.power * a.hours * a.duty * a.count) / 1000; }
+function monthlyFactor(a, m){
+  if (a.seasonal === 'winter') return WINTER_COEF[m];
+  if (a.seasonal === 'summer') return SUMMER_COEF[m];
+  return 1;
+}
+function computeMonthly(appliances){
+  const base = appliances.map(applianceDailyBase);
+  return t('months').map((_, m) => appliances.reduce((s,a,i)=> s + base[i]*monthlyFactor(a,m), 0));
+}
+function computeVariants(){
+  const appliances = state.appliances;
+  const monthlyDaily = computeMonthly(appliances);
+  const avgDaily = monthlyDaily.reduce((s,v)=>s+v,0) / 12;
+  const worstDaily = Math.max(...monthlyDaily, 0);
+  const worstIdx = monthlyDaily.indexOf(worstDaily);
+
+  const psh = CLIMATE_PSH[state.climate];
+  const avgPsh = psh.reduce((s,v)=>s+v,0)/12;
+  const sortedPsh = [...psh].sort((a,b)=>a-b);
+  const midPsh = sortedPsh.slice(0,4).reduce((s,v)=>s+v,0)/4;
+  const minPsh = Math.min(...psh);
+  const dod = BATTERY_DOD[state.dodType];
+
+  const defs = [
+    { key:'econom', titleKey:'variant_econom', base:avgDaily, psh:avgPsh, autonomy:1.5, reserveMult:0.5 },
+    { key:'optimal', titleKey:'variant_optimal', base:(avgDaily+worstDaily)/2, psh:midPsh, autonomy:3, reserveMult:1 },
+    { key:'max', titleKey:'variant_max', base:worstDaily, psh:minPsh, autonomy:6, reserveMult:1.5 },
+  ];
+
+  const variants = defs.map(d => {
+    const base = d.base || 0.0001;
+    const kwNeeded = base / (d.psh * state.lossCoef);
+    const panelCount = Math.max(1, Math.ceil((kwNeeded*1000) / state.panelWatt));
+    const actualKw = (panelCount * state.panelWatt) / 1000;
+
+    const reserveKwh = avgDaily * state.reserveDays * d.reserveMult;
+    const autonomyKwh = base * d.autonomy;
+    const rawBatteryKwh = (autonomyKwh + reserveKwh) / dod;
+    const moduleCount = Math.max(1, Math.ceil(rawBatteryKwh / state.moduleKWh));
+    const actualBatteryKwh = moduleCount * state.moduleKWh;
+
+    const cost = actualKw*1000*state.priceW + actualBatteryKwh*state.priceKWh + actualKw*1000*0.15;
+    const maintCost = panelCount*MAINT_CLEAN_PER_PANEL + moduleCount*MAINT_BATTERY_PER_MODULE + MAINT_INVERTER_FLAT + MAINT_MONITORING_FLAT;
+
+    return { ...d, panelCount, actualKw, moduleCount, actualBatteryKwh, cost, maintCost,
+      autonomyDaysReal: (actualBatteryKwh*dod)/base };
+  });
+
+  return { variants, avgDaily, worstDaily, worstIdx, monthlyDaily };
+}
+
+const fmt = (n, d=1) => (isFinite(n)?n:0).toLocaleString(state.lang==='ru'?'ru-RU':state.lang==='hy'?'hy-AM':'en-US',{maximumFractionDigits:d, minimumFractionDigits:0});
+
+/* ---------------------------------------------------------------- */
+/*  Автокалибровка технических/резервных параметров                     */
+/* ---------------------------------------------------------------- */
+
+const clamp = (v,min,max) => Math.min(max, Math.max(min, v));
+
+const PRICE_KWH_BASE = { lifepo4:280, gel:190, lead:120 };
+
+function computeCalibration(){
+  const officeSize = state.homeType;
+  const usage = state.usageType;
+  const climate = state.climate;
+  const appliances = state.appliances;
+
+  let panelWatt = officeSize === 'small' ? 500 : officeSize === 'large' ? 450 : 475;
+  if (usage === 'single_shift') panelWatt -= 50;
+  else if (usage === 'continuous') panelWatt -= 25;
+  panelWatt = Math.round(clamp(panelWatt, 200, 700)/10)*10;
+
+  const avgDaily = appliances.reduce((s,a)=>s+applianceDailyBase(a),0);
+  let moduleKWh;
+  if (avgDaily < 15) moduleKWh = 5;
+  else if (avgDaily < 50) moduleKWh = 10;
+  else if (avgDaily < 120) moduleKWh = 15;
+  else moduleKWh = 15;
+  moduleKWh = clamp(moduleKWh, 1, 15);
+
+  let lossCoef = 0.82;
+  if (climate === 'desert' || climate === 'tropical') lossCoef -= 0.05;
+  if (officeSize === 'small') lossCoef -= 0.03;
+  lossCoef = clamp(Math.round(lossCoef*100)/100, 0.6, 0.95);
+
+  let dodType = 'lifepo4';
+  if (usage === 'single_shift') dodType = 'gel';
+  else if (usage === 'continuous') dodType = 'lifepo4';
+
+  let priceW = officeSize === 'small' ? 0.55 : officeSize === 'large' ? 0.37 : 0.40;
+  if (usage === 'single_shift') priceW -= 0.05;
+  else if (usage === 'continuous') priceW -= 0.02;
+  const heavyCount = appliances.filter(a=>a.power>=1200).length;
+  if (heavyCount>=4) priceW += 0.10;
+  else if (heavyCount>=2) priceW += 0.05;
+  priceW = clamp(Math.round(priceW*100)/100, 0.2, 1.2);
+
+  let priceKWh = PRICE_KWH_BASE[dodType];
+  if (officeSize === 'small') priceKWh += 15;
+  if (usage === 'single_shift') priceKWh -= 10;
+  priceKWh = clamp(Math.round(priceKWh/5)*5, 100, 600);
+
+  return { panelWatt, moduleKWh, lossCoef, priceW, priceKWh, dodType };
+}
+
+function applyCalibration(){
+  const c = computeCalibration();
+  state.panelWatt = c.panelWatt;
+  state.moduleKWh = c.moduleKWh;
+  state.lossCoef = c.lossCoef;
+  state.priceW = c.priceW;
+  state.priceKWh = c.priceKWh;
+  state.dodType = c.dodType;
+
+  document.getElementById('panelWatt').value = c.panelWatt;
+  document.getElementById('moduleKWh').value = c.moduleKWh;
+  document.getElementById('lossCoef').value = c.lossCoef;
+  document.getElementById('priceW').value = c.priceW;
+  document.getElementById('priceKWh').value = c.priceKWh;
+
+  document.getElementById('panelWattLbl').textContent = c.panelWatt + ' ' + t('unit_watt');
+  document.getElementById('moduleKWhLbl').textContent = c.moduleKWh;
+  document.getElementById('lossCoefLbl').textContent = c.lossCoef.toFixed(2);
+  document.getElementById('priceWLbl').textContent = '$' + c.priceW.toFixed(2);
+  document.getElementById('priceKWhLbl').textContent = '$' + c.priceKWh;
+}
+
+function maybeRecalibrate(force){
+  if (state.autoCalib || force){
+    if (force) state.autoCalib = true;
+    applyCalibration();
+  }
+}
+
+function setManualMode(){
+  state.autoCalib = false;
+  renderCalibBadge();
+}
+
+function renderCalibBadge(){
+  const tag = document.getElementById('calibTag');
+  const txt = document.getElementById('calibTxt');
+  const btn = document.getElementById('calibResetBtn');
+  if (!tag) return;
+  tag.className = 'tag ' + (state.autoCalib ? 'auto' : 'manual');
+  tag.textContent = t(state.autoCalib ? 'calib_auto' : 'calib_manual');
+  txt.textContent = t(state.autoCalib ? 'calib_txt_auto' : 'calib_txt_manual');
+  btn.style.display = state.autoCalib ? 'none' : 'inline-block';
+  btn.textContent = t('calib_reset_btn');
+}
+
+function renderRecommendation(){
+  const c = computeCalibration();
+  const panelLow = Math.round(c.panelWatt*0.9/10)*10;
+  const panelHigh = Math.round(c.panelWatt*1.1/10)*10;
+  const priceWLow = (c.priceW*0.9).toFixed(2);
+  const priceWHigh = (c.priceW*1.1).toFixed(2);
+  const priceKWhLow = Math.round(c.priceKWh*0.9/5)*5;
+  const priceKWhHigh = Math.round(c.priceKWh*1.1/5)*5;
+  const text = t('recommend_template')
+    .replace('{panelLow}', panelLow).replace('{panelHigh}', panelHigh)
+    .replace('{priceWLow}', priceWLow).replace('{priceWHigh}', priceWHigh)
+    .replace('{batt}', t('batt_'+c.dodType))
+    .replace('{module}', fmt(c.moduleKWh,1))
+    .replace('{priceKWhLow}', priceKWhLow).replace('{priceKWhHigh}', priceKWhHigh);
+  const el = document.getElementById('recommendText');
+  if (el) el.textContent = text;
+}
+
+/* ---------------------------------------------------------------- */
+/*  Рендер: статичные тексты                                           */
+/* ---------------------------------------------------------------- */
+
+function applyStaticTexts(){
+  document.documentElement.lang = state.lang;
+  const map = {
+    t_title:'title', t_subtitle:'subtitle',
+    t_nav_home:'nav_home', t_nav_offices:'nav_offices', t_slogan:'slogan',
+    t_hero_title:'hero_title', t_hero_sub:'hero_sub',
+    t_panel_home:'panel_home', t_panel_goal:'panel_goal', t_panel_appliances:'panel_appliances',
+    t_panel_charts:'panel_charts', t_panel_variants:'panel_variants',
+    t_lbl_climate:'lbl_climate', t_lbl_hometype:'lbl_hometype', t_lbl_usage:'lbl_usage', t_lbl_occupants:'lbl_occupants',
+    t_lbl_reserve_desired:'lbl_reserve_desired', t_lbl_reserve_exact:'lbl_reserve_exact',
+    t_lbl_battery_type:'lbl_battery_type', t_lbl_panel_watt:'lbl_panel_watt',
+    t_lbl_module_kwh:'lbl_module_kwh', t_lbl_loss_coef:'lbl_loss_coef',
+    t_lbl_price_watt:'lbl_price_watt', t_lbl_price_kwh:'lbl_price_kwh',
+    t_panel_techparams:'panel_techparams', t_techparams_note:'techparams_note',
+    t_recommend_title:'recommend_title',
+    t_legend_kitchen:'legend_kitchen', t_legend_climate:'legend_climate', t_legend_electronics:'legend_electronics',
+    t_legend_lighting:'legend_lighting', t_legend_water:'legend_water', t_legend_custom:'legend_custom',
+    t_custom_name_label:'custom_name_label', t_custom_power_label:'custom_power_label',
+    t_custom_hours_label:'custom_hours_label', t_custom_count_label:'custom_count_label',
+    t_custom_seasonal_label:'custom_seasonal_label', t_total_today_label:'total_today_label',
+    t_chart_monthly_title:'chart_monthly_title', t_chart_top_title:'chart_top_title',
+    t_disclaimer:'disclaimer',
+    t_panel_maintenance:'panel_maintenance', t_maintenance_note:'maintenance_note',
+    t_maint_cleaning:'maint_cleaning', t_maint_battery:'maint_battery',
+    t_maint_inverter:'maint_inverter', t_maint_monitoring:'maint_monitoring',
+    t_maint_total_label:'maint_total_label', t_maint_disclaimer:'maint_disclaimer',
+    t_panel_shop:'panel_shop', t_lbl_region:'lbl_region',
+    t_lbl_apikey:'lbl_apikey', t_shop_disclaimer:'shop_disclaimer',
+    t_apikey_guide_title:'apikey_guide_title', t_apikey_link_label:'apikey_link_label',
+    t_apikey_step1:'apikey_step1', t_apikey_step2:'apikey_step2',
+    t_apikey_step3:'apikey_step3', t_apikey_step4:'apikey_step4',
+    t_shop_tab_equipment:'shop_tab_equipment', t_shop_tab_supplies:'shop_tab_supplies', t_shop_tab_services:'shop_tab_services',
+  };
+  Object.entries(map).forEach(([id,key]) => { const el = document.getElementById(id); if (el) el.textContent = t(key); });
+
+  document.getElementById('addCustomBtn').textContent = t('add_btn');
+  document.getElementById('customName').placeholder = t('custom_name_placeholder');
+  document.getElementById('regionInput').placeholder = t('region_placeholder');
+  document.getElementById('apiKeyInput').title = t('apikey_hint');
+  if (!shopAgentState.running) document.getElementById('suggestBtnLbl').textContent = t('btn_suggest');
+  renderShopNote();
+  renderShopResultsPane();
+  document.getElementById('opt_year').textContent = t('seasonal_year');
+  document.getElementById('opt_summer').textContent = t('seasonal_summer');
+  document.getElementById('opt_winter').textContent = t('seasonal_winter');
+
+  document.querySelector('#homePills [data-val="small"]').textContent = t('office_small');
+  document.querySelector('#homePills [data-val="medium"]').textContent = t('office_medium');
+  document.querySelector('#homePills [data-val="large"]').textContent = t('office_large');
+
+  document.getElementById('panelWattLbl').textContent = state.panelWatt + ' ' + t('unit_watt');
+  document.getElementById('moduleKWhLbl').textContent = state.moduleKWh + ' ' + t('unit_kwh');
+  document.getElementById('lossCoefLbl').textContent = state.lossCoef.toFixed(2);
+  document.getElementById('priceWLbl').textContent = '$' + state.priceW.toFixed(2);
+  document.getElementById('priceKWhLbl').textContent = '$' + state.priceKWh;
+  document.getElementById('reserveDaysLbl').textContent = state.reserveDays + ' ' + t('days_short');
+
+  // каталог (перестраивается заново с переведёнными названиями)
+  const catalogEl = document.getElementById('catalog');
+  catalogEl.innerHTML = '';
+  CATALOG.forEach(tpl => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = `<i style="background:${CAT_HEX[tpl.cat]}"></i> ${t('appl_'+tpl.id)}`;
+    chip.addEventListener('click', () => {
+      state.appliances.push({ catalogId:tpl.id, cat:tpl.cat, power:tpl.power, hours:tpl.hours,
+        duty:tpl.duty, seasonal:tpl.seasonal, instanceId: uid++, count:1 });
+      maybeRecalibrate(); renderAll();
+    });
+    catalogEl.appendChild(chip);
+  });
+
+  buildPillGroups();
+  document.querySelectorAll('#langSwitch button').forEach(b => b.classList.toggle('active', b.dataset.lang === state.lang));
+  renderCalibBadge();
+}
+
+function renderShopNote(){
+  const el = document.getElementById('shopNote');
+  if (!el) return;
+  el.textContent = t('shop_note_'+shopAgentState.category) + t('shop_key_common');
+}
+
+function renderShopResultsPane(){
+  const cached = shopAgentState.resultsByCat[shopAgentState.category];
+  const resultsEl = document.getElementById('shopResults');
+  if (cached){
+    resultsEl.innerHTML = cached;
+  } else {
+    resultsEl.innerHTML = `<div class="shop-status">${t('shop_empty_'+shopAgentState.category)}</div>`;
+  }
+  setShopStatus('', '');
+}
+
+function buildPillGroups(){
+  buildPills(document.getElementById('climatePills'),
+    CLIMATE_KEYS.map(k=>({key:k,label:t('clim_'+k)})),
+    o => state.climate === o.key,
+    o => { state.climate = o.key; maybeRecalibrate(); renderAll(); buildPillGroups(); });
+
+  buildPills(document.getElementById('usagePills'),
+    USAGE_KEYS.map(k=>({key:k,label:t('usage_'+k)})),
+    o => state.usageType === o.key,
+    o => { state.usageType = o.key; maybeRecalibrate(); renderAll(); buildPillGroups(); });
+
+  buildPills(document.getElementById('reservePills'),
+    RESERVE_DAYS_LIST.map(d=>({key:d,label:t('reserve_'+d)})),
+    o => state.reserveDays === o.key,
+    o => { state.reserveDays = o.key; document.getElementById('reserveDays').value = o.key;
+           document.getElementById('reserveDaysLbl').textContent = o.key + ' ' + t('days_short');
+           renderAll(); buildPillGroups(); });
+
+  buildPills(document.getElementById('batteryPills'),
+    BATTERY_KEYS.map(k=>({key:k,label:t('batt_'+k)})),
+    o => state.dodType === o.key,
+    o => { state.dodType = o.key; setManualMode(); renderAll(); buildPillGroups(); });
+}
+
+function buildPills(container, options, isActive, onClick){
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const el = document.createElement('div');
+    el.className = 'pill' + (isActive(opt) ? ' active' : '');
+    el.textContent = opt.label;
+    el.addEventListener('click', () => onClick(opt));
+    container.appendChild(el);
+  });
+}
+
+/* ---------------------------------------------------------------- */
+/*  Инициализация статичных обработчиков                               */
+/* ---------------------------------------------------------------- */
+
+function initStaticUI(){
+  document.querySelectorAll('#langSwitch button').forEach(btn => {
+    btn.addEventListener('click', () => { state.lang = btn.dataset.lang; applyStaticTexts(); renderAll(); });
+  });
+
+  document.querySelectorAll('#homePills .pill').forEach(p => {
+    p.addEventListener('click', () => {
+      state.homeType = p.dataset.val;
+      document.querySelectorAll('#homePills .pill').forEach(x=>x.classList.toggle('active', x.dataset.val===state.homeType));
+      maybeRecalibrate(); renderAll();
+    });
+  });
+  document.querySelector('#homePills [data-val="small"]').classList.add('active');
+
+  document.querySelectorAll('[data-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.delta,10);
+      state.occupants = Math.max(1, Math.min(500, state.occupants + delta));
+      document.getElementById('occupantsVal').textContent = state.occupants;
+      seedTypicalHome();
+      maybeRecalibrate(); renderAll();
+    });
+  });
+
+  bindSlider('reserveDays', v => { state.reserveDays = v; document.getElementById('reserveDaysLbl').textContent = v + ' ' + t('days_short'); buildPillGroups(); });
+  bindSlider('panelWatt', v => { state.panelWatt = v; document.getElementById('panelWattLbl').textContent = v + ' ' + t('unit_watt'); setManualMode(); });
+  bindSlider('moduleKWh', v => { state.moduleKWh = v; document.getElementById('moduleKWhLbl').textContent = v + ' ' + t('unit_kwh'); setManualMode(); });
+  bindSlider('lossCoef', v => { state.lossCoef = v; document.getElementById('lossCoefLbl').textContent = v.toFixed(2); setManualMode(); });
+  bindSlider('priceW', v => { state.priceW = v; document.getElementById('priceWLbl').textContent = '$' + v.toFixed(2); setManualMode(); });
+  bindSlider('priceKWh', v => { state.priceKWh = v; document.getElementById('priceKWhLbl').textContent = '$' + v; setManualMode(); });
+
+  document.getElementById('calibResetBtn').addEventListener('click', () => {
+    maybeRecalibrate(true);
+    renderCalibBadge();
+    renderAll();
+  });
+
+  document.getElementById('customHours').addEventListener('input', (e) => {
+    document.getElementById('customHoursLbl').textContent = e.target.value;
+  });
+
+  document.getElementById('addCustomBtn').addEventListener('click', () => {
+    const name = document.getElementById('customName').value.trim() || t('custom_name_placeholder');
+    const power = parseFloat(document.getElementById('customPower').value) || 0;
+    const hours = parseFloat(document.getElementById('customHours').value) || 0;
+    const count = parseInt(document.getElementById('customCount').value,10) || 1;
+    const seasonal = document.getElementById('customSeasonal').value || null;
+    state.appliances.push({ instanceId: uid++, name, cat:'custom', power, hours, duty:1, count, seasonal });
+    document.getElementById('customName').value = '';
+    document.getElementById('customPower').value = 100;
+    document.getElementById('customHours').value = 3;
+    document.getElementById('customHoursLbl').textContent = '3';
+    document.getElementById('customCount').value = 1;
+    document.getElementById('customSeasonal').value = '';
+    maybeRecalibrate(); renderAll();
+  });
+
+  document.getElementById('suggestBtn').addEventListener('click', runShopAgent);
+
+  document.querySelectorAll('.shop-tab').forEach(tabEl => {
+    tabEl.addEventListener('click', () => {
+      shopAgentState.category = tabEl.dataset.cat;
+      document.querySelectorAll('.shop-tab').forEach(x => x.classList.toggle('active', x === tabEl));
+      renderShopNote();
+      renderShopResultsPane();
+    });
+  });
+}
+
+function bindSlider(id, onInput){
+  const input = document.getElementById(id);
+  input.addEventListener('input', () => { onInput(parseFloat(input.value)); renderAll(); });
+}
+
+/* ---------------------------------------------------------------- */
+/*  Рендер: динамические блоки                                          */
+/* ---------------------------------------------------------------- */
+
+function renderApplianceList(){
+  const listEl = document.getElementById('appList');
+  listEl.innerHTML = '';
+  state.appliances.forEach(a => {
+    const daily = applianceDailyBase(a);
+    const seasonWord = a.seasonal ? ` · ${t('sub_seasonal')} (${a.seasonal==='winter'?t('sub_winter'):t('sub_summer')})` : '';
+    const row = document.createElement('div');
+    row.className = 'app-row';
+    row.innerHTML = `
+      <div class="bar" style="background:${CAT_HEX[a.cat] || CAT_HEX.custom}"></div>
+      <div>
+        <div class="name">${applianceName(a)}</div>
+        <div class="sub">${a.power} ${t('unit_watt')}${seasonWord} · ×${a.count}</div>
+      </div>
+      <div class="hours-wrap">
+        <div class="rangeval"><span>${t('hours_per_day_short')}</span><b>${a.hours}</b></div>
+        <input type="range" min="0" max="24" step="0.5" value="${a.hours}" data-id="${a.instanceId}" class="hours-slider">
+      </div>
+      <div class="kwh">${fmt(daily,2)} ${t('unit_kwh')}</div>
+      <div></div>
+      <button class="rm" data-id="${a.instanceId}">✕</button>
+    `;
+    listEl.appendChild(row);
+  });
+
+  listEl.querySelectorAll('.hours-slider').forEach(sl => {
+    sl.addEventListener('input', () => {
+      const id = parseFloat(sl.dataset.id);
+      const item = state.appliances.find(a => a.instanceId === id);
+      if (item) { item.hours = parseFloat(sl.value); maybeRecalibrate(); renderAll(); }
+    });
+  });
+  listEl.querySelectorAll('.rm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseFloat(btn.dataset.id);
+      state.appliances = state.appliances.filter(a => a.instanceId !== id);
+      maybeRecalibrate();
+      renderAll();
+    });
+  });
+
+  const total = state.appliances.reduce((s,a)=>s+applianceDailyBase(a),0);
+  document.getElementById('totalToday').textContent = fmt(total,1) + ' ' + t('unit_kwh');
+}
+
+function renderCharts(calc){
+  const w = 360, h = 150, padL = 28, padR = 10, padT = 12, padB = 22;
+  const data = calc.monthlyDaily;
+  const months = t('months');
+  const maxV = Math.max(...data, 0.1) * 1.15;
+  const stepX = (w - padL - padR) / 11;
+  const yFor = v => padT + (h - padT - padB) * (1 - v / maxV);
+  const points = data.map((v,i) => `${padL + i*stepX},${yFor(v)}`).join(' ');
+  const avgY = yFor(calc.avgDaily);
+
+  let svg = `<line x1="${padL}" y1="${avgY}" x2="${w-padR}" y2="${avgY}" stroke="#1F8F72" stroke-width="1.4" stroke-dasharray="4 4"/>`;
+  svg += `<polyline points="${points}" fill="none" stroke="#5FA82A" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  data.forEach((v,i) => {
+    const x = padL + i*stepX, y = yFor(v);
+    const isWorst = i === calc.worstIdx;
+    svg += `<circle cx="${x}" cy="${y}" r="${isWorst?4:2.6}" fill="${isWorst?'#C1554B':'#5FA82A'}"/>`;
+  });
+  months.forEach((m,i) => {
+    const x = padL + i*stepX;
+    svg += `<text x="${x}" y="${h-6}" font-size="8.5" fill="#5B6E55" text-anchor="middle" font-family="Inter,sans-serif">${m}</text>`;
+  });
+  svg += `<text x="2" y="${padT+4}" font-size="8" fill="#5B6E55" font-family="Inter,sans-serif">${fmt(maxV,1)}</text>`;
+  svg += `<text x="2" y="${h-padB}" font-size="8" fill="#5B6E55" font-family="Inter,sans-serif">0</text>`;
+
+  document.getElementById('lineChart').innerHTML = svg;
+  document.getElementById('lineChartNote').textContent = t('chart_note_template')
+    .replace('{avg}', fmt(calc.avgDaily,1)).replace('{month}', months[calc.worstIdx]).replace('{worst}', fmt(calc.worstDaily,1));
+
+  const top = state.appliances
+    .map(a => ({ name:applianceName(a), value: applianceDailyBase(a), color: CAT_HEX[a.cat] || CAT_HEX.custom }))
+    .sort((a,b)=>b.value-a.value).slice(0,8);
+  const maxBar = Math.max(...top.map(t=>t.value), 0.001);
+  const barsEl = document.getElementById('barChart');
+  barsEl.innerHTML = top.map(tp => `
+    <div class="bar-row">
+      <div class="lbl">${tp.name}</div>
+      <div class="track"><div class="fill" style="width:${(tp.value/maxBar*100).toFixed(1)}%; background:${tp.color}"></div></div>
+      <div class="val">${fmt(tp.value,1)}</div>
+    </div>
+  `).join('') || `<div class="chart-note">${t('chart_empty')}</div>`;
+}
+
+function renderVariants(calc){
+  const icons = {
+    sun: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>`,
+    batt: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 10v4M6 10v4M10 10v4"/></svg>`,
+  };
+  const grid = document.getElementById('variantGrid');
+  grid.innerHTML = calc.variants.map(v => {
+    const isOptimal = v.key === 'optimal';
+    const titleColor = v.key === 'max' ? '#C1554B' : v.key === 'optimal' ? '#3E7A1B' : '#1F8F72';
+    return `
+    <div class="vcard ${isOptimal?'optimal':''}">
+      <h3 style="color:${titleColor}">${t(v.titleKey)}</h3>
+      <div class="metrics">
+        <div class="metric">
+          <div class="mlabel" style="color:#B9791C">${icons.sun} ${t('metric_panels')}</div>
+          <div class="mvalue">${v.panelCount} ${t('unit_pcs')}</div>
+          <div class="msub">≈ ${fmt(v.actualKw,2)} ${t('metric_kw_peak')}</div>
+        </div>
+        <div class="metric">
+          <div class="mlabel" style="color:#1F8F72">${icons.batt} ${t('metric_modules')}</div>
+          <div class="mvalue">${v.moduleCount} ${t('unit_pcs')}</div>
+          <div class="msub">≈ ${fmt(v.actualBatteryKwh,1)} ${t('unit_kwh')}</div>
+        </div>
+      </div>
+      <div class="vfoot">
+        <div class="row"><span>${t('metric_autonomy')}</span><b>${fmt(v.autonomyDaysReal,1)} ${t('days_short')}</b></div>
+        <div class="row"><span>${t('metric_cost')}</span><b>$${fmt(v.cost,0)}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMaintenance(calc){
+  const opt = calc.variants.find(v => v.key === 'optimal') || calc.variants[1];
+  const cleaning = opt.panelCount * MAINT_CLEAN_PER_PANEL;
+  const battery = opt.moduleCount * MAINT_BATTERY_PER_MODULE;
+  const inverter = MAINT_INVERTER_FLAT;
+  const monitoring = MAINT_MONITORING_FLAT;
+  const total = cleaning + battery + inverter + monitoring;
+
+  document.getElementById('maintCleaning').textContent = '$' + fmt(cleaning,0);
+  document.getElementById('maintBattery').textContent = '$' + fmt(battery,0);
+  document.getElementById('maintInverter').textContent = '$' + fmt(inverter,0);
+  document.getElementById('maintMonitoring').textContent = '$' + fmt(monitoring,0);
+  document.getElementById('maintTotal').textContent = '$' + fmt(total,0);
+
+  const grid = document.getElementById('maintVariantGrid');
+  grid.innerHTML = calc.variants.map(v => `
+    <div class="maint-vcard">
+      <h4>${t(v.titleKey)}</h4>
+      <div class="row"><span>${t('metric_panels')}</span><b>${v.panelCount} ${t('unit_pcs')}</b></div>
+      <div class="row"><span>${t('metric_modules')}</span><b>${v.moduleCount} ${t('unit_pcs')}</b></div>
+      <div class="row"><span>${t('maint_total_label')}</span><b>$${fmt(v.maintCost,0)}</b></div>
+    </div>
+  `).join('');
+}
+
+function renderAll(){
+  renderApplianceList();
+  renderRecommendation();
+  const calc = computeVariants();
+  renderCharts(calc);
+  renderVariants(calc);
+  renderMaintenance(calc);
+}
+
+/* ---------------------------------------------------------------- */
+/*  Агент подбора (Anthropic API, web_search)                          */
+/* ---------------------------------------------------------------- */
+
+function setShopStatus(kind, text){
+  const el = document.getElementById('shopStatus');
+  el.className = 'shop-status' + (kind ? ' ' + kind : '');
+  el.textContent = text || '';
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function linkify(text){
+  const escaped = escapeHtml(text);
+  return escaped.replace(/(https?:\/\/[^\s<>"')]+)/g, url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+}
+
+const langNames = { ru:'Russian', en:'English', hy:'Armenian' };
+
+function buildShopPromptEquipment(region){
+  const calc = computeVariants();
+  const opt = calc.variants.find(v => v.key === 'optimal') || calc.variants[1];
+  const battName = t('batt_' + state.dodType);
+  const spec = [
+    `Solar panels: ${opt.panelCount} pcs × ${state.panelWatt} W (≈ ${fmt(opt.actualKw,2)} kW total)`,
+    `Battery storage: ${battName} type, ${opt.moduleCount} modules × ${state.moduleKWh} kWh (≈ ${fmt(opt.actualBatteryKwh,1)} kWh total)`,
+    `Estimated budget: ≈ $${fmt(opt.cost,0)}`,
+  ].join('\n');
+
+  return `You are a shopping-research assistant for a commercial/office solar+battery system. Using web search, find 4 to 6 real, currently operating online stores, marketplaces, distributors or local dealers where a business in "${region}" could realistically buy or order this equipment (ship-to-region or physically present there). Prefer sources actually relevant to that country/region over generic global sites when good local/regional options exist.
+
+Equipment needed:
+${spec}
+
+Respond in ${langNames[state.lang] || 'English'}. Respond with ONLY a raw JSON array (no markdown fences, no commentary before or after), where each item is:
+{"name": "Store or marketplace name", "url": "https://actual-working-url", "note": "one short sentence on why it fits (what they sell, region/shipping, price range if known)"}
+
+Only include entries where you have an actual URL from your search results. Do not invent stores or links.`;
+}
+
+function buildShopPromptSupplies(region){
+  return `You are a shopping-research assistant for maintaining an office/commercial solar+battery system. Using web search, find 4 to 6 real, currently operating online stores or marketplaces where a business in "${region}" could buy MAINTENANCE SUPPLIES for such a system — NOT the panels or batteries themselves, but consumables and small parts: solar panel cleaning solutions and soft brushes/squeegees, MC4 connectors, cable glands, in-line fuses and breakers, battery terminals and anti-corrosion spray, contact cleaner, basic multimeters. Prefer sources relevant to that country/region.
+
+Respond in ${langNames[state.lang] || 'English'}. Respond with ONLY a raw JSON array (no markdown fences, no commentary before or after), where each item is:
+{"name": "Store or marketplace name", "url": "https://actual-working-url", "note": "one short sentence on what maintenance supplies they carry and region/shipping"}
+
+Only include entries where you have an actual URL from your search results. Do not invent stores or links.`;
+}
+
+function buildShopPromptServices(region){
+  return `You are a research assistant helping an office/business find help maintaining a commercial solar+battery system. Using web search, find 4 to 6 real companies, technicians or service providers in or serving "${region}" that perform installation and/or regular maintenance of commercial/office solar power systems (panel cleaning, inverter diagnostics, battery health checks, repairs). Prefer local or regionally-operating providers over generic global sites.
+
+Respond in ${langNames[state.lang] || 'English'}. Respond with ONLY a raw JSON array (no markdown fences, no commentary before or after), where each item is:
+{"name": "Company or service name", "url": "https://actual-working-url", "note": "one short sentence on what services they offer and coverage area"}
+
+Only include entries where you have an actual URL from your search results. Do not invent companies or links.`;
+}
+
+function buildShopPrompt(category, region){
+  if (category === 'supplies') return buildShopPromptSupplies(region);
+  if (category === 'services') return buildShopPromptServices(region);
+  return buildShopPromptEquipment(region);
+}
+
+async function runShopAgent(){
+  if (shopAgentState.running) return;
+
+  const category = shopAgentState.category;
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  const region = document.getElementById('regionInput').value.trim();
+
+  if (!apiKey){ setShopStatus('error', t('shop_status_need_key')); return; }
+  if (!region){ setShopStatus('error', t('shop_status_need_region')); return; }
+
+  shopAgentState.running = true;
+  const btn = document.getElementById('suggestBtn');
+  btn.disabled = true;
+  document.getElementById('suggestBtnLbl').innerHTML = `<span class="spin"></span> ${t('btn_suggest_loading')}`;
+  setShopStatus('loading', t('btn_suggest_loading'));
+
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 1500,
+        messages: [{ role:'user', content: buildShopPrompt(category, region) }],
+        tools: [{ type:'web_search_20250305', name:'web_search' }],
+      }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok){
+      const msg = (data && data.error && data.error.message) ? data.error.message : resp.status + ' ' + resp.statusText;
+      throw new Error(msg);
+    }
+
+    const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
+    const fullText = textBlocks.join('\n').trim();
+
+    let items = null;
+    try{
+      const jsonMatch = fullText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) items = JSON.parse(jsonMatch[0]);
+    } catch(e){ items = null; }
+
+    let html;
+    if (Array.isArray(items) && items.length){
+      html = items.map(it => `
+        <div class="shop-card">
+          <div class="sname">${it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.name || it.url)}</a>` : escapeHtml(it.name || '')}</div>
+          ${it.note ? `<div class="snote">${escapeHtml(it.note)}</div>` : ''}
+        </div>
+      `).join('');
+    } else if (fullText) {
+      html = `<div class="shop-card"><div class="shop-raw">${linkify(fullText)}</div></div>`;
+    } else {
+      html = `<div class="shop-status">${t('shop_empty_'+category)}</div>`;
+    }
+
+    shopAgentState.resultsByCat[category] = html;
+    document.getElementById('shopResults').innerHTML = html;
+    setShopStatus('ok', t('shop_status_ok'));
+  } catch(err){
+    setShopStatus('error', t('shop_status_error') + err.message);
+  } finally {
+    shopAgentState.running = false;
+    btn.disabled = false;
+    document.getElementById('suggestBtnLbl').textContent = t('btn_suggest');
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/*  Старт                                                              */
+/* ---------------------------------------------------------------- */
+
+initStaticUI();
+maybeRecalibrate();
+applyStaticTexts();
+renderAll();
+</script>
+</body>
+</html>
