@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1418">
+<title>OBD-BLE · проверка батареи</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1418'/%3E%3Cpath d='M12 42a20 20 0 1 1 40 0' fill='none' stroke='%2327323b' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M12 42a20 20 0 0 1 31-16.6' fill='none' stroke='%233ddc97' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='42' r='4.5' fill='%233ddc97'/%3E%3Cpath d='M32 42l9-14' stroke='%233ddc97' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0f1418; --panel:#161d23; --panel2:#1c252c; --line:#27323b;
+  --text:#e6edf2; --muted:#8fa0ad; --accent:#3ddc97; --accent-ink:#06261a;
+  --warn:#f2b84b; --bad:#ff6b6b; --ok:#3ddc97;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f3f6f8; --panel:#ffffff; --panel2:#eef2f5; --line:#d7e0e6; --text:#16202a; --muted:#566673; --accent:#0e9f6e; --accent-ink:#ffffff; --warn:#b7791f; --bad:#d64545; --ok:#0e9f6e; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.45}
+body{padding:0 16px 48px;max-width:860px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 10px}
+h1{font-size:1.15rem;margin:0;font-weight:650;letter-spacing:.01em}
+h1 span{color:var(--muted);font-weight:450}
+h2{font-size:1rem;margin:0 0 8px;font-weight:650}
+.pill{font-size:.78rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);white-space:nowrap}
+.pill.on{color:var(--ok);border-color:var(--ok)}
+.pill.sim{color:var(--warn);border-color:var(--warn)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:6px 0 12px;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;background:var(--panel);color:var(--muted);border:1px solid var(--line);padding:9px 14px;border-radius:10px;font:inherit;font-size:.92rem;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+section.tab{display:none}
+section.tab.show{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:1rem}
+textarea{font-family:var(--mono);font-size:.88rem;min-height:92px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);font-weight:500}
+.btn.small{padding:7px 11px;font-size:.85rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.muted{color:var(--muted)} .small{font-size:.85rem}
+.note{border-left:3px solid var(--warn);padding:8px 12px;background:var(--panel2);border-radius:0 10px 10px 0;font-size:.88rem;margin:10px 0}
+.note.bad{border-color:var(--bad)}
+pre{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:.8rem;overflow:auto;margin:8px 0 0;white-space:pre-wrap;word-break:break-word}
+#log{max-height:320px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:.78rem}
+td.mono{font-family:var(--mono);font-size:.78rem;word-break:break-all}
+ol{margin:6px 0 0 18px;padding:0} li{margin:3px 0}
+details{margin-top:10px} summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+.gauge{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.gauge svg{width:150px;height:auto}
+.big{font-size:2rem;font-weight:700;line-height:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{font-family:var(--mono)}
+.sw{display:flex;align-items:center;gap:8px;font-size:.88rem;margin-top:10px}
+.sw input{width:auto}
+/* отчёт */
+#paper{background:#fff;color:#16202a;border-radius:14px;padding:24px;border:1px solid var(--line);margin-top:14px}
+#paper h3{margin:0 0 2px;font-size:1.2rem}
+#paper .sub{color:#566673;font-size:.85rem;margin-bottom:14px}
+#paper table td,#paper table th{border-color:#e1e8ed;color:#16202a}
+#paper th{color:#566673}
+#paper .res{display:flex;align-items:center;gap:18px;margin:14px 0;flex-wrap:wrap}
+#paper .badge{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:600;font-size:.9rem}
+#paper .foot{color:#566673;font-size:.78rem;margin-top:14px;border-top:1px solid #e1e8ed;padding-top:10px}
+.hist li{display:flex;gap:8px;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:6px 0;list-style:none}
+.hist{margin:0;padding:0}
+@media print{
+  body *{visibility:hidden}
+  #paper,#paper *{visibility:visible}
+  #paper{position:absolute;left:0;top:0;width:100%;border:0;border-radius:0;margin:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>OBD-BLE <span>проверка батареи</span></h1>
+  <div id="status" class="pill">не подключено</div>
+</header>
+
+<nav class="tabs" role="tablist" id="tabs">
+  <button role="tab" aria-selected="true" data-tab="conn">Подключение</button>
+  <button role="tab" aria-selected="false" data-tab="read">Чтение</button>
+  <button role="tab" aria-selected="false" data-tab="con">Консоль</button>
+  <button role="tab" aria-selected="false" data-tab="calc">По зарядке</button>
+  <button role="tab" aria-selected="false" data-tab="rep">Отчёт</button>
+</nav>
+
+<!-- ПОДКЛЮЧЕНИЕ -->
+<section class="tab show" id="tab-conn">
+  <div class="card">
+    <h2>Адаптер</h2>
+    <div id="bleWarn" class="note bad" hidden>Этот браузер не поддерживает Web Bluetooth. Нужен Chrome на Android (или Bluefy на iPhone). Режим симулятора работает везде.</div>
+    <div class="row">
+      <button class="btn" id="btnBle">Подключить адаптер (BLE)</button>
+      <button class="btn ghost" id="btnSim">Режим симулятора</button>
+      <button class="btn ghost" id="btnInit" disabled>Инициализировать</button>
+      <button class="btn ghost" id="btnDisc" disabled>Отключить</button>
+    </div>
+    <div class="sw"><input type="checkbox" id="safe" checked><label for="safe" style="margin:0;color:var(--text)">Безопасный режим: только чтение (сервисы 01, 02, 03, 07, 09, 0A, 19, 21, 22, 3E)</label></div>
+    <details>
+      <summary>Свои UUID (если адаптер не находится)</summary>
+      <div class="grid" style="margin-top:10px">
+        <div><label for="uSvc">Сервис</label><input id="uSvc" placeholder="fff0 или полный UUID"></div>
+        <div><label for="uNot">Характеристика приёма (notify)</label><input id="uNot" placeholder="fff1"></div>
+        <div><label for="uWr">Характеристика записи (write)</label><input id="uWr" placeholder="fff2"></div>
+      </div>
+      <p class="muted small">UUID адаптера можно посмотреть один раз в приложении nRF Connect.</p>
+    </details>
+  </div>
+  <div class="card">
+    <h2>Порядок работы</h2>
+    <ol class="small">
+      <li>Вставь адаптер в разъём OBD2 (под приборной панелью слева от водителя), включи зажигание.</li>
+      <li>Нажми «Подключить адаптер» и выбери его в списке Bluetooth.</li>
+      <li>На вкладке «Чтение» выбери профиль и запусти. Ответы сохраняются в консоли.</li>
+      <li>Значение уходит в «Отчёт»: печать в PDF, копирование текста или отправка клиенту.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2>Что найдено на адаптере</h2>
+    <pre id="svcList">пока пусто</pre>
+  </div>
+</section>
+
+<!-- ЧТЕНИЕ -->
+<section class="tab" id="tab-read">
+  <div class="card">
+    <h2>Профиль запросов</h2>
+    <select id="profile" aria-label="Профиль"></select>
+    <p class="muted small" id="profNote"></p>
+    <div id="customWrap" hidden>
+      <label for="customCmds">Свои команды, по одной в строке (# — комментарий)</label>
+      <textarea id="customCmds" spellcheck="false" placeholder="ATSH7E4&#10;2101&#10;ATSH7DF"></textarea>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnRun" disabled>Запустить чтение</button>
+      <span class="muted small" id="runState"></span>
+    </div>
+  </div>
+  <div class="card" id="resCard" hidden>
+    <h2>Результат</h2>
+    <div class="gauge" id="gaugeBox" hidden>
+      <svg viewBox="0 0 120 70" aria-hidden="true"><path d="M10 62a50 50 0 0 1 100 0" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/><path id="gArc" d="M10 62a50 50 0 0 1 100 0" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/></svg>
+      <div><div class="big" id="gVal">—</div><div class="muted small" id="gLbl"></div>
+      <button class="btn small" id="btnToRep" style="margin-top:8px">Передать значение в отчёт как SoH</button></div>
+    </div>
+    <div id="vinLine" class="small" style="margin:8px 0"></div>
+    <table><thead><tr><th>Шаг</th><th>Команда</th><th>Ответ</th><th>Разбор</th></tr></thead><tbody id="resBody"></tbody></table>
+  </div>
+</section>
+
+<!-- КОНСОЛЬ -->
+<section class="tab" id="tab-con">
+  <div class="card">
+    <h2>Консоль</h2>
+    <form id="conForm" class="row" autocomplete="off">
+      <input id="conIn" style="flex:1;min-width:160px;font-family:var(--mono)" placeholder="например 0100" aria-label="Команда" autocapitalize="characters" spellcheck="false">
+      <button class="btn" id="conSend" type="submit" disabled>Отправить</button>
+    </form>
+    <div class="chips" id="chips"></div>
+    <pre id="log">журнал пуст</pre>
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost small" id="btnClear">Очистить</button>
+      <button class="btn ghost small" id="btnSaveLog">Сохранить журнал (.txt)</button>
+    </div>
+  </div>
+</section>
+
+<!-- ПО ЗАРЯДКЕ -->
+<section class="tab" id="tab-calc">
+  <div class="card">
+    <h2>Ёмкость по зарядке</h2>
+    <p class="muted small">Работает на любой машине без протоколов: заряди батарею на широком участке и введи данные счётчика зарядной станции.</p>
+    <div class="grid">
+      <div><label for="cNom">Паспортная ёмкость, кВт·ч</label><input id="cNom" type="number" inputmode="decimal" step="0.1" placeholder="60"></div>
+      <div><label for="cS">Заряд в начале, %</label><input id="cS" type="number" inputmode="decimal" step="1" placeholder="20"></div>
+      <div><label for="cE">Заряд в конце, %</label><input id="cE" type="number" inputmode="decimal" step="1" placeholder="90"></div>
+      <div><label for="cKwh">Энергия со счётчика, кВт·ч</label><input id="cKwh" type="number" inputmode="decimal" step="0.1" placeholder="38"></div>
+      <div><label for="cEff">КПД зарядки, %</label><input id="cEff" type="number" inputmode="decimal" step="1" value="90"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="btnCalc">Посчитать</button></div>
+    <div id="calcOut" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<!-- ОТЧЁТ -->
+<section class="tab" id="tab-rep">
+  <div class="card">
+    <h2>Данные для отчёта</h2>
+    <div class="grid">
+      <div><label for="rModel">Модель</label><input id="rModel" placeholder="например BYD Han"></div>
+      <div><label for="rYear">Год</label><input id="rYear" type="number" inputmode="numeric" placeholder="2022"></div>
+      <div><label for="rKm">Пробег, км</label><input id="rKm" type="number" inputmode="numeric" placeholder="45000"></div>
+      <div><label for="rVin">VIN</label><input id="rVin" maxlength="17" style="font-family:var(--mono)"></div>
+      <div><label for="rNom">Паспортная ёмкость, кВт·ч</label><input id="rNom" type="number" inputmode="decimal" step="0.1"></div>
+      <div><label for="rSoh">SoH, %</label><input id="rSoh" type="number" inputmode="decimal" step="0.1"></div>
+      <div><label for="rTyp">Типичный SoH для модели, %</label><input id="rTyp" type="number" inputmode="decimal" step="0.1" placeholder="по желанию"></div>
+      <div><label for="rMeth">Способ</label>
+        <select id="rMeth"><option value="bms">Чтение из BMS</option><option value="charge">Расчёт по зарядке</option><option value="manual">Ввод вручную</option></select></div>
+      <div><label for="rLang">Язык отчёта</label>
+        <select id="rLang"><option value="ru">Русский</option><option value="hy">Հայերեն</option><option value="en">English</option></select></div>
+    </div>
+    <div style="margin-top:10px"><label for="rNotes">Заметки</label><input id="rNotes" placeholder="по желанию"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnGen">Показать отчёт</button>
+      <button class="btn ghost" id="btnPrint">Печать / PDF</button>
+      <button class="btn ghost" id="btnCopy">Копировать текст</button>
+      <button class="btn ghost" id="btnShare">Поделиться</button>
+      <button class="btn ghost" id="btnStore">В журнал</button>
+    </div>
+    <div id="paper" hidden></div>
+  </div>
+  <div class="card">
+    <h2>Журнал проверок</h2>
+    <p class="muted small">Хранится только на этом телефоне.</p>
+    <ul class="hist" id="hist"></ul>
+  </div>
+</section>
+
+<script>
+/*CORE-START*/
+const Core = (() => {
+  const ERR = /^(NO DATA|\?|UNABLE TO CONNECT|CAN ERROR|BUS (INIT|BUSY|ERROR)|BUFFER FULL|STOPPED|ERROR|FB ERROR|DATA ERROR|<DATA ERROR|ACT ALERT|LV RESET|LP ALERT)/i;
+  const SAFE_SERVICES = ['01','02','03','07','09','0A','19','21','22','3E'];
+
+  function hexBytes(s){
+    const h = String(s).replace(/\s+/g,'');
+    const m = h.match(/../g);
+    return m ? m.map(x => parseInt(x,16)) : [];
+  }
+  function hex2(n){ return n.toString(16).toUpperCase().padStart(2,'0'); }
+
+  function lines(raw, cmd){
+    let ls = String(raw).replace(/\r/g,'\n').split('\n').map(s => s.trim()).filter(Boolean);
+    ls = ls.filter(s => s !== '>' && !/^SEARCHING/i.test(s));
+    if (cmd && ls.length && ls[0].toUpperCase().replace(/\s+/g,'') === cmd.toUpperCase().replace(/\s+/g,'')) ls.shift();
+    return ls;
+  }
+
+  // Разбор ответа ELM327 (заголовки выключены): одна строка или многокадровый ответ "0:/1:/2:"
+  function parse(raw, cmd){
+    const ls = lines(raw, cmd);
+    const text = ls.join('\n');
+    const e = ls.find(l => ERR.test(l));
+    if (e) return { ok:false, error:e, text, bytes:null };
+    let cur = null;
+    for (const l of ls){
+      if (/^[0-9A-F]{3}$/i.test(l)) continue;                       // строка с длиной
+      const m = l.match(/^([0-9A-F]):\s*([0-9A-F\s]+)$/i);
+      if (m){
+        if (parseInt(m[1],16) === 0 && cur && cur.length) break;    // начался ответ второго блока
+        cur = (cur || []).concat(hexBytes(m[2]));
+        continue;
+      }
+      const hb = l.replace(/\s+/g,'');
+      if (/^[0-9A-F]+$/i.test(hb) && hb.length % 2 === 0){
+        if (!cur) { cur = hexBytes(hb); break; }                    // первый ответивший блок
+      }
+    }
+    return { ok:true, error:null, text, bytes: cur && cur.length ? cur : null };
+  }
+
+  function supported(bytes, base){
+    if (!bytes || bytes.length < 6) return [];
+    const out = [];
+    for (let i = 0; i < 32; i++){
+      if (bytes[2 + (i >> 3)] & (0x80 >> (i & 7))) out.push(base + 1 + i);
+    }
+    return out;
+  }
+
+  // Разбор стандартных PID. Возвращает {text, key, value} или null
+  function decode(cmd, bytes){
+    const c = String(cmd).replace(/\s+/g,'').toUpperCase();
+    if (!bytes || !bytes.length) return null;
+    if (/^01[0-9A-F]{2}$/.test(c)){
+      const pid = parseInt(c.slice(2),16);
+      if (bytes[0] !== 0x41 || bytes[1] !== pid) return null;
+      if (pid === 0x00 || pid === 0x20 || pid === 0x40 || pid === 0x60){
+        const s = supported(bytes, pid);
+        const has5B = pid === 0x40 ? s.includes(0x5B) : null;
+        return { text: s.length ? 'PID: ' + s.map(hex2).join(' ') : 'нет списка PID',
+                 key: has5B === null ? null : 'has5B', value: has5B };
+      }
+      if (pid === 0x05) return { text: (bytes[2] - 40) + ' °C (температура охлаждающей жидкости)' };
+      if (pid === 0x0C) return { text: ((bytes[2]*256 + bytes[3]) / 4) + ' об/мин' };
+      if (pid === 0x0D) return { text: bytes[2] + ' км/ч' };
+      if (pid === 0x42) { const v = (bytes[2]*256 + bytes[3]) / 1000; return { text: v.toFixed(2) + ' В (бортовая сеть)', key:'volt', value:v }; }
+      if (pid === 0x5B) { const p = bytes[2] * 100 / 255; return { text: p.toFixed(1) + ' % (PID 5B, батарея гибрида)', key:'pid5b', value:p }; }
+      return null;
+    }
+    if (c === '0902'){
+      if (bytes[0] !== 0x49 || bytes[1] !== 0x02) return null;
+      const vin = bytes.slice(3).filter(b => b >= 0x30 && b <= 0x5A).map(b => String.fromCharCode(b)).join('');
+      if (vin.length >= 17) { const v = vin.slice(-17); return { text: 'VIN ' + v, key:'vin', value:v }; }
+      return { text: 'VIN не прочитан полностью: ' + vin };
+    }
+    return null;
+  }
+
+  // Расчёт ёмкости и SoH по зарядке
+  function calcSoH(o){
+    const nominal = +o.nominal, s = +o.startPct, e = +o.endPct, kwh = +o.kwh;
+    const eff = (o.eff === undefined || o.eff === '' ? 90 : +o.eff) / 100;
+    if (![nominal, s, e, kwh, eff].every(Number.isFinite) || nominal <= 0 || kwh <= 0 || eff <= 0 || eff > 1)
+      return { error: 'Проверь числа: все поля заполнены и больше нуля.' };
+    const delta = e - s;
+    if (delta <= 0 || e > 100 || s < 0) return { error: 'Конечный заряд должен быть выше начального (0–100 %).' };
+    const capacity = kwh * eff / (delta / 100);
+    const soh = capacity / nominal * 100;
+    const quality = delta >= 50 ? 'высокая' : delta >= 30 ? 'средняя' : 'низкая';
+    return { capacity, soh, delta, quality };
+  }
+
+  function rating(soh){ return soh >= 90 ? 'excellent' : soh >= 80 ? 'good' : soh >= 70 ? 'fair' : 'low'; }
+
+  // Защита: в безопасном режиме разрешены только чтение и команды самого адаптера
+  function allowed(cmd, safe){
+    const c = String(cmd).trim().toUpperCase().replace(/\s+/g,'');
+    if (!c) return { ok:false, why:'пустая команда' };
+    if (c.startsWith('ATPP')) return { ok:false, why:'ATPP меняет настройки адаптера' };
+    if (c.startsWith('AT')) return { ok:true };
+    if (!safe) return { ok:true };
+    if (/^[0-9A-F]+$/.test(c) && c.length % 2 === 0){
+      const svc = c.slice(0,2);
+      if (SAFE_SERVICES.includes(svc)) return { ok:true };
+      return { ok:false, why:'сервис ' + svc + ' не входит в безопасный режим (только чтение)' };
+    }
+    return { ok:false, why:'команда не распознана как AT или шестнадцатеричный запрос' };
+  }
+
+  // Симулятор адаптера ELM327
+  function isoLines(bytes){
+    const out = [bytes.length.toString(16).toUpperCase().padStart(3,'0')];
+    let i = 0, n = 0;
+    while (i < bytes.length){
+      const take = n === 0 ? 6 : 7;
+      out.push(n.toString(16).toUpperCase() + ': ' + bytes.slice(i, i + take).map(hex2).join(' '));
+      i += take; n++;
+    }
+    return out.join('\r');
+  }
+  class SimAdapter {
+    constructor(onData){ this.onData = onData; this.echo = true; this.delay = 90; }
+    reply(c){
+      if (c === 'ATZ') { this.echo = true; return '\rELM327 v1.5 (SIM)'; }
+      if (c === 'ATE0') { this.echo = false; return 'OK'; }
+      if (c === 'ATE1') { this.echo = true; return 'OK'; }
+      if (c === 'ATI') return 'ELM327 v1.5 (SIM)';
+      if (c === 'ATDP') return 'AUTO, ISO 15765-4 (CAN 11/500)';
+      if (c === 'ATRV') return '12.4V';
+      if (c.startsWith('AT')) return 'OK';
+      if (c === '0100') return '41 00 BE 3F A8 13';
+      if (c === '0120') return '41 20 80 01 A0 01';
+      if (c === '0140') return '41 40 40 00 00 20';
+      if (c === '0160') return '41 60 00 00 00 00';
+      if (c === '0105') return '41 05 55';
+      if (c === '0142') return '41 42 30 3A';
+      if (c === '015B') return '41 5B A3';
+      if (c === '0902'){
+        const vin = 'SIMVIN12345678901';
+        const bytes = [0x49, 0x02, 0x01].concat(vin.split('').map(ch => ch.charCodeAt(0)));
+        return isoLines(bytes);
+      }
+      return 'NO DATA';
+    }
+    write(text){
+      const c = String(text).replace(/[\r\n]+$/,'').trim().toUpperCase().replace(/\s+/g,'');
+      const echoNow = this.echo;
+      const body = this.reply(c);
+      const out = (echoNow ? c + '\r' : '') + body + '\r\r>';
+      setTimeout(() => this.onData(out), this.delay);
+    }
+  }
+
+  return { parse, decode, supported, calcSoH, rating, allowed, SimAdapter, isoLines, hexBytes, hex2, lines };
+})();
+/*CORE-END*/
+
+/*UI-START*/
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } },
+    set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  };
+
+  /* ---------- вкладки ---------- */
+  function showTab(name){
+    document.querySelectorAll('section.tab').forEach(s => s.classList.toggle('show', s.id === 'tab-' + name));
+    document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+  }
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
+
+  /* ---------- журнал ---------- */
+  const logLines = [];
+  function log(kind, text){
+    const t = new Date().toLocaleTimeString('ru-RU', { hour12:false });
+    const pre = kind === 'tx' ? '→ ' : kind === 'rx' ? '← ' : '· ';
+    logLines.push(t + ' ' + pre + String(text).replace(/\r/g,'\n').replace(/\n+/g,' | '));
+    if (logLines.length > 500) logLines.shift();
+    const el = $('log'); el.textContent = logLines.join('\n'); el.scrollTop = el.scrollHeight;
+  }
+  $('btnClear').onclick = () => { logLines.length = 0; $('log').textContent = 'журнал пуст'; };
+  $('btnSaveLog').onclick = () => {
+    const blob = new Blob([logLines.join('\n')], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'obd-log-' + Date.now() + '.txt'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+
+  /* ---------- состояние ---------- */
+  const S = { link:null, kind:'off', inited:false, pid5b:null, vin:'', has5B:null };
+  function setStatus(kind, name){
+    S.kind = kind;
+    const el = $('status');
+    el.className = 'pill' + (kind === 'ble' ? ' on' : kind === 'sim' ? ' sim' : '');
+    el.textContent = kind === 'ble' ? 'подключено: ' + (name || 'адаптер') : kind === 'sim' ? 'симулятор' : 'не подключено';
+    const on = kind !== 'off';
+    ['btnInit','btnDisc','btnRun','conSend'].forEach(id => $(id).disabled = !on);
+  }
+
+  /* ---------- обмен ---------- */
+  let rxBuf = '', pending = null, queue = Promise.resolve();
+  function onRx(str){
+    rxBuf += str;
+    const i = rxBuf.indexOf('>');
+    if (i >= 0){
+      const resp = rxBuf.slice(0, i); rxBuf = rxBuf.slice(i + 1);
+      if (pending){ const p = pending; pending = null; clearTimeout(p.t); p.res(resp); }
+    }
+  }
+  function sendRaw(cmd, timeout){
+    return new Promise((res, rej) => {
+      if (!S.link) return rej(new Error('нет соединения'));
+      rxBuf = '';
+      pending = { res, t: setTimeout(() => { pending = null; rej(new Error('таймаут ответа')); }, timeout || 5000) };
+      S.link.write(cmd + '\r').catch(err => { if (pending){ clearTimeout(pending.t); pending = null; } rej(err); });
+    });
+  }
+  // Одна команда за раз, с проверкой безопасного режима
+  function run(cmd, timeout){
+    const job = queue.then(async () => {
+      const g = Core.allowed(cmd, $('safe').checked);
+      if (!g.ok){ log('sys', 'заблокировано: ' + cmd + ' — ' + g.why); throw new Error(g.why); }
+      log('tx', cmd);
+      const raw = await sendRaw(cmd, timeout);
+      log('rx', raw.trim() || '(пусто)');
+      return { raw, parsed: Core.parse(raw, cmd) };
+    });
+    queue = job.catch(() => {});
+    return job;
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  async function initElm(){
+    log('sys', 'инициализация ELM327');
+    for (const c of ['ATZ','ATE0','ATL0','ATS0','ATH0','ATSP0']){
+      await run(c, c === 'ATZ' ? 4000 : 3000);
+      await sleep(120);
+    }
+    S.inited = true;
+    log('sys', 'готово');
+  }
+
+  /* ---------- подключение BLE ---------- */
+  const KNOWN = [0xfff0, 0xffe0, 0x18f0, 0xffe5, 0xfee0,
+    'e7810a71-73ae-499d-8c15-faa9aef0c3f2', 'bef8d6c9-9c21-4c9e-b632-bd58c1009f9f',
+    '6e400001-b5a3-f393-e0a9-e50e24dcca9e'];
+  function uuidOf(s){
+    s = (s || '').trim().toLowerCase();
+    if (!s) return null;
+    return /^[0-9a-f]{4}$/.test(s) ? parseInt(s, 16) : s;
+  }
+  async function connectBle(){
+    const svcs = KNOWN.slice();
+    const us = uuidOf($('uSvc').value); if (us) svcs.push(us);
+    const dev = await navigator.bluetooth.requestDevice({ acceptAllDevices:true, optionalServices:svcs });
+    dev.addEventListener('gattserverdisconnected', () => { S.link = null; S.inited = false; setStatus('off'); log('sys', 'адаптер отключился'); });
+    log('sys', 'подключение к ' + (dev.name || 'устройству'));
+    const server = await dev.gatt.connect();
+    const found = await server.getPrimaryServices();
+    let rows = [], pair = null, anyN = null, anyW = null;
+    const wantN = uuidOf($('uNot').value), wantW = uuidOf($('uWr').value);
+    const same = (c, u) => u && (typeof u === 'number' ? c.uuid.startsWith('0000' + u.toString(16).padStart(4,'0')) : c.uuid === u);
+    for (const s of found){
+      let n = null, w = null;
+      for (const c of await s.getCharacteristics()){
+        const p = c.properties;
+        const flags = ['read','write','writeWithoutResponse','notify','indicate'].filter(k => p[k]).join(',');
+        rows.push('  ' + c.uuid + '  [' + flags + ']');
+        const isN = (p.notify || p.indicate), isW = (p.write || p.writeWithoutResponse);
+        if (isN && (!wantN || same(c, wantN)) && !n) n = c;
+        if (isW && (!wantW || same(c, wantW)) && !w) w = c;
+      }
+      rows.unshift('сервис ' + s.uuid);
+      if (n && w && !pair) pair = { n, w };
+      if (n && !anyN) anyN = n;
+      if (w && !anyW) anyW = w;
+    }
+    $('svcList').textContent = rows.join('\n') || 'сервисы не найдены';
+    const N = pair ? pair.n : anyN, W = pair ? pair.w : anyW;
+    if (!N || !W){ try { dev.gatt.disconnect(); } catch(e){} throw new Error('не найдены характеристики приёма и записи; укажи UUID вручную'); }
+    await N.startNotifications();
+    const dec = new TextDecoder();
+    N.addEventListener('characteristicvaluechanged', ev => onRx(dec.decode(ev.target.value)));
+    const noResp = !!W.properties.writeWithoutResponse;
+    const enc = new TextEncoder();
+    S.link = {
+      write: async str => {
+        const data = enc.encode(str);
+        for (let i = 0; i < data.length; i += 20){
+          const ch = data.slice(i, i + 20);
+          if (noResp) await W.writeValueWithoutResponse(ch); else await W.writeValue(ch);
+        }
+      },
+      close: () => { try { dev.gatt.disconnect(); } catch(e){} }
+    };
+    S.inited = false;
+    setStatus('ble', dev.name);
+    log('sys', 'канал открыт: приём ' + N.uuid + ', запись ' + W.uuid);
+  }
+  function startSim(){
+    const sim = new Core.SimAdapter(onRx);
+    S.link = { write: str => { sim.write(str); return Promise.resolve(); }, close: () => {} };
+    S.inited = false; setStatus('sim');
+    $('svcList').textContent = 'симулятор адаптера ELM327 (данные тестовые)';
+    log('sys', 'симулятор запущен');
+  }
+  function disconnect(){
+    if (S.link && S.link.close) S.link.close();
+    S.link = null; S.inited = false; setStatus('off'); log('sys', 'отключено');
+  }
+
+  if (!navigator.bluetooth) $('bleWarn').hidden = false;
+  $('btnBle').onclick = async () => {
+    if (!navigator.bluetooth){ $('bleWarn').hidden = false; return; }
+    try { await connectBle(); } catch(err){ if (err && err.name === 'NotFoundError') return; log('sys', 'ошибка: ' + (err.message || err)); alert('Не удалось подключиться: ' + (err.message || err)); }
+  };
+  $('btnSim').onclick = startSim;
+  $('btnDisc').onclick = disconnect;
+  $('btnInit').onclick = async () => { try { await initElm(); } catch(err){ alert('Инициализация: ' + err.message); } };
+
+  /* ---------- консоль ---------- */
+  ['ATZ','ATI','ATDP','ATRV','0100','0902','015B'].forEach(c => {
+    const b = document.createElement('button'); b.className = 'btn ghost small'; b.type = 'button'; b.textContent = c;
+    b.onclick = () => { $('conIn').value = c; $('conForm').requestSubmit(); };
+    $('chips').appendChild(b);
+  });
+  $('conForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const c = $('conIn').value.trim(); if (!c) return;
+    try { await run(c); } catch(err){ log('sys', 'ошибка: ' + err.message); }
+    $('conIn').value = '';
+  });
+
+  /* ---------- профили ---------- */
+  const PROFILES = [
+    { id:'std', name:'Стандартный OBD-II: что отвечает машина',
+      note:'Проверяет связь, список PID, VIN и стандартные значения. На электромобилях часть строк вернёт NO DATA, это нормально.',
+      steps:[['Связь и PID 01–20','0100'],['PID 21–40','0120'],['PID 41–60 (есть ли 5B)','0140'],['VIN','0902'],['Батарея гибрида (PID 5B)','015B'],['Напряжение сети','0142'],['Температура','0105']] },
+    { id:'leaf', name:'Nissan Leaf: сырое чтение батареи (не проверено)',
+      note:'Команды взяты из описаний сообщества и мной не проверены. Ответ показывается как есть, без разбора: сохрани его в журнал и сверь с описанием формата.',
+      steps:[['Протокол CAN 500 кбит/с','ATSP6'],['Адрес блока батареи','ATSH79B'],['Данные батареи (группа 1)','2101'],['Данные батареи (группа 2)','2102'],['Вернуть общий адрес','ATSH7DF']] },
+    { id:'custom', name:'Свои команды', note:'Команды выполняются по очереди. Безопасный режим пропускает только чтение.', steps:null }
+  ];
+  const sel = $('profile');
+  PROFILES.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.name; sel.appendChild(o); });
+  function profChanged(){
+    const p = PROFILES.find(x => x.id === sel.value);
+    $('profNote').textContent = p.note;
+    $('customWrap').hidden = p.id !== 'custom';
+  }
+  sel.onchange = profChanged;
+  $('customCmds').value = store.get('obd_custom', '');
+  $('customCmds').addEventListener('input', () => store.set('obd_custom', $('customCmds').value));
+  profChanged();
+
+  function setGauge(v, label){
+    $('gaugeBox').hidden = false;
+    $('gArc').setAttribute('stroke-dasharray', Math.max(0, Math.min(100, v)).toFixed(1) + ' 100');
+    $('gVal').textContent = v.toFixed(1) + ' %';
+    $('gLbl').textContent = label;
+  }
+  function addRow(label, cmd, res, dec, err){
+    const tr = document.createElement('tr');
+    const cells = [label, cmd, err ? 'ошибка: ' + err : (res.parsed.ok ? res.parsed.text : res.parsed.error), dec || ''];
+    cells.forEach((t, i) => { const td = document.createElement('td'); if (i === 1 || i === 2) td.className = 'mono'; td.textContent = t; tr.appendChild(td); });
+    $('resBody').appendChild(tr);
+  }
+  $('btnRun').onclick = async () => {
+    const p = PROFILES.find(x => x.id === sel.value);
+    let steps = p.steps;
+    if (!steps){
+      steps = $('customCmds').value.split('\n').map(l => l.split('#')[0].trim()).filter(Boolean).map(c => [c, c]);
+      if (!steps.length){ alert('Добавь хотя бы одну команду.'); return; }
+    }
+    $('resCard').hidden = false; $('resBody').innerHTML = ''; $('vinLine').textContent = '';
+    $('btnRun').disabled = true; $('runState').textContent = 'выполняю…';
+    try {
+      if (!S.inited) await initElm();
+      for (const [label, cmd] of steps){
+        $('runState').textContent = label + '…';
+        let res = null, dec = null, err = null;
+        try {
+          res = await run(cmd, 8000);
+          const d = res.parsed.ok ? Core.decode(cmd, res.parsed.bytes) : null;
+          if (d){
+            dec = d.text;
+            if (d.key === 'pid5b'){ S.pid5b = d.value; setGauge(d.value, 'PID 5B: значение зависит от производителя'); }
+            if (d.key === 'vin'){ S.vin = d.value; $('vinLine').textContent = 'VIN: ' + d.value; $('rVin').value = d.value; }
+            if (d.key === 'has5B'){ S.has5B = d.value; }
+          }
+        } catch(e){ err = e.message; }
+        addRow(label, cmd, res, dec, err);
+        await sleep(200);
+      }
+      $('runState').textContent = 'готово';
+    } catch(e){
+      $('runState').textContent = 'ошибка: ' + e.message;
+    } finally { $('btnRun').disabled = S.kind === 'off'; }
+  };
+  $('btnToRep').onclick = () => {
+    if (S.pid5b === null) return;
+    $('rSoh').value = S.pid5b.toFixed(1); $('rMeth').value = 'bms'; showTab('rep');
+  };
+
+  /* ---------- расчёт по зарядке ---------- */
+  let lastCalc = null;
+  $('btnCalc').onclick = () => {
+    const r = Core.calcSoH({ nominal:$('cNom').value, startPct:$('cS').value, endPct:$('cE').value, kwh:$('cKwh').value, eff:$('cEff').value });
+    const out = $('calcOut'); out.innerHTML = '';
+    if (r.error){ const d = document.createElement('div'); d.className = 'note bad'; d.textContent = r.error; out.appendChild(d); lastCalc = null; return; }
+    lastCalc = r;
+    const big = document.createElement('div'); big.className = 'big'; big.textContent = r.soh.toFixed(1) + ' %'; out.appendChild(big);
+    const t = document.createElement('p'); t.className = 'muted';
+    t.textContent = 'Текущая ёмкость ≈ ' + r.capacity.toFixed(1) + ' кВт·ч. Участок ' + r.delta.toFixed(0) + ' % — точность ' + r.quality + '.';
+    out.appendChild(t);
+    if (r.delta < 30){ const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Для лучшей точности бери участок не короче 30 %, лучше 20 → 90 %.'; out.appendChild(n); }
+    const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'Передать в отчёт';
+    b.onclick = () => { $('rSoh').value = r.soh.toFixed(1); $('rNom').value = $('cNom').value; $('rMeth').value = 'charge'; showTab('rep'); };
+    out.appendChild(b);
+  };
+
+  /* ---------- отчёт ---------- */
+  const T = {
+    ru:{ title:'Отчёт о состоянии батареи', date:'Дата', vehicle:'Автомобиль', model:'Модель', year:'Год', km:'Пробег, км', vin:'VIN',
+         soh:'Состояние батареи (SoH)', nom:'Паспортная ёмкость', cur:'Текущая ёмкость', method:'Способ измерения', typ:'Типичное значение для модели',
+         methods:{ bms:'Чтение из BMS', charge:'Расчёт по зарядке', manual:'Ввод вручную' },
+         r:{ excellent:'Отлично', good:'Хорошо', fair:'Удовлетворительно', low:'Низкое' },
+         scale:'Шкала: от 90 % отлично, 80–89 % хорошо, 70–79 % удовлетворительно, ниже 70 % низкое.',
+         foot:'Результат ориентировочный и отражает состояние на момент измерения.', notes:'Заметки', kwh:'кВт·ч', none:'нет данных' },
+    en:{ title:'Battery health report', date:'Date', vehicle:'Vehicle', model:'Model', year:'Year', km:'Mileage, km', vin:'VIN',
+         soh:'Battery health (SoH)', nom:'Rated capacity', cur:'Current capacity', method:'Method', typ:'Typical value for this model',
+         methods:{ bms:'Read from BMS', charge:'Charge-based estimate', manual:'Manual entry' },
+         r:{ excellent:'Excellent', good:'Good', fair:'Fair', low:'Low' },
+         scale:'Scale: 90%+ excellent, 80–89% good, 70–79% fair, below 70% low.',
+         foot:'The result is indicative and reflects the state at the time of measurement.', notes:'Notes', kwh:'kWh', none:'n/a' },
+    hy:{ title:'Մարտկոցի վիճակի հաշվետվություն', date:'Ամսաթիվ', vehicle:'Մեքենա', model:'Մոդել', year:'Տարեթիվ', km:'Վազք, կմ', vin:'VIN',
+         soh:'Մարտկոցի առողջություն (SoH)', nom:'Անվանական տարողություն', cur:'Ընթացիկ տարողություն', method:'Չափման եղանակ', typ:'Տիպային արժեք այս մոդելի համար',
+         methods:{ bms:'Ընթերցում BMS-ից', charge:'Հաշվարկ լիցքավորման ընթացքում', manual:'Ձեռքով մուտքագրում' },
+         r:{ excellent:'Գերազանց', good:'Լավ', fair:'Բավարար', low:'Ցածր' },
+         scale:'Սանդղակ՝ 90 %-ից գերազանց, 80–89 % լավ, 70–79 % բավարար, 70 %-ից ցածր՝ ցածր։',
+         foot:'Արդյունքը կողմնորոշիչ է և արտացոլում է վիճակը չափման պահին։', notes:'Նշումներ', kwh:'կՎտ·ժ', none:'տվյալ չկա' }
+  };
+  const COL = { excellent:'#1a9d62', good:'#5aa832', fair:'#c98a14', low:'#d64545' };
+
+  function formData(){
+    return { model:$('rModel').value.trim(), year:$('rYear').value.trim(), km:$('rKm').value.trim(), vin:$('rVin').value.trim().toUpperCase(),
+      nom:parseFloat($('rNom').value), soh:parseFloat($('rSoh').value), typ:parseFloat($('rTyp').value),
+      method:$('rMeth').value, lang:$('rLang').value, notes:$('rNotes').value.trim(), date:new Date().toLocaleDateString('ru-RU') };
+  }
+  function reportRows(d, t){
+    const rows = [[t.model, d.model || '—'], [t.year, d.year || '—'], [t.km, d.km || '—'], [t.vin, d.vin || '—']];
+    if (Number.isFinite(d.nom)) rows.push([t.nom, d.nom.toFixed(1) + ' ' + t.kwh]);
+    if (Number.isFinite(d.nom) && Number.isFinite(d.soh)) rows.push([t.cur, (d.nom * d.soh / 100).toFixed(1) + ' ' + t.kwh]);
+    rows.push([t.method, t.methods[d.method]]);
+    if (Number.isFinite(d.typ)) rows.push([t.typ, d.typ.toFixed(1) + ' %']);
+    return rows;
+  }
+  function renderPaper(){
+    const d = formData(), t = T[d.lang];
+    const p = $('paper'); p.hidden = false; p.innerHTML = '';
+    const add = (tag, text, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; p.appendChild(e); return e; };
+    add('h3', t.title); add('div', t.date + ': ' + d.date, 'sub');
+    if (Number.isFinite(d.soh)){
+      const k = Core.rating(d.soh);
+      const res = add('div', undefined, 'res');
+      const big = document.createElement('div'); big.style.cssText = 'font-size:2.6rem;font-weight:700;line-height:1'; big.textContent = d.soh.toFixed(1) + ' %'; res.appendChild(big);
+      const col = document.createElement('div');
+      const lab = document.createElement('div'); lab.style.cssText = 'color:#566673;font-size:.85rem;margin-bottom:4px'; lab.textContent = t.soh; col.appendChild(lab);
+      const bd = document.createElement('span'); bd.className = 'badge'; bd.style.cssText = 'background:' + COL[k] + '22;color:' + COL[k]; bd.textContent = t.r[k]; col.appendChild(bd);
+      res.appendChild(col);
+    } else { add('div', t.soh + ': ' + t.none, 'sub'); }
+    const tb = add('table'); const tbody = document.createElement('tbody'); tb.appendChild(tbody);
+    reportRows(d, t).forEach(([a, b]) => { const tr = document.createElement('tr'); [a, b].forEach((x, i) => { const td = document.createElement(i ? 'td' : 'th'); td.textContent = x; tr.appendChild(td); }); tbody.appendChild(tr); });
+    if (d.notes){ add('div', t.notes + ': ' + d.notes, 'sub').style.marginTop = '12px'; }
+    add('div', t.scale + ' ' + t.foot, 'foot');
+    return d;
+  }
+  function reportText(){
+    const d = formData(), t = T[d.lang];
+    const out = [t.title, t.date + ': ' + d.date, ''];
+    if (Number.isFinite(d.soh)) out.push(t.soh + ': ' + d.soh.toFixed(1) + ' % (' + t.r[Core.rating(d.soh)] + ')');
+    reportRows(d, t).forEach(([a, b]) => out.push(a + ': ' + b));
+    if (d.notes) out.push(t.notes + ': ' + d.notes);
+    out.push('', t.foot);
+    return out.join('\n');
+  }
+  $('btnGen').onclick = renderPaper;
+  $('btnPrint').onclick = () => { renderPaper(); window.print(); };
+  $('btnCopy').onclick = async () => {
+    renderPaper();
+    try { await navigator.clipboard.writeText(reportText()); $('btnCopy').textContent = 'Скопировано'; setTimeout(() => $('btnCopy').textContent = 'Копировать текст', 1500); }
+    catch(e){ prompt('Скопируй текст отчёта:', reportText()); }
+  };
+  $('btnShare').onclick = async () => {
+    renderPaper();
+    if (navigator.share){ try { await navigator.share({ title:T[$('rLang').value].title, text:reportText() }); } catch(e){} }
+    else { try { await navigator.clipboard.writeText(reportText()); alert('Текст скопирован'); } catch(e){ prompt('Скопируй текст отчёта:', reportText()); } }
+  };
+
+  /* ---------- журнал проверок ---------- */
+  function renderHist(){
+    const h = store.get('obd_hist', []);
+    const ul = $('hist'); ul.innerHTML = '';
+    if (!h.length){ const li = document.createElement('li'); li.className = 'muted small'; li.textContent = 'пока пусто'; ul.appendChild(li); return; }
+    h.forEach((x, i) => {
+      const li = document.createElement('li');
+      const sp = document.createElement('span'); sp.textContent = x.date + ' · ' + (x.model || 'без модели') + ' · ' + (Number.isFinite(x.soh) ? x.soh.toFixed(1) + ' %' : '—');
+      const bt = document.createElement('button'); bt.className = 'btn ghost small'; bt.textContent = 'Открыть';
+      bt.onclick = () => { $('rModel').value = x.model || ''; $('rYear').value = x.year || ''; $('rKm').value = x.km || ''; $('rVin').value = x.vin || '';
+        $('rNom').value = Number.isFinite(x.nom) ? x.nom : ''; $('rSoh').value = Number.isFinite(x.soh) ? x.soh : ''; $('rTyp').value = Number.isFinite(x.typ) ? x.typ : '';
+        $('rMeth').value = x.method; $('rNotes').value = x.notes || ''; renderPaper(); };
+      const dl = document.createElement('button'); dl.className = 'btn ghost small'; dl.textContent = '✕'; dl.setAttribute('aria-label', 'Удалить');
+      dl.onclick = () => { const a = store.get('obd_hist', []); a.splice(i, 1); store.set('obd_hist', a); renderHist(); };
+      const box = document.createElement('span'); box.className = 'row'; box.appendChild(bt); box.appendChild(dl);
+      li.appendChild(sp); li.appendChild(box); ul.appendChild(li);
+    });
+  }
+  $('btnStore').onclick = () => {
+    const d = renderPaper(); const a = store.get('obd_hist', []);
+    a.unshift(d); store.set('obd_hist', a.slice(0, 30)); renderHist();
+  };
+  renderHist();
+  setStatus('off');
+  window.__obd = { S, run, startSim, showTab };   // для отладки в консоли браузера
+})();
+/*UI-END*/
+</script>
+</body>
+</html>
