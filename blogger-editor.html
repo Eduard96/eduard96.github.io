@@ -83,6 +83,19 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .btn:disabled{opacity:.4;cursor:default}
 .btn.sm{min-height:34px;border-radius:10px;font-size:13px;padding:0 10px}
 
+/* player */
+.player:fullscreen{background:#000;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:8px}
+.player:fullscreen .stage{width:min(100%,calc((100dvh - 110px)*var(--ar)))}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;
+  --pc:#fff;--pbg:rgba(0,0,0,.5);--pr:.4em;--pw:700;--pf:inherit;--pst:none;--pa:#7c3aed;--pup:none;--pstroke:0}
+.pb{min-height:40px;min-width:44px;padding:0 12px;color:var(--pc);background:var(--pbg);border-radius:var(--pr);font-weight:var(--pw);font-family:var(--pf);
+  text-shadow:var(--pst);text-transform:var(--pup);-webkit-text-stroke:var(--pstroke);paint-order:stroke fill;font-size:15px;line-height:1;border:1px solid rgba(255,255,255,.18);font-style:var(--pit,normal)}
+.pb:disabled,#seek:disabled{opacity:.4;cursor:default}
+#seek{flex:1 1 140px;min-width:120px;accent-color:var(--pa);height:28px;margin:0}
+#ptime{font-variant-numeric:tabular-nums;font-size:13px;color:var(--mute);min-width:88px;text-align:center}
+.chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--mute)}
+.chk input{width:18px;height:18px;accent-color:var(--acc)}
+
 /* timeline */
 .tl{position:relative;overflow-x:auto;overflow-y:auto;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:132px;-webkit-overflow-scrolling:touch}
 .tlin{position:relative;height:100%;min-width:100%}
@@ -146,10 +159,22 @@ details li{margin:4px 0}
   <div class="grid">
     <div class="col">
       <div class="card stage-wrap">
+        <div class="player" id="player">
         <div class="stage" id="stage">
           <video id="v" playsinline muted autoplay></video>
           <div class="badge" id="badge"><b></b>REC</div>
           <div class="sub" id="sub"></div>
+        </div>
+        <div class="ctl" id="ctl">
+          <button class="pb" id="bk" disabled>−5</button>
+          <button class="pb" id="pp" disabled>▶</button>
+          <button class="pb" id="fw" disabled>+5</button>
+          <input type="range" id="seek" min="0" max="1000" value="0" step="1" disabled aria-label="Перемотка">
+          <div id="ptime">00:00 / 00:00</div>
+          <button class="pb" id="mu" disabled>ЗВУК</button>
+          <button class="pb" id="spd" disabled>1×</button>
+          <button class="pb" id="fs">⛶</button>
+        </div>
         </div>
       </div>
 
@@ -159,6 +184,7 @@ details li{margin:4px 0}
           <div id="timer">00:00</div>
         </div>
         <div id="st">Распознавание речи: ожидание записи</div>
+        <label class="chk"><input type="checkbox" id="phone"><span>Режим телефона: видео без звука, зато текст распознаётся (микрофон отдаётся распознаванию)</span></label>
 
         <div class="label">Язык речи <span>переключайте даже во время записи</span></div>
         <div class="chips lang" id="langs">
@@ -286,7 +312,7 @@ function buildAll(){phrases=phrases.filter(p=>p.t);phrases.sort((a,b)=>a.s-b.s);
 const ERR={
   'not-allowed':'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
   'service-not-allowed':'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
-  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне это частая проблема. Используйте «＋ Фраза вручную» или запишите на ПК.',
+  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне включите «Режим телефона» (галочка под кнопкой записи) или используйте «＋ Фраза вручную».',
   'network':'Нет связи с сервисом распознавания Google. Проверьте интернет.',
   'language-not-supported':'Этот язык не поддерживается распознаванием в вашем браузере.'
 };
@@ -343,6 +369,17 @@ function setStyle(k,quiet){
   o.textTransform=d.up?'uppercase':'none';
   o.webkitTextStroke=d.st?d.st+'em '+d.sc:'0';o.paintOrder=d.st?'stroke fill':'normal';
   o.textShadow=d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none';
+  const c=$('#ctl').style;
+  c.setProperty('--pc',d.c);
+  c.setProperty('--pbg',d.bg||'rgba(0,0,0,.55)');
+  c.setProperty('--pr',(d.bg?(d.r||.1):.4)+'em');
+  c.setProperty('--pw',d.w);
+  c.setProperty('--pf',d.fam||'inherit');
+  c.setProperty('--pit',d.it?'italic':'normal');
+  c.setProperty('--pup',d.up?'uppercase':'none');
+  c.setProperty('--pstroke',d.st?(d.st*0.5)+'em '+d.sc:'0');
+  c.setProperty('--pst',d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none');
+  c.setProperty('--pa',(d.bg&&!/^rgba\(0,0,0/.test(d.bg))?d.bg:d.c);
   if(!quiet){previewUntil=performance.now()+2000;save()}
 }
 
@@ -365,16 +402,19 @@ async function startRec(){
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});
   phrases=[];map={};dur=0;blobs=[];lastSub='';
   const mt=pickMime();
-  try{mr=new MediaRecorder(stream,mt?{mimeType:mt}:undefined)}catch(e){toast('Запись видео доступна в Chrome.');return}
+  const phone=$('#phone').checked;
+  let rs=stream;
+  if(phone){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast('Режим телефона: видео записывается без звука, микрофон работает на распознавание.',5000)}
+  try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){toast('Запись видео доступна в Chrome.');return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
   recording=true;t0=performance.now();
   setSt('запускаю…');banner('');
-  startSR();
+  if(phone)setTimeout(()=>{if(recording)startSR()},500);else startSR();
   clearTimeout(wd);
   wd=setTimeout(()=>{
-    if(recording&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне микрофон занят видеозаписью; нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
+    if(recording&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне включите галочку «Режим телефона» (микрофон занят видеозаписью); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
   },8000);
   recBtn.classList.add('on');recTxt.textContent='Стоп';badge.classList.add('on');
   tmr=setInterval(()=>{timerEl.textContent=fmt((performance.now()-t0)/1000);renderTL()},1000);
@@ -394,7 +434,7 @@ function finishRec(){
   const blob=new Blob(blobs,{type:'video/webm'});
   url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-  v.srcObject=null;v.src=url;v.muted=false;v.controls=true;hasVideo=true;
+  v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;
   updateButtons();
 }
 v.addEventListener('loadedmetadata',()=>{
@@ -423,6 +463,8 @@ function addManual(){
 
 /* ---------- отрисовка интерфейса ---------- */
 function updateButtons(){
+  const pe=!(hasVideo&&!recording&&!exporting);
+  document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
   expBtn.disabled=!(hasVideo&&!recording&&!exporting&&phrases.length);
 }
@@ -534,6 +576,43 @@ function updateSub(){
   }
 }
 
+/* ---------- плеер ---------- */
+let seeking=false;
+const SPD=[0.5,0.75,1,1.25,1.5,2];
+const totalT=()=>isFinite(v.duration)&&v.duration>0?v.duration:dur;
+function updatePlayerUI(){
+  const T=totalT(),c=hasVideo?v.currentTime:0;
+  if(!seeking&&T)$('#seek').value=Math.round(Math.min(1,c/T)*1000);
+  if(!hasVideo)$('#seek').value=0;
+  $('#ptime').textContent=fmt(c)+' / '+fmt(T);
+  $('#pp').textContent=(hasVideo&&!v.paused&&!v.ended)?'❚❚':'▶';
+  $('#mu').textContent=v.muted?'ТИХО':'ЗВУК';
+}
+function togglePlay(){
+  if(!hasVideo||recording||exporting)return;
+  if(v.paused||v.ended){if(v.ended)v.currentTime=0;v.play().catch(()=>{})}else v.pause();
+}
+function skip(d){if(hasVideo&&!recording&&!exporting)v.currentTime=Math.max(0,Math.min(totalT()||1e9,v.currentTime+d))}
+$('#pp').onclick=togglePlay;
+$('#bk').onclick=()=>skip(-5);$('#fw').onclick=()=>skip(5);
+$('#mu').onclick=()=>{v.muted=!v.muted};
+$('#spd').onclick=()=>{
+  const i=SPD.indexOf(v.playbackRate);v.playbackRate=SPD[(i+1)%SPD.length];
+  $('#spd').textContent=(v.playbackRate)+'×';
+};
+const sk=$('#seek');
+sk.addEventListener('pointerdown',()=>{seeking=true});
+sk.addEventListener('pointerup',()=>{seeking=false});
+sk.addEventListener('pointercancel',()=>{seeking=false});
+sk.addEventListener('input',()=>{const T=totalT();if(T&&hasVideo)v.currentTime=sk.value/1000*T});
+$('#fs').onclick=()=>{
+  const pl=$('#player');
+  if(document.fullscreenElement)document.exitFullscreen();
+  else if(pl.requestFullscreen)pl.requestFullscreen().catch(()=>toast('Полный экран недоступен в этом окне.'));
+  else toast('Полный экран не поддерживается.');
+};
+stage.addEventListener('click',togglePlay);
+
 /* ---------- главный цикл ---------- */
 let xctx=null;
 function tick(){
@@ -543,7 +622,7 @@ function tick(){
     for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
   }
   if(exporting&&xctx)drawExportFrame();
-  updateSub();updatePlayhead(true);
+  updateSub();updatePlayhead(true);updatePlayerUI();
 }
 
 /* ---------- SRT ---------- */
@@ -600,14 +679,14 @@ async function exportVideo(){
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
   exporting=true;updateButtons();v.controls=false;
   toast('Экспорт идёт в реальном времени. Держите вкладку открытой.',5000);
-  v.pause();v.currentTime=0;
+  v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
   const cs=cv.captureStream(30),out=[];
   const mt=pickMime();let r2;
-  try{r2=new MediaRecorder(cs,mt?{mimeType:mt}:undefined)}catch(e){exporting=false;v.controls=true;updateButtons();toast('Запись видео доступна в Chrome.');return}
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast('Запись видео доступна в Chrome.');return}
   v.onended=()=>{v.onended=null;setTimeout(()=>{if(r2.state!=='inactive')r2.stop()},300)};
   r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
   r2.onstop=()=>{
-    exporting=false;xctx=null;v.controls=true;v.currentTime=0;expBtn.textContent='🎬 Экспорт видео';
+    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent='🎬 Экспорт видео';
     download(new Blob(out,{type:'video/webm'}),'edited.webm');
     updateButtons();toast('Готово: edited.webm');
   };
@@ -632,6 +711,10 @@ $('#clear').onclick=()=>{
 document.addEventListener('keydown',e=>{
   const a=document.activeElement;
   if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
+  if(hasVideo&&!recording&&!exporting&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
+    if(e.code==='Space'){e.preventDefault();togglePlay()}
+    else if(e.code==='ArrowLeft')skip(-5);else if(e.code==='ArrowRight')skip(5);
+  }
   const m={Digit1:'hy',Numpad1:'hy',Digit2:'ru',Numpad2:'ru',Digit3:'en',Numpad3:'en'}[e.code];
   if(m)setLang(m);
 });
@@ -647,6 +730,9 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
 (function init(){
   if(!SR){banner('Распознавание речи работает в Chrome. Откройте страницу в Chrome, чтобы текст появлялся во время записи.');setSt('не поддерживается этим браузером','err')}
   else if(!navigator.mediaDevices){banner('Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.')}
+  let pm=null;try{pm=localStorage.getItem('substudio-phone')}catch(e){}
+  $('#phone').checked=pm===null?/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent):pm==='1';
+  $('#phone').onchange=()=>{try{localStorage.setItem('substudio-phone',$('#phone').checked?'1':'0')}catch(e){}};
   load();renderAll();
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
   requestAnimationFrame(tick);
