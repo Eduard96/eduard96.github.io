@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Субтитры">
 <title>Студия субтитров</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23fff'/%3E%3C/svg%3E">
 <style>
@@ -142,6 +146,17 @@ details li{margin:4px 0}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+.ovl{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:20px;background:rgba(14,12,28,.82);backdrop-filter:blur(6px);touch-action:none}
+.ovl.show{display:flex}
+.ovl .box{width:min(100%,420px);text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 20px}
+.ovl .pct{font-size:44px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ovl progress{width:100%;height:14px;accent-color:var(--acc);margin:10px 0}
+.ovl h3{margin:0 0 6px;font-size:18px}
+.ovl p{margin:6px 0 0;font-size:13px;color:var(--mute)}
+.ovl ol{text-align:left;margin:10px 0 0;padding-left:20px;font-size:14px}
+.ovl li{margin:6px 0}
+.hbtns{display:flex;gap:8px;align-items:center}
+#inst{width:auto;padding:0 12px;font-size:14px;font-weight:700;gap:6px;white-space:nowrap}
 @media (max-width:900px){
   .grid{grid-template-columns:1fr}
   .plist{max-height:none}
@@ -161,7 +176,7 @@ details li{margin:4px 0}
 <div class="app">
   <header>
     <div class="logo"><i>◉</i><div>Студия субтитров<small>Пишите видео, текст и монтаж появляются сразу</small></div></div>
-    <button class="icon-btn" id="theme" aria-label="Сменить тему">🌓</button>
+    <div class="hbtns"><button class="icon-btn" id="inst">⬇ Установить</button><button class="icon-btn" id="theme" aria-label="Сменить тему">🌓</button></div>
   </header>
 
   <div class="banner" id="banner"></div>
@@ -260,6 +275,8 @@ details li{margin:4px 0}
   </div>
 </div>
 
+<div class="ovl" id="xbox"><div class="box"><h3>🎬 Идёт экспорт видео</h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p>Не закрывайте и не сворачивайте вкладку, не нажимайте ничего. Файл скачается сам, когда экспорт закончится.</p></div></div>
+<div class="ovl" id="ibox"><div class="box"><h3>Установить на телефон</h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px">Понятно</button></div></div>
 <canvas id="cv" style="display:none"></canvas>
 <div class="toast" id="toast"></div>
 
@@ -410,9 +427,10 @@ function setLang(l){
   document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
   if((recording||passing)&&SR){
     epoch++;
-    if(sr){sr.onend=null;sr.onresult=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}}
-    setTimeout(startSR,250);
+    if(sr){sr.onend=null;sr.onresult=null;sr.onerror=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}sr=null}
+    clearTimeout(setLang._t);setLang._t=setTimeout(()=>{if(recording||passing)startSR()},120);
   }
+  if(recording&&cl.on){clearTimeout(cl.timer);const old=cl.rec;cloudNext();try{old&&old.state!=='inactive'&&old.stop()}catch(e){}}
 }
 function setStyle(k,quiet){
   if(!STY[k])k='classic';
@@ -905,7 +923,7 @@ function drawExportFrame(){
   xctx.drawImage(v,0,0,W,H);
   const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t);
   const total=isFinite(v.duration)&&v.duration>0?v.duration:dur;
-  if(total)expBtn.textContent='Экспорт… '+Math.min(99,Math.round(v.currentTime/total*100))+'%';
+  if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent='Экспорт… '+pc+'%';$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
 }
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
@@ -925,10 +943,12 @@ async function exportVideo(){
   r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
   r2.onstop=()=>{
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
-    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent=EXPLBL;
+    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent=EXPLBL;$('#xbox').classList.remove('show');
     download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),isMp4?'edited.mp4':'edited.webm');
     updateButtons();toast('Готово: '+(isMp4?'edited.mp4':'edited.webm')+' (видео, звук и субтитры вместе)');
   };
+  $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
   try{await v.play()}catch(e){}
   r2.start(1000);
 }
@@ -966,6 +986,34 @@ $('#eadd').onclick=()=>{
   phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);save();renderAll();
   openEd(p.c[0],true);
 };
+
+/* ---------- установка на телефон ---------- */
+let dip=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isAnd=/Android/i.test(navigator.userAgent);
+(function(){
+  try{
+    const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#7c3aed'/><stop offset='1' stop-color='#ec4899'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='url(#g)'/><circle cx='32' cy='32' r='13' fill='none' stroke='#fff' stroke-width='5'/><circle cx='32' cy='32' r='5' fill='#fff'/></svg>";
+    const icon='data:image/svg+xml,'+encodeURIComponent(svg);
+    const man={name:'Студия субтитров',short_name:'Субтитры',start_url:location.href.split('#')[0],display:'standalone',background_color:'#0e0c1c',theme_color:'#7c3aed',icons:[{src:icon,sizes:'any',type:'image/svg+xml',purpose:'any'}]};
+    const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));document.head.appendChild(l);
+    const a=document.createElement('link');a.rel='apple-touch-icon';a.href=icon;document.head.appendChild(a);
+  }catch(e){}
+  if(isStandalone())$('#inst').style.display='none';
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
+  window.addEventListener('appinstalled',()=>{$('#inst').style.display='none';dip=null;toast('Приложение установлено')});
+  $('#inst').onclick=async()=>{
+    if(dip){dip.prompt();try{await dip.userChoice}catch(e){}dip=null;return}
+    let h;
+    if(isIOS)h='<p><b>iPhone / iPad.</b> Откройте страницу именно в Safari (в других браузерах установки нет).</p><ol><li>Нажмите «Поделиться» (квадрат со стрелкой вверх) внизу экрана.</li><li>Прокрутите список вниз и выберите «На экран Домой».</li><li>Нажмите «Добавить». Иконка появится на главном экране.</li></ol>';
+    else if(isAnd)h='<p><b>Android.</b> Откройте страницу в Chrome.</p><ol><li>Нажмите ⋮ (три точки) справа вверху.</li><li>Выберите «Установить приложение» или «Добавить на главный экран».</li><li>Подтвердите «Установить». Иконка появится на главном экране.</li></ol>';
+    else h='<p><b>Компьютер.</b> В Chrome нажмите значок установки ⊕ справа в адресной строке или меню ⋮ → «Установить Студию субтитров».</p><p>На телефоне: Android — Chrome, меню ⋮ → «Установить приложение»; iPhone — Safari, «Поделиться» → «На экран Домой».</p>';
+    h+='<p>Установка работает, когда страница открыта по адресу https (не как файл на устройстве).</p>';
+    $('#itxt').innerHTML=h;$('#ibox').classList.add('show');
+  };
+  $('#iclose').onclick=()=>$('#ibox').classList.remove('show');
+})();
 
 /* ---------- события ---------- */
 expBtn.textContent=EXPLBL;
