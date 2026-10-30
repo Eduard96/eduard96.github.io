@@ -197,7 +197,11 @@ details li{margin:4px 0}
           <div id="timer">00:00</div>
         </div>
         <div id="st">Распознавание речи: ожидание записи</div>
-        <label class="chk"><input type="checkbox" id="phone"><span>Режим телефона: видео без звука, зато текст распознаётся (микрофон отдаётся распознаванию)</span></label>
+        <label class="chk"><span>Режим записи</span><select id="pmode" class="sel" style="min-height:38px;font-size:14px;flex:1">
+          <option value="normal">Обычный: видео со звуком (ПК)</option>
+          <option value="track">Телефон: со звуком (Chrome 139+)</option>
+          <option value="mute">Телефон: без звука (запасной)</option>
+        </select></label>
 
         <div class="label">Язык речи <span>переключайте даже во время записи</span></div>
         <div class="chips lang" id="langs">
@@ -211,7 +215,7 @@ details li{margin:4px 0}
 
         <div class="actions">
           <button class="btn" id="srt" disabled>⬇ Скачать SRT</button>
-          <button class="btn primary" id="exp" disabled>🎬 Экспорт видео</button>
+          <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
           <button class="btn" id="add" style="grid-column:1/-1">＋ Фраза вручную (в текущий момент)</button>
         </div>
         <div class="hint">Экспорт идёт в реальном времени: сохраняйте вкладку открытой и активной до конца.</div>
@@ -251,7 +255,7 @@ const recBtn=$('#rec'),recTxt=$('#recTxt'),timerEl=$('#timer'),srtBtn=$('#srt'),
 const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
-let phrases=[], map={}, dur=0, lang='ru', style='classic';
+let phrases=[], map={}, dur=0, lang='hy', style='classic';
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
 const STY={
@@ -314,13 +318,31 @@ function buildPhrase(p){
     p.c.push({g:p,t:part.join(' '),s:p.s+d*j/n,e:p.s+d*(j+part.length)/n});
   }
 }
-function buildAll(){phrases=phrases.filter(p=>p.t);phrases.sort((a,b)=>a.s-b.s);phrases.forEach(buildPhrase);save();renderAll()}
+const nrm=w=>w.toLowerCase().replace(/[.,!?;:։՝՞«»"()…]/g,'');
+const wds=x=>x.split(/\s+/).filter(Boolean);
+function stripDup(p){
+  const cw=wds(p.raw!==undefined?p.raw:p.t),cn=cw.map(nrm),idx=phrases.indexOf(p);let best=0;
+  for(let j=0;j<idx;j++){
+    const q=phrases[j],pn=wds(q.raw!==undefined?q.raw:q.t).map(nrm);
+    if(!pn.length)continue;
+    const same=pn.length<=cn.length&&pn.every((w,k)=>w===cn[k]);
+    if(same&&(pn.length>=3||(pn.length===cn.length&&Math.abs(p.s-q.s)<4)))best=Math.max(best,pn.length);
+    else if(cn.length>=2&&Math.abs(p.e-q.e)<6&&(' '+pn.join(' ')+' ').includes(' '+cn.join(' ')+' '))best=cn.length;
+  }
+  return cw.slice(best).join(' ');
+}
+function buildAll(){
+  phrases.sort((a,b)=>a.s-b.s);
+  phrases.forEach(p=>{if(p.raw!==undefined)p.t=stripDup(p)});
+  phrases=phrases.filter(p=>p.t);
+  phrases.forEach(buildPhrase);save();renderAll();
+}
 
 /* ---------- распознавание ---------- */
 const ERR={
   'not-allowed':'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
   'service-not-allowed':'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
-  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне включите «Режим телефона» (галочка под кнопкой записи) или используйте «＋ Фраза вручную».',
+  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне смените «Режим записи» под кнопкой записи или используйте «＋ Фраза вручную».',
   'network':'Нет связи с сервисом распознавания Google. Проверьте интернет.',
   'language-not-supported':'Этот язык не поддерживается распознаванием в вашем браузере.'
 };
@@ -339,7 +361,7 @@ function startSR(){
       const txt=ev.results[i][0].transcript.trim();
       if(!txt)continue;
       if(!p){p={s:Math.max(0,now-0.6),e:now,l:lg,t:'',cut:false};map[key]=p;phrases.push(p)}
-      p.t=txt;p.e=now;
+      p.raw=txt;p.e=now;p.t=stripDup(p);
     }
     setSt('текст идёт ✓','ok');banner('');
     save();renderList();updateButtons();
@@ -353,17 +375,22 @@ function startSR(){
     else if(e.error!=='no-speech')fatal=true;
   };
   r.onend=()=>{
+    try{r._t&&r._t.stop()}catch(e){}
     if(recording&&my===epoch&&!fatal)setTimeout(()=>{if(recording&&my===epoch)startSR()},delay);
   };
   sr=r;
-  try{r.start()}catch(e){setSt('не удалось запустить ('+e.message+')','err')}
+  try{
+    const at=stream&&stream.getAudioTracks()[0];
+    if($('#pmode').value==='track'&&at){const ct=at.clone();r._t=ct;try{r.start(ct)}catch(e2){r.start()}}
+    else r.start();
+  }catch(e){setSt('не удалось запустить ('+e.message+')','err')}
 }
 function setLang(l){
   lang=l;
   document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
   if(recording&&SR){
     epoch++;
-    if(sr){sr.onend=null;try{sr.abort()}catch(e){}}
+    if(sr){sr.onend=null;sr.onresult=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}}
     setTimeout(startSR,250);
   }
 }
@@ -410,7 +437,7 @@ async function startRec(){
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});
   phrases=[];map={};dur=0;blobs=[];lastSub='';
   const mt=pickMime();
-  const phone=$('#phone').checked;
+  const pmv=$('#pmode').value,phone=pmv==='mute';
   let rs=stream;
   if(phone){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast('Режим телефона: видео записывается без звука, микрофон работает на распознавание.',5000)}
   try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){toast('Запись видео доступна в Chrome.');return}
@@ -422,7 +449,7 @@ async function startRec(){
   if(phone)setTimeout(()=>{if(recording)startSR()},500);else startSR();
   clearTimeout(wd);
   wd=setTimeout(()=>{
-    if(recording&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне включите галочку «Режим телефона» (микрофон занят видеозаписью); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
+    if(recording&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне смените «Режим записи» (микрофон занят видеозаписью); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
   },8000);
   recBtn.classList.add('on');recTxt.textContent='Стоп';badge.classList.add('on');
   tmr=setInterval(()=>{timerEl.textContent=fmt((performance.now()-t0)/1000);renderTL()},1000);
@@ -482,8 +509,9 @@ function renderList(){
   const ae=document.activeElement;
   if(ae&&ae.isContentEditable&&listEl.contains(ae))return;
   listEl.innerHTML='';rows=new Map();lastNow=null;
-  if(!phrases.length){const d=document.createElement('div');d.className='empty';d.textContent='Фразы появятся здесь, когда вы начнёте говорить.';listEl.appendChild(d);return}
-  phrases.forEach(p=>{
+  const vis=phrases.filter(p=>p.t);
+  if(!vis.length){const d=document.createElement('div');d.className='empty';d.textContent='Фразы появятся здесь, когда вы начнёте говорить.';listEl.appendChild(d);return}
+  vis.forEach(p=>{
     const r=document.createElement('div');r.className='row'+(p.cut?' cut':'');
     const tm=document.createElement('button');tm.className='tm';tm.textContent=fmt(p.s);
     tm.onclick=()=>{seek(p.s)};
@@ -494,7 +522,7 @@ function renderList(){
     tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tx.blur()}e.stopPropagation()});
     tx.addEventListener('blur',()=>{
       const t=tx.textContent.replace(/\s+/g,' ').trim();
-      if(t!==p.t){p.t=t;buildPhrase(p);save();renderTL();updateButtons()}
+      if(t!==p.t){p.t=t;p.raw=t;buildPhrase(p);save();renderTL();updateButtons()}
     });
     const sc=document.createElement('button');sc.className='sc';sc.textContent=p.cut?'↩':'✂';sc.title=p.cut?'Вернуть':'Вырезать';
     sc.onclick=()=>{p.cut=!p.cut;r.classList.toggle('cut',p.cut);sc.textContent=p.cut?'↩':'✂';save();renderTL()};
@@ -658,6 +686,11 @@ function downloadSrt(){
 }
 
 /* ---------- экспорт видео ---------- */
+function exportMime(){
+  const l=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.4D401E,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  for(const m of l){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}return'';
+}
+const EXPLBL=exportMime().startsWith('video/mp4')?'🎬 Экспорт MP4':'🎬 Экспорт WebM';
 let AC=null,ASRC=null,ADEST=null;
 function exportAudioTrack(){
   try{
@@ -711,21 +744,23 @@ async function exportVideo(){
   v.muted=false;
   const cs=cv.captureStream(30),out=[];
   const at=exportAudioTrack();if(at)cs.addTrack(at);
-  const mt=pickMime();let r2;
-  try{r2=new MediaRecorder(cs,mt?{mimeType:mt}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast('Запись видео доступна в Chrome.');return}
+  const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
+  if(!isMp4)toast('Этот браузер не умеет писать MP4, сохраню WebM. Для MP4 откройте страницу в свежем Chrome.',6000);
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:6000000,audioBitsPerSecond:128000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast('Запись видео доступна в Chrome.');return}
   v.onended=()=>{v.onended=null;setTimeout(()=>{if(r2.state!=='inactive')r2.stop()},300)};
   r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
   r2.onstop=()=>{
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
-    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent='🎬 Экспорт видео';
-    download(new Blob(out,{type:'video/webm'}),'edited.webm');
-    updateButtons();toast('Готово: edited.webm');
+    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent=EXPLBL;
+    download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),isMp4?'edited.mp4':'edited.webm');
+    updateButtons();toast('Готово: '+(isMp4?'edited.mp4':'edited.webm')+' (видео, звук и субтитры вместе)');
   };
   try{await v.play()}catch(e){}
   r2.start(1000);
 }
 
 /* ---------- события ---------- */
+expBtn.textContent=EXPLBL;
 recBtn.onclick=()=>{if(exporting)return;recording?stopRec():startRec()};
 document.querySelectorAll('#langs .chip').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
 const sel=$('#styleSel');
@@ -761,9 +796,10 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
 (function init(){
   if(!SR){banner('Распознавание речи работает в Chrome. Откройте страницу в Chrome, чтобы текст появлялся во время записи.');setSt('не поддерживается этим браузером','err')}
   else if(!navigator.mediaDevices){banner('Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.')}
-  let pm=null;try{pm=localStorage.getItem('substudio-phone')}catch(e){}
-  $('#phone').checked=pm===null?/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent):pm==='1';
-  $('#phone').onchange=()=>{try{localStorage.setItem('substudio-phone',$('#phone').checked?'1':'0')}catch(e){}};
+  let pm=null;try{pm=localStorage.getItem('substudio-pmode')}catch(e){}
+  const mob=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),can=SR&&typeof SR.available==='function';
+  $('#pmode').value=['normal','track','mute'].includes(pm)?pm:(mob?(can?'track':'mute'):'normal');
+  $('#pmode').onchange=()=>{try{localStorage.setItem('substudio-pmode',$('#pmode').value)}catch(e){}};
   load();renderAll();
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
   requestAnimationFrame(tick);
