@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Студия субтитров</title>
+<style>
+:root{
+  --bg:#f4f3fb; --card:#ffffff; --ink:#1b1736; --mute:#6b6a85; --line:#e4e2f2; --chip:#efecfb;
+  --acc:#7c3aed; --acc2:#ec4899; --danger:#ef4444; --ok:#10b981; --blue:#3b82f6;
+  --shadow:0 8px 30px rgba(60,40,120,.10);
+  --r:18px;
+}
+:root[data-theme="dark"]{
+  --bg:#0e0c1c; --card:#171430; --ink:#f1efff; --mute:#9a97bd; --line:#2a2650; --chip:#221e44;
+  --shadow:0 8px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;min-height:100dvh;color:var(--ink);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Armenian",sans-serif;
+  background:
+    radial-gradient(900px 500px at 8% -10%,rgba(124,58,237,.18),transparent 60%),
+    radial-gradient(800px 500px at 100% 0%,rgba(236,72,153,.14),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.app{max-width:1240px;margin:0 auto;padding:12px 14px 28px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;font-style:normal;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 6px 16px rgba(124,58,237,.4)}
+.logo small{display:block;font-weight:500;font-size:12px;color:var(--mute);letter-spacing:0}
+.icon-btn{width:42px;height:42px;border-radius:13px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow);font-size:18px}
+.grid{display:grid;gap:14px;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}
+.col{display:grid;gap:14px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;min-width:0}
+.card h2{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.banner{display:none;margin-bottom:14px;padding:12px 14px;border-radius:14px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.4);font-size:14px}
+.banner.show{display:block}
+
+/* stage */
+.stage-wrap{padding:10px}
+.stage{--ar:1.7778;position:relative;margin:0 auto;aspect-ratio:var(--ar);
+  width:min(100%,calc(62vh*var(--ar)));width:min(100%,calc(62dvh*var(--ar)));
+  background:#000;border-radius:14px;overflow:hidden;container-type:inline-size}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.badge{position:absolute;top:10px;left:10px;display:none;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;backdrop-filter:blur(6px)}
+.badge.on{display:flex}
+.badge b{width:8px;height:8px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.sub{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);max-width:90%;width:max-content;text-align:center;
+  font-size:4.4cqw;line-height:1.25;padding:.2em .55em;pointer-events:none;display:none;overflow-wrap:anywhere}
+.sub.show{display:block}
+.s-classic{color:#fff;background:rgba(0,0,0,.6);font-weight:600;border-radius:.2em}
+.s-bold{color:#FFD60A;text-transform:uppercase;font-weight:900;-webkit-text-stroke:.16em #000;paint-order:stroke fill;letter-spacing:.01em}
+.s-minimal{color:#fff;font-weight:300;text-shadow:0 .06em .22em rgba(0,0,0,.95),0 0 .3em rgba(0,0,0,.6)}
+.s-pop{color:#fff;background:#7c3aed;font-weight:700;border-radius:.45em}
+
+/* controls */
+.rec-row{display:flex;align-items:center;gap:12px}
+#rec{flex:1;min-height:56px;border-radius:16px;font-weight:800;font-size:18px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 8px 22px rgba(124,58,237,.4);transition:transform .1s}
+#rec:active{transform:scale(.98)}
+#rec .dot{width:14px;height:14px;border-radius:50%;background:#fff}
+#rec.on{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 8px 22px rgba(239,68,68,.45)}
+#rec.on .dot{border-radius:3px;animation:pulse 1s infinite}
+#timer{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;color:var(--mute)}
+.label{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;justify-content:space-between;gap:8px}
+.label span{text-transform:none;letter-spacing:0;font-weight:500}
+.chips{display:grid;gap:8px}
+.chips.lang{grid-template-columns:repeat(3,1fr)}
+.chips.style{grid-template-columns:repeat(4,1fr)}
+.chip{min-height:46px;padding:8px 10px;border-radius:13px;background:var(--chip);border:2px solid transparent;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s;text-align:center}
+.chip kbd{font:600 11px/1 ui-monospace,monospace;padding:3px 5px;border-radius:6px;background:var(--card);color:var(--mute);border:1px solid var(--line)}
+.chip.active{border-color:var(--acc);background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(236,72,153,.14));color:var(--ink);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.chips.lang .chip{font-size:18px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn{min-height:50px;border-radius:14px;font-weight:700;background:var(--chip);border:1px solid var(--line);padding:0 14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{color:#fff;border:0;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sm{min-height:34px;border-radius:10px;font-size:13px;padding:0 10px}
+
+/* timeline */
+.tl{position:relative;overflow-x:auto;overflow-y:hidden;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:132px;-webkit-overflow-scrolling:touch}
+.tlin{position:relative;height:100%;min-width:100%}
+.tick{position:absolute;top:0;height:20px;border-left:1px solid var(--mute);padding-left:4px;font-size:10px;color:var(--mute);pointer-events:none;font-variant-numeric:tabular-nums}
+.blk{position:absolute;height:44px;border-radius:9px;color:#fff;font-size:12px;font-weight:600;line-height:44px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.blk.hy{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.blk.ru{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.blk.en{background:linear-gradient(135deg,#10b981,#047857)}
+.blk.cut{opacity:.35;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.25) 0 6px,transparent 6px 12px)}
+.blk .h{position:absolute;top:0;bottom:0;width:9px;background:rgba(255,255,255,.4);cursor:ew-resize}
+.blk .h.l{left:0;border-radius:9px 0 0 9px}
+.blk .h.r{right:0;border-radius:0 9px 9px 0}
+.ph{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;pointer-events:none;z-index:5;box-shadow:0 0 6px rgba(239,68,68,.8)}
+.ph::before{content:"";position:absolute;top:0;left:-4px;border:5px solid transparent;border-top-color:#ef4444}
+.hint{font-size:12px;color:var(--mute);margin-top:8px}
+
+/* phrases */
+.plist{display:grid;gap:8px;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);overflow:auto;padding-right:2px}
+.row{display:grid;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:start;padding:8px;border-radius:14px;background:var(--chip);border:2px solid transparent}
+.row.now{border-color:var(--acc);background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(236,72,153,.1))}
+.row .tm{min-height:34px;padding:0 9px;border-radius:10px;background:var(--card);border:1px solid var(--line);font:700 13px ui-monospace,SFMono-Regular,monospace;color:var(--acc)}
+.row .lg{min-height:34px;padding:0 8px;border-radius:10px;font-weight:800;font-size:12px;color:#fff;display:grid;place-items:center}
+.lg.hy{background:#7c3aed}.lg.ru{background:#2563eb}.lg.en{background:#059669}
+.row .tx{min-height:34px;padding:6px 4px;font-size:16px;outline:none;border-radius:8px;overflow-wrap:anywhere}
+.row .tx:focus{background:var(--card);box-shadow:0 0 0 2px var(--acc)}
+.row.cut .tx{text-decoration:line-through;opacity:.5}
+.row .sc{width:38px;min-height:34px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px}
+.empty{padding:26px 10px;text-align:center;color:var(--mute);font-size:14px}
+details{font-size:13px;color:var(--mute)}
+details summary{cursor:pointer;font-weight:700;color:var(--ink);padding:4px 0}
+details ul{margin:8px 0 0;padding-left:18px}
+details li{margin:4px 0}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .plist{max-height:none}
+}
+@media (max-width:520px){
+  .app{padding:8px 10px 24px}
+  .card{padding:12px;border-radius:16px}
+  .chips.style{grid-template-columns:repeat(2,1fr)}
+  .actions{grid-template-columns:1fr}
+  .row{grid-template-columns:auto 1fr auto;}
+  .row .tx{grid-column:1 / -1;grid-row:2}
+  .logo small{display:none}
+  .chip kbd{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><i>◉</i><div>Студия субтитров<small>Пишите видео, текст и монтаж появляются сразу</small></div></div>
+    <button class="icon-btn" id="theme" aria-label="Сменить тему">🌓</button>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="card stage-wrap">
+        <div class="stage" id="stage">
+          <video id="v" playsinline muted autoplay></video>
+          <div class="badge" id="badge"><b></b>REC</div>
+          <div class="sub s-classic" id="sub"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="rec-row">
+          <button id="rec"><span class="dot"></span><span id="recTxt">Запись</span></button>
+          <div id="timer">00:00</div>
+        </div>
+
+        <div class="label">Язык речи <span>переключайте даже во время записи</span></div>
+        <div class="chips lang" id="langs">
+          <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
+          <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
+          <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
+        </div>
+
+        <div class="label">Стиль субтитров</div>
+        <div class="chips style" id="styles">
+          <button class="chip active" data-s="classic">Классика</button>
+          <button class="chip" data-s="bold">Жирный</button>
+          <button class="chip" data-s="minimal">Минимал</button>
+          <button class="chip" data-s="pop">Поп</button>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="srt" disabled>⬇ Скачать SRT</button>
+          <button class="btn primary" id="exp" disabled>🎬 Экспорт видео</button>
+        </div>
+        <div class="hint">Экспорт идёт в реальном времени: сохраняйте вкладку открытой и активной до конца.</div>
+      </div>
+
+      <div class="card">
+        <h2>Таймлайн <span style="text-transform:none;letter-spacing:0;font-weight:500">тяните блоки и края</span></h2>
+        <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
+        <div class="hint">Тело блока сдвигает субтитр, края меняют начало и конец. Тап по пустому месту ставит кадр.</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h2>Фразы <button class="btn sm" id="clear">Очистить</button></h2>
+        <div class="plist" id="list"></div>
+      </div>
+      <div class="card">
+        <details>
+          <summary>Ограничения и подсказки</summary>
+          <ul>
+            <li>Нужен Chrome и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.</li>
+            <li>Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.</li>
+            <li>Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.</li>
+            <li>Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).</li>
+          </ul>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+<canvas id="cv" style="display:none"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const v=$('#v'),stage=$('#stage'),sub=$('#sub'),listEl=$('#list'),tl=$('#tl'),tlin=$('#tlin'),cv=$('#cv');
+const recBtn=$('#rec'),recTxt=$('#recTxt'),timerEl=$('#timer'),srtBtn=$('#srt'),expBtn=$('#exp'),badge=$('#badge');
+const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+let phrases=[], map={}, dur=0, lang='ru', style='classic';
+let recording=false, exporting=false, hasVideo=false, fixing=false;
+let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
+let ph=null, rows=new Map(), lastSub='', lastNow=null, tmr=null;
+
+/* ---------- утилиты ---------- */
+function toast(msg,ms){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),ms||4200)}
+const pad=(n,l)=>String(n).padStart(l||2,'0');
+function fmt(t){t=Math.max(0,t);return pad(Math.floor(t/60))+':'+pad(Math.floor(t%60))}
+function fmtSrt(t){t=Math.max(0,t);const ms=Math.round(t*1000);const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60;return pad(h)+':'+pad(m)+':'+pad(s)+','+pad(ms%1000,3)}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+const allC=()=>phrases.flatMap(p=>p.c||[]);
+function span(p){const c=p.c&&p.c.length?p.c:null;return c?[Math.min(...c.map(x=>x.s)),Math.max(...c.map(x=>x.e))]:[p.s,p.e]}
+function cutSpans(){
+  const a=phrases.filter(p=>p.cut).map(span).sort((x,y)=>x[0]-y[0]);
+  const out=[];for(const s of a){const l=out[out.length-1];if(l&&s[0]<=l[1])l[1]=Math.max(l[1],s[1]);else out.push([s[0],s[1]])}
+  return out;
+}
+function chunkAt(t){let r=null;for(const p of phrases){if(p.cut||!p.c)continue;for(const c of p.c){if(c.s<=t&&t<c.e)r=c}}return r}
+function pickMime(){const l=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];for(const m of l){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}return''}
+
+/* ---------- сохранение ---------- */
+function save(){try{localStorage.setItem('substudio',JSON.stringify({phrases,dur,style},(k,v)=>k==='g'?undefined:v))}catch(e){}}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('substudio')||'null');if(!d)return;
+    phrases=d.phrases||[];dur=d.dur||0;if(d.style)setStyle(d.style,true);
+    phrases.forEach(p=>{if(p.c)p.c.forEach(c=>c.g=p);else buildPhrase(p)});
+    if(phrases.length)toast('Фразы восстановлены из сохранения');
+  }catch(e){}
+}
+
+/* ---------- куски по 5–6 слов ---------- */
+function buildPhrase(p){
+  const w=p.t.split(/\s+/).filter(Boolean),n=w.length;p.c=[];if(!n)return;
+  const k=Math.ceil(n/6),per=Math.ceil(n/k);
+  const e=Math.max(p.e,p.s+0.25*n),d=e-p.s;
+  for(let j=0;j<n;j+=per){
+    const part=w.slice(j,j+per);
+    p.c.push({g:p,t:part.join(' '),s:p.s+d*j/n,e:p.s+d*(j+part.length)/n});
+  }
+}
+function buildAll(){phrases=phrases.filter(p=>p.t);phrases.forEach(buildPhrase);save();renderAll()}
+
+/* ---------- распознавание ---------- */
+function startSR(){
+  if(!SR)return;
+  const my=++epoch;const r=new SR();
+  r.lang=LANGS[lang];r.continuous=true;r.interimResults=true;
+  const lg=lang;
+  r.onresult=ev=>{
+    const now=(performance.now()-t0)/1000;
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const key=my+'-'+i;let p=map[key];
+      const txt=ev.results[i][0].transcript.trim();
+      if(!p){p={s:Math.max(0,now-0.6),e:now,l:lg,t:'',cut:false};map[key]=p;phrases.push(p)}
+      p.t=txt;p.e=now;
+    }
+    save();renderList();
+  };
+  r.onerror=e=>{
+    if(e.error==='no-speech'||e.error==='aborted')return;
+    if(e.error==='not-allowed'||e.error==='service-not-allowed')toast('Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта.');
+    else toast('Ошибка распознавания: '+e.error);
+  };
+  r.onend=()=>{if(recording&&my===epoch)startSR()};
+  sr=r;
+  try{r.start()}catch(e){}
+}
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
+  if(recording&&SR){
+    if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
+    startSR();
+  }
+}
+function setStyle(s,quiet){
+  style=s;
+  document.querySelectorAll('#styles .chip').forEach(b=>b.classList.toggle('active',b.dataset.s===s));
+  sub.className='sub s-'+s+(sub.classList.contains('show')?' show':'');
+  if(!quiet)save();
+}
+
+/* ---------- камера и запись ---------- */
+async function initCam(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:true});
+    v.srcObject=stream;v.muted=true;v.controls=false;
+    await v.play().catch(()=>{});
+    return true;
+  }catch(err){
+    toast('Доступ к камере и микрофону закрыт. Разрешите его в настройках сайта и откройте страницу в отдельной вкладке.',6500);
+    return false;
+  }
+}
+async function startRec(){
+  if(phrases.length&&!confirm('Начать новую запись? Текущие фразы будут удалены.'))return;
+  if(!stream&&!(await initCam()))return;
+  if(url){URL.revokeObjectURL(url);url=null}
+  hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});
+  phrases=[];map={};dur=0;blobs=[];lastSub='';
+  const mt=pickMime();
+  try{mr=new MediaRecorder(stream,mt?{mimeType:mt}:undefined)}catch(e){toast('Запись видео доступна в Chrome.');return}
+  mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
+  mr.onstop=finishRec;
+  mr.start(1000);
+  recording=true;t0=performance.now();
+  startSR();
+  recBtn.classList.add('on');recTxt.textContent='Стоп';badge.classList.add('on');
+  tmr=setInterval(()=>{timerEl.textContent=fmt((performance.now()-t0)/1000);renderTL()},1000);
+  save();renderAll();updateButtons();
+}
+function stopRec(){
+  recording=false;dur=(performance.now()-t0)/1000;
+  clearInterval(tmr);
+  if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
+  try{mr.stop()}catch(e){}
+  recBtn.classList.remove('on');recTxt.textContent='Запись';badge.classList.remove('on');
+  buildAll();
+  setTimeout(buildAll,900);
+}
+function finishRec(){
+  const blob=new Blob(blobs,{type:'video/webm'});
+  url=URL.createObjectURL(blob);
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  v.srcObject=null;v.src=url;v.muted=false;v.controls=true;hasVideo=true;
+  updateButtons();
+}
+v.addEventListener('loadedmetadata',()=>{
+  if(v.videoWidth)stage.style.setProperty('--ar',(v.videoWidth/v.videoHeight).toFixed(4));
+  if(hasVideo&&v.duration===Infinity){fixing=true;v.currentTime=1e101}
+  renderTL();
+});
+v.addEventListener('timeupdate',()=>{
+  if(fixing){fixing=false;v.currentTime=0;renderTL();return}
+});
+
+/* ---------- отрисовка интерфейса ---------- */
+function updateButtons(){
+  srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
+  expBtn.disabled=!(hasVideo&&!recording&&!exporting&&phrases.length);
+}
+function renderAll(){renderList();renderTL();updateButtons()}
+
+function renderList(){
+  const ae=document.activeElement;
+  if(ae&&ae.isContentEditable&&listEl.contains(ae))return;
+  listEl.innerHTML='';rows=new Map();lastNow=null;
+  if(!phrases.length){const d=document.createElement('div');d.className='empty';d.textContent='Фразы появятся здесь, когда вы начнёте говорить.';listEl.appendChild(d);return}
+  phrases.forEach(p=>{
+    const r=document.createElement('div');r.className='row'+(p.cut?' cut':'');
+    const tm=document.createElement('button');tm.className='tm';tm.textContent=fmt(p.s);
+    tm.onclick=()=>{seek(p.s)};
+    const lg=document.createElement('div');lg.className='lg '+p.l;lg.textContent=p.l.toUpperCase();
+    const tx=document.createElement('div');tx.className='tx';tx.textContent=p.t;
+    tx.contentEditable='plaintext-only';if(tx.contentEditable!=='plaintext-only')tx.contentEditable='true';
+    tx.spellcheck=false;
+    tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tx.blur()}e.stopPropagation()});
+    tx.addEventListener('blur',()=>{
+      const t=tx.textContent.replace(/\s+/g,' ').trim();
+      if(t!==p.t){p.t=t;buildPhrase(p);save();renderTL();updateButtons()}
+    });
+    const sc=document.createElement('button');sc.className='sc';sc.textContent=p.cut?'↩':'✂';sc.title=p.cut?'Вернуть':'Вырезать';
+    sc.onclick=()=>{p.cut=!p.cut;r.classList.toggle('cut',p.cut);sc.textContent=p.cut?'↩':'✂';save();renderTL()};
+    r.append(tm,lg,tx,sc);listEl.appendChild(r);rows.set(p,r);
+  });
+}
+
+function renderTL(){
+  const el=recording?(performance.now()-t0)/1000:0;
+  const maxE=Math.max(0,...allC().map(c=>c.e));
+  const total=Math.max(dur,el,isFinite(v.duration)&&hasVideo?v.duration:0,maxE)+2;
+  tlin.style.width=Math.ceil(total*PX)+'px';
+  tlin.innerHTML='';
+  for(let i=0;i<=total;i+=5){const t=document.createElement('div');t.className='tick';t.style.left=i*PX+'px';t.textContent=fmt(i);tlin.appendChild(t)}
+  allC().forEach((c,i)=>{
+    const b=document.createElement('div');b.className='blk '+c.g.l+(c.g.cut?' cut':'');
+    b.textContent=c.t;b.style.top=(28+(i%2)*48)+'px';place(b,c);
+    const hl=document.createElement('div');hl.className='h l';hl.dataset.h='l';
+    const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
+    b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);
+  });
+  ph=document.createElement('div');ph.className='ph';tlin.appendChild(ph);
+  updatePlayhead(false);
+}
+function place(b,c){b.style.left=c.s*PX+'px';b.style.width=Math.max(12,(c.e-c.s)*PX)+'px'}
+function seek(t){if(hasVideo&&!recording){try{v.currentTime=Math.max(0,t)}catch(e){}}}
+
+function attachDrag(b,c){
+  b.addEventListener('pointerdown',e=>{
+    if(recording||exporting)return;
+    e.preventDefault();e.stopPropagation();
+    const mode=e.target.dataset&&e.target.dataset.h||'m';
+    b.setPointerCapture(e.pointerId);
+    const x0=e.clientX,s0=c.s,e0=c.e;
+    const mv=ev=>{
+      const d=(ev.clientX-x0)/PX;
+      if(mode==='m'){const ns=Math.max(0,s0+d);c.s=ns;c.e=ns+(e0-s0)}
+      else if(mode==='l'){c.s=Math.min(Math.max(0,s0+d),e0-0.2)}
+      else{c.e=Math.max(e0+d,s0+0.2)}
+      place(b,c);seek(c.s+0.05);
+    };
+    const up=()=>{
+      b.removeEventListener('pointermove',mv);b.removeEventListener('pointerup',up);b.removeEventListener('pointercancel',up);
+      save();renderTL();
+    };
+    b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
+  });
+}
+tlin.addEventListener('click',e=>{
+  if(e.target.closest('.blk')||recording||exporting)return;
+  const x=e.clientX-tlin.getBoundingClientRect().left;
+  seek(x/PX);
+});
+
+function updatePlayhead(follow){
+  if(!ph)return;
+  const t=recording?(performance.now()-t0)/1000:(hasVideo?v.currentTime:0);
+  const x=t*PX;ph.style.left=x+'px';
+  if(follow&&(recording||(hasVideo&&!v.paused))){
+    const l=tl.scrollLeft,w=tl.clientWidth;
+    if(x<l||x>l+w*0.85)tl.scrollLeft=Math.max(0,x-w*0.3);
+  }
+}
+
+/* ---------- субтитры на экране ---------- */
+function updateSub(){
+  let txt='',cur=null;
+  if(recording){
+    const p=phrases[phrases.length-1],now=(performance.now()-t0)/1000;
+    if(p&&p.t&&now-p.e<=3)txt=p.t.split(/\s+/).filter(Boolean).slice(-6).join(' ');
+  }else if(hasVideo){
+    const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g}
+  }
+  if(txt!==lastSub){lastSub=txt;sub.textContent=txt;sub.classList.toggle('show',!!txt)}
+  if(cur!==lastNow){
+    if(lastNow&&rows.get(lastNow))rows.get(lastNow).classList.remove('now');
+    if(cur&&rows.get(cur))rows.get(cur).classList.add('now');
+    lastNow=cur;
+  }
+}
+
+/* ---------- главный цикл ---------- */
+let xctx=null;
+function tick(){
+  requestAnimationFrame(tick);
+  if(hasVideo&&!v.paused&&!v.ended){
+    const t=v.currentTime;
+    for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
+  }
+  if(exporting&&xctx)drawExportFrame();
+  updateSub();updatePlayhead(true);
+}
+
+/* ---------- SRT ---------- */
+function shiftT(t,spans){let d=0;for(const s of spans){if(t>=s[1])d+=s[1]-s[0];else if(t>s[0])d+=t-s[0]}return t-d}
+function downloadSrt(){
+  const spans=cutSpans();
+  const kept=allC().filter(c=>!c.g.cut).sort((a,b)=>a.s-b.s);
+  let out='',n=0;
+  for(const c of kept){
+    const s=shiftT(c.s,spans),e=shiftT(c.e,spans);
+    if(e-s<0.01)continue;n++;
+    out+=n+'\n'+fmtSrt(s)+' --> '+fmtSrt(e)+'\n'+c.t+'\n\n';
+  }
+  if(!n){toast('Нет фраз для SRT.');return}
+  download(new Blob([out],{type:'text/plain;charset=utf-8'}),'subtitles.srt');
+}
+
+/* ---------- экспорт видео ---------- */
+function wrap(ctx,text,maxW){
+  const words=text.split(/\s+/),lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w}else cur=t}
+  if(cur)lines.push(cur);return lines;
+}
+function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawSubOnCanvas(ctx,W,H,text){
+  const fs=W*0.044,lh=fs*1.25,padX=fs*0.55,padY=fs*0.2;
+  const weights={classic:'600',bold:'900',minimal:'300',pop:'700'};
+  ctx.font=weights[style]+' '+fs+'px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(style==='bold')text=text.toUpperCase();
+  const lines=wrap(ctx,text,W*0.9-2*padX);
+  const bw=Math.max(...lines.map(l=>ctx.measureText(l).width))+2*padX,bh=lines.length*lh+2*padY;
+  const bx=(W-bw)/2,by=H*0.88-bh;
+  if(style==='classic'){ctx.fillStyle='rgba(0,0,0,.6)';rrect(ctx,bx,by,bw,bh,fs*0.2);ctx.fill()}
+  if(style==='pop'){ctx.fillStyle='#7c3aed';rrect(ctx,bx,by,bw,bh,fs*0.45);ctx.fill()}
+  lines.forEach((l,i)=>{
+    const y=by+padY+lh*(i+0.5),x=W/2;
+    if(style==='bold'){ctx.lineJoin='round';ctx.lineWidth=fs*0.22;ctx.strokeStyle='#000';ctx.strokeText(l,x,y);ctx.fillStyle='#FFD60A'}
+    else if(style==='minimal'){ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=fs*0.22;ctx.shadowOffsetY=fs*0.06;ctx.fillStyle='#fff'}
+    else ctx.fillStyle='#fff';
+    ctx.fillText(l,x,y);
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+  });
+}
+function drawExportFrame(){
+  const W=cv.width,H=cv.height;
+  xctx.drawImage(v,0,0,W,H);
+  const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t);
+  const total=isFinite(v.duration)&&v.duration>0?v.duration:dur;
+  if(total)expBtn.textContent='Экспорт… '+Math.min(99,Math.round(v.currentTime/total*100))+'%';
+}
+async function exportVideo(){
+  if(!hasVideo||exporting||recording)return;
+  const W=v.videoWidth,H=v.videoHeight;if(!W||!H){toast('Видео ещё загружается.');return}
+  if(!HTMLCanvasElement.prototype.captureStream){toast('Экспорт видео доступен в Chrome.');return}
+  cv.width=W;cv.height=H;xctx=cv.getContext('2d');
+  exporting=true;updateButtons();v.controls=false;
+  toast('Экспорт идёт в реальном времени. Держите вкладку открытой.',5000);
+  v.pause();v.currentTime=0;
+  const cs=cv.captureStream(30),out=[];
+  const mt=pickMime();let r2;
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt}:undefined)}catch(e){exporting=false;v.controls=true;updateButtons();toast('Запись видео доступна в Chrome.');return}
+  v.onended=()=>{v.onended=null;setTimeout(()=>{if(r2.state!=='inactive')r2.stop()},300)};
+  r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
+  r2.onstop=()=>{
+    exporting=false;xctx=null;v.controls=true;v.currentTime=0;expBtn.textContent='🎬 Экспорт видео';
+    download(new Blob(out,{type:'video/webm'}),'edited.webm');
+    updateButtons();toast('Готово: edited.webm');
+  };
+  try{await v.play()}catch(e){}
+  try{const vs=v.captureStream?v.captureStream():null;if(vs)vs.getAudioTracks().forEach(t=>cs.addTrack(t))}catch(e){}
+  r2.start(1000);
+}
+
+/* ---------- события ---------- */
+recBtn.onclick=()=>{if(exporting)return;recording?stopRec():startRec()};
+document.querySelectorAll('#langs .chip').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
+document.querySelectorAll('#styles .chip').forEach(b=>b.onclick=()=>setStyle(b.dataset.s));
+srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;
+$('#clear').onclick=()=>{
+  if(recording||exporting)return;
+  if(phrases.length&&!confirm('Очистить все фразы?'))return;
+  phrases=[];map={};dur=0;save();renderAll();
+};
+document.addEventListener('keydown',e=>{
+  const a=document.activeElement;
+  if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
+  const m={Digit1:'hy',Numpad1:'hy',Digit2:'ru',Numpad2:'ru',Digit3:'en',Numpad3:'en'}[e.code];
+  if(m)setLang(m);
+});
+function applyTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('substudio-theme',t)}catch(e){}}
+$('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+(function(){
+  let t=null;try{t=localStorage.getItem('substudio-theme')}catch(e){}
+  if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.dataset.theme=t;
+})();
+
+/* ---------- старт ---------- */
+(function init(){
+  const b=$('#banner');
+  if(!SR){b.textContent='Распознавание речи работает в Chrome. Откройте страницу в Chrome, чтобы текст появлялся во время записи.';b.classList.add('show')}
+  else if(!navigator.mediaDevices){b.textContent='Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.';b.classList.add('show')}
+  load();renderAll();
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
+  requestAnimationFrame(tick);
+})();
+})();
+</script>
+</body>
+</html>
