@@ -197,10 +197,11 @@ details li{margin:4px 0}
           <div id="timer">00:00</div>
         </div>
         <div id="st">Распознавание речи: ожидание записи</div>
+        <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
         <label class="chk"><span>Режим записи</span><select id="pmode" class="sel" style="min-height:38px;font-size:14px;flex:1">
           <option value="normal">Обычный: видео со звуком (ПК)</option>
-          <option value="track">Телефон: со звуком (Chrome 139+)</option>
-          <option value="mute">Телефон: без звука (запасной)</option>
+          <option value="after">Телефон: звук + текст сразу после записи (авто)</option>
+          <option value="mute">Телефон: текст сразу, но без звука</option>
         </select></label>
 
         <div class="label">Язык речи <span>переключайте даже во время записи</span></div>
@@ -216,6 +217,7 @@ details li{margin:4px 0}
         <div class="actions">
           <button class="btn" id="srt" disabled>⬇ Скачать SRT</button>
           <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
+          <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи)</button>
           <button class="btn" id="add" style="grid-column:1/-1">＋ Фраза вручную (в текущий момент)</button>
         </div>
         <div class="hint">Экспорт идёт в реальном времени: сохраняйте вкладку открытой и активной до конца.</div>
@@ -233,7 +235,7 @@ details li{margin:4px 0}
           <summary>Ограничения и подсказки</summary>
           <ul>
             <li>Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.</li>
-            <li>На телефоне камера и распознавание речи могут спорить за микрофон. Если текста нет, используйте «＋ Фраза вручную» или запишите на ПК.</li>
+            <li>На телефоне камера и распознавание речи спорят за микрофон, поэтому звук пропадает. Режим «звук + текст после записи» пишет видео со звуком, а затем сам проигрывает запись и распознаёт её с индикатором процентов. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
             <li>Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.</li>
             <li>Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.</li>
             <li>Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).</li>
@@ -278,6 +280,8 @@ gold:{n:'Золото',c:'#FFE08A',w:800,st:.12,sc:'#5a3a00',sh:['rgba(0,0,0,.6)
 const BASEFAM='system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Armenian",sans-serif';
 let previewUntil=0;
 let ph=null, rows=new Map(), lastSub='', lastNow=null, tmr=null, wd=null;
+let passing=false,pendingPass=false,passTrack=null,usingTrack=false,gotRes=false,langLog=[],passTimer=null,PDEST=null;
+const nowT=()=>passing?v.currentTime:(performance.now()-t0)/1000;
 
 /* ---------- утилиты ---------- */
 function toast(msg,ms){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),ms||4200)}
@@ -355,7 +359,7 @@ function startSR(){
   r.onaudiostart=()=>setSt('звук идёт, жду речь…','ok');
   r.onspeechstart=()=>setSt('слышу речь…','ok');
   r.onresult=ev=>{
-    const now=(performance.now()-t0)/1000;
+    const now=nowT();gotRes=true;
     for(let i=ev.resultIndex;i<ev.results.length;i++){
       const key=my+'-'+i;let p=map[key];
       const txt=ev.results[i][0].transcript.trim();
@@ -369,6 +373,7 @@ function startSR(){
   r.onerror=e=>{
     if(e.error==='aborted')return;
     if(e.error==='no-speech'){setSt('тишина, жду речь…');return}
+    if(passing&&passTrack&&e.error!=='network'){passFallback();return}
     setSt('ошибка «'+e.error+'»','err');
     toast(ERR[e.error]||('Ошибка распознавания: '+e.error),8000);
     if(e.error==='network'){delay=2000}
@@ -376,19 +381,18 @@ function startSR(){
   };
   r.onend=()=>{
     try{r._t&&r._t.stop()}catch(e){}
-    if(recording&&my===epoch&&!fatal)setTimeout(()=>{if(recording&&my===epoch)startSR()},delay);
+    if((recording||passing)&&my===epoch&&!fatal)setTimeout(()=>{if((recording||passing)&&my===epoch)startSR()},delay);
   };
   sr=r;
   try{
-    const at=stream&&stream.getAudioTracks()[0];
-    if($('#pmode').value==='track'&&at){const ct=at.clone();r._t=ct;try{r.start(ct)}catch(e2){r.start()}}
+    if(passing&&passTrack){const ct=passTrack.clone();r._t=ct;try{r.start(ct)}catch(e2){passTrack=null;usingTrack=false;try{ASRC.connect(AC.destination)}catch(e3){}r.start()}}
     else r.start();
   }catch(e){setSt('не удалось запустить ('+e.message+')','err')}
 }
 function setLang(l){
-  lang=l;
+  lang=l;if(recording)langLog.push({t:(performance.now()-t0)/1000,l});
   document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
-  if(recording&&SR){
+  if((recording||passing)&&SR){
     epoch++;
     if(sr){sr.onend=null;sr.onresult=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}}
     setTimeout(startSR,250);
@@ -435,7 +439,7 @@ async function startRec(){
   if(!stream&&!(await initCam()))return;
   if(url){URL.revokeObjectURL(url);url=null}
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});
-  phrases=[];map={};dur=0;blobs=[];lastSub='';
+  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];
   const mt=pickMime();
   const pmv=$('#pmode').value,phone=pmv==='mute';
   let rs=stream;
@@ -446,16 +450,19 @@ async function startRec(){
   mr.start(1000);
   recording=true;t0=performance.now();
   setSt('запускаю…');banner('');
-  if(phone)setTimeout(()=>{if(recording)startSR()},500);else startSR();
+  if(pmv==='mute')setTimeout(()=>{if(recording)startSR()},500);
+  else if(pmv==='normal')startSR();
+  else setSt('после записи: видео пишется со звуком, текст появится автоматически');
   clearTimeout(wd);
   wd=setTimeout(()=>{
-    if(recording&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне смените «Режим записи» (микрофон занят видеозаписью); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
+    if(recording&&pmv!=='after'&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне смените «Режим записи» (микрофон занят видеозаписью); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
   },8000);
   recBtn.classList.add('on');recTxt.textContent='Стоп';badge.classList.add('on');
   tmr=setInterval(()=>{timerEl.textContent=fmt((performance.now()-t0)/1000);renderTL()},1000);
   save();renderAll();updateButtons();
 }
 function stopRec(){
+  pendingPass=$('#pmode').value==='after';
   recording=false;dur=(performance.now()-t0)/1000;
   clearInterval(tmr);clearTimeout(wd);epoch++;
   if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
@@ -471,6 +478,8 @@ function finishRec(){
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;
   updateButtons();
+  if($('#pmode').value!=='mute')checkAudio(blob);
+  if(pendingPass){pendingPass=false;setTimeout(()=>transcribe(true),500)}
 }
 v.addEventListener('loadedmetadata',()=>{
   if(v.videoWidth)stage.style.setProperty('--ar',(v.videoWidth/v.videoHeight).toFixed(4));
@@ -498,7 +507,8 @@ function addManual(){
 
 /* ---------- отрисовка интерфейса ---------- */
 function updateButtons(){
-  const pe=!(hasVideo&&!recording&&!exporting);
+  const pe=!(hasVideo&&!recording&&!exporting&&!passing);
+  $('#tr').disabled=pe;recBtn.disabled=passing||exporting;
   document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
   expBtn.disabled=!(hasVideo&&!recording&&!exporting&&phrases.length);
@@ -597,8 +607,8 @@ function updatePlayhead(follow){
 /* ---------- субтитры на экране ---------- */
 function updateSub(){
   let txt='',cur=null;
-  if(recording){
-    const p=phrases[phrases.length-1],now=(performance.now()-t0)/1000;
+  if(recording||passing){
+    const p=phrases[phrases.length-1],now=nowT();
     if(p&&p.t&&now-p.e<=3)txt=p.t.split(/\s+/).filter(Boolean).slice(-6).join(' ');
   }else if(hasVideo){
     const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g}
@@ -610,6 +620,82 @@ function updateSub(){
     if(cur&&rows.get(cur))rows.get(cur).classList.add('now');
     lastNow=cur;
   }
+}
+
+/* ---------- проверка звука и распознавание по записи ---------- */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function checkAudio(blob){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;const c=new C();
+    const buf=await c.decodeAudioData(await blob.arrayBuffer());c.close();
+    let mx=0;const ch=buf.getChannelData(0);for(let i=0;i<ch.length;i+=50)mx=Math.max(mx,Math.abs(ch[i]));
+    if(mx<0.002)banner('В записи нет звука: микрофон был занят распознаванием или заглушён. Выберите режим «Телефон: звук + текст сразу после записи».');
+  }catch(e){}
+}
+function audioGraph(){
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
+  if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
+  if(AC.state==='suspended')AC.resume();
+  return true;
+}
+async function transcribe(auto){
+  if(!SR){toast('Распознавание речи работает в Chrome.');return}
+  if(!hasVideo||recording||exporting||passing)return;
+  if(!auto&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
+  for(let i=0;i<40&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
+  const T=totalT();if(!T){toast('Не удалось определить длину видео.');return}
+  if(!audioGraph()){toast('Не удалось подготовить звук для распознавания.');return}
+  setEdit(false);
+  setLang(langLog[0]?langLog[0].l:lang);
+  phrases=[];map={};save();renderAll();
+  passing=true;gotRes=false;
+  ASRC.disconnect();
+  PDEST=AC.createMediaStreamDestination();ASRC.connect(PDEST);
+  usingTrack=typeof SR.available==='function';
+  passTrack=usingTrack?PDEST.stream.getAudioTracks()[0]:null;
+  if(!usingTrack)ASRC.connect(AC.destination);
+  v.pause();v.muted=false;v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;await sleep(250);
+  $('#pass').style.display='block';updateButtons();
+  setSt('распознаю запись…');
+  startSR();
+  try{await v.play()}catch(e){toast('Браузер не дал запустить воспроизведение. Нажмите «Распознать речь по записи» ещё раз.');finishPass();return}
+  toast('Идёт распознавание: займёт время, равное длине видео ('+fmt(T)+'). Не закрывайте вкладку.'+(usingTrack?'':' Включите громкость: микрофон слушает звук видео.'),8000);
+  passTimer=setInterval(passTick,250);
+  v.onended=()=>finishPass();
+}
+function passTick(){
+  const T=totalT()||1,t=v.currentTime;
+  $('#passBar').value=Math.min(100,t/T*100);
+  $('#passTxt').textContent='Распознаю речь по записи: '+Math.min(100,Math.round(t/T*100))+'% ('+fmt(t)+' / '+fmt(T)+'). Текст появляется в списке фраз.';
+  let l=langLog[0]?langLog[0].l:lang;for(const e of langLog)if(e.t<=t)l=e.l;
+  if(l!==lang)setLang(l);
+  if(usingTrack&&!gotRes&&t>12)passFallback();
+}
+function passFallback(){
+  if(!passing||!passTrack)return;
+  passTrack=null;usingTrack=false;
+  try{ASRC.connect(AC.destination)}catch(e){}
+  toast('Прямая передача звука не сработала. Теперь микрофон слушает звук видео из динамика: включите громкость.',8000);
+  epoch++;
+  if(sr){sr.onend=null;sr.onresult=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}}
+  setTimeout(()=>{if(passing)startSR()},300);
+}
+async function finishPass(){
+  if(!passing)return;
+  v.onended=null;clearInterval(passTimer);v.pause();
+  epoch++;
+  setSt('завершаю распознавание…');
+  if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
+  await sleep(1500);
+  passing=false;
+  try{sr&&sr._t&&sr._t.stop()}catch(e){}
+  try{ASRC.disconnect();ASRC.connect(AC.destination)}catch(e){}
+  $('#pass').style.display='none';
+  v.currentTime=0;
+  buildAll();
+  const ok=phrases.some(p=>p.t);
+  setSt(ok?'готово ✓':'ничего не распознано',ok?'ok':'err');
+  toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык, громкость или добавьте фразы вручную.',6000);
 }
 
 /* ---------- плеер ---------- */
@@ -625,10 +711,11 @@ function updatePlayerUI(){
   $('#mu').textContent=v.muted?'ТИХО':'ЗВУК';
 }
 function togglePlay(){
-  if(!hasVideo||recording||exporting)return;
+  if(!hasVideo||recording||exporting||passing)return;
+  if(AC&&AC.state==='suspended')AC.resume();
   if(v.paused||v.ended){if(v.ended)v.currentTime=0;v.play().catch(()=>{})}else v.pause();
 }
-function skip(d){if(hasVideo&&!recording&&!exporting)v.currentTime=Math.max(0,Math.min(totalT()||1e9,v.currentTime+d))}
+function skip(d){if(hasVideo&&!recording&&!exporting&&!passing)v.currentTime=Math.max(0,Math.min(totalT()||1e9,v.currentTime+d))}
 $('#pp').onclick=togglePlay;
 $('#bk').onclick=()=>skip(-5);$('#fw').onclick=()=>skip(5);
 $('#mu').onclick=()=>{v.muted=!v.muted};
@@ -650,7 +737,7 @@ $('#fs').onclick=()=>{
 stage.addEventListener('click',togglePlay);
 function setEdit(on){
   const pl=$('#player');
-  if(on&&!(hasVideo&&!recording&&!exporting))return;
+  if(on&&!(hasVideo&&!recording&&!exporting&&!passing))return;
   pl.classList.toggle('edit',on);document.body.style.overflow=on?'hidden':'';
   $('#ed').textContent=on?'✕ Закрыть тайминг':'✎ Edit voice timing';
   if(on){renderTL();tl.scrollLeft=Math.max(0,v.currentTime*PX-tl.clientWidth*0.3)}
@@ -734,7 +821,7 @@ function drawExportFrame(){
   if(total)expBtn.textContent='Экспорт… '+Math.min(99,Math.round(v.currentTime/total*100))+'%';
 }
 async function exportVideo(){
-  if(!hasVideo||exporting||recording)return;
+  if(!hasVideo||exporting||recording||passing)return;
   const W=v.videoWidth,H=v.videoHeight;if(!W||!H){toast('Видео ещё загружается.');return}
   if(!HTMLCanvasElement.prototype.captureStream){toast('Экспорт видео доступен в Chrome.');return}
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
@@ -761,13 +848,13 @@ async function exportVideo(){
 
 /* ---------- события ---------- */
 expBtn.textContent=EXPLBL;
-recBtn.onclick=()=>{if(exporting)return;recording?stopRec():startRec()};
+recBtn.onclick=()=>{if(exporting||passing)return;recording?stopRec():startRec()};
 document.querySelectorAll('#langs .chip').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
 const sel=$('#styleSel');
 Object.keys(STY).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=STY[k].n;sel.appendChild(o)});
 sel.onchange=()=>setStyle(sel.value);
 setStyle('classic',true);
-srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;
+srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#tr').onclick=()=>transcribe(false);$('#passX').onclick=()=>finishPass();
 $('#clear').onclick=()=>{
   if(recording||exporting)return;
   if(phrases.length&&!confirm('Очистить все фразы?'))return;
@@ -777,7 +864,7 @@ document.addEventListener('keydown',e=>{
   const a=document.activeElement;
   if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
   if(e.code==='Escape')setEdit(false);
-  if(hasVideo&&!recording&&!exporting&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
+  if(hasVideo&&!recording&&!exporting&&!passing&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
     if(e.code==='Space'){e.preventDefault();togglePlay()}
     else if(e.code==='ArrowLeft')skip(-5);else if(e.code==='ArrowRight')skip(5);
   }
@@ -798,7 +885,7 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
   else if(!navigator.mediaDevices){banner('Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.')}
   let pm=null;try{pm=localStorage.getItem('substudio-pmode')}catch(e){}
   const mob=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),can=SR&&typeof SR.available==='function';
-  $('#pmode').value=['normal','track','mute'].includes(pm)?pm:(mob?(can?'track':'mute'):'normal');
+  $('#pmode').value=['normal','after','mute'].includes(pm)?pm:(mob?'after':'normal');
   $('#pmode').onchange=()=>{try{localStorage.setItem('substudio-pmode',$('#pmode').value)}catch(e){}};
   load();renderAll();
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
