@@ -776,7 +776,9 @@ async function openStream(){
   }
   throw last;
 }
-async function initCam(){
+let camQ=Promise.resolve();
+function initCam(){const p=camQ.then(_initCam,_initCam);camQ=p.catch(()=>{});return p}
+async function _initCam(){
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
   try{
     stream=await openStream();
@@ -788,9 +790,9 @@ async function initCam(){
     return true;
   }catch(err){
     const n=err&&err.name;
-    toast(n==='NotReadableError'||n==='TrackStartError'?CAMMSG.busy[ui]
+    toast((n==='NotReadableError'||n==='TrackStartError'?CAMMSG.busy[ui]
       :(n==='NotFoundError'||n==='OverconstrainedError')?CAMMSG.none[ui]
-      :t('camDenied'),8000);
+      :t('camDenied'))+' ['+(n||'error')+(err&&err.message?': '+err.message:'')+']',9000);
     listCams();
     return false;
   }
@@ -798,11 +800,12 @@ async function initCam(){
 /* возврат в приложение: после сворачивания камера «умирает», перезапускаем */
 async function revive(){
   if(document.visibilityState!=='visible'||recording||hasVideo||exporting||passing)return;
+  await camQ;
+  if(document.visibilityState!=='visible'||recording||hasVideo||exporting||passing)return;
   if(camLive())v.play().catch(()=>{});
   else await initCam();
 }
 document.addEventListener('visibilitychange',revive);
-window.addEventListener('pageshow',revive);
 async function startRec(){
   if(phrases.length&&!confirm(t('newRec')))return;
   if(!camLive()&&!(await initCam()))return;
@@ -814,7 +817,7 @@ async function startRec(){
   const pmv=cloudMode?'cloud':(MOB?'mute':'normal');
   let rs=stream;
   if(pmv==='mute'){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast(t('mutedMode'),5000)}
-  if(mirror||!hwZoom){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
+  if(mirror||(!hwZoom&&zoom>1.001)){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
   try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){stopCanvas();toast(t('recUnsup'));return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
