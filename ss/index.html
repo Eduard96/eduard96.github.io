@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Субтитры">
+<title>Студия субтитров</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f3fb; --card:#ffffff; --ink:#1b1736; --mute:#6b6a85; --line:#e4e2f2; --chip:#efecfb;
+  --acc:#7c3aed; --acc2:#ec4899; --danger:#ef4444; --ok:#10b981; --blue:#3b82f6;
+  --shadow:0 8px 30px rgba(60,40,120,.10);
+  --r:18px;
+}
+:root[data-theme="dark"]{
+  --bg:#0e0c1c; --card:#171430; --ink:#f1efff; --mute:#9a97bd; --line:#2a2650; --chip:#221e44;
+  --shadow:0 8px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;min-height:100dvh;color:var(--ink);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Armenian",sans-serif;
+  background:
+    radial-gradient(900px 500px at 8% -10%,rgba(124,58,237,.18),transparent 60%),
+    radial-gradient(800px 500px at 100% 0%,rgba(236,72,153,.14),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.app{max-width:1240px;margin:0 auto;padding:12px 14px 28px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;font-style:normal;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 6px 16px rgba(124,58,237,.4)}
+.logo small{display:block;font-weight:500;font-size:12px;color:var(--mute);letter-spacing:0}
+.icon-btn{width:42px;height:42px;border-radius:13px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow);font-size:18px}
+.grid{display:grid;gap:14px;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}
+.col{display:grid;gap:14px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;min-width:0}
+.card h2{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.banner{display:none;margin-bottom:14px;padding:12px 14px;border-radius:14px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.4);font-size:14px}
+.banner.show{display:block}
+
+/* stage */
+.stage-wrap{padding:10px}
+.stage{--ar:1.7778;position:relative;margin:0 auto;aspect-ratio:var(--ar);
+  width:min(100%,calc(62vh*var(--ar)));width:min(100%,calc(62dvh*var(--ar)));
+  background:#000;border-radius:14px;overflow:hidden;container-type:inline-size}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.badge{position:absolute;top:10px;left:10px;display:none;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:700;backdrop-filter:blur(6px)}
+.badge.on{display:flex}
+.badge b{width:8px;height:8px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.sub{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);max-width:90%;width:max-content;text-align:center;
+  font-size:4.4cqw;line-height:1.25;padding:.2em .55em;pointer-events:none;display:none;overflow-wrap:anywhere}
+.sub.show{display:block}
+
+/* controls */
+.rec-row{display:flex;align-items:center;gap:12px}
+#rec{flex:1;min-height:56px;border-radius:16px;font-weight:800;font-size:18px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 8px 22px rgba(124,58,237,.4);transition:transform .1s}
+#rec:active{transform:scale(.98)}
+#rec .dot{width:14px;height:14px;border-radius:50%;background:#fff}
+#rec.on{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 8px 22px rgba(239,68,68,.45)}
+#rec.on .dot{border-radius:3px;animation:pulse 1s infinite}
+#timer{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;color:var(--mute)}
+#st{margin-top:8px;font-size:13px;font-weight:600;color:var(--mute)}
+#st.ok{color:var(--ok)}#st.err{color:var(--danger)}
+.label{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;justify-content:space-between;gap:8px}
+.label span{text-transform:none;letter-spacing:0;font-weight:500}
+.chips{display:grid;gap:8px}
+.chips.lang{grid-template-columns:repeat(3,1fr)}
+.chip{min-height:46px;padding:8px 10px;border-radius:13px;background:var(--chip);border:2px solid transparent;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s;text-align:center}
+.chip kbd{font:600 11px/1 ui-monospace,monospace;padding:3px 5px;border-radius:6px;background:var(--card);color:var(--mute);border:1px solid var(--line)}
+.chip.active{border-color:var(--acc);background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(236,72,153,.14));color:var(--ink);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.chips.lang .chip{font-size:18px}
+.sel{width:100%;min-height:48px;padding:0 12px;border-radius:13px;background:var(--chip);color:var(--ink);border:2px solid var(--acc);font:700 16px/1 inherit;font-family:inherit}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn{min-height:50px;border-radius:14px;font-weight:700;background:var(--chip);border:1px solid var(--line);padding:0 14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{color:#fff;border:0;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sm{min-height:34px;border-radius:10px;font-size:13px;padding:0 10px}
+
+/* player */
+.player:fullscreen{background:#000;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:8px}
+.player:fullscreen .stage{width:min(100%,calc((100dvh - 110px)*var(--ar)))}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;
+  --pc:#fff;--pbg:rgba(0,0,0,.5);--pr:.4em;--pw:700;--pf:inherit;--pst:none;--pa:#7c3aed;--pup:none;--pstroke:0}
+.pb{min-height:40px;min-width:44px;padding:0 12px;color:var(--pc);background:var(--pbg);border-radius:var(--pr);font-weight:var(--pw);font-family:var(--pf);
+  text-shadow:var(--pst);text-transform:var(--pup);-webkit-text-stroke:var(--pstroke);paint-order:stroke fill;font-size:15px;line-height:1;border:1px solid rgba(255,255,255,.18);font-style:var(--pit,normal)}
+.pb:disabled,#seek:disabled{opacity:.4;cursor:default}
+#seek{flex:1 1 140px;min-width:120px;accent-color:var(--pa);height:28px;margin:0}
+#ptime{font-variant-numeric:tabular-nums;font-size:13px;color:var(--mute);min-width:88px;text-align:center}
+.chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--mute)}
+.chk input{width:18px;height:18px;accent-color:var(--acc)}
+
+.edit-pane{display:none}
+.player.edit{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;justify-content:flex-start;gap:8px;overflow:hidden;
+  padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+.player.edit .stage{width:min(100%,calc(34dvh*var(--ar)));flex:none}
+.player.edit .ctl{margin-top:0}
+.player.edit .edit-pane{display:flex;flex-direction:column;flex:1;min-height:0;gap:6px}
+.player.edit .tl{height:auto!important;flex:1;min-height:0}
+.ephead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
+/* timeline */
+.tl{position:relative;overflow-x:auto;overflow-y:auto;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:132px;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.tlin{position:relative;height:100%;min-width:100%}
+.tick{position:absolute;top:0;height:20px;border-left:1px solid var(--mute);padding-left:4px;font-size:10px;color:var(--mute);pointer-events:none;font-variant-numeric:tabular-nums}
+.blk{position:absolute;height:44px;border-radius:9px;color:#fff;font-size:12px;font-weight:600;line-height:44px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.blk.hy{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.blk.ru{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.blk.en{background:linear-gradient(135deg,#10b981,#047857)}
+.blk.cut{opacity:.35;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.25) 0 6px,transparent 6px 12px)}
+.blk .h{position:absolute;top:0;bottom:0;width:9px;background:rgba(255,255,255,.4);cursor:ew-resize}
+.blk .h.l{left:0;border-radius:9px 0 0 9px}
+.blk .h.r{right:0;border-radius:0 9px 9px 0}
+.ph{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;pointer-events:none;z-index:5;box-shadow:0 0 6px rgba(239,68,68,.8)}
+.ph::before{content:"";position:absolute;top:0;left:-4px;border:5px solid transparent;border-top-color:#ef4444}
+.hint{font-size:12px;color:var(--mute);margin-top:8px}
+.hint a{color:var(--acc);font-weight:700}
+
+/* phrases */
+.plist{display:grid;gap:8px;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);overflow:auto;padding-right:2px}
+.row{display:grid;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:start;padding:8px;border-radius:14px;background:var(--chip);border:2px solid transparent}
+.row.now{border-color:var(--acc);background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(236,72,153,.1))}
+.row .tm{min-height:34px;padding:0 9px;border-radius:10px;background:var(--card);border:1px solid var(--line);font:700 13px ui-monospace,SFMono-Regular,monospace;color:var(--acc)}
+.row .lg{min-height:34px;padding:0 8px;border-radius:10px;font-weight:800;font-size:12px;color:#fff;display:grid;place-items:center}
+.lg.hy{background:#7c3aed}.lg.ru{background:#2563eb}.lg.en{background:#059669}
+.row .tx{min-height:34px;padding:6px 4px;font-size:16px;outline:none;border-radius:8px;overflow-wrap:anywhere}
+.row .tx:focus{background:var(--card);box-shadow:0 0 0 2px var(--acc)}
+.row.cut .tx{text-decoration:line-through;opacity:.5}
+.row .sc{width:38px;min-height:34px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:16px}
+.empty{padding:26px 10px;text-align:center;color:var(--mute);font-size:14px}
+details{font-size:13px;color:var(--mute)}
+details summary{cursor:pointer;font-weight:700;color:var(--ink);padding:4px 0}
+details ul{margin:8px 0 0;padding-left:18px}
+details li{margin:4px 0}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.ovl{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:20px;background:rgba(14,12,28,.82);backdrop-filter:blur(6px);touch-action:none}
+.ovl.show{display:flex}
+.ovl .box{width:min(100%,420px);text-align:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 20px}
+.ovl .pct{font-size:44px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ovl progress{width:100%;height:14px;accent-color:var(--acc);margin:10px 0}
+.ovl h3{margin:0 0 6px;font-size:18px}
+.ovl p{margin:6px 0 0;font-size:13px;color:var(--mute)}
+.ovl ol{text-align:left;margin:10px 0 0;padding-left:20px;font-size:14px}
+.ovl li{margin:6px 0}
+#pz{display:none;min-height:56px;padding:0 14px;border-radius:16px;font-weight:800;font-size:16px;background:var(--chip);border:2px solid var(--acc);white-space:nowrap}
+#pz.show{display:block}
+.chips.styles{grid-template-columns:repeat(3,1fr);max-height:262px;overflow:auto;padding:2px;-webkit-overflow-scrolling:touch}
+.sty{flex-direction:column;align-items:stretch;justify-content:flex-start;padding:6px;gap:6px;min-height:0}
+.sty .pv{display:grid;place-items:center;min-height:40px;border-radius:9px;background:linear-gradient(135deg,#2b2a44,#4a3a6b);font-size:15px;line-height:1.25;padding:4px;overflow:hidden}
+.sty .nm{font-weight:700;font-size:12px;color:var(--ink);line-height:1.15}
+header{flex-wrap:wrap}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}
+.seg button{padding:0 9px;min-height:42px;font-size:12px;font-weight:800;color:var(--mute)}
+.seg button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.camrow{display:flex;gap:8px;align-items:center;margin-top:10px}
+.camrow .sel{flex:1;min-width:0;min-height:42px;font-size:14px}
+.camrow .chip{flex:none;min-height:42px;font-size:13px;white-space:nowrap}
+.camrow .btn.sm{width:40px;flex:none;padding:0}
+#zr{flex:1;min-width:0;accent-color:var(--acc);height:28px;margin:0}
+#zv{min-width:42px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px;font-weight:700;color:var(--mute)}
+.hbtns{display:flex;gap:8px;align-items:center}
+#inst{width:auto;padding:0 12px;font-size:14px;font-weight:700;gap:6px;white-space:nowrap}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .plist{max-height:none}
+}
+@media (max-width:520px){
+  .chips.styles{grid-template-columns:repeat(2,1fr)}
+  .app{padding:8px 10px 24px}
+  .card{padding:12px;border-radius:16px}
+  .actions{grid-template-columns:1fr}
+  .row{grid-template-columns:auto 1fr auto;}
+  .row .tx{grid-column:1 / -1;grid-row:2}
+  .logo small{display:none}
+  .chip kbd{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><i>◉</i><div><span data-i="title"></span><small data-i="tag"></small></div></div>
+    <div class="hbtns"><div class="seg" id="uil"><button data-u="en">EN</button><button data-u="ru">RU</button><button data-u="hy">ՀԱՅ</button></div><button class="icon-btn" id="inst" data-i="inst"></button><button class="icon-btn" id="theme" aria-label="Сменить тему">🌓</button></div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="card stage-wrap">
+        <div class="player" id="player">
+        <div class="stage" id="stage">
+          <video id="v" playsinline muted autoplay></video>
+          <div class="badge" id="badge"><b></b>REC</div>
+          <div class="sub" id="sub"></div>
+        </div>
+        <div class="ctl" id="ctl">
+          <button class="pb" id="bk" disabled>−5</button>
+          <button class="pb" id="pp" disabled>▶</button>
+          <button class="pb" id="fw" disabled>+5</button>
+          <input type="range" id="seek" min="0" max="1000" value="0" step="1" disabled aria-label="Перемотка">
+          <div id="ptime">00:00 / 00:00</div>
+          <button class="pb" id="mu" disabled>ЗВУК</button>
+          <button class="pb" id="spd" disabled>1×</button>
+          <button class="pb" id="ed" disabled>✎ Edit voice timing</button>
+          <button class="pb" id="fs">⛶</button>
+        </div>
+        <div class="edit-pane" id="ep">
+          <div class="ephead"><span data-i="edhint"></span><span style="display:flex;gap:6px;flex:none"><button class="btn sm" id="eadd" data-i="addHere"></button><button class="btn sm" id="edone" data-i="done"></button></span></div>
+          <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
+        </div>
+        </div>
+        <div class="camrow"><select class="sel" id="camSel" aria-label="Camera"></select><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
+        <div class="camrow"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
+      </div>
+
+      <div class="card">
+        <div class="rec-row">
+          <button id="rec"><span class="dot"></span><span id="recTxt">Запись</span></button>
+          <button id="pz">⏸ Пауза</button>
+          <div id="timer">00:00</div>
+        </div>
+        <div id="st">Распознавание речи: ожидание записи</div>
+        <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
+
+        <details id="cloud" style="margin-top:10px"><summary data-i="cloudSum"></summary>
+          <div class="hint" style="margin:6px 0" data-ih="cloudHint"></div>
+          <div style="display:flex;gap:8px"><input id="key" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:40px;font-size:14px;flex:1"><button class="btn sm" id="keysave" data-i="save"></button></div>
+          <div class="hint" id="keyst"></div>
+        </details>
+
+        <div class="label"><b data-i="speechLang" style="font-weight:inherit"></b><span data-i="speechLangHint"></span></div>
+        <div class="chips lang" id="langs">
+          <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
+          <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
+          <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
+        </div>
+
+        <div class="label" data-i="styleLbl"></div>
+        <div class="chips styles" id="styles" role="listbox" aria-label="Стиль субтитров"></div>
+
+        <div class="actions">
+          <button class="btn" id="srt" disabled data-i="srt"></button>
+          <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
+          <button class="btn" id="add" style="grid-column:1/-1" data-i="addM"></button>
+        </div>
+        <div class="hint" data-i="expHint"></div>
+      </div>
+
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h2><span data-i="phrases"></span> <button class="btn sm" id="clear" data-i="clear"></button></h2>
+        <div class="plist" id="list"></div>
+      </div>
+      <div class="card">
+        <details>
+          <summary data-i="limits"></summary>
+          <ul><li data-i="l1"></li><li data-i="l2"></li><li data-i="l3"></li><li data-i="l4"></li><li data-i="l5"></li></ul>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="ebox" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="width:min(100%,460px)">
+    <h2 id="etitle">Текст дорожки</h2>
+    <textarea id="etxt" class="sel" rows="3" style="min-height:90px;padding:10px;font-weight:500;line-height:1.3;resize:vertical"></textarea>
+    <div class="actions" style="grid-template-columns:1fr 1fr 1fr">
+      <button class="btn" id="ecancel" data-i="eCancel"></button>
+      <button class="btn" id="edel" style="color:var(--danger)" data-i="eDel"></button>
+      <button class="btn primary" id="esave" data-i="eSave"></button>
+    </div>
+  </div>
+</div>
+
+<div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
+<div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
+<canvas id="cv" style="display:none"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const v=$('#v'),stage=$('#stage'),sub=$('#sub'),listEl=$('#list'),tl=$('#tl'),tlin=$('#tlin'),cv=$('#cv');
+const recBtn=$('#rec'),recTxt=$('#recTxt'),timerEl=$('#timer'),srtBtn=$('#srt'),expBtn=$('#exp'),badge=$('#badge');
+const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+
+const I18={
+en:{
+title:'Subtitle Studio',tag:'Record video, text and editing appear instantly',inst:'⬇ Install',
+sound:'SOUND',muted:'MUTED',edT:'✎ Edit voice timing',edC:'✕ Close timing',
+edhint:'Tap a block to edit or delete its text. Drag a block to move it, drag its edges to change start and end. Swipe on an empty spot to scrub. Overlapping blocks stack in lanes.',
+addHere:'＋ Phrase here',done:'Done',rec:'Record',stop:'Stop',pause:'⏸ Pause',resume:'▶ Resume',badgeRec:'REC',badgePause:'PAUSED',
+stIdle:'waiting for recording',srp:'Speech recognition: ',
+cloudSum:'☁ Cloud recognition (free): sound and text together on phone',
+cloudHint:'<b>It is free, no card needed.</b> How to get a key: 1) open <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> and sign in with Google or email; 2) tap <b>Create API Key</b>; 3) enter any name and copy the key (it starts with gsk_); 4) paste it below and tap Save. Audio goes to Groq (Whisper) in 7-second pieces, text appears a few seconds later. The key is stored only in this browser.',
+save:'Save',keyOk:'Key saved: on phone, sound and text will work together.',keyOff:'Key removed: on phone text appears live, but the video has no sound.',toastKeyOk:'Key saved',toastKeyOff:'Key removed',
+speechLang:'Speech language',speechLangHint:'switch even while recording',styleLbl:'Subtitle style',
+cam:'Camera',camN:'Camera {0}',mirOff:'Mirror: off',mirOn:'Mirror: on',zoom:'Zoom',mirLock:'Mirror cannot be changed during this recording',
+srt:'⬇ Download SRT',expMp4:'🎬 Export MP4',expWebm:'🎬 Export WebM',exPct:'Export… {0}%',
+addM:'＋ Add phrase manually (at current moment)',
+expHint:'Export runs in real time and the audio is recorded with the video. Keep the tab open and active until it finishes.',
+phrases:'Phrases',clear:'Clear',limits:'Limits and tips',
+l1:'You need Chrome, internet (Chrome recognizes speech through Google) and camera and microphone permissions. If the page is open in an embedded window, open it in a separate tab.',
+l2:'On a phone the camera and speech recognition compete for the microphone. Without a cloud key the video is recorded without sound and text appears live. With a free Groq key, sound and text work together.',
+l3:'Word timing is approximate because the browser gives it only for a whole phrase. Use the timeline for exact adjustment.',
+l4:'Mixed speech is recognized by switching the language with the buttons or the 1, 2, 3 keys.',
+l5:'For automatic language detection and exact word timing, server-side Whisper large-v3 works well (Armenian is weaker there).',
+empty:'Phrases will appear here when you start speaking.',
+restored:'Phrases restored from the saved session',
+errNA:'Access to speech recognition is blocked. Allow the microphone in site settings and open the page in a separate Chrome tab.',
+errSNA:'Speech recognition is not allowed in this window. Open the page in a separate Chrome tab (not an embedded view).',
+errAC:'Recognition gets no audio: the microphone is busy with video recording. On phone text appears live and the video has no sound.',
+errNet:'No connection to the Google recognition service. Check your internet.',
+errLang:'This language is not supported by recognition in your browser.',
+errGeneric:'Recognition error: {0}',srNo:'not supported by this browser. Chrome is required',
+listen:'listening ({0})…',audioOn:'audio detected, waiting for speech…',speech:'hearing speech…',textOn:'text is coming in ✓',silence:'silence, waiting for speech…',errSt:'error «{0}»',startFail:'could not start ({0})',
+cloudSend:'cloud: sending audio…',keyBad:'The service rejected the key. Check the key in the Cloud recognition block.',keyBadSt:'key rejected',cloudLim:'cloud: service limit, some phrases skipped',cloudErr:'cloud: error {0}',cloudOk:'cloud: text is coming in ✓',cloudWait:'cloud: waiting for speech…',cloudNet:'cloud: no connection to the service',
+doneSt:'done ✓',nothing:'nothing recognized',
+camDenied:'Camera and microphone access is blocked. Allow it in site settings and open the page in a separate tab.',
+newRec:'Start a new recording? Current phrases will be deleted.',
+mutedMode:'Phone mode: video is recorded without sound, the microphone is used for text recognition.',
+recUnsup:'Video recording is available in Chrome.',starting:'starting…',
+cloudRec:'cloud: recording with sound, text arrives a few seconds later',cloudToast:'Recording with sound. Text appears a few seconds after the words.',
+noText:'No text appeared within 8 seconds. Common reasons: the page is open in an embedded window (open it in a separate Chrome tab) or there is no internet (Chrome recognizes speech via Google). You can add phrases manually with the Add phrase manually button and adjust them on the timeline.',
+finishing:'finishing text…',stopped:'stopped',paused:'paused',listenSimple:'listening…',
+noAudio:'No sound in the recording: the microphone was busy or muted. Record again.',
+newPhrase:'New phrase',example:'Example subtitles',subWord:'Subtitles',cutT:'Cut',restoreT:'Restore',noSrt:'No phrases for SRT.',
+fsNA:'Fullscreen is not available in this window.',fsNS:'Fullscreen is not supported.',
+exNA:'Video export is available in Chrome.',vidLoading:'The video is still loading.',exToast:'Export runs in real time. Keep the tab open.',
+exWebm:'This browser cannot write MP4, so WebM will be saved. For MP4 open the page in a recent Chrome.',exDone:'Done: {0} (video, sound and subtitles together)',
+clearQ:'Clear all phrases?',
+bNoSR:'Speech recognition works in Chrome. Open the page in Chrome to get text while recording.',
+bNoMedia:'Camera and microphone need a secure (https) page. Open the file in a separate Chrome tab.',
+xTitle:'🎬 Exporting video',xP:'Do not close or minimize the tab and do not tap anything. The file will download automatically when the export is finished.',
+iTitle:'Install on phone',iClose:'Got it',
+iIos:'<p><b>iPhone / iPad.</b> Open the page in Safari (other browsers cannot install).</p><ol><li>Tap Share (square with an arrow up) at the bottom of the screen.</li><li>Scroll down and choose Add to Home Screen.</li><li>Tap Add. The icon appears on your home screen.</li></ol>',
+iAnd:'<p><b>Android.</b> Open the page in Chrome.</p><ol><li>Tap ⋮ (three dots) at the top right.</li><li>Choose Install app or Add to Home screen.</li><li>Confirm Install. The icon appears on your home screen.</li></ol>',
+iDesk:'<p><b>Computer.</b> In Chrome click the install icon ⊕ on the right of the address bar or the menu ⋮ → Install Subtitle Studio.</p><p>On phone: Android, Chrome menu ⋮ → Install app; iPhone, Safari Share → Add to Home Screen.</p>',
+iNote:'<p>Installing works when the page is opened from an https address (not as a file on the device).</p>',installed:'App installed',
+eTitle:'Track text',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save'
+},
+ru:{
+title:'Студия субтитров',tag:'Пишите видео, текст и монтаж появляются сразу',inst:'⬇ Установить',
+sound:'ЗВУК',muted:'ТИХО',edT:'✎ Edit voice timing',edC:'✕ Закрыть тайминг',
+edhint:'Нажмите на блок, чтобы изменить или удалить текст. Тяните блок целиком, края меняют начало и конец. Проведите пальцем по пустому месту, чтобы перемотать. Наложения ложатся друг под другом.',
+addHere:'＋ Фраза здесь',done:'Готово',rec:'Запись',stop:'Стоп',pause:'⏸ Пауза',resume:'▶ Продолжить',badgeRec:'REC',badgePause:'ПАУЗА',
+stIdle:'ожидание записи',srp:'Распознавание речи: ',
+cloudSum:'☁ Облачное распознавание (бесплатно): звук и текст вместе на телефоне',
+cloudHint:'<b>Это бесплатно, карта не нужна.</b> Как получить ключ: 1) откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту; 2) нажмите <b>Create API Key</b>; 3) введите любое имя и скопируйте ключ (он начинается с gsk_); 4) вставьте его ниже и нажмите «Сохранить». Звук уходит в Groq (Whisper) кусочками по 7 секунд, текст появляется с задержкой в несколько секунд. Ключ хранится только в этом браузере.',
+save:'Сохранить',keyOk:'Ключ сохранён: на телефоне звук и текст пойдут вместе.',keyOff:'Ключ удалён: на телефоне текст сразу, но видео без звука.',toastKeyOk:'Ключ сохранён',toastKeyOff:'Ключ удалён',
+speechLang:'Язык речи',speechLangHint:'переключайте даже во время записи',styleLbl:'Стиль субтитров',
+cam:'Камера',camN:'Камера {0}',mirOff:'Зеркало: выкл',mirOn:'Зеркало: вкл',zoom:'Зум',mirLock:'Зеркало нельзя менять во время этой записи',
+srt:'⬇ Скачать SRT',expMp4:'🎬 Экспорт MP4',expWebm:'🎬 Экспорт WebM',exPct:'Экспорт… {0}%',
+addM:'＋ Фраза вручную (в текущий момент)',
+expHint:'Экспорт идёт в реальном времени, звук записывается вместе с видео. Держите вкладку открытой и активной до конца.',
+phrases:'Фразы',clear:'Очистить',limits:'Ограничения и подсказки',
+l1:'Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.',
+l2:'На телефоне камера и распознавание речи спорят за микрофон. Без облачного ключа видео пишется без звука, а текст идёт сразу. С бесплатным ключом Groq звук и текст работают вместе.',
+l3:'Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.',
+l4:'Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.',
+l5:'Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).',
+empty:'Фразы появятся здесь, когда вы начнёте говорить.',
+restored:'Фразы восстановлены из сохранения',
+errNA:'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
+errSNA:'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
+errAC:'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне текст идёт сразу, видео пишется без звука.',
+errNet:'Нет связи с сервисом распознавания Google. Проверьте интернет.',
+errLang:'Этот язык не поддерживается распознаванием в вашем браузере.',
+errGeneric:'Ошибка распознавания: {0}',srNo:'не поддерживается браузером. Нужен Chrome',
+listen:'слушаю ({0})…',audioOn:'звук идёт, жду речь…',speech:'слышу речь…',textOn:'текст идёт ✓',silence:'тишина, жду речь…',errSt:'ошибка «{0}»',startFail:'не удалось запустить ({0})',
+cloudSend:'облако: отправляю звук…',keyBad:'Ключ не принят сервисом. Проверьте ключ в блоке «Облачное распознавание».',keyBadSt:'ключ не принят',cloudLim:'облако: лимит сервиса, часть фраз пропущена',cloudErr:'облако: ошибка {0}',cloudOk:'облако: текст идёт ✓',cloudWait:'облако: жду речь…',cloudNet:'облако: нет связи с сервисом',
+doneSt:'готово ✓',nothing:'ничего не распознано',
+camDenied:'Доступ к камере и микрофону закрыт. Разрешите его в настройках сайта и откройте страницу в отдельной вкладке.',
+newRec:'Начать новую запись? Текущие фразы будут удалены.',
+mutedMode:'Режим телефона: видео записывается без звука, микрофон работает на распознавание текста.',
+recUnsup:'Запись видео доступна в Chrome.',starting:'запускаю…',
+cloudRec:'облако: запись со звуком, текст придёт через несколько секунд',cloudToast:'Запись со звуком. Текст появится через несколько секунд после слов.',
+noText:'Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.',
+finishing:'доделываю текст…',stopped:'остановлено',paused:'пауза',listenSimple:'слушаю…',
+noAudio:'В записи нет звука: микрофон был занят или заглушён. Запишите ещё раз.',
+newPhrase:'Новая фраза',example:'Пример субтитров',subWord:'Субтитры',cutT:'Вырезать',restoreT:'Вернуть',noSrt:'Нет фраз для SRT.',
+fsNA:'Полный экран недоступен в этом окне.',fsNS:'Полный экран не поддерживается.',
+exNA:'Экспорт видео доступен в Chrome.',vidLoading:'Видео ещё загружается.',exToast:'Экспорт идёт в реальном времени. Держите вкладку открытой.',
+exWebm:'Этот браузер не умеет писать MP4, сохраню WebM. Для MP4 откройте страницу в свежем Chrome.',exDone:'Готово: {0} (видео, звук и субтитры вместе)',
+clearQ:'Очистить все фразы?',
+bNoSR:'Распознавание речи работает в Chrome. Откройте страницу в Chrome, чтобы текст появлялся во время записи.',
+bNoMedia:'Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.',
+xTitle:'🎬 Идёт экспорт видео',xP:'Не закрывайте и не сворачивайте вкладку, не нажимайте ничего. Файл скачается сам, когда экспорт закончится.',
+iTitle:'Установить на телефон',iClose:'Понятно',
+iIos:'<p><b>iPhone / iPad.</b> Откройте страницу именно в Safari (в других браузерах установки нет).</p><ol><li>Нажмите «Поделиться» (квадрат со стрелкой вверх) внизу экрана.</li><li>Прокрутите список вниз и выберите «На экран Домой».</li><li>Нажмите «Добавить». Иконка появится на главном экране.</li></ol>',
+iAnd:'<p><b>Android.</b> Откройте страницу в Chrome.</p><ol><li>Нажмите ⋮ (три точки) справа вверху.</li><li>Выберите «Установить приложение» или «Добавить на главный экран».</li><li>Подтвердите «Установить». Иконка появится на главном экране.</li></ol>',
+iDesk:'<p><b>Компьютер.</b> В Chrome нажмите значок установки ⊕ справа в адресной строке или меню ⋮ → «Установить Студию субтитров».</p><p>На телефоне: Android — Chrome, меню ⋮ → «Установить приложение»; iPhone — Safari, «Поделиться» → «На экран Домой».</p>',
+iNote:'<p>Установка работает, когда страница открыта по адресу https (не как файл на устройстве).</p>',installed:'Приложение установлено',
+eTitle:'Текст дорожки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить'
+},
+hy:{
+title:'Ենթագրերի ստուդիա',tag:'Նկարեք տեսանյութ, տեքստն ու մոնտաժը հայտնվում են անմիջապես',inst:'⬇ Տեղադրել',
+sound:'ՁԱՅՆ',muted:'ՀԱՆԳԻՍՏ',edT:'✎ Ձայնի ժամանակի խմբագրում',edC:'✕ Փակել',
+edhint:'Սեղմեք բլոկին՝ տեքստը փոխելու կամ ջնջելու համար։ Քաշեք բլոկը՝ տեղափոխելու համար, ծայրերը՝ սկիզբն ու ավարտը փոխելու համար։ Քաշեք դատարկ տեղում՝ առաջ-հետ անցնելու համար։ Վրադրումները դասավորվում են իրար տակ։',
+addHere:'＋ Արտահայտություն այստեղ',done:'Պատրաստ է',rec:'Ձայնագրել',stop:'Կանգ',pause:'⏸ Դադար',resume:'▶ Շարունակել',badgeRec:'REC',badgePause:'ԴԱԴԱՐ',
+stIdle:'սպասում է ձայնագրության',srp:'Խոսքի ճանաչում՝ ',
+cloudSum:'☁ Ամպային ճանաչում (անվճար)՝ ձայնն ու տեքստը միասին հեռախոսում',
+cloudHint:'<b>Անվճար է, քարտ պետք չէ։</b> Ինչպես ստանալ բանալի․ 1) բացեք <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> և մուտք գործեք Google-ով կամ փոստով․ 2) սեղմեք <b>Create API Key</b>․ 3) մուտքագրեք ցանկացած անուն և պատճենեք բանալին (սկսվում է gsk_-ով)․ 4) տեղադրեք այն ներքևում և սեղմեք «Պահել»։ Ձայնը Groq-ին (Whisper) է ուղարկվում 7 վայրկյանանոց կտորներով, տեքստը հայտնվում է մի քանի վայրկյան ուշացումով։ Բանալին պահվում է միայն այս դիտարկիչում։',
+save:'Պահել',keyOk:'Բանալին պահվեց․ հեռախոսում ձայնն ու տեքստը կաշխատեն միասին։',keyOff:'Բանալին ջնջվեց․ հեռախոսում տեքստը գալիս է անմիջապես, բայց տեսանյութը՝ առանց ձայնի։',toastKeyOk:'Բանալին պահվեց',toastKeyOff:'Բանալին ջնջվեց',
+speechLang:'Խոսքի լեզու',speechLangHint:'փոխեք նույնիսկ ձայնագրության ժամանակ',styleLbl:'Ենթագրերի ոճ',
+cam:'Տեսախցիկ',camN:'Տեսախցիկ {0}',mirOff:'Հայելի՝ անջատ',mirOn:'Հայելի՝ միացված',zoom:'Խոշորացում',mirLock:'Հայելին չի կարելի փոխել այս ձայնագրության ժամանակ',
+srt:'⬇ Ներբեռնել SRT',expMp4:'🎬 Արտահանել MP4',expWebm:'🎬 Արտահանել WebM',exPct:'Արտահանում… {0}%',
+addM:'＋ Ավելացնել արտահայտություն (ընթացիկ պահին)',
+expHint:'Արտահանումը կատարվում է իրական ժամանակում, ձայնը ձայնագրվում է տեսանյութի հետ։ Պահեք էջը բաց և ակտիվ մինչև ավարտը։',
+phrases:'Արտահայտություններ',clear:'Մաքրել',limits:'Սահմանափակումներ և հուշումներ',
+l1:'Պետք է Chrome, ինտերնետ (Chrome-ը խոսքը ճանաչում է Google-ի սերվերով) և տեսախցիկի ու խոսափողի թույլտվություն։ Եթե էջը բաց է ներկառուցված պատուհանում, բացեք առանձին ներդիրում։',
+l2:'Հեռախոսում տեսախցիկը և խոսքի ճանաչումը վիճում են խոսափողի համար։ Առանց ամպային բանալու տեսանյութը ձայնագրվում է առանց ձայնի, իսկ տեքստը գալիս է անմիջապես։ Groq-ի անվճար բանալիով ձայնն ու տեքստը աշխատում են միասին։',
+l3:'Բառերի ժամանակը մոտավոր է, դիտարկիչը այն տալիս է միայն ամբողջ արտահայտության համար։ Ճշգրիտ կարգավորման համար կա ժամանակագիծը։',
+l4:'Խառը խոսքը ճանաչվում է լեզվի փոխարկմամբ՝ կոճակներով կամ 1, 2, 3 ստեղներով։',
+l5:'Լեզվի ավտոմատ որոշման և բառերի ճշգրիտ ժամանակի համար հարմար է սերվերային Whisper large-v3 (հայերենը նրա մոտ ավելի թույլ է)։',
+empty:'Արտահայտությունները կհայտնվեն այստեղ, երբ սկսեք խոսել։',
+restored:'Արտահայտությունները վերականգնվեցին պահպանումից',
+errNA:'Խոսքի ճանաչման հասանելիությունը փակ է։ Թույլատրեք խոսափողը կայքի կարգավորումներում և բացեք էջը Chrome-ի առանձին ներդիրում։',
+errSNA:'Խոսքի ճանաչումն այս պատուհանում արգելված է։ Բացեք էջը Chrome-ի առանձին ներդիրում (ոչ թե ներկառուցված դիտման մեջ)։',
+errAC:'Ճանաչումը ձայն չի ստանում․ խոսափողը զբաղված է տեսաձայնագրությամբ։ Հեռախոսում տեքստը գալիս է անմիջապես, տեսանյութը՝ առանց ձայնի։',
+errNet:'Կապ չկա Google-ի ճանաչման ծառայության հետ։ Ստուգեք ինտերնետը։',
+errLang:'Այս լեզուն չի աջակցվում ձեր դիտարկիչի ճանաչմամբ։',
+errGeneric:'Ճանաչման սխալ՝ {0}',srNo:'չի աջակցվում դիտարկիչի կողմից։ Պետք է Chrome',
+listen:'լսում եմ ({0})…',audioOn:'ձայն կա, սպասում եմ խոսքի…',speech:'լսում եմ խոսք…',textOn:'տեքստը գալիս է ✓',silence:'լռություն, սպասում եմ խոսքի…',errSt:'սխալ «{0}»',startFail:'չհաջողվեց գործարկել ({0})',
+cloudSend:'ամպ՝ ուղարկում եմ ձայնը…',keyBad:'Ծառայությունը չընդունեց բանալին։ Ստուգեք բանալին «Ամպային ճանաչում» բլոկում։',keyBadSt:'բանալին չընդունվեց',cloudLim:'ամպ՝ ծառայության սահման, որոշ արտահայտություններ բաց են թողնվել',cloudErr:'ամպ՝ սխալ {0}',cloudOk:'ամպ՝ տեքստը գալիս է ✓',cloudWait:'ամպ՝ սպասում եմ խոսքի…',cloudNet:'ամպ՝ կապ չկա ծառայության հետ',
+doneSt:'պատրաստ է ✓',nothing:'ոչինչ չճանաչվեց',
+camDenied:'Տեսախցիկի և խոսափողի հասանելիությունը փակ է։ Թույլատրեք այն կայքի կարգավորումներում և բացեք էջը առանձին ներդիրում։',
+newRec:'Սկսե՞լ նոր ձայնագրություն։ Ընթացիկ արտահայտությունները կջնջվեն։',
+mutedMode:'Հեռախոսի ռեժիմ․ տեսանյութը ձայնագրվում է առանց ձայնի, խոսափողն աշխատում է տեքստի ճանաչման համար։',
+recUnsup:'Տեսաձայնագրությունը հասանելի է Chrome-ում։',starting:'գործարկվում է…',
+cloudRec:'ամպ՝ ձայնագրություն ձայնով, տեքստը կգա մի քանի վայրկյանից',cloudToast:'Ձայնագրություն ձայնով։ Տեքստը կհայտնվի բառերից մի քանի վայրկյան անց։',
+noText:'Տեքստը 8 վայրկյանում չհայտնվեց։ Հաճախ պատճառը՝ էջը բաց է ներկառուցված պատուհանում (բացեք Chrome-ի առանձին ներդիրում) կամ ինտերնետ չկա։ Արտահայտությունները կարելի է ավելացնել ձեռքով «Ավելացնել արտահայտություն» կոճակով և ճշգրտել ժամանակագծի վրա։',
+finishing:'ավարտում եմ տեքստը…',stopped:'կանգնեցված է',paused:'դադար',listenSimple:'լսում եմ…',
+noAudio:'Ձայնագրության մեջ ձայն չկա․ խոսափողը զբաղված էր կամ անջատված։ Ձայնագրեք նորից։',
+newPhrase:'Նոր արտահայտություն',example:'Ենթագրերի օրինակ',subWord:'Ենթագրեր',cutT:'Կտրել',restoreT:'Վերադարձնել',noSrt:'SRT-ի համար արտահայտություններ չկան։',
+fsNA:'Լիաէկրանն այս պատուհանում հասանելի չէ։',fsNS:'Լիաէկրանը չի աջակցվում։',
+exNA:'Տեսանյութի արտահանումը հասանելի է Chrome-ում։',vidLoading:'Տեսանյութը դեռ բեռնվում է։',exToast:'Արտահանումը կատարվում է իրական ժամանակում։ Պահեք էջը բաց։',
+exWebm:'Այս դիտարկիչը չի կարող գրել MP4, կպահեմ WebM։ MP4-ի համար բացեք էջը թարմ Chrome-ում։',exDone:'Պատրաստ է՝ {0} (տեսանյութ, ձայն և ենթագրեր միասին)',
+clearQ:'Մաքրե՞լ բոլոր արտահայտությունները։',
+bNoSR:'Խոսքի ճանաչումը աշխատում է Chrome-ում։ Բացեք էջը Chrome-ում, որպեսզի ձայնագրության ժամանակ տեքստ հայտնվի։',
+bNoMedia:'Տեսախցիկն ու խոսափողը հասանելի են պաշտպանված (https) էջում։ Բացեք ֆայլը Chrome-ի առանձին ներդիրում։',
+xTitle:'🎬 Տեսանյութը արտահանվում է',xP:'Մի փակեք և մի ծալեք ներդիրը, ոչինչ մի սեղմեք։ Ֆայլը ինքն իրեն կներբեռնվի, երբ արտահանումն ավարտվի։',
+iTitle:'Տեղադրել հեռախոսում',iClose:'Հասկանալի է',
+iIos:'<p><b>iPhone / iPad։</b> Բացեք էջը հենց Safari-ում (այլ դիտարկիչներում տեղադրում չկա)։</p><ol><li>Էկրանի ներքևում սեղմեք «Կիսվել» (քառակուսի՝ վերև սլաքով)։</li><li>Ցանկը ոլորեք ներքև և ընտրեք «Ավելացնել Home Screen»։</li><li>Սեղմեք «Ավելացնել»։ Պատկերակը կհայտնվի գլխավոր էկրանին։</li></ol>',
+iAnd:'<p><b>Android։</b> Բացեք էջը Chrome-ում։</p><ol><li>Վերևի աջ մասում սեղմեք ⋮ (երեք կետ)։</li><li>Ընտրեք «Տեղադրել հավելվածը» կամ «Ավելացնել գլխավոր էկրան»։</li><li>Հաստատեք «Տեղադրել»։ Պատկերակը կհայտնվի գլխավոր էկրանին։</li></ol>',
+iDesk:'<p><b>Համակարգիչ։</b> Chrome-ում սեղմեք տեղադրման պատկերակը ⊕ հասցեագոտու աջ մասում կամ ցանկը ⋮ → «Տեղադրել Ենթագրերի ստուդիան»։</p><p>Հեռախոսում․ Android՝ Chrome, ցանկ ⋮ → «Տեղադրել հավելվածը»․ iPhone՝ Safari, «Կիսվել» → «Ավելացնել Home Screen»։</p>',
+iNote:'<p>Տեղադրումը աշխատում է, երբ էջը բաց է https հասցեով (ոչ թե որպես սարքի ֆայլ)։</p>',installed:'Հավելվածը տեղադրվեց',
+eTitle:'Ուղու տեքստ',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել'
+}
+};
+const SN={
+en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold'],
+ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото'],
+hy:['Դասական','Թավ դեղին','Մինիմալ','Փոփ (մանուշակագույն)','Նեոն','Կոմիքս','Դեղին վահանակ','Կարմիր վահանակ','Լայմ','Եզրագիծ','Ռետրո տերմինալ','Կինո (շեղ)','Վարդագույն վահանակ','Կապույտ ապակի','Ոսկի']
+};
+let ui='en';try{const u=localStorage.getItem('substudio-ui');if(u&&I18[u])ui=u}catch(e){}
+const t=(k,...a)=>{let s=(I18[ui]&&I18[ui][k])||I18.en[k]||k;a.forEach((x,i)=>{s=s.split('{'+i+'}').join(x)});return s};
+
+let phrases=[], map={}, dur=0, lang='hy', style='classic';
+let recording=false, exporting=false, hasVideo=false, fixing=false;
+let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
+const STY={
+classic:{n:'Классика',c:'#fff',bg:'rgba(0,0,0,.6)',r:.2,w:600},
+bold:{n:'Жирный жёлтый',c:'#FFD60A',up:1,w:900,st:.2,sc:'#000'},
+minimal:{n:'Минимал',c:'#fff',w:300,sh:['rgba(0,0,0,.95)',.22,.06]},
+pop:{n:'Поп (фиолетовая плашка)',c:'#fff',bg:'#7c3aed',r:.45,w:700},
+neon:{n:'Неон',c:'#00f5ff',w:700,sh:['#00f5ff',.5,0]},
+comic:{n:'Комикс',c:'#fff',up:1,w:900,st:.3,sc:'#000',fam:'Impact,"Arial Black",system-ui,sans-serif'},
+ybox:{n:'Жёлтая плашка',c:'#111',bg:'#FFD60A',r:.12,w:800},
+rbox:{n:'Красная плашка',c:'#fff',bg:'#ef4444',r:.15,w:800},
+green:{n:'Лайм',c:'#39ff14',up:1,w:800,st:.2,sc:'#000'},
+outline:{n:'Контур',c:'#fff',w:700,st:.14,sc:'#000'},
+retro:{n:'Ретро-терминал',c:'#ffb000',bg:'rgba(0,0,0,.8)',r:.1,w:600,fam:'ui-monospace,Menlo,Consolas,monospace'},
+cinema:{n:'Кино (курсив)',c:'#fff',w:400,it:1,fam:'Georgia,"Times New Roman",serif',sh:['rgba(0,0,0,.9)',.2,.06]},
+pink:{n:'Розовая плашка',c:'#fff',bg:'#ec4899',r:.6,w:800},
+glass:{n:'Синее стекло',c:'#fff',bg:'rgba(59,130,246,.65)',r:.3,w:600},
+gold:{n:'Золото',c:'#FFE08A',w:800,st:.12,sc:'#5a3a00',sh:['rgba(0,0,0,.6)',.15,.05]}
+};
+const BASEFAM='system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Armenian",sans-serif';
+let previewUntil=0;
+let ph=null, rows=new Map(), lastSub='', lastNow=null, tmr=null, wd=null;
+let passing=false,pendingPass=false,passTrack=null,usingTrack=false,gotRes=false,langLog=[],passTimer=null,PDEST=null;
+let paused=false,pausedMs=0,pauseAt=0;
+const rt=()=>((paused?pauseAt:performance.now())-t0-pausedMs)/1000;
+const nowT=()=>passing?v.currentTime:rt();
+
+/* ---------- утилиты ---------- */
+function toast(msg,ms){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),ms||4200)}
+function setSt(s,k){const e=$('#st');e.textContent=t('srp')+s;e.className=k||''}
+function banner(msg){const b=$('#banner');if(msg){b.textContent=msg;b.classList.add('show')}else b.classList.remove('show')}
+const pad=(n,l)=>String(n).padStart(l||2,'0');
+function fmt(t){t=Math.max(0,t);return pad(Math.floor(t/60))+':'+pad(Math.floor(t%60))}
+function fmtSrt(t){t=Math.max(0,t);const ms=Math.round(t*1000);const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60;return pad(h)+':'+pad(m)+':'+pad(s)+','+pad(ms%1000,3)}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+const allC=()=>phrases.flatMap(p=>p.c||[]);
+function span(p){const c=p.c&&p.c.length?p.c:null;return c?[Math.min(...c.map(x=>x.s)),Math.max(...c.map(x=>x.e))]:[p.s,p.e]}
+function cutSpans(){
+  const a=phrases.filter(p=>p.cut).map(span).sort((x,y)=>x[0]-y[0]);
+  const out=[];for(const s of a){const l=out[out.length-1];if(l&&s[0]<=l[1])l[1]=Math.max(l[1],s[1]);else out.push([s[0],s[1]])}
+  return out;
+}
+function chunkAt(t){let r=null;for(const p of phrases){if(p.cut||!p.c)continue;for(const c of p.c){if(c.s<=t&&t<c.e)r=c}}return r}
+function pickMime(){const l=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];for(const m of l){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}return''}
+
+/* ---------- сохранение ---------- */
+function save(){try{localStorage.setItem('substudio',JSON.stringify({phrases,dur,style},(k,v)=>k==='g'?undefined:v))}catch(e){}}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem('substudio')||'null');if(!d)return;
+    phrases=d.phrases||[];dur=d.dur||0;if(d.style)setStyle(d.style,true);
+    phrases.forEach(p=>{if(p.c)p.c.forEach(c=>c.g=p);else buildPhrase(p)});
+    if(phrases.length)toast(t('restored'));
+  }catch(e){}
+}
+
+/* ---------- куски по 5–6 слов ---------- */
+function buildPhrase(p){
+  const w=p.t.split(/\s+/).filter(Boolean),n=w.length;p.c=[];if(!n)return;
+  const k=Math.ceil(n/6),per=Math.ceil(n/k);
+  const e=Math.max(p.e,p.s+0.25*n),d=e-p.s;
+  for(let j=0;j<n;j+=per){
+    const part=w.slice(j,j+per);
+    p.c.push({g:p,t:part.join(' '),s:p.s+d*j/n,e:p.s+d*(j+part.length)/n});
+  }
+}
+const nrm=w=>w.toLowerCase().replace(/[.,!?;:։՝՞«»"()…]/g,'');
+const wds=x=>x.split(/\s+/).filter(Boolean);
+function stripDup(p){
+  const cw=wds(p.raw!==undefined?p.raw:p.t),cn=cw.map(nrm),idx=phrases.indexOf(p);let best=0;
+  for(let j=0;j<idx;j++){
+    const q=phrases[j],pn=wds(q.raw!==undefined?q.raw:q.t).map(nrm);
+    if(!pn.length)continue;
+    const same=pn.length<=cn.length&&pn.every((w,k)=>w===cn[k]);
+    if(same&&(pn.length>=3||(pn.length===cn.length&&Math.abs(p.s-q.s)<4)))best=Math.max(best,pn.length);
+    else if(cn.length>=2&&Math.abs(p.e-q.e)<6&&(' '+pn.join(' ')+' ').includes(' '+cn.join(' ')+' '))best=cn.length;
+  }
+  return cw.slice(best).join(' ');
+}
+function buildAll(){
+  phrases.sort((a,b)=>a.s-b.s);
+  phrases.forEach(p=>{if(p.raw!==undefined)p.t=stripDup(p)});
+  phrases=phrases.filter(p=>p.t);
+  phrases.forEach(buildPhrase);save();renderAll();
+}
+
+/* ---------- распознавание ---------- */
+const ERRK={'not-allowed':'errNA','service-not-allowed':'errSNA','audio-capture':'errAC','network':'errNet','language-not-supported':'errLang'};
+function startSR(){
+  if(!SR){setSt(t('srNo'),'err');return}
+  const my=++epoch;const r=new SR();
+  r.lang=LANGS[lang];r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+  const lg=lang;let fatal=false,delay=350;
+  r.onstart=()=>setSt(t('listen',LANGS[lg]),'ok');
+  r.onaudiostart=()=>setSt(t('audioOn'),'ok');
+  r.onspeechstart=()=>setSt(t('speech'),'ok');
+  r.onresult=ev=>{
+    const now=nowT();gotRes=true;
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const key=my+'-'+i;let p=map[key];
+      const txt=ev.results[i][0].transcript.trim();
+      if(!txt)continue;
+      if(!p){p={s:Math.max(0,now-0.6),e:now,l:lg,t:'',cut:false};map[key]=p;phrases.push(p)}
+      p.raw=txt;p.e=now;p.t=stripDup(p);
+    }
+    setSt(t('textOn'),'ok');banner('');
+    save();renderList();updateButtons();
+  };
+  r.onerror=e=>{
+    if(e.error==='aborted')return;
+    if(e.error==='no-speech'){setSt(t('silence'));return}
+    if(passing&&passTrack&&e.error!=='network'){passFallback();return}
+    setSt(t('errSt',e.error),'err');
+    toast(ERRK[e.error]?t(ERRK[e.error]):t('errGeneric',e.error),8000);
+    if(e.error==='network'){delay=2000}
+    else if(e.error!=='no-speech')fatal=true;
+  };
+  r.onend=()=>{
+    try{r._t&&r._t.stop()}catch(e){}
+    if((recording||passing)&&!paused&&my===epoch&&!fatal)setTimeout(()=>{if((recording||passing)&&!paused&&my===epoch)startSR()},delay);
+  };
+  sr=r;
+  try{
+    if(passing&&passTrack){const ct=passTrack.clone();r._t=ct;try{r.start(ct)}catch(e2){passTrack=null;usingTrack=false;try{ASRC.connect(AC.destination)}catch(e3){}r.start()}}
+    else r.start();
+  }catch(e){setSt(t('startFail',e.message),'err')}
+}
+function setLang(l){
+  lang=l;if(recording)langLog.push({t:rt(),l});
+  document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
+  if((recording||passing)&&SR&&!paused){
+    epoch++;
+    if(sr){sr.onend=null;sr.onresult=null;sr.onerror=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}sr=null}
+    clearTimeout(setLang._t);setLang._t=setTimeout(()=>{if((recording||passing)&&!paused)startSR()},120);
+  }
+  if(recording&&cl.on&&!paused){clearTimeout(cl.timer);const old=cl.rec;cloudNext();try{old&&old.state!=='inactive'&&old.stop()}catch(e){}}
+}
+function setStyle(k,quiet){
+  if(!STY[k])k='classic';
+  style=k;const d=STY[k];
+  document.querySelectorAll('#styles .sty').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
+  const o=sub.style;
+  o.color=d.c;o.background=d.bg||'none';o.borderRadius=d.bg?(d.r||0)+'em':'0';
+  o.fontWeight=d.w;o.fontStyle=d.it?'italic':'normal';o.fontFamily=d.fam||BASEFAM;
+  o.textTransform=d.up?'uppercase':'none';
+  o.webkitTextStroke=d.st?d.st+'em '+d.sc:'0';o.paintOrder=d.st?'stroke fill':'normal';
+  o.textShadow=d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none';
+  const c=$('#ctl').style;
+  c.setProperty('--pc',d.c);
+  c.setProperty('--pbg',d.bg||'rgba(0,0,0,.55)');
+  c.setProperty('--pr',(d.bg?(d.r||.1):.4)+'em');
+  c.setProperty('--pw',d.w);
+  c.setProperty('--pf',d.fam||'inherit');
+  c.setProperty('--pit',d.it?'italic':'normal');
+  c.setProperty('--pup',d.up?'uppercase':'none');
+  c.setProperty('--pstroke',d.st?(d.st*0.5)+'em '+d.sc:'0');
+  c.setProperty('--pst',d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none');
+  c.setProperty('--pa',(d.bg&&!/^rgba\(0,0,0/.test(d.bg))?d.bg:d.c);
+  if(!quiet){previewUntil=performance.now()+2000;save()}
+}
+
+/* ---------- облачное распознавание (Groq Whisper) ---------- */
+const CHUNK=7;
+const cl={on:false,rec:null,timer:null,pend:0,astream:null,bad:false};
+const DEF_EP='https://api.groq.com/openai/v1/audio/transcriptions';
+const getKey=()=>{try{return(localStorage.getItem('substudio-key')||'').trim()}catch(e){return''}};
+const getEndpoint=()=>{try{return localStorage.getItem('substudio-endpoint')||DEF_EP}catch(e){return DEF_EP}};
+function cloudStart(){
+  cl.on=true;cl.pend=0;cl.bad=false;
+  cl.astream=new MediaStream(stream.getAudioTracks());
+  cloudNext();
+}
+function cloudNext(){
+  if(!cl.on)return;
+  let mt='';for(const m of['audio/webm;codecs=opus','audio/webm','audio/mp4']){if(MediaRecorder.isTypeSupported(m)){mt=m;break}}
+  const r=new MediaRecorder(cl.astream,mt?{mimeType:mt}:undefined),parts=[],ts=rt(),lg=lang;
+  r.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
+  r.onstop=()=>{const te=rt();if(te-ts>=0.8)cloudSend(new Blob(parts,{type:r.mimeType||'audio/webm'}),ts,te,lg)};
+  r.start();cl.rec=r;
+  cl.timer=setTimeout(()=>{if(!cl.on)return;cloudNext();try{r.stop()}catch(e){}},CHUNK*1000);
+}
+function cloudStop(){
+  if(!cl.on)return;cl.on=false;clearTimeout(cl.timer);
+  try{cl.rec&&cl.rec.state!=='inactive'&&cl.rec.stop()}catch(e){}
+}
+async function cloudSend(blob,ts,te,lg){
+  if(blob.size<1500)return;
+  cl.pend++;setSt(t('cloudSend'),'ok');
+  try{
+    const fd=new FormData();
+    fd.append('file',blob,'chunk.webm');fd.append('model','whisper-large-v3');
+    fd.append('language',lg);fd.append('response_format','verbose_json');fd.append('temperature','0');
+    const res=await fetch(getEndpoint(),{method:'POST',headers:{Authorization:'Bearer '+getKey()},body:fd});
+    if(res.status===401){cl.bad=true;toast(t('keyBad'),8000);setSt(t('keyBadSt'),'err')}
+    else if(res.status===429){setSt(t('cloudLim'),'err')}
+    else if(!res.ok){setSt(t('cloudErr',res.status),'err')}
+    else{
+      const j=await res.json();let n=0;
+      const segs=(j.segments&&j.segments.length)?j.segments:[{start:0,end:te-ts,text:j.text||'',no_speech_prob:0}];
+      for(const g of segs){
+        const t=(g.text||'').replace(/\s+/g,' ').trim();
+        if(t.length<2||(g.no_speech_prob!==undefined&&g.no_speech_prob>0.7))continue;
+        phrases.push({s:ts+g.start,e:ts+Math.max(g.end,g.start+0.4),l:lg,t,cut:false});n++;
+      }
+      if(n){setSt(t('cloudOk'),'ok');banner('');save();renderList();updateButtons()}
+      else setSt(t('cloudWait'),'ok');
+    }
+  }catch(e){setSt(t('cloudNet'),'err')}
+  cl.pend--;
+  if(!recording&&cl.pend===0&&!cl.on){buildAll();const ok=phrases.some(p=>p.t);setSt(ok?t('doneSt'):t('nothing'),ok?'ok':'err')}
+}
+function keyStat(){$('#keyst').textContent=getKey()?t('keyOk'):''}
+$('#key').value=getKey();
+$('#keysave').onclick=()=>{const k=$('#key').value.trim();try{localStorage.setItem('substudio-key',k)}catch(e){}$('#keyst').textContent=k?t('keyOk'):t('keyOff');toast(k?t('toastKeyOk'):t('toastKeyOff'),2500)};
+
+/* ---------- камера: выбор, зеркало, зум ---------- */
+let camId='',mirror=false,zoom=1,hwZoom=false,zmin=1,zmax=4,zstep=0.1;
+try{camId=localStorage.getItem('substudio-cam')||'';mirror=localStorage.getItem('substudio-mirror')==='1'}catch(e){}
+const rc={on:false,t:null,cv:document.createElement('canvas')};
+function applyView(){v.style.transform=(stream&&!hasVideo)?'scaleX('+(mirror?-1:1)+') scale('+(hwZoom?1:zoom)+')':''}
+function zlabel(){$('#zv').textContent=(Math.round(zoom*10)/10).toFixed(1)+'×'}
+function hwApply(){try{const tr=stream&&stream.getVideoTracks()[0];if(tr)tr.applyConstraints({advanced:[{zoom:zoom}]}).catch(()=>{})}catch(e){}}
+function setupZoom(){
+  hwZoom=false;zmin=1;zmax=4;zstep=0.1;
+  try{const tr=stream.getVideoTracks()[0],c=tr.getCapabilities?tr.getCapabilities():{};
+    if(c.zoom&&c.zoom.max>c.zoom.min){hwZoom=true;zmin=c.zoom.min;zmax=c.zoom.max;zstep=c.zoom.step||0.1}}catch(e){}
+  zoom=Math.min(zmax,Math.max(zmin,zoom));
+  const r=$('#zr');r.min=zmin;r.max=zmax;r.step=zstep;r.value=zoom;
+  if(hwZoom)hwApply();
+  zlabel();
+}
+function setZoom(z){zoom=Math.min(zmax,Math.max(zmin,z));$('#zr').value=zoom;if(hwZoom)hwApply();applyView();zlabel()}
+$('#zr').oninput=e=>setZoom(parseFloat(e.target.value));
+$('#zi').onclick=()=>setZoom(zoom+Math.max(zstep,(zmax-zmin)/10));
+$('#zo').onclick=()=>setZoom(zoom-Math.max(zstep,(zmax-zmin)/10));
+function mirrLabel(){$('#mirr').textContent=t(mirror?'mirOn':'mirOff');$('#mirr').classList.toggle('active',mirror)}
+$('#mirr').onclick=()=>{
+  if(recording&&!rc.on){toast(t('mirLock'));return}
+  mirror=!mirror;try{localStorage.setItem('substudio-mirror',mirror?'1':'0')}catch(e){}
+  mirrLabel();applyView();
+};
+async function listCams(){
+  try{
+    const d=(await navigator.mediaDevices.enumerateDevices()).filter(x=>x.kind==='videoinput'&&x.deviceId);
+    const sel=$('#camSel');sel.innerHTML='';
+    let cur=camId;
+    if(stream){try{cur=stream.getVideoTracks()[0].getSettings().deviceId||cur}catch(e){}}
+    d.forEach((x,i)=>{const o=document.createElement('option');o.value=x.deviceId;o.textContent=x.label||t('camN',i+1);sel.appendChild(o)});
+    if(cur&&d.some(x=>x.deviceId===cur))sel.value=cur;
+    sel.disabled=recording||d.length<2;
+  }catch(e){}
+}
+$('#camSel').onchange=async()=>{
+  camId=$('#camSel').value;try{localStorage.setItem('substudio-cam',camId)}catch(e){}
+  if(recording||hasVideo||exporting)return;
+  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
+  zoom=1;
+  await initCam();
+};
+$('#camFlip').onclick=()=>{
+  const s=$('#camSel');if(recording||s.options.length<2)return;
+  s.selectedIndex=(s.selectedIndex+1)%s.options.length;s.onchange();
+};
+if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
+function canvasTrack(){
+  const W=v.videoWidth||1280,H=v.videoHeight||720;rc.cv.width=W;rc.cv.height=H;
+  const x=rc.cv.getContext('2d');
+  const draw=()=>{
+    const z=hwZoom?1:zoom,sw=W/z,sh=H/z;
+    x.save();x.clearRect(0,0,W,H);
+    if(mirror){x.translate(W,0);x.scale(-1,1)}
+    try{x.drawImage(v,(W-sw)/2,(H-sh)/2,sw,sh,0,0,W,H)}catch(e){}
+    x.restore();
+  };
+  draw();rc.on=true;rc.t=setInterval(draw,33);
+  return rc.cv.captureStream(30).getVideoTracks()[0];
+}
+function stopCanvas(){clearInterval(rc.t);rc.on=false}
+
+/* ---------- камера и запись ---------- */
+const CAMMSG={
+  busy:{ru:'Камера занята: закройте другие вкладки и приложения с камерой (в том числе браузер, если открыто установленное приложение) и попробуйте снова.',en:'Camera is busy: close other tabs/apps using it (including the browser if the installed app is open) and try again.',hy:'Տեսախցիկը զբաղված է․ փակեք այն օգտագործող այլ ներդիրները և հավելվածները (նաև դիտարկիչը, եթե բաց է տեղադրված հավելվածը) և փորձեք նորից։'},
+  none:{ru:'Камера не найдена.',en:'No camera found.',hy:'Տեսախցիկ չի գտնվել։'}
+};
+function camLive(){return !!stream&&stream.getVideoTracks().some(x=>x.readyState==='live')}
+function gum(c){
+  return new Promise((res,rej)=>{
+    let done=false;
+    const tm=setTimeout(()=>{done=true;const e=new Error('getUserMedia timeout');e.name='TimeoutError';rej(e)},15000);
+    navigator.mediaDevices.getUserMedia(c).then(
+      s=>{clearTimeout(tm);if(done)s.getTracks().forEach(x=>x.stop());else res(s)},
+      e=>{clearTimeout(tm);if(!done)rej(e)}
+    );
+  });
+}
+async function openStream(){
+  const base={width:{ideal:1280},height:{ideal:720}};
+  const tries=[];
+  if(camId)tries.push({video:Object.assign({deviceId:{exact:camId}},base),audio:true});
+  tries.push({video:Object.assign({facingMode:'user'},base),audio:true});
+  tries.push({video:true,audio:true});
+  tries.push({video:true,audio:false});
+  let last=null;
+  for(const c of tries){
+    try{return await gum(c)}
+    catch(e){last=e;if(e.name==='NotAllowedError'||e.name==='SecurityError'||e.name==='TimeoutError')break}
+  }
+  throw last;
+}
+let camQ=Promise.resolve();
+function initCam(){const p=camQ.then(_initCam,_initCam);camQ=p.catch(()=>{});return p}
+async function _initCam(){
+  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
+  try{
+    stream=await openStream();
+    try{const id=stream.getVideoTracks()[0].getSettings().deviceId;if(id){camId=id;localStorage.setItem('substudio-cam',id)}}catch(e){}
+    v.srcObject=stream;v.muted=true;v.controls=false;
+    setupZoom();applyView();
+    await v.play().catch(()=>{});
+    listCams();
+    return true;
+  }catch(err){
+    const n=err&&err.name;
+    toast((n==='NotReadableError'||n==='TrackStartError'?CAMMSG.busy[ui]
+      :(n==='NotFoundError'||n==='OverconstrainedError')?CAMMSG.none[ui]
+      :t('camDenied'))+' ['+(n||'error')+(err&&err.message?': '+err.message:'')+']',9000);
+    listCams();
+    return false;
+  }
+}
+/* возврат в приложение: после сворачивания камера «умирает», перезапускаем */
+async function revive(){
+  if(document.visibilityState!=='visible'||recording||hasVideo||exporting||passing)return;
+  await camQ;
+  if(document.visibilityState!=='visible'||recording||hasVideo||exporting||passing)return;
+  if(camLive())v.play().catch(()=>{});
+  else await initCam();
+}
+document.addEventListener('visibilitychange',revive);
+async function startRec(){
+  try{await _startRec()}
+  catch(e){
+    recording=false;clearInterval(tmr);clearTimeout(wd);epoch++;
+    try{if(mr){mr.onstop=null;if(mr.state!=='inactive')mr.stop()}}catch(x){}
+    try{cloudStop()}catch(x){}
+    try{stopCanvas()}catch(x){}
+    recBtn.classList.remove('on');recTxt.textContent=t('rec');badge.classList.remove('on');$('#pz').classList.remove('show');
+    updateButtons();
+    toast('Ошибка записи: '+((e&&e.name)||'')+' '+((e&&e.message)||''),10000);
+  }
+}
+async function _startRec(){
+  if(hasVideo&&phrases.length&&!confirm(t('newRec')))return;
+  if(!camLive()&&!(await initCam()))return;
+  if(url){URL.revokeObjectURL(url);url=null}
+  hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
+  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;
+  const mt=pickMime();
+  const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
+  const pmv=cloudMode?'cloud':(MOB?'mute':'normal');
+  let rs=stream;
+  if(pmv==='mute'){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast(t('mutedMode'),5000)}
+  if(mirror||(!hwZoom&&zoom>1.001)){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
+  try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){stopCanvas();toast(t('recUnsup'));return}
+  mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
+  mr.onstop=finishRec;
+  mr.start(1000);
+  recording=true;t0=performance.now();
+  setSt(t('starting'));banner('');$('#camSel').disabled=true;
+  if(pmv==='cloud'){cloudStart();setSt(t('cloudRec'),'ok');toast(t('cloudToast'),5000)}
+  else if(pmv==='mute')setTimeout(()=>{if(recording)startSR()},500);
+  else startSR();
+  clearTimeout(wd);
+  wd=setTimeout(()=>{
+    if(recording&&!paused&&pmv!=='cloud'&&!phrases.some(p=>p.t))banner(t('noText'));
+  },8000);
+  recBtn.classList.add('on');recTxt.textContent=t('stop');badge.innerHTML='<b></b>'+t('badgeRec');badge.classList.add('on');$('#pz').textContent=t('pause');$('#pz').classList.add('show');
+  tmr=setInterval(()=>{timerEl.textContent=fmt(rt());renderTL()},1000);
+  save();renderAll();updateButtons();
+}
+function stopRec(){
+  pendingPass=false;
+  recording=false;dur=rt();
+  if(paused){pausedMs+=performance.now()-pauseAt;paused=false}
+  $('#pz').classList.remove('show');
+  clearInterval(tmr);clearTimeout(wd);epoch++;
+  const wasCloud=cl.on;cloudStop();
+  if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
+  try{mr.stop()}catch(e){}
+  recBtn.classList.remove('on');recTxt.textContent=t('rec');badge.classList.remove('on');
+  setSt(wasCloud?t('finishing'):t('stopped'));
+  buildAll();
+  setTimeout(buildAll,900);
+}
+function pauseRec(){
+  if(!recording||paused)return;
+  paused=true;pauseAt=performance.now();
+  try{mr.pause()}catch(e){}
+  epoch++;
+  if(sr){sr.onend=null;sr.onresult=null;sr.onerror=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}sr=null}
+  clearTimeout(setLang._t);
+  if(cl.on){clearTimeout(cl.timer);try{cl.rec&&cl.rec.state!=='inactive'&&cl.rec.stop()}catch(e){}}
+  $('#pz').textContent=t('resume');badge.innerHTML='<b></b>'+t('badgePause');
+  setSt(t('paused'));
+}
+function resumeRec(){
+  if(!recording||!paused)return;
+  pausedMs+=performance.now()-pauseAt;paused=false;
+  try{mr.resume()}catch(e){}
+  if(cl.on)cloudNext();else startSR();
+  $('#pz').textContent=t('pause');badge.innerHTML='<b></b>'+t('badgeRec');
+  setSt(t('listenSimple'),'ok');
+}
+$('#pz').onclick=()=>{paused?resumeRec():pauseRec()};
+window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
+function finishRec(){
+  stopCanvas();$('#camSel').disabled=false;
+  const blob=new Blob(blobs,{type:'video/webm'});
+  url=URL.createObjectURL(blob);
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;applyView();
+  updateButtons();
+  if(!MOB)checkAudio(blob);
+  if(pendingPass){pendingPass=false;setTimeout(()=>transcribe(true),500)}
+}
+v.addEventListener('loadedmetadata',()=>{
+  if(v.videoWidth)stage.style.setProperty('--ar',(v.videoWidth/v.videoHeight).toFixed(4));
+  if(hasVideo&&v.duration===Infinity){fixing=true;v.currentTime=1e101}
+  renderTL();
+});
+v.addEventListener('timeupdate',()=>{
+  if(fixing){fixing=false;v.currentTime=0;renderTL();return}
+});
+
+/* ---------- ручная фраза ---------- */
+function addManual(){
+  if(exporting)return;
+  const now=recording?rt():(hasVideo?v.currentTime:0);
+  const p={s:now,e:now+2.5,l:lang,t:recording?'…':t('newPhrase'),cut:false};
+  phrases.push(p);
+  if(!recording){phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)}
+  save();
+  const ae=document.activeElement;if(ae&&ae.isContentEditable)ae.blur();
+  renderAll();
+  const r=rows.get(p);
+  if(r){const tx=r.querySelector('.tx');r.scrollIntoView({block:'nearest'});
+    tx.focus();const sel=window.getSelection(),rg=document.createRange();rg.selectNodeContents(tx);sel.removeAllRanges();sel.addRange(rg)}
+}
+
+/* ---------- отрисовка интерфейса ---------- */
+function updateButtons(){
+  const pe=!(hasVideo&&!recording&&!exporting&&!passing);
+  recBtn.disabled=passing||exporting;
+  document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
+  srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
+  expBtn.disabled=!(hasVideo&&!recording&&!exporting&&!passing);
+}
+function renderAll(){renderList();renderTL();updateButtons()}
+
+function renderList(){
+  const ae=document.activeElement;
+  if(ae&&ae.isContentEditable&&listEl.contains(ae))return;
+  listEl.innerHTML='';rows=new Map();lastNow=null;
+  const vis=phrases.filter(p=>p.t);
+  if(!vis.length){const d=document.createElement('div');d.className='empty';d.textContent=t('empty');listEl.appendChild(d);return}
+  vis.forEach(p=>{
+    const r=document.createElement('div');r.className='row'+(p.cut?' cut':'');
+    const tm=document.createElement('button');tm.className='tm';tm.textContent=fmt(p.s);
+    tm.onclick=()=>{seek(p.s)};
+    const lg=document.createElement('div');lg.className='lg '+p.l;lg.textContent=p.l.toUpperCase();
+    const tx=document.createElement('div');tx.className='tx';tx.textContent=p.t;
+    tx.contentEditable='plaintext-only';if(tx.contentEditable!=='plaintext-only')tx.contentEditable='true';
+    tx.spellcheck=false;
+    tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tx.blur()}e.stopPropagation()});
+    tx.addEventListener('blur',()=>{
+      const t=tx.textContent.replace(/\s+/g,' ').trim();
+      if(t!==p.t){p.t=t;p.raw=t;buildPhrase(p);save();renderTL();updateButtons()}
+    });
+    const sc=document.createElement('button');sc.className='sc';sc.textContent=p.cut?'↩':'✂';sc.title=p.cut?t('restoreT'):t('cutT');
+    sc.onclick=()=>{p.cut=!p.cut;r.classList.toggle('cut',p.cut);sc.textContent=p.cut?'↩':'✂';save();renderTL()};
+    r.append(tm,lg,tx,sc);listEl.appendChild(r);rows.set(p,r);
+  });
+}
+
+function renderTL(){
+  const el=recording?rt():0;
+  const maxE=Math.max(0,...allC().map(c=>c.e));
+  const total=Math.max(dur,el,isFinite(v.duration)&&hasVideo?v.duration:0,maxE)+2;
+  tlin.style.width=Math.ceil(total*PX)+'px';
+  tlin.innerHTML='';
+  for(let i=0;i<=total;i+=5){const t=document.createElement('div');t.className='tick';t.style.left=i*PX+'px';t.textContent=fmt(i);tlin.appendChild(t)}
+  const ends=[],lane=new Map();
+  allC().slice().sort((a,b)=>a.s-b.s).forEach(c=>{
+    let k=ends.findIndex(e=>e<=c.s+0.01);if(k<0){k=ends.length;ends.push(0)}
+    ends[k]=Math.max(c.e,c.s+12/PX);lane.set(c,k);
+  });
+  const nl=Math.max(2,ends.length),th=28+nl*48+8;
+  tlin.style.height=th+'px';tl.style.height=Math.min(Math.max(132,th),290)+'px';
+  allC().forEach(c=>{
+    const b=document.createElement('div');b.className='blk '+c.g.l+(c.g.cut?' cut':'');
+    b.textContent=c.t;b.style.top=(28+lane.get(c)*48)+'px';place(b,c);
+    const hl=document.createElement('div');hl.className='h l';hl.dataset.h='l';
+    const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
+    b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);
+  });
+  ph=document.createElement('div');ph.className='ph';tlin.appendChild(ph);
+  updatePlayhead(false);
+}
+function place(b,c){b.style.left=c.s*PX+'px';b.style.width=Math.max(12,(c.e-c.s)*PX)+'px'}
+function seek(t){if(hasVideo&&!recording){try{v.currentTime=Math.max(0,t)}catch(e){}}}
+
+function attachDrag(b,c){
+  b.addEventListener('pointerdown',e=>{
+    if(recording||exporting)return;
+    e.preventDefault();e.stopPropagation();
+    const mode=e.target.dataset&&e.target.dataset.h||'m';
+    b.setPointerCapture(e.pointerId);
+    const x0=e.clientX,s0=c.s,e0=c.e;let moved=0;
+    const mv=ev=>{
+      moved=Math.max(moved,Math.abs(ev.clientX-x0));
+      const d=(ev.clientX-x0)/PX;
+      if(mode==='m'){const ns=Math.max(0,s0+d);c.s=ns;c.e=ns+(e0-s0)}
+      else if(mode==='l'){c.s=Math.min(Math.max(0,s0+d),e0-0.2)}
+      else{c.e=Math.max(e0+d,s0+0.2)}
+      place(b,c);seek(c.s+0.05);
+    };
+    const up=ev=>{
+      b.removeEventListener('pointermove',mv);b.removeEventListener('pointerup',up);b.removeEventListener('pointercancel',up);
+      const tap=ev.type==='pointerup'&&moved<5&&mode==='m';
+      save();renderTL();
+      if(tap)openEd(c,false);
+    };
+    b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
+  });
+}
+/* перемотка пальцем по любому пустому месту таймлайна */
+tlin.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.blk')||recording||exporting||e.button>0)return;
+  const sc=ev=>{
+    const r=tlin.getBoundingClientRect();
+    seek(Math.max(0,(ev.clientX-r.left)/PX));
+    const tr=tl.getBoundingClientRect();
+    if(ev.clientX>tr.right-40)tl.scrollLeft+=14;
+    else if(ev.clientX<tr.left+40)tl.scrollLeft-=14;
+  };
+  tlin.setPointerCapture(e.pointerId);sc(e);
+  const up=()=>{tlin.removeEventListener('pointermove',sc);tlin.removeEventListener('pointerup',up);tlin.removeEventListener('pointercancel',up)};
+  tlin.addEventListener('pointermove',sc);tlin.addEventListener('pointerup',up);tlin.addEventListener('pointercancel',up);
+});
+
+function updatePlayhead(follow){
+  if(!ph)return;
+  const t=recording?rt():(hasVideo?v.currentTime:0);
+  const x=t*PX;ph.style.left=x+'px';
+  if(follow&&(recording||(hasVideo&&!v.paused))){
+    const l=tl.scrollLeft,w=tl.clientWidth;
+    if(x<l||x>l+w*0.85)tl.scrollLeft=Math.max(0,x-w*0.3);
+  }
+}
+
+/* ---------- субтитры на экране ---------- */
+function updateSub(){
+  let txt='',cur=null;
+  if(recording||passing){
+    const p=phrases[phrases.length-1],now=nowT();
+    if(p&&p.t&&now-p.e<=3)txt=p.t.split(/\s+/).filter(Boolean).slice(-6).join(' ');
+  }else if(hasVideo){
+    const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g}
+  }
+  if(!txt&&performance.now()<previewUntil)txt=t('example');
+  if(txt!==lastSub){lastSub=txt;sub.textContent=txt;sub.classList.toggle('show',!!txt)}
+  if(cur!==lastNow){
+    if(lastNow&&rows.get(lastNow))rows.get(lastNow).classList.remove('now');
+    if(cur&&rows.get(cur))rows.get(cur).classList.add('now');
+    lastNow=cur;
+  }
+}
+
+/* ---------- проверка звука и распознавание по записи ---------- */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function checkAudio(blob){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;const c=new C();
+    const buf=await c.decodeAudioData(await blob.arrayBuffer());c.close();
+    let mx=0;const ch=buf.getChannelData(0);for(let i=0;i<ch.length;i+=50)mx=Math.max(mx,Math.abs(ch[i]));
+    if(mx<0.002)banner(t('noAudio'));
+  }catch(e){}
+}
+function audioGraph(){
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
+  if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
+  if(AC.state==='suspended')AC.resume();
+  return true;
+}
+let retried=false;
+async function transcribe(auto,speaker){
+  if(!speaker)retried=false;
+  if(!SR){toast('Распознавание речи работает в Chrome.');return}
+  if(!hasVideo||recording||exporting||passing)return;
+  if(!auto&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
+  for(let i=0;i<40&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
+  const T=totalT();if(!T){toast('Не удалось определить длину видео.');return}
+  if(!audioGraph()){toast('Не удалось подготовить звук для распознавания.');return}
+  setEdit(false);
+  setLang(langLog[0]?langLog[0].l:lang);
+  phrases=[];map={};save();renderAll();
+  passing=true;gotRes=false;
+  ASRC.disconnect();
+  PDEST=AC.createMediaStreamDestination();ASRC.connect(PDEST);
+  usingTrack=!speaker&&typeof SR.available==='function';
+  passTrack=usingTrack?PDEST.stream.getAudioTracks()[0]:null;
+  if(!usingTrack)ASRC.connect(AC.destination);
+  v.pause();v.muted=false;v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;await sleep(250);
+  $('#pass').style.display='block';updateButtons();
+  setSt('распознаю запись…');
+  startSR();
+  try{await v.play()}catch(e){toast('Браузер не дал запустить воспроизведение.');finishPass();return}
+  toast('Идёт распознавание: займёт время, равное длине видео ('+fmt(T)+'). Не закрывайте вкладку.'+(usingTrack?'':' Включите громкость: микрофон слушает звук видео.'),8000);
+  passTimer=setInterval(passTick,250);
+  v.onended=()=>finishPass();
+}
+function passTick(){
+  const T=totalT()||1,t=v.currentTime;
+  $('#passBar').value=Math.min(100,t/T*100);
+  $('#passTxt').textContent='Распознаю речь по записи: '+Math.min(100,Math.round(t/T*100))+'% ('+fmt(t)+' / '+fmt(T)+'). Текст появляется в списке фраз.';
+  let l=langLog[0]?langLog[0].l:lang;for(const e of langLog)if(e.t<=t)l=e.l;
+  if(l!==lang)setLang(l);
+  if(usingTrack&&!gotRes&&t>5)passFallback();
+}
+function passFallback(){
+  if(!passing||!passTrack)return;
+  passTrack=null;usingTrack=false;
+  try{ASRC.connect(AC.destination)}catch(e){}
+  toast('Прямая передача звука не сработала. Теперь микрофон слушает звук видео из динамика: включите громкость.',8000);
+  epoch++;
+  if(sr){sr.onend=null;sr.onresult=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}}
+  setTimeout(()=>{if(passing)startSR()},300);
+}
+async function finishPass(){
+  if(!passing)return;
+  const wasTrack=usingTrack;
+  v.onended=null;clearInterval(passTimer);v.pause();
+  epoch++;
+  setSt('завершаю распознавание…');
+  if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
+  await sleep(1500);
+  passing=false;
+  try{sr&&sr._t&&sr._t.stop()}catch(e){}
+  try{ASRC.disconnect();ASRC.connect(AC.destination)}catch(e){}
+  $('#pass').style.display='none';
+  v.currentTime=0;
+  buildAll();
+  const ok=phrases.some(p=>p.t);
+  if(!ok&&!retried){retried=true;toast('Текст не найден. Пробую ещё раз через динамик: включите громкость погромче.',7000);setTimeout(()=>transcribe(true,true),500);return}
+  setSt(ok?t('doneSt'):t('nothing'),ok?'ok':'err');
+  toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык, громкость или добавьте фразы вручную.',6000);
+}
+
+/* ---------- плеер ---------- */
+let seeking=false;
+const SPD=[0.5,0.75,1,1.25,1.5,2];
+const totalT=()=>isFinite(v.duration)&&v.duration>0?v.duration:dur;
+function updatePlayerUI(){
+  const T=totalT(),c=hasVideo?v.currentTime:0;
+  if(!seeking&&T)$('#seek').value=Math.round(Math.min(1,c/T)*1000);
+  if(!hasVideo)$('#seek').value=0;
+  $('#ptime').textContent=fmt(c)+' / '+fmt(T);
+  $('#pp').textContent=(hasVideo&&!v.paused&&!v.ended)?'❚❚':'▶';
+  $('#mu').textContent=t(v.muted?'muted':'sound');
+}
+function togglePlay(){
+  if(!hasVideo||recording||exporting||passing)return;
+  if(AC&&AC.state==='suspended')AC.resume();
+  if(v.paused||v.ended){if(v.ended)v.currentTime=0;v.play().catch(()=>{})}else v.pause();
+}
+function skip(d){if(hasVideo&&!recording&&!exporting&&!passing)v.currentTime=Math.max(0,Math.min(totalT()||1e9,v.currentTime+d))}
+$('#pp').onclick=togglePlay;
+$('#bk').onclick=()=>skip(-5);$('#fw').onclick=()=>skip(5);
+$('#mu').onclick=()=>{v.muted=!v.muted};
+$('#spd').onclick=()=>{
+  const i=SPD.indexOf(v.playbackRate);v.playbackRate=SPD[(i+1)%SPD.length];
+  $('#spd').textContent=(v.playbackRate)+'×';
+};
+const sk=$('#seek');
+sk.addEventListener('pointerdown',()=>{seeking=true});
+sk.addEventListener('pointerup',()=>{seeking=false});
+sk.addEventListener('pointercancel',()=>{seeking=false});
+sk.addEventListener('input',()=>{const T=totalT();if(T&&hasVideo)v.currentTime=sk.value/1000*T});
+$('#fs').onclick=()=>{
+  const pl=$('#player');
+  if(document.fullscreenElement)document.exitFullscreen();
+  else if(pl.requestFullscreen)pl.requestFullscreen().catch(()=>toast(t('fsNA')));
+  else toast(t('fsNS'));
+};
+stage.addEventListener('click',togglePlay);
+function setEdit(on){
+  const pl=$('#player');
+  if(on&&!(hasVideo&&!recording&&!exporting&&!passing))return;
+  pl.classList.toggle('edit',on);document.body.style.overflow=on?'hidden':'';
+  $('#ed').textContent=t(on?'edC':'edT');
+  if(on){renderTL();tl.scrollLeft=Math.max(0,v.currentTime*PX-tl.clientWidth*0.3)}
+}
+$('#ed').onclick=()=>setEdit(!$('#player').classList.contains('edit'));
+$('#edone').onclick=()=>setEdit(false);
+
+/* ---------- главный цикл ---------- */
+let xctx=null;
+function tick(){
+  requestAnimationFrame(tick);
+  if(hasVideo&&!v.paused&&!v.ended){
+    const t=v.currentTime;
+    for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
+  }
+  if(exporting&&xctx)drawExportFrame();
+  updateSub();updatePlayhead(true);updatePlayerUI();
+}
+
+/* ---------- SRT ---------- */
+function shiftT(t,spans){let d=0;for(const s of spans){if(t>=s[1])d+=s[1]-s[0];else if(t>s[0])d+=t-s[0]}return t-d}
+function downloadSrt(){
+  const spans=cutSpans();
+  const kept=allC().filter(c=>!c.g.cut).sort((a,b)=>a.s-b.s);
+  let out='',n=0;
+  for(const c of kept){
+    const s=shiftT(c.s,spans),e=shiftT(c.e,spans);
+    if(e-s<0.01)continue;n++;
+    out+=n+'\n'+fmtSrt(s)+' --> '+fmtSrt(e)+'\n'+c.t+'\n\n';
+  }
+  if(!n){toast(t('noSrt'));return}
+  download(new Blob([out],{type:'text/plain;charset=utf-8'}),'subtitles.srt');
+}
+
+/* ---------- экспорт видео ---------- */
+function exportMime(){
+  const l=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1.4D401E,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  for(const m of l){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}return'';
+}
+const mp4x=exportMime().startsWith('video/mp4');
+const explbl=()=>t(mp4x?'expMp4':'expWebm');
+let AC=null,ASRC=null,ADEST=null;
+function exportAudioTrack(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+    if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
+    if(AC.state==='suspended')AC.resume();
+    ASRC.disconnect();
+    ADEST=AC.createMediaStreamDestination();ASRC.connect(ADEST);
+    return ADEST.stream.getAudioTracks()[0]||null;
+  }catch(e){return null}
+}
+function wrap(ctx,text,maxW){
+  const words=text.split(/\s+/),lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w}else cur=t}
+  if(cur)lines.push(cur);return lines;
+}
+function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawSubOnCanvas(ctx,W,H,text){
+  const d=STY[style]||STY.classic;
+  const fs=W*0.044,lh=fs*1.25,padX=fs*0.55,padY=fs*0.2;
+  ctx.font=(d.it?'italic ':'')+d.w+' '+fs+'px '+(d.fam||BASEFAM);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(d.up)text=text.toUpperCase();
+  const lines=wrap(ctx,text,W*0.9-2*padX);
+  const bw=Math.max(...lines.map(l=>ctx.measureText(l).width))+2*padX,bh=lines.length*lh+2*padY;
+  const bx=(W-bw)/2,by=H*0.88-bh;
+  if(d.bg){ctx.fillStyle=d.bg;rrect(ctx,bx,by,bw,bh,fs*(d.r||0));ctx.fill()}
+  lines.forEach((l,i)=>{
+    const y=by+padY+lh*(i+0.5),x=W/2;
+    if(d.sh){ctx.shadowColor=d.sh[0];ctx.shadowBlur=fs*d.sh[1];ctx.shadowOffsetY=fs*d.sh[2]}
+    if(d.st){ctx.lineJoin='round';ctx.lineWidth=fs*d.st;ctx.strokeStyle=d.sc;ctx.strokeText(l,x,y)}
+    ctx.fillStyle=d.c;ctx.fillText(l,x,y);
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+  });
+}
+function drawExportFrame(){
+  const W=cv.width,H=cv.height;
+  xctx.drawImage(v,0,0,W,H);
+  const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t);
+  const total=isFinite(v.duration)&&v.duration>0?v.duration:dur;
+  if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent=t('exPct',pc);$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
+}
+async function exportVideo(){
+  if(!hasVideo||exporting||recording||passing)return;
+  const W=v.videoWidth,H=v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
+  if(!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
+  cv.width=W;cv.height=H;xctx=cv.getContext('2d');
+  exporting=true;updateButtons();v.controls=false;
+  toast(t('exToast'),5000);
+  v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
+  v.muted=false;
+  const cs=cv.captureStream(30),out=[];
+  const at=exportAudioTrack();if(at)cs.addTrack(at);
+  const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
+  if(!isMp4)toast(t('exWebm'),6000);
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:6000000,audioBitsPerSecond:128000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
+  v.onended=()=>{v.onended=null;setTimeout(()=>{if(r2.state!=='inactive')r2.stop()},300)};
+  r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
+  r2.onstop=()=>{
+    try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
+    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent=explbl();$('#xbox').classList.remove('show');
+    download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),isMp4?'edited.mp4':'edited.webm');
+    updateButtons();toast(t('exDone',isMp4?'edited.mp4':'edited.webm'));
+  };
+  $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
+  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  try{await v.play()}catch(e){}
+  r2.start(1000);
+}
+
+/* ---------- редактор дорожки ---------- */
+let ec=null,enew=false;
+const ebox=$('#ebox'),etxt=$('#etxt');
+function openEd(c,isNew){
+  ec=c;enew=!!isNew;etxt.value=isNew?'':c.t;
+  $('#etitle').textContent=t(isNew?'eNew':'eTitle');
+  $('#edel').style.display=isNew?'none':'';
+  ebox.style.display='flex';setTimeout(()=>etxt.focus(),50);
+}
+function closeEd(){ebox.style.display='none';ec=null}
+function dropChunk(c){
+  const g=c.g;g.c=g.c.filter(x=>x!==c);
+  if(!g.c.length)phrases=phrases.filter(p=>p!==g);
+  else{g.t=g.c.map(x=>x.t).join(' ');g.raw=g.t}
+}
+function saveEd(){
+  if(!ec)return;
+  const t=etxt.value.replace(/\s+/g,' ').trim(),c=ec;
+  if(!t)dropChunk(c);
+  else{c.t=t;c.g.t=c.g.c.map(x=>x.t).join(' ');c.g.raw=c.g.t}
+  closeEd();save();renderAll();
+}
+$('#esave').onclick=saveEd;
+$('#ecancel').onclick=()=>{if(ec&&enew){dropChunk(ec);save();renderAll()}closeEd()};
+$('#edel').onclick=()=>{if(ec){dropChunk(ec);save();renderAll()}closeEd()};
+$('#eadd').onclick=()=>{
+  if(!hasVideo||recording||exporting||passing)return;
+  v.pause();
+  const now=v.currentTime;
+  const p={s:now,e:now+2.5,l:lang,t:t('newPhrase'),cut:false};
+  phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);save();renderAll();
+  openEd(p.c[0],true);
+};
+
+/* ---------- установка на телефон ---------- */
+let dip=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isAnd=/Android/i.test(navigator.userAgent);
+(function(){
+  try{
+    const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#7c3aed'/><stop offset='1' stop-color='#ec4899'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='url(#g)'/><circle cx='32' cy='32' r='13' fill='none' stroke='#fff' stroke-width='5'/><circle cx='32' cy='32' r='5' fill='#fff'/></svg>";
+    const icon='data:image/svg+xml,'+encodeURIComponent(svg);
+    const man={name:t('title'),short_name:t('subWord'),start_url:location.href.split('#')[0],display:'standalone',background_color:'#0e0c1c',theme_color:'#7c3aed',icons:[{src:icon,sizes:'any',type:'image/svg+xml',purpose:'any'}]};
+    if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }catch(e){}
+  if(isStandalone())$('#inst').style.display='none';
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
+  window.addEventListener('appinstalled',()=>{$('#inst').style.display='none';dip=null;toast(t('installed'))});
+  $('#inst').onclick=async()=>{
+    if(dip){dip.prompt();try{await dip.userChoice}catch(e){}dip=null;return}
+    const h=t(isIOS?'iIos':isAnd?'iAnd':'iDesk')+t('iNote');$('#itxt').innerHTML=h;$('#ibox').classList.add('show');
+  };
+  $('#iclose').onclick=()=>$('#ibox').classList.remove('show');
+})();
+
+/* ---------- язык интерфейса ---------- */
+function applyLang(){
+  document.documentElement.lang=ui;document.title=t('title');
+  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.dataset.i)});
+  document.querySelectorAll('[data-ih]').forEach(e=>{e.innerHTML=t(e.dataset.ih)});
+  document.querySelectorAll('#uil button').forEach(b=>b.classList.toggle('on',b.dataset.u===ui));
+  document.querySelectorAll('#styles .sty').forEach((b,i)=>{b.querySelector('.nm').textContent=SN[ui][i];b.querySelector('.pv span').textContent=t('subWord')});
+  recTxt.textContent=t(recording?'stop':'rec');
+  $('#pz').textContent=t(paused?'resume':'pause');
+  badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
+  $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
+  if(!exporting)expBtn.textContent=explbl();
+  mirrLabel();keyStat();listCams();
+  if(!recording&&!hasVideo&&!passing)setSt(t('stIdle'));
+  renderList();
+}
+document.querySelectorAll('#uil button').forEach(b=>b.onclick=()=>{ui=b.dataset.u;try{localStorage.setItem('substudio-ui',ui)}catch(e){}applyLang()});
+
+/* ---------- события ---------- */
+expBtn.textContent=explbl();
+recBtn.onclick=()=>{if(exporting||passing)return;recording?stopRec():startRec()};
+document.querySelectorAll('#langs .chip').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
+Object.keys(STY).forEach(k=>{
+  const d=STY[k],b=document.createElement('button');b.className='chip sty';b.dataset.k=k;
+  const pv=document.createElement('div'),tt=document.createElement('span'),nm=document.createElement('div');
+  pv.className='pv';tt.textContent=t('subWord');nm.className='nm';nm.textContent=d.n;
+  tt.style.cssText='color:'+d.c+';background:'+(d.bg||'none')+';border-radius:'+(d.bg?(d.r||0)+'em':'0')+';font-weight:'+d.w+';font-style:'+(d.it?'italic':'normal')+';font-family:'+(d.fam||BASEFAM)+';text-transform:'+(d.up?'uppercase':'none')+';-webkit-text-stroke:'+(d.st?(d.st*0.6)+'em '+d.sc:'0')+';paint-order:stroke fill;text-shadow:'+(d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none')+';padding:.1em .45em';
+  pv.appendChild(tt);b.append(pv,nm);b.onclick=()=>setStyle(k);$('#styles').appendChild(b);
+});
+setStyle('classic',true);
+srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#passX').onclick=()=>finishPass();
+$('#clear').onclick=()=>{
+  if(recording||exporting)return;
+  if(phrases.length&&!confirm(t('clearQ')))return;
+  phrases=[];map={};dur=0;save();renderAll();
+};
+document.addEventListener('keydown',e=>{
+  const a=document.activeElement;
+  if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
+  if(e.code==='Escape')setEdit(false);
+  if(hasVideo&&!recording&&!exporting&&!passing&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
+    if(e.code==='Space'){e.preventDefault();togglePlay()}
+    else if(e.code==='ArrowLeft')skip(-5);else if(e.code==='ArrowRight')skip(5);
+  }
+  const m={Digit1:'hy',Numpad1:'hy',Digit2:'ru',Numpad2:'ru',Digit3:'en',Numpad3:'en'}[e.code];
+  if(m)setLang(m);
+});
+function applyTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('substudio-theme',t)}catch(e){}}
+$('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+(function(){
+  let t=null;try{t=localStorage.getItem('substudio-theme')}catch(e){}
+  if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.dataset.theme=t;
+})();
+
+/* ---------- старт ---------- */
+(function init(){
+  applyLang();
+  if(!SR){banner(t('bNoSR'));setSt(t('srNo'),'err')}
+  else if(!navigator.mediaDevices){banner(t('bNoMedia'))}
+  load();renderAll();
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
+  requestAnimationFrame(tick);
+})();
+})();
+</script>
+</body>
+</html>
