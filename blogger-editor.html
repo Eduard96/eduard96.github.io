@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <title>Студия субтитров</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ccircle cx='32' cy='32' r='13' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#f4f3fb; --card:#ffffff; --ink:#1b1736; --mute:#6b6a85; --line:#e4e2f2; --chip:#efecfb;
@@ -198,11 +199,6 @@ details li{margin:4px 0}
         </div>
         <div id="st">Распознавание речи: ожидание записи</div>
         <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
-        <label class="chk"><span>Режим записи</span><select id="pmode" class="sel" style="min-height:38px;font-size:14px;flex:1">
-          <option value="normal">Обычный: видео со звуком (ПК)</option>
-          <option value="after">Телефон: звук + текст сразу после записи (авто)</option>
-          <option value="mute">Телефон: текст сразу, но без звука</option>
-        </select></label>
 
         <div class="label">Язык речи <span>переключайте даже во время записи</span></div>
         <div class="chips lang" id="langs">
@@ -220,7 +216,7 @@ details li{margin:4px 0}
           <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи)</button>
           <button class="btn" id="add" style="grid-column:1/-1">＋ Фраза вручную (в текущий момент)</button>
         </div>
-        <div class="hint">Экспорт идёт в реальном времени: сохраняйте вкладку открытой и активной до конца.</div>
+        <div class="hint">Экспорт идёт в реальном времени, звук записывается вместе с видео. Держите вкладку открытой и активной до конца.</div>
       </div>
 
     </div>
@@ -235,7 +231,7 @@ details li{margin:4px 0}
           <summary>Ограничения и подсказки</summary>
           <ul>
             <li>Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.</li>
-            <li>На телефоне камера и распознавание речи спорят за микрофон, поэтому звук пропадает. Режим «звук + текст после записи» пишет видео со звуком, а затем сам проигрывает запись и распознаёт её с индикатором процентов. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
+            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому видео пишется со звуком, а текст появляется после записи: приложение само проигрывает запись и распознаёт её с индикатором процентов. Держите громкость включённой. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
             <li>Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.</li>
             <li>Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.</li>
             <li>Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).</li>
@@ -256,6 +252,7 @@ const v=$('#v'),stage=$('#stage'),sub=$('#sub'),listEl=$('#list'),tl=$('#tl'),tl
 const recBtn=$('#rec'),recTxt=$('#recTxt'),timerEl=$('#timer'),srtBtn=$('#srt'),expBtn=$('#exp'),badge=$('#badge');
 const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
 
 let phrases=[], map={}, dur=0, lang='hy', style='classic';
 let recording=false, exporting=false, hasVideo=false, fixing=false;
@@ -346,7 +343,7 @@ function buildAll(){
 const ERR={
   'not-allowed':'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
   'service-not-allowed':'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
-  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне смените «Режим записи» под кнопкой записи или используйте «＋ Фраза вручную».',
+  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне текст появится автоматически после записи.',
   'network':'Нет связи с сервисом распознавания Google. Проверьте интернет.',
   'language-not-supported':'Этот язык не поддерживается распознаванием в вашем браузере.'
 };
@@ -441,28 +438,26 @@ async function startRec(){
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});
   phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];
   const mt=pickMime();
-  const pmv=$('#pmode').value,phone=pmv==='mute';
+  const pmv=MOB?'after':'normal';
   let rs=stream;
-  if(phone){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast('Режим телефона: видео записывается без звука, микрофон работает на распознавание.',5000)}
   try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){toast('Запись видео доступна в Chrome.');return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
   recording=true;t0=performance.now();
   setSt('запускаю…');banner('');
-  if(pmv==='mute')setTimeout(()=>{if(recording)startSR()},500);
-  else if(pmv==='normal')startSR();
+  if(pmv==='normal')startSR();
   else setSt('после записи: видео пишется со звуком, текст появится автоматически');
   clearTimeout(wd);
   wd=setTimeout(()=>{
-    if(recording&&pmv!=='after'&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); на телефоне смените «Режим записи» (микрофон занят видеозаписью); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
+    if(recording&&pmv!=='after'&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
   },8000);
   recBtn.classList.add('on');recTxt.textContent='Стоп';badge.classList.add('on');
   tmr=setInterval(()=>{timerEl.textContent=fmt((performance.now()-t0)/1000);renderTL()},1000);
   save();renderAll();updateButtons();
 }
 function stopRec(){
-  pendingPass=$('#pmode').value==='after';
+  pendingPass=MOB;
   recording=false;dur=(performance.now()-t0)/1000;
   clearInterval(tmr);clearTimeout(wd);epoch++;
   if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
@@ -478,7 +473,7 @@ function finishRec(){
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;
   updateButtons();
-  if($('#pmode').value!=='mute')checkAudio(blob);
+  checkAudio(blob);
   if(pendingPass){pendingPass=false;setTimeout(()=>transcribe(true),500)}
 }
 v.addEventListener('loadedmetadata',()=>{
@@ -511,7 +506,7 @@ function updateButtons(){
   $('#tr').disabled=pe;recBtn.disabled=passing||exporting;
   document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
-  expBtn.disabled=!(hasVideo&&!recording&&!exporting&&phrases.length);
+  expBtn.disabled=!(hasVideo&&!recording&&!exporting&&!passing);
 }
 function renderAll(){renderList();renderTL();updateButtons()}
 
@@ -629,7 +624,7 @@ async function checkAudio(blob){
     const C=window.AudioContext||window.webkitAudioContext;const c=new C();
     const buf=await c.decodeAudioData(await blob.arrayBuffer());c.close();
     let mx=0;const ch=buf.getChannelData(0);for(let i=0;i<ch.length;i+=50)mx=Math.max(mx,Math.abs(ch[i]));
-    if(mx<0.002)banner('В записи нет звука: микрофон был занят распознаванием или заглушён. Выберите режим «Телефон: звук + текст сразу после записи».');
+    if(mx<0.002)banner('В записи нет звука: микрофон был занят или заглушён. Запишите ещё раз.');
   }catch(e){}
 }
 function audioGraph(){
@@ -883,10 +878,6 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
 (function init(){
   if(!SR){banner('Распознавание речи работает в Chrome. Откройте страницу в Chrome, чтобы текст появлялся во время записи.');setSt('не поддерживается этим браузером','err')}
   else if(!navigator.mediaDevices){banner('Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.')}
-  let pm=null;try{pm=localStorage.getItem('substudio-pmode')}catch(e){}
-  const mob=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),can=SR&&typeof SR.available==='function';
-  $('#pmode').value=['normal','after','mute'].includes(pm)?pm:(mob?'after':'normal');
-  $('#pmode').onchange=()=>{try{localStorage.setItem('substudio-pmode',$('#pmode').value)}catch(e){}};
   load();renderAll();
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
   requestAnimationFrame(tick);
