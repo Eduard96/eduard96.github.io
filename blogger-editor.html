@@ -106,7 +106,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .player.edit .tl{height:auto!important;flex:1;min-height:0}
 .ephead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
 /* timeline */
-.tl{position:relative;overflow-x:auto;overflow-y:auto;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:132px;-webkit-overflow-scrolling:touch}
+.tl{position:relative;overflow-x:auto;overflow-y:auto;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:132px;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .tlin{position:relative;height:100%;min-width:100%}
 .tick{position:absolute;top:0;height:20px;border-left:1px solid var(--mute);padding-left:4px;font-size:10px;color:var(--mute);pointer-events:none;font-variant-numeric:tabular-nums}
 .blk{position:absolute;height:44px;border-radius:9px;color:#fff;font-size:12px;font-weight:600;line-height:44px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -121,6 +121,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .ph{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;pointer-events:none;z-index:5;box-shadow:0 0 6px rgba(239,68,68,.8)}
 .ph::before{content:"";position:absolute;top:0;left:-4px;border:5px solid transparent;border-top-color:#ef4444}
 .hint{font-size:12px;color:var(--mute);margin-top:8px}
+.hint a{color:var(--acc);font-weight:700}
 
 /* phrases */
 .plist{display:grid;gap:8px;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);overflow:auto;padding-right:2px}
@@ -138,7 +139,7 @@ details{font-size:13px;color:var(--mute)}
 details summary{cursor:pointer;font-weight:700;color:var(--ink);padding:4px 0}
 details ul{margin:8px 0 0;padding-left:18px}
 details li{margin:4px 0}
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 @media (max-width:900px){
@@ -186,7 +187,7 @@ details li{margin:4px 0}
           <button class="pb" id="fs">⛶</button>
         </div>
         <div class="edit-pane" id="ep">
-          <div class="ephead"><span>Тяните блок целиком, края меняют начало и конец. Наложения ложатся друг под другом, список прокручивается.</span><button class="btn sm" id="edone">Готово</button></div>
+          <div class="ephead"><span>Нажмите на блок, чтобы изменить или удалить текст. Тяните блок целиком, края меняют начало и конец. Проведите пальцем по пустому месту, чтобы перемотать. Наложения ложатся друг под другом.</span><span style="display:flex;gap:6px;flex:none"><button class="btn sm" id="eadd">＋ Фраза здесь</button><button class="btn sm" id="edone">Готово</button></span></div>
           <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
         </div>
         </div>
@@ -200,8 +201,8 @@ details li{margin:4px 0}
         <div id="st">Распознавание речи: ожидание записи</div>
         <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
 
-        <details id="cloud" style="margin-top:10px"><summary>☁ Облачное распознавание: звук и текст вместе на телефоне</summary>
-          <div class="hint" style="margin:6px 0">Микрофон пишет звук как обычно, а кусочки звука по 7 секунд уходят в бесплатный сервис Groq (Whisper). Текст появляется с задержкой несколько секунд. Ключ бесплатный: console.groq.com, раздел API Keys, кнопка Create API Key. Он хранится только в этом браузере.</div>
+        <details id="cloud" style="margin-top:10px"><summary>☁ Облачное распознавание (бесплатно): звук и текст вместе на телефоне</summary>
+          <div class="hint" style="margin:6px 0"><b>Это бесплатно, карта не нужна.</b> Как получить ключ: 1) откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту; 2) нажмите <b>Create API Key</b>; 3) введите любое имя и скопируйте ключ (он начинается с gsk_); 4) вставьте его ниже и нажмите «Сохранить». Звук уходит в Groq (Whisper) кусочками по 7 секунд, текст появляется с задержкой в несколько секунд. Ключ хранится только в этом браузере.</div>
           <div style="display:flex;gap:8px"><input id="key" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:40px;font-size:14px;flex:1"><button class="btn sm" id="keysave">Сохранить</button></div>
           <div class="hint" id="keyst"></div>
         </details>
@@ -219,7 +220,6 @@ details li{margin:4px 0}
         <div class="actions">
           <button class="btn" id="srt" disabled>⬇ Скачать SRT</button>
           <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
-          <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи)</button>
           <button class="btn" id="add" style="grid-column:1/-1">＋ Фраза вручную (в текущий момент)</button>
         </div>
         <div class="hint">Экспорт идёт в реальном времени, звук записывается вместе с видео. Держите вкладку открытой и активной до конца.</div>
@@ -237,7 +237,7 @@ details li{margin:4px 0}
           <summary>Ограничения и подсказки</summary>
           <ul>
             <li>Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.</li>
-            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому видео пишется без звука, а текст идёт сразу. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
+            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому без облачного ключа видео пишется без звука, а текст идёт сразу. С бесплатным ключом Groq звук и текст работают вместе.</li>
             <li>Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.</li>
             <li>Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.</li>
             <li>Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).</li>
@@ -247,6 +247,19 @@ details li{margin:4px 0}
     </div>
   </div>
 </div>
+
+<div id="ebox" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="width:min(100%,460px)">
+    <h2 id="etitle">Текст дорожки</h2>
+    <textarea id="etxt" class="sel" rows="3" style="min-height:90px;padding:10px;font-weight:500;line-height:1.3;resize:vertical"></textarea>
+    <div class="actions" style="grid-template-columns:1fr 1fr 1fr">
+      <button class="btn" id="ecancel">Отмена</button>
+      <button class="btn" id="edel" style="color:var(--danger)">🗑 Удалить</button>
+      <button class="btn primary" id="esave">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <canvas id="cv" style="display:none"></canvas>
 <div class="toast" id="toast"></div>
 
@@ -566,7 +579,7 @@ function addManual(){
 /* ---------- отрисовка интерфейса ---------- */
 function updateButtons(){
   const pe=!(hasVideo&&!recording&&!exporting&&!passing);
-  $('#tr').disabled=pe;recBtn.disabled=passing||exporting;
+  recBtn.disabled=passing||exporting;
   document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
   expBtn.disabled=!(hasVideo&&!recording&&!exporting&&!passing);
@@ -631,25 +644,37 @@ function attachDrag(b,c){
     e.preventDefault();e.stopPropagation();
     const mode=e.target.dataset&&e.target.dataset.h||'m';
     b.setPointerCapture(e.pointerId);
-    const x0=e.clientX,s0=c.s,e0=c.e;
+    const x0=e.clientX,s0=c.s,e0=c.e;let moved=0;
     const mv=ev=>{
+      moved=Math.max(moved,Math.abs(ev.clientX-x0));
       const d=(ev.clientX-x0)/PX;
       if(mode==='m'){const ns=Math.max(0,s0+d);c.s=ns;c.e=ns+(e0-s0)}
       else if(mode==='l'){c.s=Math.min(Math.max(0,s0+d),e0-0.2)}
       else{c.e=Math.max(e0+d,s0+0.2)}
       place(b,c);seek(c.s+0.05);
     };
-    const up=()=>{
+    const up=ev=>{
       b.removeEventListener('pointermove',mv);b.removeEventListener('pointerup',up);b.removeEventListener('pointercancel',up);
+      const tap=ev.type==='pointerup'&&moved<5&&mode==='m';
       save();renderTL();
+      if(tap)openEd(c,false);
     };
     b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
   });
 }
-tlin.addEventListener('click',e=>{
-  if(e.target.closest('.blk')||recording||exporting)return;
-  const x=e.clientX-tlin.getBoundingClientRect().left;
-  seek(x/PX);
+/* перемотка пальцем по любому пустому месту таймлайна */
+tlin.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.blk')||recording||exporting||e.button>0)return;
+  const sc=ev=>{
+    const r=tlin.getBoundingClientRect();
+    seek(Math.max(0,(ev.clientX-r.left)/PX));
+    const tr=tl.getBoundingClientRect();
+    if(ev.clientX>tr.right-40)tl.scrollLeft+=14;
+    else if(ev.clientX<tr.left+40)tl.scrollLeft-=14;
+  };
+  tlin.setPointerCapture(e.pointerId);sc(e);
+  const up=()=>{tlin.removeEventListener('pointermove',sc);tlin.removeEventListener('pointerup',up);tlin.removeEventListener('pointercancel',up)};
+  tlin.addEventListener('pointermove',sc);tlin.addEventListener('pointerup',up);tlin.addEventListener('pointercancel',up);
 });
 
 function updatePlayhead(follow){
@@ -718,7 +743,7 @@ async function transcribe(auto,speaker){
   $('#pass').style.display='block';updateButtons();
   setSt('распознаю запись…');
   startSR();
-  try{await v.play()}catch(e){toast('Браузер не дал запустить воспроизведение. Нажмите «Распознать речь по записи» ещё раз.');finishPass();return}
+  try{await v.play()}catch(e){toast('Браузер не дал запустить воспроизведение.');finishPass();return}
   toast('Идёт распознавание: займёт время, равное длине видео ('+fmt(T)+'). Не закрывайте вкладку.'+(usingTrack?'':' Включите громкость: микрофон слушает звук видео.'),8000);
   passTimer=setInterval(passTick,250);
   v.onended=()=>finishPass();
@@ -908,6 +933,40 @@ async function exportVideo(){
   r2.start(1000);
 }
 
+/* ---------- редактор дорожки ---------- */
+let ec=null,enew=false;
+const ebox=$('#ebox'),etxt=$('#etxt');
+function openEd(c,isNew){
+  ec=c;enew=!!isNew;etxt.value=isNew?'':c.t;
+  $('#etitle').textContent=isNew?'Новая фраза':'Текст дорожки';
+  $('#edel').style.display=isNew?'none':'';
+  ebox.style.display='flex';setTimeout(()=>etxt.focus(),50);
+}
+function closeEd(){ebox.style.display='none';ec=null}
+function dropChunk(c){
+  const g=c.g;g.c=g.c.filter(x=>x!==c);
+  if(!g.c.length)phrases=phrases.filter(p=>p!==g);
+  else{g.t=g.c.map(x=>x.t).join(' ');g.raw=g.t}
+}
+function saveEd(){
+  if(!ec)return;
+  const t=etxt.value.replace(/\s+/g,' ').trim(),c=ec;
+  if(!t)dropChunk(c);
+  else{c.t=t;c.g.t=c.g.c.map(x=>x.t).join(' ');c.g.raw=c.g.t}
+  closeEd();save();renderAll();
+}
+$('#esave').onclick=saveEd;
+$('#ecancel').onclick=()=>{if(ec&&enew){dropChunk(ec);save();renderAll()}closeEd()};
+$('#edel').onclick=()=>{if(ec){dropChunk(ec);save();renderAll()}closeEd()};
+$('#eadd').onclick=()=>{
+  if(!hasVideo||recording||exporting||passing)return;
+  v.pause();
+  const now=v.currentTime;
+  const p={s:now,e:now+2.5,l:lang,t:'Новая фраза',cut:false};
+  phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);save();renderAll();
+  openEd(p.c[0],true);
+};
+
 /* ---------- события ---------- */
 expBtn.textContent=EXPLBL;
 recBtn.onclick=()=>{if(exporting||passing)return;recording?stopRec():startRec()};
@@ -916,7 +975,7 @@ const sel=$('#styleSel');
 Object.keys(STY).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=STY[k].n;sel.appendChild(o)});
 sel.onchange=()=>setStyle(sel.value);
 setStyle('classic',true);
-srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#tr').onclick=()=>transcribe(false);$('#passX').onclick=()=>finishPass();
+srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#passX').onclick=()=>finishPass();
 $('#clear').onclick=()=>{
   if(recording||exporting)return;
   if(phrases.length&&!confirm('Очистить все фразы?'))return;
