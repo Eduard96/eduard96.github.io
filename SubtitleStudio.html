@@ -762,6 +762,16 @@ const CAMMSG={
   none:{ru:'Камера не найдена.',en:'No camera found.',hy:'Տեսախցիկ չի գտնվել։'}
 };
 function camLive(){return !!stream&&stream.getVideoTracks().some(x=>x.readyState==='live')}
+function gum(c){
+  return new Promise((res,rej)=>{
+    let done=false;
+    const tm=setTimeout(()=>{done=true;const e=new Error('getUserMedia timeout');e.name='TimeoutError';rej(e)},15000);
+    navigator.mediaDevices.getUserMedia(c).then(
+      s=>{clearTimeout(tm);if(done)s.getTracks().forEach(x=>x.stop());else res(s)},
+      e=>{clearTimeout(tm);if(!done)rej(e)}
+    );
+  });
+}
 async function openStream(){
   const base={width:{ideal:1280},height:{ideal:720}};
   const tries=[];
@@ -771,8 +781,8 @@ async function openStream(){
   tries.push({video:true,audio:false});
   let last=null;
   for(const c of tries){
-    try{return await navigator.mediaDevices.getUserMedia(c)}
-    catch(e){last=e;if(e.name==='NotAllowedError'||e.name==='SecurityError')break}
+    try{return await gum(c)}
+    catch(e){last=e;if(e.name==='NotAllowedError'||e.name==='SecurityError'||e.name==='TimeoutError')break}
   }
   throw last;
 }
@@ -807,13 +817,25 @@ async function revive(){
 }
 document.addEventListener('visibilitychange',revive);
 async function startRec(){
-  if(phrases.length&&!confirm(t('newRec')))return;
+  try{await _startRec()}
+  catch(e){
+    recording=false;clearInterval(tmr);clearTimeout(wd);epoch++;
+    try{if(mr){mr.onstop=null;if(mr.state!=='inactive')mr.stop()}}catch(x){}
+    try{cloudStop()}catch(x){}
+    try{stopCanvas()}catch(x){}
+    recBtn.classList.remove('on');recTxt.textContent=t('rec');badge.classList.remove('on');$('#pz').classList.remove('show');
+    updateButtons();
+    toast('Ошибка записи: '+((e&&e.name)||'')+' '+((e&&e.message)||''),10000);
+  }
+}
+async function _startRec(){
+  if(hasVideo&&phrases.length&&!confirm(t('newRec')))return;
   if(!camLive()&&!(await initCam()))return;
   if(url){URL.revokeObjectURL(url);url=null}
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
   phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;
   const mt=pickMime();
-  const cloudMode=MOB&&!!getKey();
+  const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
   const pmv=cloudMode?'cloud':(MOB?'mute':'normal');
   let rs=stream;
   if(pmv==='mute'){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast(t('mutedMode'),5000)}
