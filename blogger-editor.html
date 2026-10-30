@@ -200,6 +200,12 @@ details li{margin:4px 0}
         <div id="st">Распознавание речи: ожидание записи</div>
         <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
 
+        <details id="cloud" style="margin-top:10px"><summary>☁ Облачное распознавание: звук и текст вместе на телефоне</summary>
+          <div class="hint" style="margin:6px 0">Микрофон пишет звук как обычно, а кусочки звука по 7 секунд уходят в бесплатный сервис Groq (Whisper). Текст появляется с задержкой несколько секунд. Ключ бесплатный: console.groq.com, раздел API Keys, кнопка Create API Key. Он хранится только в этом браузере.</div>
+          <div style="display:flex;gap:8px"><input id="key" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:40px;font-size:14px;flex:1"><button class="btn sm" id="keysave">Сохранить</button></div>
+          <div class="hint" id="keyst"></div>
+        </details>
+
         <div class="label">Язык речи <span>переключайте даже во время записи</span></div>
         <div class="chips lang" id="langs">
           <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
@@ -213,10 +219,7 @@ details li{margin:4px 0}
         <div class="actions">
           <button class="btn" id="srt" disabled>⬇ Скачать SRT</button>
           <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
-          <button class="btn" id="dl" disabled>⬇ Скачать запись (со звуком)</button>
-          <button class="btn" id="open">📂 Открыть видео из файла</button>
-          <input type="file" id="file" accept="video/*,audio/*" style="display:none">
-          <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи, звук включён)</button>
+          <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи)</button>
           <button class="btn" id="add" style="grid-column:1/-1">＋ Фраза вручную (в текущий момент)</button>
         </div>
         <div class="hint">Экспорт идёт в реальном времени, звук записывается вместе с видео. Держите вкладку открытой и активной до конца.</div>
@@ -234,7 +237,7 @@ details li{margin:4px 0}
           <summary>Ограничения и подсказки</summary>
           <ul>
             <li>Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.</li>
-            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому видео пишется со звуком, а текст добавляется позже. Скачайте запись, откройте её на компьютере кнопкой «Открыть видео из файла» и нажмите «Распознать речь по записи»: звук из записи пойдёт в распознавание, а потом всё экспортируется в один файл. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
+            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому видео пишется без звука, а текст идёт сразу. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
             <li>Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.</li>
             <li>Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.</li>
             <li>Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).</li>
@@ -257,7 +260,7 @@ const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
 
-let lastBlob=null,phrases=[], map={}, dur=0, lang='hy', style='classic';
+let phrases=[], map={}, dur=0, lang='hy', style='classic';
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
 const STY={
@@ -346,7 +349,7 @@ function buildAll(){
 const ERR={
   'not-allowed':'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
   'service-not-allowed':'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
-  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне запись идёт со звуком, текст добавляется позже.',
+  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне текст идёт сразу, видео пишется без звука.',
   'network':'Нет связи с сервисом распознавания Google. Проверьте интернет.',
   'language-not-supported':'Этот язык не поддерживается распознаванием в вашем браузере.'
 };
@@ -422,6 +425,59 @@ function setStyle(k,quiet){
   if(!quiet){previewUntil=performance.now()+2000;save()}
 }
 
+/* ---------- облачное распознавание (Groq Whisper) ---------- */
+const CHUNK=7;
+const cl={on:false,rec:null,timer:null,pend:0,astream:null,bad:false};
+const DEF_EP='https://api.groq.com/openai/v1/audio/transcriptions';
+const getKey=()=>{try{return(localStorage.getItem('substudio-key')||'').trim()}catch(e){return''}};
+const getEndpoint=()=>{try{return localStorage.getItem('substudio-endpoint')||DEF_EP}catch(e){return DEF_EP}};
+function cloudStart(){
+  cl.on=true;cl.pend=0;cl.bad=false;
+  cl.astream=new MediaStream(stream.getAudioTracks());
+  cloudNext();
+}
+function cloudNext(){
+  if(!cl.on)return;
+  let mt='';for(const m of['audio/webm;codecs=opus','audio/webm','audio/mp4']){if(MediaRecorder.isTypeSupported(m)){mt=m;break}}
+  const r=new MediaRecorder(cl.astream,mt?{mimeType:mt}:undefined),parts=[],ts=(performance.now()-t0)/1000,lg=lang;
+  r.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
+  r.onstop=()=>{const te=(performance.now()-t0)/1000;if(te-ts>=0.8)cloudSend(new Blob(parts,{type:r.mimeType||'audio/webm'}),ts,te,lg)};
+  r.start();cl.rec=r;
+  cl.timer=setTimeout(()=>{if(!cl.on)return;cloudNext();try{r.stop()}catch(e){}},CHUNK*1000);
+}
+function cloudStop(){
+  if(!cl.on)return;cl.on=false;clearTimeout(cl.timer);
+  try{cl.rec&&cl.rec.state!=='inactive'&&cl.rec.stop()}catch(e){}
+}
+async function cloudSend(blob,ts,te,lg){
+  if(blob.size<1500)return;
+  cl.pend++;setSt('облако: отправляю звук…','ok');
+  try{
+    const fd=new FormData();
+    fd.append('file',blob,'chunk.webm');fd.append('model','whisper-large-v3');
+    fd.append('language',lg);fd.append('response_format','verbose_json');fd.append('temperature','0');
+    const res=await fetch(getEndpoint(),{method:'POST',headers:{Authorization:'Bearer '+getKey()},body:fd});
+    if(res.status===401){cl.bad=true;toast('Ключ не принят сервисом. Проверьте ключ в блоке «Облачное распознавание».',8000);setSt('ключ не принят','err')}
+    else if(res.status===429){setSt('облако: лимит сервиса, часть фраз пропущена','err')}
+    else if(!res.ok){setSt('облако: ошибка '+res.status,'err')}
+    else{
+      const j=await res.json();let n=0;
+      const segs=(j.segments&&j.segments.length)?j.segments:[{start:0,end:te-ts,text:j.text||'',no_speech_prob:0}];
+      for(const g of segs){
+        const t=(g.text||'').replace(/\s+/g,' ').trim();
+        if(t.length<2||(g.no_speech_prob!==undefined&&g.no_speech_prob>0.7))continue;
+        phrases.push({s:ts+g.start,e:ts+Math.max(g.end,g.start+0.4),l:lg,t,cut:false});n++;
+      }
+      if(n){setSt('облако: текст идёт ✓','ok');banner('');save();renderList();updateButtons()}
+      else setSt('облако: жду речь…','ok');
+    }
+  }catch(e){setSt('облако: нет связи с сервисом','err')}
+  cl.pend--;
+  if(!recording&&cl.pend===0&&!cl.on){buildAll();const ok=phrases.some(p=>p.t);setSt(ok?'готово ✓':'ничего не распознано',ok?'ok':'err')}
+}
+$('#key').value=getKey();$('#keyst').textContent=getKey()?'Ключ сохранён: на телефоне звук и текст пойдут вместе.':'';
+$('#keysave').onclick=()=>{const k=$('#key').value.trim();try{localStorage.setItem('substudio-key',k)}catch(e){}$('#keyst').textContent=k?'Ключ сохранён: на телефоне звук и текст пойдут вместе.':'Ключ удалён: на телефоне текст сразу, но видео без звука.';toast(k?'Ключ сохранён':'Ключ удалён',2500)};
+
 /* ---------- камера и запись ---------- */
 async function initCam(){
   try{
@@ -441,19 +497,22 @@ async function startRec(){
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});
   phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];
   const mt=pickMime();
-  const pmv=MOB?'after':'normal';
+  const cloudMode=MOB&&!!getKey();
+  const pmv=cloudMode?'cloud':(MOB?'mute':'normal');
   let rs=stream;
+  if(pmv==='mute'){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast('Режим телефона: видео записывается без звука, микрофон работает на распознавание текста.',5000)}
   try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){toast('Запись видео доступна в Chrome.');return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
   recording=true;t0=performance.now();
   setSt('запускаю…');banner('');
-  if(pmv==='normal')startSR();
-  else{setSt('на телефоне идёт запись со звуком, текст добавится позже');toast('Запись идёт со звуком. Текст можно получить потом: скачайте запись и откройте её в студии на компьютере.',7000)}
+  if(pmv==='cloud'){cloudStart();setSt('облако: запись со звуком, текст придёт через несколько секунд','ok');toast('Запись со звуком. Текст появится через несколько секунд после слов.',5000)}
+  else if(pmv==='mute')setTimeout(()=>{if(recording)startSR()},500);
+  else startSR();
   clearTimeout(wd);
   wd=setTimeout(()=>{
-    if(recording&&pmv!=='after'&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
+    if(recording&&pmv!=='cloud'&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
   },8000);
   recBtn.classList.add('on');recTxt.textContent='Стоп';badge.classList.add('on');
   tmr=setInterval(()=>{timerEl.textContent=fmt((performance.now()-t0)/1000);renderTL()},1000);
@@ -463,20 +522,21 @@ function stopRec(){
   pendingPass=false;
   recording=false;dur=(performance.now()-t0)/1000;
   clearInterval(tmr);clearTimeout(wd);epoch++;
+  const wasCloud=cl.on;cloudStop();
   if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
   try{mr.stop()}catch(e){}
   recBtn.classList.remove('on');recTxt.textContent='Запись';badge.classList.remove('on');
-  setSt('остановлено');
+  setSt(wasCloud?'доделываю текст…':'остановлено');
   buildAll();
   setTimeout(buildAll,900);
 }
 function finishRec(){
   const blob=new Blob(blobs,{type:'video/webm'});
-  url=URL.createObjectURL(blob);lastBlob=blob;
+  url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;
   updateButtons();
-  checkAudio(blob);
+  if(!MOB)checkAudio(blob);
   if(pendingPass){pendingPass=false;setTimeout(()=>transcribe(true),500)}
 }
 v.addEventListener('loadedmetadata',()=>{
@@ -506,7 +566,7 @@ function addManual(){
 /* ---------- отрисовка интерфейса ---------- */
 function updateButtons(){
   const pe=!(hasVideo&&!recording&&!exporting&&!passing);
-  $('#tr').disabled=pe;$('#dl').disabled=!(hasVideo&&lastBlob&&!recording&&!exporting&&!passing);recBtn.disabled=passing||exporting;
+  $('#tr').disabled=pe;recBtn.disabled=passing||exporting;
   document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
   expBtn.disabled=!(hasVideo&&!recording&&!exporting&&!passing);
@@ -699,21 +759,6 @@ async function finishPass(){
   setSt(ok?'готово ✓':'ничего не распознано',ok?'ok':'err');
   toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык, громкость или добавьте фразы вручную.',6000);
 }
-
-/* ---------- файл: скачать запись / открыть видео ---------- */
-$('#dl').onclick=()=>{if(lastBlob)download(lastBlob,'recording.webm')};
-$('#open').onclick=()=>{if(!recording&&!exporting&&!passing)$('#file').click()};
-$('#file').onchange=e=>{
-  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
-  if(phrases.length&&!confirm('Открыть другое видео? Текущие фразы будут удалены.'))return;
-  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-  if(url){URL.revokeObjectURL(url)}
-  url=URL.createObjectURL(f);lastBlob=f;
-  phrases=[];map={};dur=0;lastSub='';langLog=[{t:0,l:lang}];
-  hasVideo=true;v.srcObject=null;v.src=url;v.muted=false;v.controls=false;v.load();
-  save();renderAll();
-  toast('Видео открыто. Нажмите «Распознать речь по записи»: текст появится сам.',6000);
-};
 
 /* ---------- плеер ---------- */
 let seeking=false;
