@@ -633,7 +633,9 @@ function audioGraph(){
   if(AC.state==='suspended')AC.resume();
   return true;
 }
-async function transcribe(auto){
+let retried=false;
+async function transcribe(auto,speaker){
+  if(!speaker)retried=false;
   if(!SR){toast('Распознавание речи работает в Chrome.');return}
   if(!hasVideo||recording||exporting||passing)return;
   if(!auto&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
@@ -646,7 +648,7 @@ async function transcribe(auto){
   passing=true;gotRes=false;
   ASRC.disconnect();
   PDEST=AC.createMediaStreamDestination();ASRC.connect(PDEST);
-  usingTrack=typeof SR.available==='function';
+  usingTrack=!speaker&&typeof SR.available==='function';
   passTrack=usingTrack?PDEST.stream.getAudioTracks()[0]:null;
   if(!usingTrack)ASRC.connect(AC.destination);
   v.pause();v.muted=false;v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;await sleep(250);
@@ -664,7 +666,7 @@ function passTick(){
   $('#passTxt').textContent='Распознаю речь по записи: '+Math.min(100,Math.round(t/T*100))+'% ('+fmt(t)+' / '+fmt(T)+'). Текст появляется в списке фраз.';
   let l=langLog[0]?langLog[0].l:lang;for(const e of langLog)if(e.t<=t)l=e.l;
   if(l!==lang)setLang(l);
-  if(usingTrack&&!gotRes&&t>12)passFallback();
+  if(usingTrack&&!gotRes&&t>5)passFallback();
 }
 function passFallback(){
   if(!passing||!passTrack)return;
@@ -677,6 +679,7 @@ function passFallback(){
 }
 async function finishPass(){
   if(!passing)return;
+  const wasTrack=usingTrack;
   v.onended=null;clearInterval(passTimer);v.pause();
   epoch++;
   setSt('завершаю распознавание…');
@@ -689,6 +692,7 @@ async function finishPass(){
   v.currentTime=0;
   buildAll();
   const ok=phrases.some(p=>p.t);
+  if(!ok&&!retried){retried=true;toast('Текст не найден. Пробую ещё раз через динамик: включите громкость погромче.',7000);setTimeout(()=>transcribe(true,true),500);return}
   setSt(ok?'готово ✓':'ничего не распознано',ok?'ok':'err');
   toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык, громкость или добавьте фразы вручную.',6000);
 }
