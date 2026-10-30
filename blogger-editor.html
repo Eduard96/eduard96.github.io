@@ -96,6 +96,14 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--mute)}
 .chk input{width:18px;height:18px;accent-color:var(--acc)}
 
+.edit-pane{display:none}
+.player.edit{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;justify-content:flex-start;gap:8px;overflow:hidden;
+  padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
+.player.edit .stage{width:min(100%,calc(34dvh*var(--ar)));flex:none}
+.player.edit .ctl{margin-top:0}
+.player.edit .edit-pane{display:flex;flex-direction:column;flex:1;min-height:0;gap:6px}
+.player.edit .tl{height:auto!important;flex:1;min-height:0}
+.ephead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
 /* timeline */
 .tl{position:relative;overflow-x:auto;overflow-y:auto;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:132px;-webkit-overflow-scrolling:touch}
 .tlin{position:relative;height:100%;min-width:100%}
@@ -173,7 +181,12 @@ details li{margin:4px 0}
           <div id="ptime">00:00 / 00:00</div>
           <button class="pb" id="mu" disabled>ЗВУК</button>
           <button class="pb" id="spd" disabled>1×</button>
+          <button class="pb" id="ed" disabled>✎ Edit voice timing</button>
           <button class="pb" id="fs">⛶</button>
+        </div>
+        <div class="edit-pane" id="ep">
+          <div class="ephead"><span>Тяните блок целиком, края меняют начало и конец. Наложения ложатся друг под другом, список прокручивается.</span><button class="btn sm" id="edone">Готово</button></div>
+          <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
         </div>
         </div>
       </div>
@@ -204,11 +217,6 @@ details li{margin:4px 0}
         <div class="hint">Экспорт идёт в реальном времени: сохраняйте вкладку открытой и активной до конца.</div>
       </div>
 
-      <div class="card">
-        <h2>Таймлайн <span style="text-transform:none;letter-spacing:0;font-weight:500">тяните блоки и края</span></h2>
-        <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
-        <div class="hint">Тело блока сдвигает субтитр, края меняют начало и конец. Тап по пустому месту ставит кадр.</div>
-      </div>
     </div>
 
     <div class="col">
@@ -612,6 +620,15 @@ $('#fs').onclick=()=>{
   else toast('Полный экран не поддерживается.');
 };
 stage.addEventListener('click',togglePlay);
+function setEdit(on){
+  const pl=$('#player');
+  if(on&&!(hasVideo&&!recording&&!exporting))return;
+  pl.classList.toggle('edit',on);document.body.style.overflow=on?'hidden':'';
+  $('#ed').textContent=on?'✕ Закрыть тайминг':'✎ Edit voice timing';
+  if(on){renderTL();tl.scrollLeft=Math.max(0,v.currentTime*PX-tl.clientWidth*0.3)}
+}
+$('#ed').onclick=()=>setEdit(!$('#player').classList.contains('edit'));
+$('#edone').onclick=()=>setEdit(false);
 
 /* ---------- главный цикл ---------- */
 let xctx=null;
@@ -641,6 +658,17 @@ function downloadSrt(){
 }
 
 /* ---------- экспорт видео ---------- */
+let AC=null,ASRC=null,ADEST=null;
+function exportAudioTrack(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+    if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
+    if(AC.state==='suspended')AC.resume();
+    ASRC.disconnect();
+    ADEST=AC.createMediaStreamDestination();ASRC.connect(ADEST);
+    return ADEST.stream.getAudioTracks()[0]||null;
+  }catch(e){return null}
+}
 function wrap(ctx,text,maxW){
   const words=text.split(/\s+/),lines=[];let cur='';
   for(const w of words){const t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w}else cur=t}
@@ -680,18 +708,20 @@ async function exportVideo(){
   exporting=true;updateButtons();v.controls=false;
   toast('Экспорт идёт в реальном времени. Держите вкладку открытой.',5000);
   v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
+  v.muted=false;
   const cs=cv.captureStream(30),out=[];
+  const at=exportAudioTrack();if(at)cs.addTrack(at);
   const mt=pickMime();let r2;
   try{r2=new MediaRecorder(cs,mt?{mimeType:mt}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast('Запись видео доступна в Chrome.');return}
   v.onended=()=>{v.onended=null;setTimeout(()=>{if(r2.state!=='inactive')r2.stop()},300)};
   r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
   r2.onstop=()=>{
+    try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
     exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent='🎬 Экспорт видео';
     download(new Blob(out,{type:'video/webm'}),'edited.webm');
     updateButtons();toast('Готово: edited.webm');
   };
   try{await v.play()}catch(e){}
-  try{const vs=v.captureStream?v.captureStream():null;if(vs)vs.getAudioTracks().forEach(t=>cs.addTrack(t))}catch(e){}
   r2.start(1000);
 }
 
@@ -711,6 +741,7 @@ $('#clear').onclick=()=>{
 document.addEventListener('keydown',e=>{
   const a=document.activeElement;
   if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
+  if(e.code==='Escape')setEdit(false);
   if(hasVideo&&!recording&&!exporting&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
     if(e.code==='Space'){e.preventDefault();togglePlay()}
     else if(e.code==='ArrowLeft')skip(-5);else if(e.code==='ArrowRight')skip(5);
