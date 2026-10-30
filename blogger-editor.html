@@ -213,7 +213,10 @@ details li{margin:4px 0}
         <div class="actions">
           <button class="btn" id="srt" disabled>⬇ Скачать SRT</button>
           <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
-          <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи)</button>
+          <button class="btn" id="dl" disabled>⬇ Скачать запись (со звуком)</button>
+          <button class="btn" id="open">📂 Открыть видео из файла</button>
+          <input type="file" id="file" accept="video/*,audio/*" style="display:none">
+          <button class="btn" id="tr" disabled style="grid-column:1/-1">🔁 Распознать речь по записи (займёт время записи, звук включён)</button>
           <button class="btn" id="add" style="grid-column:1/-1">＋ Фраза вручную (в текущий момент)</button>
         </div>
         <div class="hint">Экспорт идёт в реальном времени, звук записывается вместе с видео. Держите вкладку открытой и активной до конца.</div>
@@ -231,7 +234,7 @@ details li{margin:4px 0}
           <summary>Ограничения и подсказки</summary>
           <ul>
             <li>Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.</li>
-            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому видео пишется со звуком, а текст появляется после записи: приложение само проигрывает запись и распознаёт её с индикатором процентов. Держите громкость включённой. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
+            <li>На телефоне камера и распознавание речи спорят за микрофон. Поэтому видео пишется со звуком, а текст добавляется позже. Скачайте запись, откройте её на компьютере кнопкой «Открыть видео из файла» и нажмите «Распознать речь по записи»: звук из записи пойдёт в распознавание, а потом всё экспортируется в один файл. Кнопка «Распознать речь по записи» запускает это в любой момент заново.</li>
             <li>Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.</li>
             <li>Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.</li>
             <li>Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).</li>
@@ -254,7 +257,7 @@ const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
 
-let phrases=[], map={}, dur=0, lang='hy', style='classic';
+let lastBlob=null,phrases=[], map={}, dur=0, lang='hy', style='classic';
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
 const STY={
@@ -343,7 +346,7 @@ function buildAll(){
 const ERR={
   'not-allowed':'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
   'service-not-allowed':'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
-  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне текст появится автоматически после записи.',
+  'audio-capture':'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне запись идёт со звуком, текст добавляется позже.',
   'network':'Нет связи с сервисом распознавания Google. Проверьте интернет.',
   'language-not-supported':'Этот язык не поддерживается распознаванием в вашем браузере.'
 };
@@ -447,7 +450,7 @@ async function startRec(){
   recording=true;t0=performance.now();
   setSt('запускаю…');banner('');
   if(pmv==='normal')startSR();
-  else setSt('после записи: видео пишется со звуком, текст появится автоматически');
+  else{setSt('на телефоне идёт запись со звуком, текст добавится позже');toast('Запись идёт со звуком. Текст можно получить потом: скачайте запись и откройте её в студии на компьютере.',7000)}
   clearTimeout(wd);
   wd=setTimeout(()=>{
     if(recording&&pmv!=='after'&&!phrases.some(p=>p.t))banner('Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.');
@@ -457,7 +460,7 @@ async function startRec(){
   save();renderAll();updateButtons();
 }
 function stopRec(){
-  pendingPass=MOB;
+  pendingPass=false;
   recording=false;dur=(performance.now()-t0)/1000;
   clearInterval(tmr);clearTimeout(wd);epoch++;
   if(sr){sr.onend=null;try{sr.stop()}catch(e){}}
@@ -469,7 +472,7 @@ function stopRec(){
 }
 function finishRec(){
   const blob=new Blob(blobs,{type:'video/webm'});
-  url=URL.createObjectURL(blob);
+  url=URL.createObjectURL(blob);lastBlob=blob;
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;
   updateButtons();
@@ -503,7 +506,7 @@ function addManual(){
 /* ---------- отрисовка интерфейса ---------- */
 function updateButtons(){
   const pe=!(hasVideo&&!recording&&!exporting&&!passing);
-  $('#tr').disabled=pe;recBtn.disabled=passing||exporting;
+  $('#tr').disabled=pe;$('#dl').disabled=!(hasVideo&&lastBlob&&!recording&&!exporting&&!passing);recBtn.disabled=passing||exporting;
   document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
   expBtn.disabled=!(hasVideo&&!recording&&!exporting&&!passing);
@@ -696,6 +699,21 @@ async function finishPass(){
   setSt(ok?'готово ✓':'ничего не распознано',ok?'ok':'err');
   toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык, громкость или добавьте фразы вручную.',6000);
 }
+
+/* ---------- файл: скачать запись / открыть видео ---------- */
+$('#dl').onclick=()=>{if(lastBlob)download(lastBlob,'recording.webm')};
+$('#open').onclick=()=>{if(!recording&&!exporting&&!passing)$('#file').click()};
+$('#file').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  if(phrases.length&&!confirm('Открыть другое видео? Текущие фразы будут удалены.'))return;
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  if(url){URL.revokeObjectURL(url)}
+  url=URL.createObjectURL(f);lastBlob=f;
+  phrases=[];map={};dur=0;lastSub='';langLog=[{t:0,l:lang}];
+  hasVideo=true;v.srcObject=null;v.src=url;v.muted=false;v.controls=false;v.load();
+  save();renderAll();
+  toast('Видео открыто. Нажмите «Распознать речь по записи»: текст появится сам.',6000);
+};
 
 /* ---------- плеер ---------- */
 let seeking=false;
