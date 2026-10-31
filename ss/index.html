@@ -443,6 +443,27 @@ body.viewing{overflow:hidden}
 .prow .pn{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prow .pm{font-size:12px;color:var(--mute);margin-top:2px}
 .prow .px{flex:none;width:44px;min-height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--danger)}
+.studio{display:none;position:fixed;inset:0;z-index:90;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.studio.show{display:block}
+.stbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--line);font-size:17px}
+.stbar .sp{flex:1}
+.stbody{max-width:760px;margin:0 auto;padding:14px 14px 40px;display:grid;gap:14px}
+.st-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin:0 0 8px}
+.st-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.st-tl{position:relative;overflow-x:auto;overflow-y:hidden;border-radius:12px;background:var(--chip);border:1px solid var(--line);height:176px;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+.st-in{position:relative;height:100%;min-width:100%}
+.st-ruler{position:absolute;left:0;right:0;top:0;height:28px;touch-action:none;cursor:col-resize;border-bottom:1px solid var(--line);z-index:2}
+.st-tick{position:absolute;top:0;height:28px;border-left:1px solid var(--mute);padding-left:4px;font-size:10px;line-height:14px;color:var(--mute);pointer-events:none}
+.st-b{position:absolute;border-radius:9px;color:#fff;font-size:12px;font-weight:600;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.25);user-select:none;-webkit-user-select:none}
+.st-b.o{top:34px;height:32px;line-height:32px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);cursor:pointer}
+.st-b.t{top:72px;height:32px;line-height:32px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);cursor:pointer}
+.st-b.t.empty{opacity:.45}
+.st-b.c{top:112px;height:52px;line-height:52px;background:linear-gradient(135deg,#10b981,#047857);touch-action:none;cursor:grab}
+.st-b.c.sel{box-shadow:0 0 0 3px #fff,0 4px 14px rgba(0,0,0,.45)}
+.st-b .h{position:absolute;top:0;bottom:0;width:10px;background:rgba(255,255,255,.4);cursor:ew-resize}
+.st-b .h.l{left:0;border-radius:9px 0 0 9px}
+.st-b .h.r{right:0;border-radius:0 9px 9px 0}
+.st-ph{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;pointer-events:none;z-index:6;box-shadow:0 0 6px rgba(239,68,68,.8)}
 </style>
 </head>
 <body>
@@ -471,6 +492,7 @@ body.viewing{overflow:hidden}
         <div class="dmenu right" id="menuR">
           <div class="seg" id="uil"><button data-u="en">EN</button><button data-u="ru">RU</button><button data-u="hy">ՀԱՅ</button></div>
           <button class="mi" id="mPrj" data-i="prjLbl"></button>
+          <button class="mi" id="mGem" data-i="gemLbl"></button>
           <button class="mi" id="theme" data-i="themeLbl"></button>
           <button class="mi" id="mKey" data-i="setKey"></button>
         </div>
@@ -556,6 +578,8 @@ body.viewing{overflow:hidden}
         <div class="actions">
           <button class="btn" id="srt" disabled data-i="srt"></button>
           <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
+          <button class="btn" id="btnTr" data-i="trBtn"></button>
+          <button class="btn" id="btnTts" data-i="ttsBtn"></button>
           <button class="btn" id="add" style="grid-column:1/-1" data-i="addM"></button>
         </div>
         <div class="hint" data-i="expHint"></div>
@@ -605,6 +629,69 @@ body.viewing{overflow:hidden}
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
 <div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button></div></div>
 <div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
+<div class="studio" id="trs">
+ <div class="stbar"><button class="btn sm" id="trBack" data-i="back"></button><b data-i="trBtn"></b><span class="sp"></span><button class="btn sm" id="trKey" aria-label="Gemini API key">🔑</button></div>
+ <div class="stbody">
+  <div class="card">
+   <video id="trVid" playsinline controls preload="metadata" style="width:100%;max-height:42dvh;background:#000;border-radius:12px"></video>
+   <div class="hint" id="trHint" data-i="trHint"></div>
+   <label class="btn primary" for="trFile" style="cursor:pointer;margin-top:10px" data-i="trPick"></label>
+   <input type="file" id="trFile" accept="video/*" hidden>
+  </div>
+  <div class="card">
+   <div class="lrow"><label data-i="trLang"></label><select class="sel" id="trLangSel" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select></div>
+   <div class="lrow"><label data-i="trVoice"></label><select class="sel" id="trVoice" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select></div>
+   <div class="lrow"><label data-i="trStyle"></label><input id="trStyleIn" class="sel" type="text" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></div>
+   <div class="lrow"><label data-i="trOrig"></label><input type="range" id="trOrig" min="0" max="100" value="100" style="flex:1;accent-color:var(--acc)"><span id="trOrigV" style="min-width:42px;text-align:right;font-size:13px;font-weight:700;color:var(--mute)">100%</span></div>
+   <div class="actions" style="grid-template-columns:1fr 1fr 1fr"><button class="btn" id="trS1" style="font-size:13px;padding:0 6px" data-i="trS1"></button><button class="btn" id="trS2" style="font-size:13px;padding:0 6px" data-i="trS2"></button><button class="btn primary" id="trS3" style="font-size:13px;padding:0 6px" data-i="trS3"></button></div>
+   <progress id="trBar" max="100" value="0" style="width:100%;height:12px;accent-color:var(--acc);margin-top:10px;display:none"></progress>
+   <div class="hint" id="trSt"></div>
+   <button class="btn sm" id="trStop" style="display:none;margin-top:6px" data-i="trCancel"></button>
+  </div>
+  <div class="card">
+   <div class="st-leg"><span><i style="background:#3b82f6"></i><span data-i="trLeg1"></span></span><span><i style="background:#8b5cf6"></i><span data-i="trLeg2"></span></span><span><i style="background:#10b981"></i><span data-i="trLeg3"></span></span></div>
+   <div class="st-tl" id="trTl"><div class="st-in" id="trIn"></div></div>
+   <div class="hint" data-i="trTlHint"></div>
+   <div class="lrow"><button class="btn sm" id="trNL" data-i="trNL"></button><button class="btn sm" id="trNR" data-i="trNR"></button><button class="btn sm" id="trSplit" data-i="trSplit"></button><button class="btn sm" id="trDel" style="color:var(--danger)">🗑</button></div>
+  </div>
+  <div class="card">
+   <label class="chk"><input type="checkbox" id="trBurn"><span data-i="trBurn"></span></label>
+   <button class="btn primary" id="trExp" style="width:100%;margin-top:10px" disabled></button>
+   <div class="hint" data-i="expHint"></div>
+  </div>
+ </div>
+</div>
+<div class="studio" id="tts">
+ <div class="stbar"><button class="btn sm" id="ttsBack" data-i="back"></button><b data-i="ttsBtn"></b><span class="sp"></span><button class="btn sm" id="ttsKey" aria-label="Gemini API key">🔑</button></div>
+ <div class="stbody">
+  <div class="card">
+   <textarea id="ttsIn" class="sel" rows="8" style="min-height:170px;padding:10px;font-weight:500;line-height:1.4;resize:vertical;width:100%"></textarea>
+   <div class="hint" id="ttsCnt"></div>
+  </div>
+  <div class="card">
+   <div class="lrow"><label data-i="trVoice"></label><select class="sel" id="ttsVoice" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select><button class="btn sm" id="ttsSample" data-i="ttsSample"></button></div>
+   <div class="lrow"><label data-i="trStyle"></label><input id="ttsStyle" class="sel" type="text" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></div>
+   <button class="btn primary" id="ttsGen" style="width:100%;margin-top:12px" data-i="ttsGen"></button>
+   <progress id="ttsBar" max="100" value="0" style="width:100%;height:12px;accent-color:var(--acc);margin-top:10px;display:none"></progress>
+   <div class="hint" id="ttsSt"></div>
+   <button class="btn sm" id="ttsStop" style="display:none;margin-top:6px" data-i="trCancel"></button>
+   <audio id="ttsAud" controls style="width:100%;margin-top:10px;display:none"></audio>
+   <div class="actions"><button class="btn" id="ttsMp3" disabled data-i="ttsMp3"></button><button class="btn" id="ttsWav" disabled data-i="ttsWav"></button></div>
+  </div>
+ </div>
+</div>
+<div class="ovl" id="gbox"><div class="box" style="text-align:left;max-height:90dvh;overflow:auto;touch-action:pan-y">
+ <h3 data-i="gemTitle"></h3>
+ <div class="hint" style="margin:0 0 12px;font-size:13px;line-height:1.55" data-ih="gemInfo"></div>
+ <input id="gkey" type="password" autocomplete="off" placeholder="AIza…" class="sel" style="min-height:44px;font-size:14px">
+ <div class="hint" id="gst"></div>
+ <button class="btn primary" id="gsave" style="width:100%;margin-top:10px" data-i="gemSave"></button>
+ <div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="grem" data-i="gemRemove"></button><button class="btn" id="gclose" data-i="iClose"></button></div>
+</div></div>
+<div class="ovl" id="gtx"><div class="box" style="text-align:left"><h3 data-i="trEdit"></h3>
+ <textarea id="gtxA" class="sel" rows="4" style="min-height:110px;padding:10px;font-weight:500;line-height:1.35;resize:vertical"></textarea>
+ <div class="actions" style="grid-template-columns:1fr 1fr 1fr"><button class="btn" id="gtxC" data-i="eCancel"></button><button class="btn" id="gtxD" style="color:var(--danger)" data-i="eDel"></button><button class="btn primary" id="gtxS" data-i="eSave"></button></div>
+</div></div>
 <div class="ovl" id="pbox"><div class="box" style="text-align:left">
 <h3 style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span data-i="prjTitle"></span><button class="btn sm" id="pclear" style="color:var(--danger)" data-i="clear"></button></h3>
 <div id="plist"></div>
@@ -822,7 +909,7 @@ Object.assign(I18.ru,{ptrQ:'Обновить страницу? Текущая з
 Object.assign(I18.hy,{ptrQ:'Թարմացնե՞լ էջը։ Ընթացիկ ձայնագրությունը կկորչի։'});
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
-let projName='';let recDur=0;let curId=null,dirty=false,saveT=0,savingP=null;
+let projName='';let recDur=0;let curId=null,dirty=false,saveT=0,savingP=null,studioOpen=false;
 const STY={
 classic:{n:'Классика',c:'#fff',bg:'rgba(0,0,0,.6)',r:.2,w:600},
 bold:{n:'Жирный жёлтый',c:'#FFD60A',up:1,w:900,st:.2,sc:'#000'},
@@ -2632,7 +2719,7 @@ function applyLang(){
   document.querySelectorAll('#styles .sty').forEach((b,i)=>{b.querySelector('.nm').textContent=SN[ui][i];b.querySelector('.pv span').textContent=t('subWord')});
   recTxt.textContent=t(recording?'stop':'rec');
   document.querySelectorAll('#anims .anim').forEach((b,i)=>{b.querySelector('.nm').textContent=ANIM[i].n[ui]});
-  $('#lfont').options[0].textContent=t('fontPreset');$('#cap').placeholder=t('capPh');$('#shCap').placeholder=t('capPh');
+  $('#lfont').options[0].textContent=t('fontPreset');$('#cap').placeholder=t('capPh');$('#shCap').placeholder=t('capPh');studioLang();
   $('#pz').textContent=t(paused?'resume':'pause');
   badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
   $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
@@ -2651,6 +2738,27 @@ Object.assign(I18.hy,{capLbl:'Նկարագրություն տեսանյութի 
 Object.assign(I18.en,{capLbl:'Description for the post',capCopyBtn:'Copy text',prjLbl:'📁 Projects',prjTitle:'Projects',prjEmpty:'Your projects will appear here: every recording is saved automatically together with its text and settings.',prjDelQ:'Delete "{0}" from this device? The video and its text will be erased for good.',prjClearQ:'Delete ALL projects? Every saved video and text will be erased for good.',prjFail:'Saving the project on this device failed (storage may be full).',prjBusy:'Finish the current recording or export first.',prjSub:'{0} phrases'});
 Object.assign(I18.ru,{capLbl:'Описание для поста',capCopyBtn:'Скопировать текст',prjLbl:'📁 Проекты',prjTitle:'Проекты',prjEmpty:'Здесь появятся ваши проекты: каждая запись сохраняется автоматически вместе с текстом и настройками.',prjDelQ:'Удалить «{0}» с этого устройства? Видео и текст исчезнут навсегда.',prjClearQ:'Удалить ВСЕ проекты? Все сохранённые видео и тексты исчезнут навсегда.',prjFail:'Сохранение проекта на устройстве сорвалось (возможно, память заполнена).',prjBusy:'Сначала завершите текущую запись или экспорт.',prjSub:'фраз: {0}'});
 Object.assign(I18.hy,{capLbl:'Նկարագրություն հրապարակման համար',capCopyBtn:'Պատճենել տեքստը',prjLbl:'📁 Նախագծեր',prjTitle:'Նախագծեր',prjEmpty:'Այստեղ կհայտնվեն ձեր նախագծերը․ ամեն ձայնագրություն պահվում է ավտոմատ՝ տեքստի և կարգավորումների հետ։',prjDelQ:'Ջնջե՞լ «{0}»-ը այս սարքից։ Տեսանյութը և տեքստը կվերանան ընդմիշտ։',prjClearQ:'Ջնջե՞լ ԲՈԼՈՐ նախագծերը։ Բոլոր պահված տեսանյութերն ու տեքստերը կվերանան ընդմիշտ։',prjFail:'Նախագիծը սարքում պահելը խափանվեց (հնարավոր է՝ հիշողությունը լցված է)։',prjBusy:'Նախ ավարտեք ընթացիկ ձայնագրությունը կամ արտահանումը։',prjSub:'արտահայտություն՝ {0}'});
+Object.assign(I18.en,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Gemini API Key',back:'← Back',gemTitle:'🔑 Gemini API key',
+gemInfo:'The Gemini key powers <b>Translate studio</b> (speech recognition, translation, voice-over) and <b>TTS Studio</b>. One key works for all Gemini models, including <code>gemini-3.8-flash-tts</code>.<br><b>How to get it:</b><br>1) Open <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with your Google account.<br>2) Tap <b>Create API key</b> (or <b>Get API key</b>).<br>3) Choose or create a project, copy the key and paste it below.<br>The key stays in this browser and requests go straight from your device to Google. Google’s own quotas and pricing apply.',
+gemSave:'Save and check',gemRemove:'Remove key',gemEmpty:'Paste the key first.',gemCheck:'Checking…',gemOk:'Key accepted ✓',gemBad:'Google rejected this key. Check that it was copied in full.',gemNet:'Connection to Google was interrupted.',gemRemoved:'Key removed.',gemNeed:'Add your Gemini API key first.',
+trPick:'🎞 Choose video',trHint:'Choose a video to begin.',trLang:'Translate to',trVoice:'Voice',trStyle:'Style',trStylePh:'optional, e.g. calm and warm',trOrig:'Original sound',trS1:'1. Transcribe',trS2:'2. Translate',trS3:'3. Voice-over',trLeg1:'Original text',trLeg2:'Translation',trLeg3:'Voice-over',trSplit:'✂ Split',trNL:'◀ 0.1s',trNR:'0.1s ▶',trBurn:'Burn translated subtitles into the video',trCancel:'Stop',
+trTlHint:'Tap a text block to edit it. Drag a voice block to move it; its edges trim it. Select a block, then use the buttons below.',
+trDecoding:'Reading the audio…',trTranscribing:'Recognizing speech {0}/{1}…',trTranslating:'Translating {0}/{1}…',trVoicing:'Voice-over {0}/{1}…',trDone:'Done ✓',trNoSpeech:'No speech found in this video.',trNeedVid:'Choose a video first.',trNeedText:'Transcribe the video first.',trNeedTr:'Translate the text first.',trFailN:'{0} phrases failed. Press Voice-over again to retry them.',trDecodeFail:'This browser could not read the audio of this file. Try an MP4 or WebM video.',trTooBig:'This file is too large for in-browser processing (limit 500 MB).',trEdit:'Edit text',trNoClip:'Select a voice block first.',trSplitFail:'Place the red line inside a voice block first.',stCloseQ:'A task is still running. Close and stop it?',trExpNeed:'Create the voice-over first.',
+ttsPh:'Type or paste the text to be spoken',ttsCnt:'{0} characters',ttsGen:'▶ Generate voice',ttsSample:'▶ Sample',ttsMp3:'⬇ MP3',ttsWav:'⬇ WAV',ttsEmpty:'Type some text first.',ttsMp3Fail:'The MP3 encoder could not load, so a WAV file was saved instead.',ttsWorking:'Generating {0}/{1}…',ttsRes:'Voice ready: {0}',ttsEnc:'Encoding MP3…'});
+Object.assign(I18.ru,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Gemini API Key',back:'← Назад',gemTitle:'🔑 Ключ Gemini API',
+gemInfo:'Ключ Gemini питает <b>Translate studio</b> (распознавание речи, перевод, озвучка) и <b>TTS Studio</b>. Один ключ работает для всех моделей Gemini, включая <code>gemini-3.8-flash-tts</code>.<br><b>Как получить:</b><br>1) Откройте <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> и войдите в аккаунт Google.<br>2) Нажмите <b>Create API key</b> (или <b>Get API key</b>).<br>3) Выберите или создайте проект, скопируйте ключ и вставьте его ниже.<br>Ключ хранится только в этом браузере, запросы уходят с вашего устройства прямо в Google. Действуют квоты и тарифы самого Google.',
+gemSave:'Сохранить и проверить',gemRemove:'Удалить ключ',gemEmpty:'Сначала вставьте ключ.',gemCheck:'Проверяю…',gemOk:'Ключ принят ✓',gemBad:'Google отклонил этот ключ. Проверьте, что он скопирован полностью.',gemNet:'Связь с Google прервалась.',gemRemoved:'Ключ удалён.',gemNeed:'Сначала добавьте ключ Gemini API.',
+trPick:'🎞 Выбрать видео',trHint:'Выберите видео, чтобы начать.',trLang:'Перевести на',trVoice:'Голос',trStyle:'Стиль',trStylePh:'по желанию, например: спокойно и тепло',trOrig:'Исходный звук',trS1:'1. Распознать',trS2:'2. Перевести',trS3:'3. Озвучить',trLeg1:'Исходный текст',trLeg2:'Перевод',trLeg3:'Озвучка',trSplit:'✂ Разрезать',trNL:'◀ 0,1 с',trNR:'0,1 с ▶',trBurn:'Вшить переведённые субтитры в видео',trCancel:'Остановить',
+trTlHint:'Нажмите на текстовый блок, чтобы изменить текст. Тяните блок озвучки, чтобы сдвинуть его; края обрезают. Выберите блок и используйте кнопки ниже.',
+trDecoding:'Читаю звук…',trTranscribing:'Распознаю речь {0}/{1}…',trTranslating:'Перевожу {0}/{1}…',trVoicing:'Озвучиваю {0}/{1}…',trDone:'Готово ✓',trNoSpeech:'Речь в этом видео отсутствует.',trNeedVid:'Сначала выберите видео.',trNeedText:'Сначала распознайте текст.',trNeedTr:'Сначала переведите текст.',trFailN:'Сбой при озвучке фраз: {0}. Нажмите «Озвучить» ещё раз, чтобы повторить их.',trDecodeFail:'Чтение звука из этого файла сорвалось. Попробуйте видео MP4 или WebM.',trTooBig:'Файл слишком большой для обработки в браузере (лимит 500 МБ).',trEdit:'Изменить текст',trNoClip:'Сначала выберите блок озвучки.',trSplitFail:'Поставьте красную линию внутрь блока озвучки.',stCloseQ:'Задача ещё выполняется. Закрыть и остановить её?',trExpNeed:'Сначала создайте озвучку.',
+ttsPh:'Введите или вставьте текст для озвучки',ttsCnt:'Символов: {0}',ttsGen:'▶ Озвучить',ttsSample:'▶ Образец',ttsMp3:'⬇ MP3',ttsWav:'⬇ WAV',ttsEmpty:'Сначала введите текст.',ttsMp3Fail:'Кодировщик MP3 остался недоступен, поэтому сохранён файл WAV.',ttsWorking:'Озвучиваю {0}/{1}…',ttsRes:'Озвучка готова: {0}',ttsEnc:'Кодирую MP3…'});
+Object.assign(I18.hy,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Gemini API Key',back:'← Հետ',gemTitle:'🔑 Gemini API բանալի',
+gemInfo:'Gemini-ի բանալին անհրաժեշտ է <b>Translate studio</b>-ի (խոսքի ճանաչում, թարգմանություն, ձայնագրում) և <b>TTS Studio</b>-ի համար։ Մեկ բանալին աշխատում է Gemini-ի բոլոր մոդելների հետ, ներառյալ <code>gemini-3.8-flash-tts</code>։<br><b>Ինչպես ստանալ.</b><br>1) Բացեք <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> և մուտք գործեք Google հաշվով։<br>2) Սեղմեք <b>Create API key</b> (կամ <b>Get API key</b>)։<br>3) Ընտրեք կամ ստեղծեք նախագիծ, պատճենեք բանալին և տեղադրեք ներքևում։<br>Բանալին պահվում է միայն այս դիտարկիչում, հարցումները գնում են ձեր սարքից ուղիղ Google։ Գործում են Google-ի սահմանաչափերն ու սակագները։',
+gemSave:'Պահել և ստուգել',gemRemove:'Ջնջել բանալին',gemEmpty:'Նախ տեղադրեք բանալին։',gemCheck:'Ստուգում եմ…',gemOk:'Բանալին ընդունվեց ✓',gemBad:'Google-ը մերժեց այս բանալին։ Ստուգեք՝ արդյոք լրիվ է պատճենված։',gemNet:'Կապը Google-ի հետ ընդհատվեց։',gemRemoved:'Բանալին ջնջվեց։',gemNeed:'Նախ ավելացրեք Gemini API բանալին։',
+trPick:'🎞 Ընտրել տեսանյութ',trHint:'Սկսելու համար ընտրեք տեսանյութ։',trLang:'Թարգմանել՝',trVoice:'Ձայն',trStyle:'Ոճ',trStylePh:'ըստ ցանկության, օր․ հանգիստ և ջերմ',trOrig:'Բնօրինակ ձայն',trS1:'1. Ճանաչել',trS2:'2. Թարգմանել',trS3:'3. Ձայնագրել',trLeg1:'Բնօրինակ տեքստ',trLeg2:'Թարգմանություն',trLeg3:'Ձայնագրություն',trSplit:'✂ Կտրել',trNL:'◀ 0.1 վ',trNR:'0.1 վ ▶',trBurn:'Ներդնել թարգմանված ենթագրերը տեսանյութի մեջ',trCancel:'Կանգնեցնել',
+trTlHint:'Սեղմեք տեքստային բլոկին՝ փոխելու համար։ Քաշեք ձայնային բլոկը՝ տեղափոխելու, ծայրերը՝ կտրելու համար։ Ընտրեք բլոկ և օգտվեք ներքևի կոճակներից։',
+trDecoding:'Կարդում եմ ձայնը…',trTranscribing:'Խոսքի ճանաչում {0}/{1}…',trTranslating:'Թարգմանում եմ {0}/{1}…',trVoicing:'Ձայնագրում {0}/{1}…',trDone:'Պատրաստ է ✓',trNoSpeech:'Այս տեսանյութում խոսք չի գտնվել։',trNeedVid:'Նախ ընտրեք տեսանյութ։',trNeedText:'Նախ ճանաչեք տեքստը։',trNeedTr:'Նախ թարգմանեք տեքստը։',trFailN:'{0} արտահայտություն չհաջողվեց։ Սեղմեք «Ձայնագրել» նորից՝ կրկնելու համար։',trDecodeFail:'Այս դիտարկիչը չկարողացավ կարդալ ֆայլի ձայնը։ Փորձեք MP4 կամ WebM։',trTooBig:'Ֆայլը շատ մեծ է դիտարկիչում մշակելու համար (սահման՝ 500 ՄԲ)։',trEdit:'Փոխել տեքստը',trNoClip:'Նախ ընտրեք ձայնային բլոկ։',trSplitFail:'Կարմիր գիծը դրեք ձայնային բլոկի վրա։',stCloseQ:'Առաջադրանքը դեռ ընթանում է։ Փակե՞լ և կանգնեցնել։',trExpNeed:'Նախ ստեղծեք ձայնագրությունը։',
+ttsPh:'Մուտքագրեք կամ տեղադրեք ձայնագրվելիք տեքստը',ttsCnt:'Նիշեր՝ {0}',ttsGen:'▶ Ձայնագրել',ttsSample:'▶ Նմուշ',ttsMp3:'⬇ MP3',ttsWav:'⬇ WAV',ttsEmpty:'Նախ մուտքագրեք տեքստ։',ttsMp3Fail:'MP3 կոդավորիչը չբեռնվեց, ուստի պահվեց WAV ֆայլ։',ttsWorking:'Ձայնագրում եմ {0}/{1}…',ttsRes:'Ձայնագրությունը պատրաստ է՝ {0}',ttsEnc:'Կոդավորում եմ MP3…'});
 Object.assign(I18.en,{apvTxt:'Look at this'});
 Object.assign(I18.ru,{apvTxt:'Смотри на это'});
 Object.assign(I18.hy,{apvTxt:'Նայիր սրան հիմա'});
@@ -2781,7 +2889,7 @@ $('#subTog').onclick=()=>{
   const el=document.createElement('div');el.id='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↻</b>';document.body.appendChild(el);
   const TH=90;let x0=0,y0=0,dy=0,on=false,go=false;
   const pageTop=()=>(document.scrollingElement||document.documentElement).scrollTop<=0;
-  const busy=()=>recording||exporting||passing||fixing||document.fullscreenElement||$('#player').classList.contains('edit')||viewOn||$('#kbox').classList.contains('show');
+  const busy=()=>recording||exporting||passing||fixing||document.fullscreenElement||$('#player').classList.contains('edit')||viewOn||studioOpen||$('#kbox').classList.contains('show');
   function startOk(t){
     if(busy()||!pageTop())return false;
     for(let n=t;n&&n!==document.body&&n.nodeType===1;n=n.parentElement){
@@ -2977,6 +3085,475 @@ $('#pclear').onclick=async()=>{
   renderProjects();
 };
 $('#shCopy').onclick=()=>{if(capCopy())toast(t('capCopied'),4000)};
+
+/* ---------- Gemini: ключ и вызовы API ---------- */
+const GKEY='substudio-gkey',GTXT='gemini-3.8-flash',GTTS='gemini-3.8-flash-tts',GBASE='https://generativelanguage.googleapis.com/v1beta/';
+const gKey=()=>{try{return(localStorage.getItem(GKEY)||'').trim()}catch(e){return''}};
+const gbox=$('#gbox');
+function openGem(){closeMenus();$('#gkey').value=gKey();$('#gst').textContent='';gbox.classList.add('show')}
+$('#mGem').onclick=openGem;$('#trKey').onclick=openGem;$('#ttsKey').onclick=openGem;
+$('#gclose').onclick=()=>gbox.classList.remove('show');
+gbox.addEventListener('click',e=>{if(e.target===gbox)gbox.classList.remove('show')});
+$('#gsave').onclick=async()=>{
+  const k=$('#gkey').value.trim(),st=$('#gst');
+  if(!k){st.textContent=t('gemEmpty');return}
+  try{localStorage.setItem(GKEY,k)}catch(e){}
+  st.style.color='';st.textContent=t('gemCheck');
+  try{const r=await fetch(GBASE+'models?pageSize=1',{headers:{'x-goog-api-key':k}});st.textContent=r.ok?t('gemOk'):t('gemBad');st.style.color=r.ok?'var(--ok)':'var(--danger)'}
+  catch(e){st.textContent=t('gemNet');st.style.color='var(--danger)'}
+};
+$('#grem').onclick=()=>{try{localStorage.removeItem(GKEY)}catch(e){}$('#gkey').value='';$('#gst').style.color='';$('#gst').textContent=t('gemRemoved')};
+async function gCall(model,body){
+  const k=gKey();if(!k){openGem();const e=new Error(t('gemNeed'));e.noKey=true;throw e}
+  for(let i=0;;i++){
+    let r,j=null;
+    try{r=await fetch(GBASE+'models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body:JSON.stringify(body)})}
+    catch(e){if(i<2){await sleep(1500*(i+1));continue}throw new Error(t('gemNet'))}
+    try{j=await r.json()}catch(e){}
+    if(r.ok)return j;
+    if((r.status===429||r.status===503)&&i<3){await sleep(2500*(i+1));continue}
+    const er=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));er.status=r.status;throw er;
+  }
+}
+function gText(j){const c=j&&j.candidates&&j.candidates[0],ps=(c&&c.content&&c.content.parts)||[];return ps.map(p=>p.text||'').join('')}
+function parseJsonArr(s){
+  s=String(s||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  try{const j=JSON.parse(s);if(Array.isArray(j))return j;if(j&&typeof j==='object')for(const k in j)if(Array.isArray(j[k]))return j[k]}catch(e){}
+  const m=s.match(/\[[\s\S]*\]/);if(m){try{const j=JSON.parse(m[0]);if(Array.isArray(j))return j}catch(e){}}
+  return[];
+}
+function b64Bytes(b){const s=atob(b),n=s.length,u=new Uint8Array(n);for(let i=0;i<n;i++)u[i]=s.charCodeAt(i);return u}
+function blobB64(bl){return new Promise((res,rej)=>{const f=new FileReader();f.onload=()=>res(String(f.result).split(',')[1]);f.onerror=()=>rej(f.error);f.readAsDataURL(bl)})}
+function wavBlob(f,sr){
+  const n=f.length,b=new ArrayBuffer(44+n*2),d=new DataView(b),w=(o,x)=>{for(let i=0;i<x.length;i++)d.setUint8(o+i,x.charCodeAt(i))};
+  w(0,'RIFF');d.setUint32(4,36+n*2,true);w(8,'WAVEfmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,1,true);d.setUint32(24,sr,true);d.setUint32(28,sr*2,true);d.setUint16(32,2,true);d.setUint16(34,16,true);w(36,'data');d.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const x=Math.max(-1,Math.min(1,f[i]));d.setInt16(44+i*2,x<0?x*32768:x*32767,true)}
+  return new Blob([b],{type:'audio/wav'});
+}
+function parseAudio(u,mime){
+  const dv=new DataView(u.buffer,u.byteOffset,u.byteLength);let sr=24000,ch=1,ds=0,dl=u.length;
+  if(u.length>12&&String.fromCharCode(u[0],u[1],u[2],u[3])==='RIFF'){
+    let p=12;ds=-1;
+    while(p+8<=u.length){
+      const id=String.fromCharCode(u[p],u[p+1],u[p+2],u[p+3]),sz=dv.getUint32(p+4,true);
+      if(id==='fmt '){ch=dv.getUint16(p+10,true)||1;sr=dv.getUint32(p+12,true)}
+      else if(id==='data'){ds=p+8;dl=Math.min(sz,u.length-ds);break}
+      p+=8+sz+(sz&1);
+    }
+    if(ds<0)throw new Error('Bad audio');
+  }else{const m=/rate=(\d+)/.exec(mime||'');if(m)sr=+m[1]}
+  const n=Math.floor(dl/2/ch),f=new Float32Array(n);
+  for(let i=0;i<n;i++){let a=0;for(let c=0;c<ch;c++)a+=dv.getInt16(ds+(i*ch+c)*2,true);f[i]=a/ch/32768}
+  return{f,sr};
+}
+function trimSil(a){
+  const f=a.f,th=0.008,pad=Math.round(a.sr*0.04);let i=0,j=f.length-1;
+  while(i<j&&Math.abs(f[i])<th)i++;while(j>i&&Math.abs(f[j])<th)j--;
+  i=Math.max(0,i-pad);j=Math.min(f.length,j+pad);
+  return j-i>a.sr*0.1?{f:f.slice(i,j),sr:a.sr}:a;
+}
+function ttsPick(j){
+  const c=j&&j.candidates&&j.candidates[0],ps=(c&&c.content&&c.content.parts)||[];
+  for(const p of ps){const d=p.inlineData||p.inline_data;if(d&&d.data)return{data:d.data,mime:d.mimeType||d.mime_type||''}}
+  const e=new Error((c&&c.finishReason)?('Gemini: '+c.finishReason):'Gemini: empty audio');e.empty=true;throw e;
+}
+async function ttsOne(text,voice,style){
+  let last;
+  for(let a=0;a<2;a++){
+    try{
+      let j;
+      try{j=await gCall(GTTS,{contents:[{role:'user',parts:[style?{text,speech_metadata:{style}}:{text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{voice}}}})}
+      catch(e){
+        if(e.status!==400||e.noKey)throw e;
+        j=await gCall(GTTS,{contents:[{parts:[{text:style?('Say '+style+': '+text):text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}});
+      }
+      const p=ttsPick(j);
+      return trimSil(parseAudio(b64Bytes(p.data),p.mime));
+    }catch(e){last=e;if(!e.empty)throw e}
+  }
+  throw last;
+}
+const VOICES=[['Zephyr','Bright'],['Puck','Upbeat'],['Charon','Informative'],['Kore','Firm'],['Fenrir','Excitable'],['Leda','Youthful'],['Orus','Firm'],['Aoede','Breezy'],['Callirrhoe','Easy-going'],['Autonoe','Bright'],['Enceladus','Breathy'],['Iapetus','Clear'],['Umbriel','Easy-going'],['Algieba','Smooth'],['Despina','Smooth'],['Erinome','Clear'],['Algenib','Gravelly'],['Rasalgethi','Informative'],['Laomedeia','Upbeat'],['Achernar','Soft'],['Alnilam','Firm'],['Schedar','Even'],['Gacrux','Mature'],['Pulcherrima','Forward'],['Achird','Friendly'],['Zubenelgenubi','Casual'],['Vindemiatrix','Gentle'],['Sadachbia','Lively'],['Sadaltager','Knowledgeable'],['Sulafat','Warm']];
+function fillVoices(sel,key,def){
+  VOICES.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=x[0]+' · '+x[1];sel.appendChild(o)});
+  let v0=def;try{v0=localStorage.getItem(key)||def}catch(e){}sel.value=v0;
+  sel.onchange=()=>{try{localStorage.setItem(key,sel.value)}catch(e){}};
+}
+fillVoices($('#trVoice'),'substudio-tvoice','Kore');fillVoices($('#ttsVoice'),'substudio-ttsvoice','Kore');
+const TLANGS=[['en','English','English'],['ru','Russian','Русский'],['hy','Armenian','Հայերեն'],['es','Spanish','Español'],['fr','French','Français'],['de','German','Deutsch'],['it','Italian','Italiano'],['pt','Portuguese','Português'],['tr','Turkish','Türkçe'],['ar','Arabic','العربية'],['zh','Chinese (Mandarin)','中文'],['ja','Japanese','日本語'],['ko','Korean','한국어'],['hi','Hindi','हिन्दी'],['uk','Ukrainian','Українська'],['pl','Polish','Polski'],['nl','Dutch','Nederlands'],['ka','Georgian','ქართული'],['fa','Persian','فارسی'],['az','Azerbaijani','Azərbaycanca']];
+TLANGS.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=x[2]+' · '+x[1];$('#trLangSel').appendChild(o)});
+{let l='en';try{l=localStorage.getItem('substudio-tlang')||'en'}catch(e){}$('#trLangSel').value=l;$('#trLangSel').onchange=()=>{try{localStorage.setItem('substudio-tlang',$('#trLangSel').value)}catch(e){}}}
+function studioLang(){
+  $('#ttsIn').placeholder=t('ttsPh');$('#trStyleIn').placeholder=t('trStylePh');$('#ttsStyle').placeholder=t('trStylePh');
+  $('#trExp').textContent=explbl();ttsCntUpd();
+}
+
+/* ---------- окна студий ---------- */
+let stRaf=0;
+function openStudio(id){
+  if(recording||exporting||passing){toast(t('prjBusy'));return}
+  try{v.pause()}catch(e){}
+  audioPlayback();closeMenus();
+  $('#'+id).classList.add('show');studioOpen=true;document.body.style.overflow='hidden';
+  if(id==='trs')renderTR();
+  if(!stRaf)stRaf=requestAnimationFrame(stLoop);
+  if(!gKey())setTimeout(openGem,200);
+}
+function closeStudio(id){
+  const busy=id==='trs'?TR.run:TS.run;
+  if(busy){if(!confirm(t('stCloseQ')))return;TR.cancel=true;TS.cancel=true}
+  ttStop();try{tvid.pause()}catch(e){}
+  $('#'+id).classList.remove('show');
+  studioOpen=$('#trs').classList.contains('show')||$('#tts').classList.contains('show');
+  if(!studioOpen)document.body.style.overflow='';
+}
+$('#btnTr').onclick=()=>openStudio('trs');$('#btnTts').onclick=()=>openStudio('tts');
+$('#trBack').onclick=()=>closeStudio('trs');$('#ttsBack').onclick=()=>closeStudio('tts');
+document.addEventListener('keydown',e=>{if(studioOpen)e.stopImmediatePropagation()},true);
+
+/* ---------- TTS Studio ---------- */
+const TS={pcm:null,sr:24000,url:null,run:false,cancel:false,cache:{}};
+function ttsCntUpd(){$('#ttsCnt').textContent=t('ttsCnt',$('#ttsIn').value.length)}
+$('#ttsIn').addEventListener('input',ttsCntUpd);
+function ttsSt(m,p){$('#ttsSt').textContent=m||'';const b=$('#ttsBar');if(p==null)b.style.display='none';else{b.style.display='block';b.value=Math.round(p*100)}}
+function splitText(s,max){
+  const parts=(s.replace(/\r/g,'').match(/[^.!?…։。！？\n]+[.!?…։。！？]*\s*|\n+/g)||[s]).map(x=>x.trim()).filter(Boolean),out=[];let cur='';
+  const push=()=>{if(cur){out.push(cur);cur=''}};
+  for(let p of parts){
+    while(p.length>max){let k=p.lastIndexOf(' ',max);if(k<max*0.5)k=max;push();out.push(p.slice(0,k).trim());p=p.slice(k).trim()}
+    if(cur&&(cur+' '+p).length>max)push();
+    cur=cur?cur+' '+p:p;
+  }
+  push();return out.filter(Boolean);
+}
+function ttsBusy(on){TS.run=on;$('#ttsGen').disabled=on;$('#ttsSample').disabled=on;$('#ttsStop').style.display=on?'':'none'}
+$('#ttsStop').onclick=()=>{TS.cancel=true};
+$('#ttsGen').onclick=async()=>{
+  const text=$('#ttsIn').value.trim();
+  if(!text){toast(t('ttsEmpty'));return}
+  if(!gKey()){openGem();return}
+  if(TS.run)return;TS.cancel=false;ttsBusy(true);
+  try{
+    const parts=splitText(text,1200),outs=[],voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim();
+    for(let i=0;i<parts.length&&!TS.cancel;i++){
+      ttsSt(t('ttsWorking',i+1,parts.length),i/parts.length);
+      outs.push(await ttsOne(parts[i],voice,style));
+    }
+    if(outs.length){
+      const sr=outs[0].sr,gap=Math.round(sr*0.18);let n=0;outs.forEach(o=>{n+=o.f.length+gap});
+      const all=new Float32Array(n);let p=0;outs.forEach(o=>{all.set(o.f,p);p+=o.f.length+gap});
+      TS.pcm=all;TS.sr=sr;
+      if(TS.url)URL.revokeObjectURL(TS.url);
+      TS.url=URL.createObjectURL(wavBlob(all,sr));
+      const a=$('#ttsAud');a.src=TS.url;a.style.display='block';
+      $('#ttsMp3').disabled=false;$('#ttsWav').disabled=false;
+      ttsSt(t('ttsRes',fmt(all.length/sr)));
+    }else ttsSt('');
+  }catch(e){ttsSt('');if(!e.noKey)toast(e.message,9000)}
+  finally{ttsBusy(false)}
+};
+$('#ttsSample').onclick=async()=>{
+  if(!gKey()){openGem();return}
+  const voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim(),key=voice+'|'+style;
+  ttsBusy(true);
+  try{
+    let u=TS.cache[key];
+    if(!u){const a=await ttsOne('Hello! This is how this voice sounds.',voice,style);u=TS.cache[key]=URL.createObjectURL(wavBlob(a.f,a.sr))}
+    new Audio(u).play().catch(()=>{});
+  }catch(e){if(!e.noKey)toast(e.message,8000)}
+  finally{ttsBusy(false)}
+};
+function loadLame(){
+  if(window.lamejs)return Promise.resolve(true);
+  const urls=['https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js','https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'];
+  return urls.reduce((p,u)=>p.then(ok=>ok||new Promise(res=>{const s2=document.createElement('script');s2.src=u;s2.onload=()=>res(!!window.lamejs);s2.onerror=()=>res(false);document.head.appendChild(s2)})),Promise.resolve(false));
+}
+async function mp3Blob(f,sr){
+  const enc=new lamejs.Mp3Encoder(1,sr,128),i16=new Int16Array(f.length),out=[],B=1152*10;
+  for(let i=0;i<f.length;i++){const x=Math.max(-1,Math.min(1,f[i]));i16[i]=x<0?x*32768:x*32767}
+  for(let i=0,k=0;i<i16.length;i+=B,k++){const d=enc.encodeBuffer(i16.subarray(i,i+B));if(d.length)out.push(d.slice(0));if(k%40===0)await sleep(0)}
+  const e=enc.flush();if(e.length)out.push(e.slice(0));
+  return new Blob(out,{type:'audio/mpeg'});
+}
+const stamp=()=>defName().slice(3);
+$('#ttsWav').onclick=()=>{if(TS.pcm)download(wavBlob(TS.pcm,TS.sr),'TTS_'+stamp()+'.wav')};
+$('#ttsMp3').onclick=async()=>{
+  if(!TS.pcm)return;
+  ttsSt(t('ttsEnc'));
+  const ok=await loadLame();
+  if(!ok){download(wavBlob(TS.pcm,TS.sr),'TTS_'+stamp()+'.wav');toast(t('ttsMp3Fail'),7000);ttsSt('');return}
+  try{download(await mp3Blob(TS.pcm,TS.sr),'TTS_'+stamp()+'.mp3')}catch(e){toast(e.message,6000)}
+  ttsSt(t('ttsRes',fmt(TS.pcm.length/TS.sr)));
+};
+
+/* ---------- Translate studio ---------- */
+const TR={file:null,url:null,dur:0,segs:[],clips:[],sel:null,run:false,cancel:false,exp:false,srcs:[],nid:1,ac:null,orig:null,bus:null,mon:null,touched:false};
+const tvid=$('#trVid'),trTl=$('#trTl'),trIn=$('#trIn'),TPX=60,trBlk=new Map();
+function trSt(m,p){$('#trSt').textContent=m||'';const b=$('#trBar');if(p==null)b.style.display='none';else{b.style.display='block';b.value=Math.round(p*100)}}
+function trUpd(){
+  $('#trS1').disabled=TR.run||!TR.file;$('#trS2').disabled=TR.run||!TR.segs.length;$('#trS3').disabled=TR.run||!TR.segs.some(x=>x.tr);
+  $('#trExp').disabled=TR.run||!TR.clips.length;
+  ['trNL','trNR','trSplit','trDel'].forEach(id=>$('#'+id).disabled=TR.run||!TR.clips.length);
+}
+function trBusy(on){TR.run=on;if(!on)TR.cancel=false;$('#trStop').style.display=on?'':'none';trUpd()}
+$('#trStop').onclick=()=>{TR.cancel=true};
+function ensureAC(){
+  if(TR.ac){if(TR.ac.state==='suspended')TR.ac.resume();return TR.ac}
+  const C=window.AudioContext||window.webkitAudioContext,ac=new C();TR.ac=ac;
+  const src=ac.createMediaElementSource(tvid);
+  TR.orig=ac.createGain();TR.orig.gain.value=$('#trOrig').value/100;TR.bus=ac.createGain();TR.mon=ac.createGain();
+  src.connect(TR.orig);TR.orig.connect(TR.bus);TR.bus.connect(TR.mon);TR.mon.connect(ac.destination);
+  return ac;
+}
+$('#trOrig').oninput=e=>{TR.touched=true;$('#trOrigV').textContent=e.target.value+'%';if(TR.orig)TR.orig.gain.value=e.target.value/100};
+function clipBuf(c){
+  if(!c._ab||c._ac!==TR.ac){const b=TR.ac.createBuffer(1,c.f.length,c.sr);b.copyToChannel(c.f,0);c._ab=b;c._ac=TR.ac}
+  return c._ab;
+}
+function ttStop(){TR.srcs.forEach(x=>{try{x.stop()}catch(e){}try{x.disconnect()}catch(e){}});TR.srcs=[]}
+function ttSchedule(){
+  if(!TR.ac)return;ttStop();
+  const now=TR.ac.currentTime,vt=tvid.currentTime;
+  TR.clips.forEach(c=>{
+    const ce=c.start+c.len;if(ce<=vt)return;
+    const fut=c.start>=vt,x=TR.ac.createBufferSource();
+    x.buffer=clipBuf(c);x.connect(TR.bus);
+    x.start(fut?now+(c.start-vt):now,c.off+(fut?0:vt-c.start),fut?c.len:ce-vt);TR.srcs.push(x);
+  });
+}
+tvid.addEventListener('play',()=>{if(TR.exp)return;ensureAC();ttSchedule()});
+tvid.addEventListener('pause',()=>{if(!TR.exp)ttStop()});
+tvid.addEventListener('ended',()=>{if(!TR.exp)ttStop()});
+tvid.addEventListener('seeked',()=>{if(!TR.exp&&!tvid.paused)ttSchedule()});
+tvid.addEventListener('loadedmetadata',()=>{TR.dur=isFinite(tvid.duration)?tvid.duration:0;renderTR()});
+$('#trFile').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  if(f.size>500*1048576){toast(t('trTooBig'),7000);return}
+  ttStop();tvid.pause();if(TR.url)URL.revokeObjectURL(TR.url);
+  TR.file=f;TR.url=URL.createObjectURL(f);tvid.src=TR.url;TR.segs=[];TR.clips=[];TR.sel=null;TR.nid=1;TR.touched=false;
+  $('#trOrig').value=100;$('#trOrigV').textContent='100%';if(TR.orig)TR.orig.gain.value=1;
+  trSt('');renderTR();e.target.value='';
+};
+function stLoop(){
+  if(!studioOpen){stRaf=0;return}
+  const ph=$('#trPh');
+  if(ph&&$('#trs').classList.contains('show')){
+    const x=tvid.currentTime*TPX;ph.style.left=x+'px';
+    if(!tvid.paused){const l=trTl.scrollLeft,w=trTl.clientWidth;if(x<l||x>l+w*0.85)trTl.scrollLeft=Math.max(0,x-w*0.3)}
+  }
+  stRaf=requestAnimationFrame(stLoop);
+}
+function placeC(b,c){b.style.left=c.start*TPX+'px';b.style.width=Math.max(14,c.len*TPX)+'px'}
+function updSel(){trBlk.forEach((el,c)=>el.classList.toggle('sel',c===TR.sel))}
+function renderTR(){
+  let end=TR.dur||0;TR.segs.forEach(x=>{end=Math.max(end,x.e)});TR.clips.forEach(c=>{end=Math.max(end,c.start+c.len)});
+  trIn.style.width=Math.ceil((end+2)*TPX)+'px';trIn.textContent='';trBlk.clear();
+  const ru=document.createElement('div');ru.className='st-ruler';
+  for(let i=0;i<=end+2;i+=5){const k=document.createElement('div');k.className='st-tick';k.style.left=i*TPX+'px';k.textContent=fmt(i);ru.appendChild(k)}
+  ru.addEventListener('pointerdown',trScrub);trIn.appendChild(ru);
+  TR.segs.forEach(sg=>{
+    [['o','src'],['t','tr']].forEach(m=>{
+      const b=document.createElement('div');b.className='st-b '+m[0]+((m[1]==='tr'&&!sg.tr)?' empty':'');
+      b.textContent=sg[m[1]]||'…';b.style.left=sg.s*TPX+'px';b.style.width=Math.max(24,(sg.e-sg.s)*TPX)+'px';
+      b.onclick=()=>openTxt(sg,m[1]);trIn.appendChild(b);
+    });
+  });
+  TR.clips.forEach(c=>{
+    const b=document.createElement('div');b.className='st-b c';b.textContent=c.label||'';placeC(b,c);
+    ['l','r'].forEach(k=>{const h=document.createElement('div');h.className='h '+k;h.dataset.h=k;b.appendChild(h)});
+    attachClip(b,c);trIn.appendChild(b);trBlk.set(c,b);
+  });
+  const ph=document.createElement('div');ph.className='st-ph';ph.id='trPh';trIn.appendChild(ph);
+  updSel();trUpd();$('#trHint').style.display=TR.file?'none':'';
+  $('#trExp').textContent=explbl();
+}
+function trScrub(e){
+  e.preventDefault();e.stopPropagation();const el=e.currentTarget;el.setPointerCapture(e.pointerId);
+  const go=ev=>{const r=trIn.getBoundingClientRect();tvid.currentTime=Math.max(0,Math.min(TR.dur||1e9,(ev.clientX-r.left)/TPX))};
+  const up=()=>{el.removeEventListener('pointermove',go);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up)};
+  el.addEventListener('pointermove',go);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);go(e);
+}
+function attachClip(b,c){
+  b.addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();b.setPointerCapture(e.pointerId);
+    const mode=(e.target.dataset&&e.target.dataset.h)||'m',x0=e.clientX,s0=c.start,o0=c.off,l0=c.len,sl0=trTl.scrollLeft,maxLen=c.f.length/c.sr;
+    let moved=false;TR.sel=c;updSel();
+    const mv=ev=>{
+      const dx=ev.clientX-x0+(trTl.scrollLeft-sl0);if(Math.abs(dx)>4)moved=true;if(!moved)return;
+      const d=dx/TPX;
+      if(mode==='m')c.start=Math.max(0,s0+d);
+      else if(mode==='l'){const nd=Math.min(Math.max(d,-o0,-s0),l0-0.15);c.off=o0+nd;c.start=s0+nd;c.len=l0-nd}
+      else c.len=Math.max(0.15,Math.min(l0+d,maxLen-o0));
+      placeC(b,c);
+    };
+    const up=()=>{b.removeEventListener('pointermove',mv);b.removeEventListener('pointerup',up);b.removeEventListener('pointercancel',up);if(moved){renderTR();if(!tvid.paused)ttSchedule()}};
+    b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
+  });
+}
+function nudge(d){
+  const c=TR.sel;if(!c){toast(t('trNoClip'));return}
+  c.start=Math.max(0,c.start+d);renderTR();if(!tvid.paused)ttSchedule();
+}
+$('#trNL').onclick=()=>nudge(-0.1);$('#trNR').onclick=()=>nudge(0.1);
+$('#trDel').onclick=()=>{if(!TR.sel){toast(t('trNoClip'));return}TR.clips=TR.clips.filter(c=>c!==TR.sel);TR.sel=null;renderTR();if(!tvid.paused)ttSchedule()};
+$('#trSplit').onclick=()=>{
+  const tm=tvid.currentTime;
+  const c=(TR.sel&&TR.sel.start<tm&&tm<TR.sel.start+TR.sel.len)?TR.sel:TR.clips.find(x=>x.start<tm&&tm<x.start+x.len);
+  if(!c||tm-c.start<0.1||c.start+c.len-tm<0.1){toast(t('trSplitFail'));return}
+  const b2=Object.assign({},c,{id:TR.nid++,start:tm,off:c.off+(tm-c.start),len:c.start+c.len-tm});
+  c.len=tm-c.start;TR.clips.push(b2);TR.sel=b2;renderTR();if(!tvid.paused)ttSchedule();
+};
+let txSeg=null,txField='';
+function openTxt(sg,f){txSeg=sg;txField=f;$('#gtxA').value=sg[f]||'';$('#gtx').classList.add('show');setTimeout(()=>$('#gtxA').focus(),60)}
+$('#gtxC').onclick=()=>$('#gtx').classList.remove('show');
+$('#gtxS').onclick=()=>{
+  if(txSeg){const x=$('#gtxA').value.replace(/\s+/g,' ').trim();if(x!==txSeg[txField]){txSeg[txField]=x;if(txField==='tr')txSeg.ver++}}
+  $('#gtx').classList.remove('show');renderTR();
+};
+$('#gtxD').onclick=()=>{
+  if(txSeg){TR.segs=TR.segs.filter(x=>x!==txSeg);TR.clips=TR.clips.filter(c=>c.sid!==txSeg.id);if(TR.sel&&!TR.clips.includes(TR.sel))TR.sel=null}
+  $('#gtx').classList.remove('show');renderTR();
+};
+async function extractAudio(file){
+  const ab=await file.arrayBuffer(),O=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new O(1,1,16000);
+  let buf;
+  try{buf=await new Promise((res,rej)=>{const r=oc.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)})}
+  catch(e){throw new Error(t('trDecodeFail'))}
+  const n=buf.length,ch=buf.numberOfChannels,out=new Float32Array(n);
+  for(let c=0;c<ch;c++){const d=buf.getChannelData(c);for(let i=0;i<n;i++)out[i]+=d[i]/ch}
+  return{f:out,sr:buf.sampleRate};
+}
+function parseTs(x){
+  if(typeof x==='number')return x;
+  const q=String(x).trim(),m=q.match(/^(?:(\d+):)?(\d+):(\d+(?:[.,]\d+)?)$/);
+  if(m)return(m[1]?+m[1]*3600:0)+(+m[2])*60+parseFloat(m[3].replace(',','.'));
+  const f=parseFloat(q.replace(',','.'));return isFinite(f)?f:NaN;
+}
+const SCHEMA_SEG={type:'ARRAY',items:{type:'OBJECT',properties:{start:{type:'STRING'},end:{type:'STRING'},text:{type:'STRING'}},required:['start','end','text']}};
+$('#trS1').onclick=async()=>{
+  if(!TR.file){toast(t('trNeedVid'));return}
+  if(!gKey()){openGem();return}
+  if(TR.run)return;trBusy(true);
+  try{
+    trSt(t('trDecoding'),0);
+    const a=await extractAudio(TR.file),CH=Math.round(120*a.sr),n=Math.ceil(a.f.length/CH),segs=[],total=a.f.length/a.sr;
+    for(let i=0;i<n&&!TR.cancel;i++){
+      trSt(t('trTranscribing',i+1,n),i/n);
+      const part=a.f.subarray(i*CH,Math.min(a.f.length,(i+1)*CH));let mx=0;for(let k=0;k<part.length;k+=50)mx=Math.max(mx,Math.abs(part[k]));
+      if(mx<0.003)continue;
+      const b64=await blobB64(wavBlob(part,a.sr));
+      const j=await gCall(GTXT,{contents:[{parts:[{inlineData:{mimeType:'audio/wav',data:b64}},{text:'Transcribe all speech in this audio verbatim, in the language it is spoken (do not translate). Split it into short segments, each one sentence or phrase of about 2 to 8 seconds. For every segment give the start and end time in MM:SS format (decimals allowed), counted from the start of this audio. Return a JSON array. If there is no speech, return an empty array.'}]}],generationConfig:{responseMimeType:'application/json',responseSchema:SCHEMA_SEG}});
+      const off=i*120;
+      parseJsonArr(gText(j)).forEach(q=>{
+        const x=String(q&&q.text||'').replace(/\s+/g,' ').trim();if(!x)return;
+        let s0=parseTs(q.start),e0=parseTs(q.end);if(!isFinite(s0))return;
+        s0=off+s0;e0=isFinite(e0)?off+e0:s0+Math.max(1,x.length*0.06);if(e0<=s0)e0=s0+Math.max(1,x.length*0.06);
+        segs.push({id:0,s:Math.min(s0,total),e:Math.min(e0,total+1),src:x,tr:'',ver:1});
+      });
+    }
+    segs.sort((p,q)=>p.s-q.s);
+    const fin=[];segs.forEach(sg=>{const l=fin[fin.length-1];if(l&&sg.s<l.e)sg.s=l.e;if(sg.e>sg.s+0.2){sg.id=TR.nid++;fin.push(sg)}});
+    TR.segs=fin;TR.clips=[];TR.sel=null;renderTR();
+    if(fin.length)trSt(t('trDone'));else{trSt('');toast(t('trNoSpeech'),6000)}
+  }catch(e){trSt('');if(!e.noKey)toast(e.message,9000)}
+  finally{trBusy(false)}
+};
+$('#trS2').onclick=async()=>{
+  if(TR.run)return;if(!TR.segs.length){toast(t('trNeedText'));return}
+  if(!gKey()){openGem();return}
+  const L=TLANGS.find(x=>x[0]===$('#trLangSel').value)||TLANGS[0];trBusy(true);
+  try{
+    const B=40,nb=Math.ceil(TR.segs.length/B);
+    for(let b=0;b<nb&&!TR.cancel;b++){
+      trSt(t('trTranslating',b+1,nb),b/nb);
+      const part=TR.segs.slice(b*B,(b+1)*B);
+      const j=await gCall(GTXT,{contents:[{parts:[{text:'Translate the "text" field of every item in this JSON array into '+L[1]+'. The result is a voice-over for a video: use natural spoken language and keep the spoken length close to the original. Return a JSON array with one object per item: {"i": the same id, "text": the translation}.\nInput:\n'+JSON.stringify(part.map(x=>({i:x.id,text:x.src})))}]}],generationConfig:{responseMimeType:'application/json',responseSchema:{type:'ARRAY',items:{type:'OBJECT',properties:{i:{type:'INTEGER'},text:{type:'STRING'}},required:['i','text']}}}});
+      const m=new Map();parseJsonArr(gText(j)).forEach(q=>{if(q&&q.i!=null)m.set(Number(q.i),String(q.text||'').trim())});
+      part.forEach(x=>{const y=m.get(x.id);if(y&&y!==x.tr){x.tr=y;x.ver++}});
+      renderTR();
+    }
+    trSt(t('trDone'));
+  }catch(e){trSt('');if(!e.noKey)toast(e.message,9000)}
+  finally{trBusy(false)}
+};
+$('#trS3').onclick=async()=>{
+  if(TR.run)return;if(!TR.segs.some(x=>x.tr)){toast(t('trNeedTr'));return}
+  if(!gKey()){openGem();return}
+  const voice=$('#trVoice').value,style=$('#trStyleIn').value.trim();
+  const need=TR.segs.filter(x=>x.tr&&(!TR.clips.some(c=>c.sid===x.id)||TR.clips.some(c=>c.sid===x.id&&(c.ver!==x.ver||c.voice!==voice||c.style!==style))));
+  if(!need.length){trSt(t('trDone'));return}
+  trBusy(true);ensureAC();
+  let i=0,done=0,fail=0,fatal=null;const total=need.length;trSt(t('trVoicing',0,total),0);
+  const worker=async()=>{
+    while(!TR.cancel&&!fatal){
+      const sg=need[i++];if(!sg)break;
+      try{
+        const a=await ttsOne(sg.tr,voice,style);
+        TR.clips=TR.clips.filter(c=>c.sid!==sg.id);
+        TR.clips.push({id:TR.nid++,sid:sg.id,ver:sg.ver,voice,style,f:a.f,sr:a.sr,off:0,len:a.f.length/a.sr,start:sg.s,label:sg.tr,fresh:true});
+        renderTR();
+      }catch(e){if(e.noKey||[400,401,403,404].includes(e.status))fatal=e;else fail++}
+      done++;trSt(t('trVoicing',Math.min(done,total),total),done/total);
+    }
+  };
+  await Promise.all([worker(),worker()]);
+  const order=TR.segs.map(x=>x.id);let prev=0;
+  TR.clips.slice().sort((a,b)=>order.indexOf(a.sid)-order.indexOf(b.sid)||a.start-b.start).forEach(c=>{if(c.fresh){if(c.start<prev)c.start=prev+0.04;delete c.fresh}prev=Math.max(prev,c.start+c.len)});
+  if(TR.clips.length&&!TR.touched){$('#trOrig').value=20;$('#trOrigV').textContent='20%';if(TR.orig)TR.orig.gain.value=0.2}
+  renderTR();trBusy(false);
+  if(fatal){trSt('');if(!fatal.noKey)toast(fatal.message,9000)}
+  else{trSt(t('trDone'));if(fail)toast(t('trFailN',fail),8000)}
+};
+function segAt(tm){return TR.segs.find(x=>x.s<=tm&&tm<x.e)}
+function drawCap(g,W,H,text){
+  const fs=Math.round(W*0.045);g.font='700 '+fs+'px '+BASEFAM;g.textAlign='center';g.textBaseline='middle';
+  const lines=[];let cur='';text.split(/\s+/).forEach(w=>{const x=cur?cur+' '+w:w;if(g.measureText(x).width>W*0.88&&cur){lines.push(cur);cur=w}else cur=x});if(cur)lines.push(cur);
+  const lh=fs*1.3,bh=lines.length*lh+fs*0.5,bw=Math.min(W*0.94,Math.max(...lines.map(l=>g.measureText(l).width))+fs),by=H*0.86-bh;
+  g.fillStyle='rgba(0,0,0,.62)';rrect(g,(W-bw)/2,by,bw,bh,fs*0.3);g.fill();
+  g.fillStyle='#fff';lines.forEach((l,k)=>g.fillText(l,W/2,by+fs*0.25+lh*(k+0.5)));
+}
+$('#trExp').onclick=async()=>{
+  if(TR.run||!TR.file)return;if(!TR.clips.length){toast(t('trExpNeed'));return}
+  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
+  const ac=ensureAC();try{await ac.resume()}catch(e){}
+  ttStop();tvid.pause();tvid.currentTime=0;await sleep(400);
+  const vw=tvid.videoWidth,vh=tvid.videoHeight;if(!vw||!vh){toast(t('vidLoading'));return}
+  const sc=Math.min(1,1920/Math.max(vw,vh));let W=Math.round(vw*sc),H=Math.round(vh*sc);W-=W%2;H-=H%2;
+  const cvs=document.createElement('canvas');cvs.width=W;cvs.height=H;const g=cvs.getContext('2d',{alpha:false});
+  const dest=ac.createMediaStreamDestination(),cs=cvs.captureStream(30);
+  const at=dest.stream.getAudioTracks()[0];if(at)cs.addTrack(at);
+  const mt=exportMime(),isMp4=mt.startsWith('video/mp4');
+  let end=isFinite(tvid.duration)?tvid.duration:TR.dur;TR.clips.forEach(c=>{end=Math.max(end,c.start+c.len)});
+  let rec;
+  try{rec=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(20e6,Math.max(4e6,Math.round(W*H*30*0.12))),audioBitsPerSecond:192000}:undefined)}
+  catch(e){toast(t('recUnsup'));return}
+  if(!isMp4)toast(t('exWebm'),6000);
+  const out=[],burn=$('#trBurn').checked;
+  rec.ondataavailable=ev=>{if(ev.data&&ev.data.size)out.push(ev.data)};
+  const stopped=new Promise(r=>{rec.onstop=r});
+  TR.exp=true;TR.run=true;trUpd();
+  TR.bus.connect(dest);TR.mon.gain.value=0;
+  $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
+  rec.start(isIOSdev()?undefined:1000);
+  const base=ac.currentTime,t0=performance.now();
+  try{await tvid.play()}catch(e){}
+  ttSchedule();
+  const iv=setInterval(()=>{
+    try{g.drawImage(tvid,0,0,W,H);if(burn){const sg=segAt(tvid.currentTime);if(sg&&sg.tr)drawCap(g,W,H,sg.tr)}}catch(e){}
+    const el=ac.currentTime-base,pc=Math.min(99,Math.round(el/end*100));$('#xpct').textContent=pc+'%';$('#xbar').value=pc;
+    if(el>=end+0.25||performance.now()-t0>(end+10)*1000){clearInterval(iv);try{rec.stop()}catch(e){}}
+  },33);
+  await stopped;clearInterval(iv);
+  try{TR.bus.disconnect(dest)}catch(e){}
+  TR.mon.gain.value=1;ttStop();tvid.pause();tvid.currentTime=0;TR.exp=false;TR.run=false;
+  $('#xbox').classList.remove('show');trUpd();
+  const fn='Translated_'+$('#trLangSel').value+'_'+stamp()+(isMp4?'.mp4':'.webm');
+  if(out.length){
+    let bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});
+    if(!(isMp4&&isIOSdev())){try{bl=await fixDur(bl,isMp4,end)}catch(e){}}
+    download(bl,fn);toast(t('exDone',fn));
+  }else toast('Export failed: no data was recorded.');
+};
 
 /* ---------- старт ---------- */
 (function init(){audioPlayback();
