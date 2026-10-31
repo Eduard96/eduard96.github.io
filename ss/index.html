@@ -1214,14 +1214,14 @@ function isIOSdev(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)||(navig
 /* iPhone иногда отдаёт альбомный кадр (1280x720, 1920x1080) при вертикальном экране.
    Проверяем размеры трека и по очереди пробуем: повернуть размеры, открыть камеру заново без размеров, поднять разрешение. */
 async function fixOrient(s,lite){
-  return s;
+  if(!/Android/i.test(navigator.userAgent)||lite)return s; /* PATCH2: на Android кадр приходил горизонтальным при вертикальном телефоне */
   const por=()=>innerHeight>=innerWidth;
   let tr=s.getVideoTracks()[0];if(!tr||!tr.getSettings)return s;
   const dims=t=>{const g=t.getSettings();return{w:g.width||0,h:g.height||0}};
   const okO=d=>!d.w||!d.h||(por()===(d.h>=d.w));
   let d=dims(tr);
   if(okO(d))return s;
-  for(const c of [{width:{exact:d.h},height:{exact:d.w}},{width:{ideal:d.h},height:{ideal:d.w},aspectRatio:{ideal:d.h/d.w}}]){
+  for(const c of [{width:{exact:d.h},height:{exact:Math.round(d.h*4/3)}},{width:{exact:d.h},height:{exact:d.w}},{width:{ideal:d.h},height:{ideal:d.w},aspectRatio:{ideal:d.h/d.w}}]){
     try{await tr.applyConstraints(c);d=dims(tr);if(okO(d))return s}catch(e){}
   }
   s.getTracks().forEach(x=>x.stop());await sleep(300);
@@ -1242,7 +1242,7 @@ async function fixOrient(s,lite){
   return s2;
 }
 async function openStream0(lite){
-  const por=innerHeight>=innerWidth,tar=targetAR(),ios=isIOSdev(),base=lite?{}:Object.assign(ios?{width:{ideal:1280},height:{ideal:720}}:{width:{ideal:por?1080:1920},height:{ideal:por?1920:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
+  const por=innerHeight>=innerWidth,tar=targetAR(),ios=isIOSdev(),base=lite?{}:Object.assign(ios?{width:{ideal:1280},height:{ideal:720}}:{width:{ideal:por?1080:1440},height:{ideal:por?1440:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
   const tries=[];
   /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
      и кнопки громкости начинают менять только громкость разговора */
