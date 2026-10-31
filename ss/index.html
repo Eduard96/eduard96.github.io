@@ -343,7 +343,7 @@ html,body{overscroll-behavior-y:contain}
 .ph .gr::after{content:"";display:block;margin:7px auto 0;width:16px;height:26px;border-radius:8px;background:#ef4444;box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,255,255,.75)}
 body.editing .pvbox{display:none!important}
 .player.edit .stage{width:min(100%,calc(28dvh*var(--ar)))}
-#edh{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:11px;line-height:1.3}
+#edh{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;font-size:11px;line-height:1.3}
 #edh.open{-webkit-line-clamp:unset}
 .edock{display:grid;gap:6px;flex:none;padding:6px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
 .dkrow{display:flex;align-items:center;gap:6px;min-height:36px}
@@ -697,9 +697,9 @@ kText:'Հեռախոսում <b>տեքստը ձայնագրության ընթա�
 kSave:'Պահել բանալին և սկսել ձայնագրությունը',kSkip:'Ձայնագրել ձայնով, տեքստը՝ կանգից հետո'
 }
 };
-Object.assign(I18.en,{edhint:'Tap a block to edit its text. Drag a block to move it, drag its edges to change start and end. Swipe on an empty spot to scrub. Long-press a block to select it, tap more blocks to add them, then hold a selected block and drag to move them all together.',selN:'Selected: {0}',camFront:'Front',camBack:'Back'});
-Object.assign(I18.ru,{edhint:'Нажмите на блок, чтобы изменить текст. Тяните блок целиком, края меняют начало и конец. Проведите пальцем по пустому месту, чтобы перемотать. Долгое нажатие выбирает блок, тапами добавляйте другие, затем удерживайте выбранный блок и тяните: сдвинутся все вместе.',selN:'Выбрано: {0}',camFront:'Фронтальная',camBack:'Задняя'});
-Object.assign(I18.hy,{edhint:'Սեղմեք բլոկին՝ տեքստը փոխելու համար։ Քաշեք բլոկը՝ տեղափոխելու համար, ծայրերը՝ սկիզբն ու ավարտը փոխելու համար։ Երկար սեղմեք՝ բլոկն ընտրելու համար, հպումներով ավելացրեք մյուսները, ապա պահեք ընտրված բլոկը և քաշեք՝ բոլորը միասին կտեղափոխվեն։',selN:'Ընտրված է՝ {0}',camFront:'Առջևի',camBack:'Հետևի'});
+Object.assign(I18.en,{edhint:'Tap to edit. Drag to move; drag the edges to trim. Long-press to select several and move them together.',selN:'Selected: {0}',camFront:'Front',camBack:'Back'});
+Object.assign(I18.ru,{edhint:'Тап — изменить текст. Перетаскивание — сдвиг, края — обрезка. Долгое нажатие — выбрать несколько и двигать вместе.',selN:'Выбрано: {0}',camFront:'Фронтальная',camBack:'Задняя'});
+Object.assign(I18.hy,{edhint:'Սեղմեք՝ տեքստը փոխելու համար։ Քաշեք՝ տեղափոխելու, ծայրերը՝ կտրելու համար։ Երկար սեղմեք՝ մի քանիսն ընտրելու և միասին տեղափոխելու համար։',selN:'Ընտրված է՝ {0}',camFront:'Առջևի',camBack:'Հետևի'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -1392,7 +1392,24 @@ async function frameOk(){
 }
 let camQ=Promise.resolve();
 function initCam(){const p=camQ.then(_initCam,_initCam);camQ=p.catch(()=>{});return p}
+/* Android не спрашивает разрешения заранее: запрашиваем камеру и микрофон сразу одним окном, пока идёт открытие страницы.
+   iPhone спрашивает сам при каждом открытии камеры, там ничего лишнего не просим. */
+let permAsked=false;
+async function askPerms(){
+  if(permAsked)return;permAsked=true;
+  if(isIOSdev()||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+  try{
+    if(navigator.permissions&&navigator.permissions.query){
+      const st=await Promise.all(['camera','microphone'].map(n=>navigator.permissions.query({name:n}).then(r=>r.state,()=>'prompt')));
+      if(st.every(x=>x==='granted')||st.some(x=>x==='denied'))return;
+    }
+    const s=await gum({video:true,audio:true});
+    s.getTracks().forEach(x=>x.stop());
+    await sleep(300);
+  }catch(e){}
+}
 async function _initCam(){
+  await askPerms();
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null;await sleep(300)}
   crop=null;
   try{
