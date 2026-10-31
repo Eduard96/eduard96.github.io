@@ -384,6 +384,13 @@ body.recording{overflow:hidden}
 .player.recfull .stage{width:min(100%,calc((100dvh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom))*var(--ar)));flex:none}
 .player.recfull .cpanel{width:100%;max-width:520px;margin-top:0}
 .player.recfull #pp,.player.recfull #seek,.player.recfull #ptime,.player.recfull #spd,.player.recfull #ed,.player.recfull #fs,.player.recfull .camrow:not(:last-child){display:none}
+/* полноэкранный просмотр */
+body.viewing{overflow:hidden}
+.player.viewfull{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;overflow:hidden;
+  padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+.player.viewfull .stage{width:min(100%,calc((100dvh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom))*var(--ar)));flex:none}
+.player.viewfull .cpanel{width:100%;max-width:520px;margin-top:0}
+.player.viewfull #ed,.player.viewfull .xtra,.player.viewfull .edit-pane,.player.viewfull #rec,.player.viewfull #pz,.player.viewfull #camInfo{display:none!important}
 /* ===== патч UI 1: компактная панель ===== */
 .cpanel{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px;margin-top:6px;border-radius:16px}
 .cpanel .ctl{display:contents}
@@ -1313,7 +1320,7 @@ function canvasTrack(){
     try{if(uc)x.drawImage(v,cr.x,cr.y,cr.w,cr.h,-dw/2,-dh/2,dw,dh);else x.drawImage(v,-dw/2,-dh/2,dw,dh)}catch(e){}
     x.restore();
   };
-  draw();rc.on=true;rc.t=setInterval(draw,33);
+  const keep=()=>{if(v.paused&&v.srcObject&&!hasVideo&&!exporting)v.play().catch(()=>{})};draw();rc.on=true;rc.t=setInterval(()=>{keep();draw()},33);
   return rc.cv.captureStream(30).getVideoTracks()[0];
 }
 function stopCanvas(){clearInterval(rc.t);rc.on=false}
@@ -1987,13 +1994,26 @@ sk.addEventListener('pointerdown',()=>{seeking=true});
 sk.addEventListener('pointerup',()=>{seeking=false});
 sk.addEventListener('pointercancel',()=>{seeking=false});
 sk.addEventListener('input',()=>{const T=totalT();fillR(sk);if(T&&hasVideo)v.currentTime=sk.value/1000*T});
-$('#fs').onclick=()=>{
+/* полноэкранный просмотр: свой режим, потому что iPhone не умеет разворачивать блок со своими субтитрами */
+let viewOn=false,viewMin=false;
+function setView(on){
+  if(on===viewOn)return;
+  if(on&&(!hasVideo||recording||exporting||passing))return;
+  const pl=$('#player'),card=pl.parentElement;
+  viewOn=on;
+  if(on){viewMin=!pl.classList.contains('edit');if(viewMin)card.style.minHeight=card.offsetHeight+'px'}
+  pl.classList.toggle('viewfull',on);
+  document.body.classList.toggle('viewing',on);
+  $('#fs').textContent=on?'✕':'⛶';
+  if(!on&&viewMin){card.style.minHeight='';viewMin=false}
+}
+$('#fs').onclick=()=>setView(!viewOn);
+stage.addEventListener('click',()=>{
   const pl=$('#player');
-  if(document.fullscreenElement)document.exitFullscreen();
-  else if(pl.requestFullscreen)pl.requestFullscreen().catch(()=>toast(t('fsNA')));
-  else toast(t('fsNS'));
-};
-stage.addEventListener('click',togglePlay);
+  if(pl.classList.contains('viewfull')){togglePlay();return}
+  if(pl.classList.contains('edit')){setEdit(false);return}
+  togglePlay();
+});
 function setEdit(on){
   const pl=$('#player');
   if(on&&!(hasVideo&&!recording&&!exporting&&!passing))return;
@@ -2025,6 +2045,7 @@ function tick(){
   if(exporting&&xctx){drawExportFrame();xaSync()}
   stage.classList.toggle('recx',!!recording);
   if(!!recording!==recFullOn)setRecFull(!!recording);
+  if(recording&&!hasVideo&&v.paused&&v.srcObject)v.play().catch(()=>{});
   if(!recording&&!exporting){const h=Math.round(innerHeight*0.5);if(h!==fh){fh=h;stage.style.setProperty('--stageh',h+'px')}}
   layoutSub();updateSub();updatePreview();updateAnimPv();updatePlayhead(true);updatePlayerUI();
 }
@@ -2121,9 +2142,15 @@ function drawExportFrame(){
   const W=cv.width,H=cv.height;
   /* если в записи остались чёрные полосы, копируем только настоящую картинку (формат рилса) */
   const dc=vcrop;
-  if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);
-  else xctx.drawImage(v,0,0,W,H);
-  const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t,Math.max(0,v.currentTime-c.s),c.e-c.s);
+  const vid=()=>{
+    xctx.setTransform(1,0,0,1,0,0);xctx.globalAlpha=1;
+    if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);
+    else xctx.drawImage(v,0,0,W,H);
+  };
+  vid();
+  const c=chunkAt(v.currentTime);
+  /* сбой при рисовании субтитров не должен портить следующие кадры: сбрасываем состояние холста и рисуем кадр без них */
+  if(c){try{drawSubOnCanvas(xctx,W,H,c.t,Math.max(0,v.currentTime-c.s),c.e-c.s)}catch(e){cv.width=W;vid()}}
   const total=totalT()||dur;
   if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent=t('exPct',pc);$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
 }
@@ -2369,7 +2396,7 @@ async function exportVideo(){
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
   try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
-  let finished=false,stopping=false,wdx=null,lastCt=-1,lastMove=performance.now(),triedResume=false;
+  let finished=false,stopping=false,wdx=null,lastCt=-1,lastMove=performance.now(),triedResume=0;
   const finalize=()=>{
     if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
@@ -2396,8 +2423,10 @@ async function exportVideo(){
     if(ct!==lastCt){lastCt=ct;lastMove=now}
     if(AC&&AC.state==='suspended')try{AC.resume()}catch(e){}
     const stalled=now-lastMove>2500&&ct>0.3;
-    if(stalled&&!v.ended&&total&&ct<total-1&&!triedResume){
-      triedResume=true;lastMove=now;try{v.play().catch(()=>{})}catch(e){}return;
+    if(stalled&&!v.ended&&total&&ct<total-1&&triedResume<4){
+      triedResume++;lastMove=now;
+      try{if(v.paused)v.play().catch(()=>{});else v.currentTime=Math.min(total,ct+0.05)}catch(e){}
+      return;
     }
     if(v.ended||(total&&ct>=total-0.12)||stalled)stopExport();
   },300);
@@ -2564,7 +2593,7 @@ $('#clear').onclick=()=>{
 document.addEventListener('keydown',e=>{
   const a=document.activeElement;
   if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
-  if(e.code==='Escape')setEdit(false);
+  if(e.code==='Escape'){if(viewOn)setView(false);else setEdit(false)}
   if(hasVideo&&!recording&&!exporting&&!passing&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
     if(e.code==='Space'){e.preventDefault();togglePlay()}
     else if(e.code==='ArrowLeft')skip(-5);else if(e.code==='ArrowRight')skip(5);
@@ -2585,7 +2614,7 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
   const el=document.createElement('div');el.id='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↻</b>';document.body.appendChild(el);
   const TH=90;let x0=0,y0=0,dy=0,on=false,go=false;
   const pageTop=()=>(document.scrollingElement||document.documentElement).scrollTop<=0;
-  const busy=()=>recording||exporting||passing||fixing||document.fullscreenElement||$('#player').classList.contains('edit')||$('#kbox').classList.contains('show');
+  const busy=()=>recording||exporting||passing||fixing||document.fullscreenElement||$('#player').classList.contains('edit')||viewOn||$('#kbox').classList.contains('show');
   function startOk(t){
     if(busy()||!pageTop())return false;
     for(let n=t;n&&n!==document.body&&n.nodeType===1;n=n.parentElement){
