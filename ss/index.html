@@ -224,7 +224,7 @@ header{flex-wrap:wrap}
 .player.edit .xtra,.player:fullscreen .xtra{display:none}
 .player:fullscreen .cpanel{background:rgba(20,16,50,.9)}
 #nname{min-height:50px;font-size:17px;font-weight:600;margin-top:6px}
-#camInfo{flex:none;font-size:12px;font-weight:600;color:#b9b3e6;white-space:nowrap}
+#camInfo{flex:none;max-width:55%;font-size:11px;line-height:1.25;font-weight:600;color:#b9b3e6;white-space:normal;text-align:right}
 
 @media (max-width:900px){
   .grid{grid-template-columns:1fr}
@@ -1066,7 +1066,12 @@ $('#fmtSel').onchange=async()=>{
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
   zoom=1;await initCam();
 };
-function camInfoUpd(){const e=$('#camInfo');if(e)e.textContent=v.videoWidth?v.videoWidth+'×'+v.videoHeight:''}
+function camInfoUpd(){
+  const e=$('#camInfo');if(!e)return;
+  if(!v.videoWidth){e.textContent='';return}
+  let g={};try{const tr=stream&&stream.getVideoTracks()[0];if(tr&&tr.getSettings)g=tr.getSettings()}catch(x){}
+  e.textContent=v.videoWidth+'×'+v.videoHeight+(g.width?' · трек '+g.width+'×'+g.height:'')+' · '+(innerHeight>=innerWidth?'экран ▯':'экран ▭');
+}
 v.addEventListener('loadedmetadata',camInfoUpd);v.addEventListener('resize',camInfoUpd);
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
 /* ---------- формат рилса: поиск настоящей картинки внутри кадра с чёрными полосами ----------
@@ -1202,6 +1207,41 @@ function gum(c){
 }
 /* lite=true: запрос без размеров, нужен когда камера открылась, но кадр чёрный */
 async function openStream(lite){
+  const s=await openStream0(lite);
+  try{return await fixOrient(s,lite)}catch(e){return s}
+}
+function isIOSdev(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+/* iPhone иногда отдаёт альбомный кадр (1280x720, 1920x1080) при вертикальном экране.
+   Проверяем размеры трека и по очереди пробуем: повернуть размеры, открыть камеру заново без размеров, поднять разрешение. */
+async function fixOrient(s,lite){
+  if(lite||!isIOSdev())return s;
+  const por=()=>innerHeight>=innerWidth;
+  let tr=s.getVideoTracks()[0];if(!tr||!tr.getSettings)return s;
+  const dims=t=>{const g=t.getSettings();return{w:g.width||0,h:g.height||0}};
+  const okO=d=>!d.w||!d.h||(por()===(d.h>=d.w));
+  let d=dims(tr);
+  if(okO(d))return s;
+  for(const c of [{width:{exact:d.h},height:{exact:d.w}},{width:{ideal:d.h},height:{ideal:d.w},aspectRatio:{ideal:d.h/d.w}}]){
+    try{await tr.applyConstraints(c);d=dims(tr);if(okO(d))return s}catch(e){}
+  }
+  s.getTracks().forEach(x=>x.stop());await sleep(300);
+  let s2=null;
+  try{s2=await gum({video:camId?{deviceId:{exact:camId}}:{facingMode:'user'},audio:false})}catch(e){}
+  if(!s2){s2=await gum({video:true,audio:false})}
+  tr=s2.getVideoTracks()[0];d=dims(tr);
+  if(!okO(d))return s2;
+  for(const sz of [[1080,1920],[720,1280],[540,960]]){
+    const prev=dims(tr);
+    try{
+      await tr.applyConstraints({width:{exact:sz[0]},height:{exact:sz[1]}});
+      const n=dims(tr);
+      if(okO(n)&&n.w>=prev.w)break;
+      await tr.applyConstraints({width:{exact:prev.w},height:{exact:prev.h}});
+    }catch(e){}
+  }
+  return s2;
+}
+async function openStream0(lite){
   const por=innerHeight>=innerWidth,tar=targetAR(),base=lite?{}:Object.assign({width:{ideal:por?1080:1920},height:{ideal:por?1920:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
   const tries=[];
   /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
