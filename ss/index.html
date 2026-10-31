@@ -272,6 +272,10 @@ header{flex-wrap:wrap}
 .cpanel #zr{height:24px}
 .cpanel .camrow:last-child .btn.sm{min-height:36px;width:42px;font-size:18px}
 .cpanel #zv{font-size:15px;min-width:46px}
+.chips.styles{max-height:340px}
+.chips.anims{grid-template-columns:repeat(3,1fr);max-height:260px;overflow:auto;padding:2px;-webkit-overflow-scrolling:touch}
+.chip.anim{min-height:40px;padding:6px 8px;font-size:13px;line-height:1.15}
+@media (max-width:520px){.chips.anims{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:520px){
   .cpanel{padding:8px;gap:6px}
   .cpanel #mirr{font-size:12px;padding:0 6px}
@@ -325,6 +329,15 @@ header{flex-wrap:wrap}
       </div>
 
       <div class="card">
+        <h2><span data-i="styleLbl"></span></h2>
+        <div class="chips styles" id="styles" role="listbox" aria-label="Стиль субтитров"></div>
+      </div>
+      <div class="card">
+        <h2><span data-i="animLbl"></span></h2>
+        <div class="chips anims" id="anims" role="listbox" aria-label="Движение субтитров"></div>
+      </div>
+
+      <div class="card">
         <div id="st">Распознавание речи: ожидание записи</div>
         <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
 
@@ -333,9 +346,6 @@ header{flex-wrap:wrap}
           <div style="display:flex;gap:8px"><input id="key" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:40px;font-size:14px;flex:1"><button class="btn sm" id="keysave" data-i="save"></button></div>
           <div class="hint" id="keyst"></div>
         </details>
-
-        <div class="label" data-i="styleLbl"></div>
-        <div class="chips styles" id="styles" role="listbox" aria-label="Стиль субтитров"></div>
 
         <div class="actions">
           <button class="btn" id="srt" disabled data-i="srt"></button>
@@ -444,7 +454,7 @@ iIos:'<p><b>iPhone / iPad.</b> Open the page in Safari (other browsers cannot in
 iAnd:'<p><b>Android.</b> Open the page in Chrome.</p><ol><li>Tap ⋮ (three dots) at the top right.</li><li>Choose Install app or Add to Home screen.</li><li>Confirm Install. The icon appears on your home screen.</li></ol>',
 iDesk:'<p><b>Computer.</b> In Chrome click the install icon ⊕ on the right of the address bar or the menu ⋮ → Install Subtitle Studio.</p><p>On phone: Android, Chrome menu ⋮ → Install app; iPhone, Safari Share → Add to Home Screen.</p>',
 iNote:'<p>Installing works when the page is opened from an https address (not as a file on the device).</p>',installed:'App installed',
-eTitle:'Track text',nTitle:'Project name',laterMode:'Recording with sound. Text will be recognized right after you stop.',laterSt:'recording with sound, text after stop',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save',
+eTitle:'Track text',nTitle:'Project name',animLbl:'Subtitle motion',laterMode:'Recording with sound. Text will be recognized right after you stop.',laterSt:'recording with sound, text after stop',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save',
 kTitle:'🔑 One step before recording',
 kText:'To get <b>live text while recording</b> on a phone you need a free Groq key. No card needed.<br>1) Open <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> and sign in with Google or email.<br>2) Tap <b>Create API Key</b> and enter any name.<br>3) Copy the key (it starts with gsk_) and paste it below.',
 kSave:'Save key and start recording',kSkip:'Record with sound, text after stop'
@@ -501,7 +511,7 @@ iIos:'<p><b>iPhone / iPad.</b> Откройте страницу именно в
 iAnd:'<p><b>Android.</b> Откройте страницу в Chrome.</p><ol><li>Нажмите ⋮ (три точки) справа вверху.</li><li>Выберите «Установить приложение» или «Добавить на главный экран».</li><li>Подтвердите «Установить». Иконка появится на главном экране.</li></ol>',
 iDesk:'<p><b>Компьютер.</b> В Chrome нажмите значок установки ⊕ справа в адресной строке или меню ⋮ → «Установить Студию субтитров».</p><p>На телефоне: Android — Chrome, меню ⋮ → «Установить приложение»; iPhone — Safari, «Поделиться» → «На экран Домой».</p>',
 iNote:'<p>Установка работает, когда страница открыта по адресу https (не как файл на устройстве).</p>',installed:'Приложение установлено',
-eTitle:'Текст дорожки',nTitle:'Название проекта',laterMode:'Запись со звуком. Текст распознается сразу после остановки.',laterSt:'запись со звуком, текст после остановки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить',
+eTitle:'Текст дорожки',nTitle:'Название проекта',animLbl:'Движение субтитров',laterMode:'Запись со звуком. Текст распознается сразу после остановки.',laterSt:'запись со звуком, текст после остановки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить',
 kTitle:'🔑 Один шаг перед записью',
 kText:'Чтобы на телефоне получать <b>текст прямо во время записи</b>, нужен бесплатный ключ Groq. Карта не нужна.<br>1) Откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту.<br>2) Нажмите <b>Create API Key</b> и введите любое имя.<br>3) Скопируйте ключ (он начинается с gsk_) и вставьте его ниже.',
 kSave:'Сохранить ключ и начать запись',kSkip:'Записать со звуком, текст после стопа'
@@ -558,16 +568,16 @@ iIos:'<p><b>iPhone / iPad։</b> Բացեք էջը հենց Safari-ում (այլ
 iAnd:'<p><b>Android։</b> Բացեք էջը Chrome-ում։</p><ol><li>Վերևի աջ մասում սեղմեք ⋮ (երեք կետ)։</li><li>Ընտրեք «Տեղադրել հավելվածը» կամ «Ավելացնել գլխավոր էկրան»։</li><li>Հաստատեք «Տեղադրել»։ Պատկերակը կհայտնվի գլխավոր էկրանին։</li></ol>',
 iDesk:'<p><b>Համակարգիչ։</b> Chrome-ում սեղմեք տեղադրման պատկերակը ⊕ հասցեագոտու աջ մասում կամ ցանկը ⋮ → «Տեղադրել Ենթագրերի ստուդիան»։</p><p>Հեռախոսում․ Android՝ Chrome, ցանկ ⋮ → «Տեղադրել հավելվածը»․ iPhone՝ Safari, «Կիսվել» → «Ավելացնել Home Screen»։</p>',
 iNote:'<p>Տեղադրումը աշխատում է, երբ էջը բաց է https հասցեով (ոչ թե որպես սարքի ֆայլ)։</p>',installed:'Հավելվածը տեղադրվեց',
-eTitle:'Ուղու տեքստ',nTitle:'Նախագծի անվանում',laterMode:'Ձայնագրություն ձայնով։ Տեքստը կճանաչվի կանգնեցնելուց անմիջապես հետո։',laterSt:'ձայնագրություն ձայնով, տեքստը՝ կանգից հետո',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել',
+eTitle:'Ուղու տեքստ',nTitle:'Նախագծի անվանում',animLbl:'Ենթագրերի շարժում',laterMode:'Ձայնագրություն ձայնով։ Տեքստը կճանաչվի կանգնեցնելուց անմիջապես հետո։',laterSt:'ձայնագրություն ձայնով, տեքստը՝ կանգից հետո',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել',
 kTitle:'🔑 Մեկ քայլ ձայնագրությունից առաջ',
 kText:'Հեռախոսում <b>տեքստը ձայնագրության ընթացքում</b> ստանալու համար պետք է Groq-ի անվճար բանալի։ Քարտ պետք չէ։<br>1) Բացեք <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> և մուտք գործեք Google-ով կամ փոստով։<br>2) Սեղմեք <b>Create API Key</b> և մուտքագրեք ցանկացած անուն։<br>3) Պատճենեք բանալին (սկսվում է gsk_-ով) և տեղադրեք ներքևում։',
 kSave:'Պահել բանալին և սկսել ձայնագրությունը',kSkip:'Ձայնագրել ձայնով, տեքստը՝ կանգից հետո'
 }
 };
 const SN={
-en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold'],
-ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото'],
-hy:['Դասական','Թավ դեղին','Մինիմալ','Փոփ (մանուշակագույն)','Նեոն','Կոմիքս','Դեղին վահանակ','Կարմիր վահանակ','Լայմ','Եզրագիծ','Ռետրո տերմինալ','Կինո (շեղ)','Վարդագույն վահանակ','Կապույտ ապակի','Ոսկի']
+en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
+ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
+hy:['Դասական','Թավ դեղին','Մինիմալ','Փոփ (մանուշակագույն)','Նեոն','Կոմիքս','Դեղին վահանակ','Կարմիր վահանակ','Լայմ','Եզրագիծ','Ռետրո տերմինալ','Կինո (շեղ)','Վարդագույն վահանակ','Կապույտ ապակի','Ոսկի','Սպիտակ վահանակ','Սև վահանակ','Կապույտ վահանակ','Կանաչ վահանակ','Նարնջագույն եզրագիծ','Կիբերպանկ','Սառույց','Կրակ','Ստիկեր','Մոնո','Գիրք','Ձեռագիր','Շքեղ','Մայրամուտ','Օվկիանոս']
 };
 let ui='en';try{const u=localStorage.getItem('substudio-ui');if(u&&I18[u])ui=u}catch(e){}
 const t=(k,...a)=>{let s=(I18[ui]&&I18[ui][k])||I18.en[k]||k;a.forEach((x,i)=>{s=s.split('{'+i+'}').join(x)});return s};
@@ -591,10 +601,79 @@ retro:{n:'Ретро-терминал',c:'#ffb000',bg:'rgba(0,0,0,.8)',r:.1,w:60
 cinema:{n:'Кино (курсив)',c:'#fff',w:400,it:1,fam:'Georgia,"Times New Roman",serif',sh:['rgba(0,0,0,.9)',.2,.06]},
 pink:{n:'Розовая плашка',c:'#fff',bg:'#ec4899',r:.6,w:800},
 glass:{n:'Синее стекло',c:'#fff',bg:'rgba(59,130,246,.65)',r:.3,w:600},
-gold:{n:'Золото',c:'#FFE08A',w:800,st:.12,sc:'#5a3a00',sh:['rgba(0,0,0,.6)',.15,.05]}
+gold:{n:'Золото',c:'#FFE08A',w:800,st:.12,sc:'#5a3a00',sh:['rgba(0,0,0,.6)',.15,.05]},
+white:{n:'Белая плашка',c:'#111',bg:'#fff',r:.2,w:700},
+blackbox:{n:'Чёрная плашка',c:'#fff',bg:'#000',r:.1,w:800},
+bluebox:{n:'Синяя плашка',c:'#fff',bg:'#2563eb',r:.25,w:700},
+greenbox:{n:'Зелёная плашка',c:'#fff',bg:'#10b981',r:.3,w:800},
+orange:{n:'Оранжевый контур',c:'#FF9F0A',up:1,w:900,st:.18,sc:'#000'},
+cyber:{n:'Киберпанк',c:'#ff2bd6',up:1,w:800,sh:['#00f5ff',.4,0]},
+ice:{n:'Лёд',c:'#e0f7ff',w:600,sh:['#38bdf8',.5,0]},
+fire:{n:'Огонь',c:'#fff3b0',w:900,st:.06,sc:'#b91c1c',sh:['#ff5a00',.5,.05]},
+sticker:{n:'Стикер',c:'#111',bg:'#fff',r:.6,w:900,up:1},
+mono:{n:'Моно',c:'#e5e7eb',bg:'rgba(17,24,39,.85)',r:.15,w:500,fam:'ui-monospace,Menlo,Consolas,monospace'},
+book:{n:'Книга',c:'#fff7e6',w:600,fam:'Georgia,"Times New Roman",serif',sh:['rgba(0,0,0,.9)',.25,.07]},
+hand:{n:'Рукопись',c:'#fff',w:700,it:1,st:.08,sc:'#000',fam:'"Segoe Script","Bradley Hand","Comic Sans MS",cursive'},
+lux:{n:'Люкс',c:'#f5e6c8',bg:'rgba(0,0,0,.75)',r:.08,w:600,up:1,fam:'Georgia,"Times New Roman",serif'},
+sunset:{n:'Закат',c:'#fff',g:['#f97316','#ec4899'],r:.4,w:800},
+ocean:{n:'Океан',c:'#fff',g:['#06b6d4','#3b82f6'],r:.4,w:800}
 };
 const BASEFAM='system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Armenian",sans-serif';
-let previewUntil=0;
+/* ---------- движение субтитров ---------- */
+const cl01=x=>Math.max(0,Math.min(1,x));
+const EZ={
+  out:p=>1-Math.pow(1-p,3),
+  back:p=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)},
+  elastic:p=>p<=0?0:p>=1?1:Math.pow(2,-10*p)*Math.sin((p*10-0.75)*(2*Math.PI)/3)+1,
+  bounce:p=>{const n=7.5625,d=2.75;if(p<1/d)return n*p*p;if(p<2/d){p-=1.5/d;return n*p*p+.75}if(p<2.5/d){p-=2.25/d;return n*p*p+.9375}p-=2.625/d;return n*p*p+.984375}
+};
+const A=(k,en,ru,hy,o)=>Object.assign({k,n:{en,ru,hy},D:.4,st:0},o);
+/* b: движение всего блока, w: движение каждого слова, st: сдвиг между словами (сек), единицы смещения: высота шрифта */
+const ANIM=[
+A('none','None','Без анимации','Առանց անիմացիայի',{}),
+A('fade','Fade in','Плавное появление','Սահուն հայտնում',{b:p=>({a:p})}),
+A('up','Slide up','Снизу вверх','Ներքևից վերև',{b:p=>({a:p,y:(1-EZ.out(p))*1.2})}),
+A('down','Slide down','Сверху вниз','Վերևից ներքև',{b:p=>({a:p,y:-(1-EZ.out(p))*1.2})}),
+A('left','From left','Слева','Ձախից',{b:p=>({a:p,x:-(1-EZ.out(p))*8})}),
+A('right','From right','Справа','Աջից',{b:p=>({a:p,x:(1-EZ.out(p))*8})}),
+A('zin','Zoom in','Приближение','Մոտեցում',{b:p=>({a:p,s:.4+.6*EZ.out(p)})}),
+A('zout','Zoom out','Из крупного','Խոշորից',{b:p=>({a:p,s:1.8-.8*EZ.out(p)})}),
+A('pop','Pop','Поп','Փոփ',{D:.45,b:p=>({a:Math.min(1,p*4),s:EZ.back(p)})}),
+A('bounce','Bounce drop','Падение с отскоком','Անկում ցատկով',{D:.7,b:p=>({a:Math.min(1,p*5),y:-(1-EZ.bounce(p))*3})}),
+A('elastic','Elastic','Резинка','Առաձգական',{D:.8,b:p=>({a:Math.min(1,p*5),s:EZ.elastic(p)})}),
+A('flip','Flip','Переворот','Շրջում',{D:.45,b:p=>({a:p,sy:Math.max(.02,EZ.out(p))})}),
+A('spin','Spin in','Вращение','Պտույտ',{D:.55,b:p=>{const e=EZ.out(p);return{a:p,s:.3+.7*e,r:-120*(1-e)}}}),
+A('tilt','Tilt','Наклон','Թեքում',{D:.5,b:p=>{const e=EZ.out(p);return{a:p,y:.8*(1-e),r:-10*(1-e)}}}),
+A('blur','Blur in','Из размытия','Մշուշից',{D:.5,b:p=>({a:p,b:.35*(1-p)})}),
+A('type','Typewriter','Печатная машинка','Տպող մեքենա',{D:0,ch:true}),
+A('wpop','Word pop','Слова с попом','Բառեր փոփով',{st:.14,D:.35,w:p=>({a:Math.min(1,p*4),s:EZ.back(p)})}),
+A('wfade','Word fade','Слова плавно','Բառեր սահուն',{st:.12,D:.35,w:p=>({a:p})}),
+A('wup','Words rise','Слова снизу','Բառեր ներքևից',{st:.1,D:.4,w:p=>({a:p,y:1-EZ.out(p)})}),
+A('wdrop','Words drop','Слова падают','Բառեր ընկնում են',{st:.09,D:.55,w:p=>({a:Math.min(1,p*5),y:-(1-EZ.bounce(p))*2.5})}),
+A('wzoom','Words zoom','Слова приближаются','Բառեր մոտենում են',{st:.1,D:.4,w:p=>({a:p,s:2-EZ.out(p)})}),
+A('wleft','Words from left','Слова слева','Բառեր ձախից',{st:.1,D:.4,w:p=>({a:p,x:-(1-EZ.out(p))*4})}),
+A('wtwist','Words twist','Слова с поворотом','Բառեր պտույտով',{st:.1,D:.45,w:p=>{const e=EZ.out(p);return{a:p,y:.7*(1-e),r:-25*(1-e)}}}),
+A('wblur','Words blur','Слова из размытия','Բառեր մշուշից',{st:.1,D:.5,w:p=>({a:p,b:.35*(1-p)})}),
+A('karaoke','Karaoke','Караоке','Կարաոկե',{w:(p,tm,i,o)=>({hl:i===Math.min(o.n-1,Math.floor(tm/Math.max(.2,o.d)*o.n))})}),
+A('shake','Shake','Дрожь','Դողում',{D:.6,b:(p,tm)=>({a:Math.min(1,p*4),x:Math.sin(tm*70)*.12*(1-p)})}),
+A('wave','Wave','Волна','Ալիք',{w:(p,tm,i)=>({y:Math.sin(tm*6+i*.8)*.1})}),
+A('pulse','Pulse','Пульс','Բաբախյուն',{D:.45,b:(p,tm)=>({a:Math.min(1,p*4),s:EZ.back(p)*(1+.03*Math.sin(tm*8))})}),
+A('glitch','Glitch','Глитч','Գլիչ',{D:.5,b:(p,tm)=>{if(p>=1)return{};const f=Math.floor(tm*30);return{a:f%3===0?.4:1,x:(((f*37)%7)-3)/3*.18*(1-p)}}}),
+A('flash','Flash','Вспышка','Փայլատակում',{D:.6,b:p=>({a:p>=1?1:(Math.floor(p*8)%2?1:.15)})})
+];
+const ANIMD={};ANIM.forEach(a=>{ANIMD[a.k]=a});
+function animState(tm,n,d){
+  const an=ANIMD[anim]||ANIMD.none,o={n,d};
+  const B0={a:1,x:0,y:0,s:1,sy:1,r:0,b:0},W0={a:1,x:0,y:0,s:1,r:0,b:0,hl:false};
+  if(tm>=90)return{B:B0,W:()=>W0,ch:Infinity};
+  const D=an.D||1,pb=cl01(tm/D);
+  const B=Object.assign({},B0,an.b?an.b(pb,tm,o):null);
+  const W=i=>Object.assign({},W0,an.w?an.w(cl01((tm-i*an.st)/D),tm,i,o):null);
+  return{B,W,ch:an.ch?Math.floor(tm*24):Infinity};
+}
+const bgOf=d=>d.g?'linear-gradient(90deg,'+d.g[0]+','+d.g[1]+')':(d.bg||'none');
+function hlCol(d){const x=((d.c||'')+(d.bg||'')).toLowerCase();return /ffd60a|ffe08a|ffb000/.test(x)?'#00e5ff':'#FFD60A'}
+let previewUntil=0,previewT0=0,anim='fade';
 let ph=null, rows=new Map(), lastSub='', lastNow=null, tmr=null, wd=null;
 let passing=false,pendingPass=false,passTrack=null,usingTrack=false,gotRes=false,langLog=[],passTimer=null,PDEST=null;
 let paused=false,pausedMs=0,pauseAt=0;
@@ -636,11 +715,11 @@ function askName(){
 }
 
 /* ---------- сохранение ---------- */
-function save(){try{localStorage.setItem('substudio',JSON.stringify({phrases,dur,style},(k,v)=>k==='g'?undefined:v))}catch(e){}}
+function save(){try{localStorage.setItem('substudio',JSON.stringify({phrases,dur,style,anim},(k,v)=>k==='g'?undefined:v))}catch(e){}}
 function load(){
   try{
     const d=JSON.parse(localStorage.getItem('substudio')||'null');if(!d)return;
-    phrases=d.phrases||[];dur=d.dur||0;if(d.style)setStyle(d.style,true);
+    phrases=d.phrases||[];dur=d.dur||0;if(d.style)setStyle(d.style,true);if(d.anim)setAnim(d.anim,true);
     phrases.forEach(p=>{if(p.c)p.c.forEach(c=>c.g=p);else buildPhrase(p)});
     if(phrases.length)toast(t('restored'));
   }catch(e){}
@@ -738,12 +817,18 @@ function setStyle(k,quiet){
   style=k;const d=STY[k];
   document.querySelectorAll('#styles .sty').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
   const o=sub.style;
-  o.color=d.c;o.background=d.bg||'none';o.borderRadius=d.bg?(d.r||0)+'em':'0';
+  o.color=d.c;o.background=bgOf(d);o.borderRadius=(d.bg||d.g)?(d.r||0)+'em':'0';
   o.fontWeight=d.w;o.fontStyle=d.it?'italic':'normal';o.fontFamily=d.fam||BASEFAM;
   o.textTransform=d.up?'uppercase':'none';
   o.webkitTextStroke=d.st?d.st+'em '+d.sc:'0';o.paintOrder=d.st?'stroke fill':'normal';
   o.textShadow=d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none';
-  if(!quiet){previewUntil=performance.now()+2000;save()}
+  if(!quiet){previewT0=performance.now();previewUntil=previewT0+2600;save()}
+}
+function setAnim(k,quiet){
+  if(!ANIMD[k])k='none';
+  anim=k;
+  document.querySelectorAll('#anims .anim').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
+  if(!quiet){previewT0=performance.now();previewUntil=previewT0+2600;save()}
 }
 
 /* ---------- облачное распознавание (Groq Whisper) ---------- */
@@ -1184,16 +1269,48 @@ function updatePlayhead(follow){
 }
 
 /* ---------- субтитры на экране ---------- */
+let subWords=[];
+function setWordChars(o,k){
+  if(o.k===k)return;o.k=k;
+  const n=k>=o.txt.length?o.txt.length:Math.max(0,k);
+  o.vis.textContent=o.txt.slice(0,n);o.hid.textContent=o.txt.slice(n);
+}
+function buildSubDom(txt){
+  sub.textContent='';subWords=[];
+  txt.split(/\s+/).filter(Boolean).forEach((w,i)=>{
+    if(i)sub.appendChild(document.createTextNode(' '));
+    const el=document.createElement('span');el.style.display='inline-block';
+    const vis=document.createElement('span'),hid=document.createElement('span');hid.style.visibility='hidden';
+    el.append(vis,hid);sub.appendChild(el);
+    const o={el,vis,hid,txt:w,k:-1};subWords.push(o);setWordChars(o,1e9);
+  });
+}
+function applySubAnim(tm,d){
+  const st=animState(tm,subWords.length,d),B=st.B,o=sub.style;
+  o.opacity=B.a;
+  o.transform='translate(-50%,0) translate('+B.x+'em,'+B.y+'em) rotate('+B.r+'deg) scale('+B.s+','+(B.s*B.sy)+')';
+  o.filter=B.b>.001?'blur('+B.b+'em)':'none';
+  let rem=st.ch;const hc=hlCol(STY[style]||STY.classic);
+  subWords.forEach((w,i)=>{
+    const W=st.W(i),e=w.el.style;
+    e.opacity=W.a;
+    e.transform=(W.x||W.y||W.r||W.s!==1)?'translate('+W.x+'em,'+W.y+'em) rotate('+W.r+'deg) scale('+W.s+')':'none';
+    e.filter=W.b>.001?'blur('+W.b+'em)':'none';
+    e.color=W.hl?hc:'';
+    setWordChars(w,rem===Infinity?1e9:Math.max(0,rem));rem-=w.txt.length+1;
+  });
+}
 function updateSub(){
-  let txt='',cur=null;
+  let txt='',cur=null,tm=99,dd=2;
   if(recording||passing){
     const p=phrases[phrases.length-1],now=nowT();
     if(p&&p.t&&now-p.e<=3)txt=p.t.split(/\s+/).filter(Boolean).slice(-6).join(' ');
   }else if(hasVideo){
-    const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g}
+    const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g;tm=Math.max(0,v.currentTime-c.s);dd=c.e-c.s}
   }
-  if(!txt&&performance.now()<previewUntil)txt=t('example');
-  if(txt!==lastSub){lastSub=txt;sub.textContent=txt;sub.classList.toggle('show',!!txt)}
+  if(!txt&&performance.now()<previewUntil){txt=t('example');tm=(performance.now()-previewT0)/1000;dd=2}
+  if(txt!==lastSub){lastSub=txt;buildSubDom(txt);sub.classList.toggle('show',!!txt)}
+  if(txt)applySubAnim(tm,dd);
   if(cur!==lastNow){
     if(lastNow&&rows.get(lastNow))rows.get(lastNow).classList.remove('now');
     if(cur&&rows.get(cur))rows.get(cur).classList.add('now');
@@ -1379,28 +1496,58 @@ function wrap(ctx,text,maxW){
   if(cur)lines.push(cur);return lines;
 }
 function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
-function drawSubOnCanvas(ctx,W,H,text){
+function drawSubOnCanvas(ctx,W,H,text,tm,d2){
   const d=STY[style]||STY.classic;
   const fs=W*0.044,lh=fs*1.25,padX=fs*0.55,padY=fs*0.2;
   ctx.font=(d.it?'italic ':'')+d.w+' '+fs+'px '+(d.fam||BASEFAM);
-  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.textAlign='left';ctx.textBaseline='middle';
   if(d.up)text=text.toUpperCase();
-  const lines=wrap(ctx,text,W*0.9-2*padX);
-  const bw=Math.max(...lines.map(l=>ctx.measureText(l).width))+2*padX,bh=lines.length*lh+2*padY;
-  const bx=(W-bw)/2,by=H*0.78-bh;
-  if(d.bg){ctx.fillStyle=d.bg;rrect(ctx,bx,by,bw,bh,fs*(d.r||0));ctx.fill()}
-  lines.forEach((l,i)=>{
-    const y=by+padY+lh*(i+0.5),x=W/2;
-    if(d.sh){ctx.shadowColor=d.sh[0];ctx.shadowBlur=fs*d.sh[1];ctx.shadowOffsetY=fs*d.sh[2]}
-    if(d.st){ctx.lineJoin='round';ctx.lineWidth=fs*d.st;ctx.strokeStyle=d.sc;ctx.strokeText(l,x,y)}
-    ctx.fillStyle=d.c;ctx.fillText(l,x,y);
-    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+  const ws=text.split(/\s+/).filter(Boolean);if(!ws.length)return;
+  const sp=ctx.measureText(' ').width,maxW=W*0.9-2*padX,lines=[];
+  let cur=[],cw=0;
+  for(const w of ws){
+    const ww=ctx.measureText(w).width;
+    if(cur.length&&cw+sp+ww>maxW){lines.push({ws:cur,w:cw});cur=[];cw=0}
+    const x=cur.length?cw+sp:0;cur.push({t:w,w:ww,x});cw=x+ww;
+  }
+  lines.push({ws:cur,w:cw});
+  const bw=Math.max(...lines.map(l=>l.w))+2*padX,bh=lines.length*lh+2*padY;
+  const bx=(W-bw)/2,by=H*0.78-bh,cx=bx+bw/2,cy=by+bh/2;
+  const st=animState(tm,ws.length,d2),B=st.B,hc=hlCol(d);
+  ctx.save();
+  ctx.translate(cx+B.x*fs,cy+B.y*fs);ctx.rotate(B.r*Math.PI/180);ctx.scale(B.s,B.s*B.sy);ctx.translate(-cx,-cy);
+  if(B.b>.001)ctx.filter='blur('+B.b*fs+'px)';
+  ctx.globalAlpha=B.a;
+  if(d.bg||d.g){
+    if(d.g){const gr=ctx.createLinearGradient(bx,0,bx+bw,0);gr.addColorStop(0,d.g[0]);gr.addColorStop(1,d.g[1]);ctx.fillStyle=gr}
+    else ctx.fillStyle=d.bg;
+    rrect(ctx,bx,by,bw,bh,fs*(d.r||0));ctx.fill();
+  }
+  let rem=st.ch,gi=0;
+  lines.forEach((l,li)=>{
+    const y=by+padY+lh*(li+0.5),lx=W/2-l.w/2;
+    l.ws.forEach(w=>{
+      const W2=st.W(gi++);
+      let str=w.t;
+      if(rem!==Infinity){str=w.t.slice(0,Math.max(0,rem));rem-=w.t.length+1}
+      if(!str)return;
+      const x=lx+w.x,wc=x+w.w/2;
+      ctx.save();
+      ctx.globalAlpha=B.a*W2.a;
+      const bl=B.b+W2.b;ctx.filter=bl>.001?'blur('+bl*fs+'px)':'none';
+      ctx.translate(wc+W2.x*fs,y+W2.y*fs);ctx.rotate(W2.r*Math.PI/180);ctx.scale(W2.s,W2.s);ctx.translate(-wc,-y);
+      if(d.sh){ctx.shadowColor=d.sh[0];ctx.shadowBlur=fs*d.sh[1];ctx.shadowOffsetY=fs*d.sh[2]}
+      if(d.st){ctx.lineJoin='round';ctx.lineWidth=fs*d.st;ctx.strokeStyle=d.sc;ctx.strokeText(str,x,y)}
+      ctx.fillStyle=W2.hl?hc:d.c;ctx.fillText(str,x,y);
+      ctx.restore();
+    });
   });
+  ctx.restore();
 }
 function drawExportFrame(){
   const W=cv.width,H=cv.height;
   xctx.drawImage(v,0,0,W,H);
-  const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t);
+  const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t,Math.max(0,v.currentTime-c.s),c.e-c.s);
   const total=isFinite(v.duration)&&v.duration>0?v.duration:dur;
   if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent=t('exPct',pc);$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
 }
@@ -1495,6 +1642,7 @@ function applyLang(){
   document.querySelectorAll('#uil button').forEach(b=>b.classList.toggle('on',b.dataset.u===ui));
   document.querySelectorAll('#styles .sty').forEach((b,i)=>{b.querySelector('.nm').textContent=SN[ui][i];b.querySelector('.pv span').textContent=t('subWord')});
   recTxt.textContent=t(recording?'stop':'rec');
+  document.querySelectorAll('#anims .anim').forEach((b,i)=>{b.textContent=ANIM[i].n[ui]});
   $('#pz').textContent=t(paused?'resume':'pause');
   badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
   $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
@@ -1532,10 +1680,14 @@ Object.keys(STY).forEach(k=>{
   const d=STY[k],b=document.createElement('button');b.className='chip sty';b.dataset.k=k;
   const pv=document.createElement('div'),tt=document.createElement('span'),nm=document.createElement('div');
   pv.className='pv';tt.textContent=t('subWord');nm.className='nm';nm.textContent=d.n;
-  tt.style.cssText='color:'+d.c+';background:'+(d.bg||'none')+';border-radius:'+(d.bg?(d.r||0)+'em':'0')+';font-weight:'+d.w+';font-style:'+(d.it?'italic':'normal')+';font-family:'+(d.fam||BASEFAM)+';text-transform:'+(d.up?'uppercase':'none')+';-webkit-text-stroke:'+(d.st?(d.st*0.6)+'em '+d.sc:'0')+';paint-order:stroke fill;text-shadow:'+(d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none')+';padding:.1em .45em';
+  tt.style.cssText='color:'+d.c+';background:'+bgOf(d)+';border-radius:'+((d.bg||d.g)?(d.r||0)+'em':'0')+';font-weight:'+d.w+';font-style:'+(d.it?'italic':'normal')+';font-family:'+(d.fam||BASEFAM)+';text-transform:'+(d.up?'uppercase':'none')+';-webkit-text-stroke:'+(d.st?(d.st*0.6)+'em '+d.sc:'0')+';paint-order:stroke fill;text-shadow:'+(d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none')+';padding:.1em .45em';
   pv.appendChild(tt);b.append(pv,nm);b.onclick=()=>setStyle(k);$('#styles').appendChild(b);
 });
-setStyle('classic',true);
+ANIM.forEach(a=>{
+  const b=document.createElement('button');b.className='chip anim';b.dataset.k=a.k;b.textContent=a.n[ui];
+  b.onclick=()=>setAnim(a.k);$('#anims').appendChild(b);
+});
+setStyle('classic',true);setAnim('fade',true);
 srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#passX').onclick=()=>finishPass();
 $('#clear').onclick=()=>{
   if(recording||exporting)return;
