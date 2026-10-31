@@ -358,6 +358,13 @@ body.editing .pvbox{display:none!important}
 .dkrow2 .dkfont{flex:none;width:130px;min-height:40px;font-size:14px;border-width:1px}
 .dkrow2 .dksz{flex:none;width:130px;touch-action:none;accent-color:var(--acc)}
 .dkrow2 .dksv{flex:none;min-width:40px;font-size:13px;font-weight:700;color:var(--mute)}
+/* фикс: нижняя панель не должна быть шире экрана, иначе лента стилей не прокручивается */
+.player.edit .edit-pane{min-width:0;max-width:100%}
+.edock{grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%;overflow:hidden}
+.edock>*{min-width:0}
+#dkbody{min-width:0;max-width:100%;overflow:hidden}
+.dkrow2{width:100%;max-width:100%;overscroll-behavior-x:contain;scroll-snap-type:none}
+.dkrow2 .sty{flex:0 0 92px}
 /* ===== патч UI 1: компактная панель ===== */
 .cpanel{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px;margin-top:6px;border-radius:16px}
 .cpanel .ctl{display:contents}
