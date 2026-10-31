@@ -2142,6 +2142,72 @@ async function xaTrack(){
     return ADEST.stream.getAudioTracks()[0]||null;
   }catch(e){xaBuf=null;return exportAudioTrack()}
 }
+function mp4info(u){
+  const dv=new DataView(u.buffer,u.byteOffset,u.byteLength),tr={},order=[];
+  const box=(s,e,f)=>{while(s+8<=e){let z=dv.getUint32(s),h=8;const ty=String.fromCharCode(u[s+4],u[s+5],u[s+6],u[s+7]);
+    if(z===1){z=dv.getUint32(s+8)*4294967296+dv.getUint32(s+12);h=16}else if(z===0)z=e-s;
+    if(z<h)break;f(ty,s+h,s+z);s+=z}};
+  box(0,u.length,(t,s,e)=>{
+    if(t==='moov')box(s,e,(t2,s2,e2)=>{
+      if(t2!=='trak')return;
+      let id=0;const o={ts:1,hd:'?',md:0,el:''};
+      box(s2,e2,(t3,s3,e3)=>{
+        if(t3==='tkhd')id=dv.getUint32(s3+(u[s3]===1?20:12));
+        else if(t3==='edts')box(s3,e3,(t4,s4)=>{if(t4==='elst'){
+          const v1=u[s4]===1,n=dv.getUint32(s4+4);let p=s4+8;const a=[];
+          for(let i=0;i<n&&i<4;i++){a.push(dv.getUint32(p+(v1?4:0))+'/'+dv.getInt32(p+(v1?12:4)));p+=v1?20:12}
+          o.el=a.join(',');}});
+        else if(t3==='mdia')box(s3,e3,(t4,s4)=>{
+          if(t4==='mdhd'){const v1=u[s4]===1;o.ts=dv.getUint32(s4+(v1?20:12));o.md=dv.getUint32(s4+(v1?28:16))/o.ts}
+          else if(t4==='hdlr')o.hd=String.fromCharCode(u[s4+8],u[s4+9],u[s4+10],u[s4+11]);
+        });
+      });
+      tr[id]=o;order.push(id);
+    });
+    else if(t==='moof')box(s,e,(t2,s2,e2)=>{
+      if(t2!=='traf')return;
+      let id=0,base=null,def=0;
+      box(s2,e2,(t3,s3)=>{
+        if(t3==='tfhd'){id=dv.getUint32(s3+4);const fl=dv.getUint32(s3)&0xffffff;let p=s3+8;if(fl&1)p+=8;if(fl&2)p+=4;if(fl&8)def=dv.getUint32(p)}
+        else if(t3==='tfdt'){base=u[s3]===1?dv.getUint32(s3+8):dv.getUint32(s3+4)}
+        else if(t3==='trun'){
+          const fl=dv.getUint32(s3)&0xffffff,n=dv.getUint32(s3+4);let p=s3+8,sum=0;
+          if(fl&1)p+=4;if(fl&4)p+=4;
+          for(let i=0;i<n;i++){let d=def;if(fl&0x100){d=dv.getUint32(p);p+=4}if(fl&0x200)p+=4;if(fl&0x400)p+=4;if(fl&0x800)p+=4;sum+=d}
+          const o=tr[id];if(o){if(o.f0===undefined&&base!==null)o.f0=base;o.fs=(o.fs||0)+sum;o.n=(o.n||0)+n}
+        }
+      });
+    });
+  });
+  return order.map(id=>{const o=tr[id];
+    return o.hd+' ts'+o.ts+' hdr'+o.md.toFixed(1)+(o.el?' elst['+o.el+']':'')+(o.fs!==undefined?' start'+((o.f0||0)/o.ts).toFixed(1)+' len'+(o.fs/o.ts).toFixed(1)+' n'+o.n:' nofrag');
+  }).join(' || ');
+}
+async function xdiag(b,exp,n){
+  try{
+    const w=rc.xs?((performance.now()-rc.xs)/1000):0;
+    const r=mp4info(new Uint8Array(await b.arrayBuffer()));
+    toast('exp '+exp.toFixed(1)+' wall '+w.toFixed(1)+' sr'+(AC?AC.sampleRate:0)+' chunks'+n+' || '+r,45000);
+  }catch(x){toast('diag err '+x,10000)}
+}
+async function xaTrack(){
+  xaBuf=null;
+  try{
+    if(!AC||!recBlob)throw 0;
+    if(AC.state!=='running'){await Promise.race([AC.resume(),sleep(1500)])}
+    try{xaBuf=await xaP}catch(e){xaBuf=null}
+    if(!xaBuf)xaBuf=await decodeBuf(await recBlob.arrayBuffer());
+    ADEST=AC.createMediaStreamDestination();
+    try{ADEST.channelCount=1;ADEST.channelCountMode='explicit'}catch(e){}
+    xaOsc=AC.createOscillator();const g=AC.createGain();g.gain.value=0.00001;
+    xaOsc.connect(g);g.connect(ADEST);xaOsc.start();
+    xaMix=AC.createGain();xaMix.connect(ADEST);
+    const mu=AC.createGain();mu.gain.value=0;xaMix.connect(mu);mu.connect(AC.destination);
+    const o2=AC.createOscillator(),g2=AC.createGain();g2.gain.value=0;o2.connect(g2);g2.connect(AC.destination);o2.start();xaOsc2=o2;
+    v.muted=true;
+    return ADEST.stream.getAudioTracks()[0]||null;
+  }catch(e){xaBuf=null;return exportAudioTrack()}
+}
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
   const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
@@ -2165,7 +2231,7 @@ async function exportVideo(){
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
     xaStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
-    if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});fixDur(bl,isMp4,expDur).then(b=>{xdiag(b,expDur,out.length);download(b,fn)},()=>download(bl,fn))}
+    if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});fixDur(bl,isMp4,expDur).then(b=>{xdiag(bl,expDur,out.length);download(b,fn)},()=>download(bl,fn))}
     updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
   };
   /* остановка идемпотентна; если запись не закрылась сама (бывает на iPhone), через 4 секунды завершаем принудительно */
