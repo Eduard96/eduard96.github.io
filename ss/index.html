@@ -431,6 +431,9 @@ body.viewing{overflow:hidden}
 .subtog.open .arr{transform:rotate(180deg)}
 .subwrap{display:none;gap:14px;min-width:0}
 .subwrap.open{display:grid}
+.dmenu{max-height:80dvh;overflow:auto}
+.mor{padding:6px 6px 0;font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.dmenu .mi.sh{min-height:42px}
 </style>
 </head>
 <body>
@@ -439,7 +442,16 @@ body.viewing{overflow:hidden}
     <div class="hl">
       <div class="menuwrap">
         <button class="icon-btn" id="mbL" aria-label="Menu" aria-haspopup="true">☰</button>
-        <div class="dmenu" id="menuL"><button class="mi" id="mExp" disabled></button></div>
+        <div class="dmenu" id="menuL"><button class="mi" id="mExp" disabled></button>
+<div class="mor" data-i="orExp"></div>
+<button class="mi sh" data-sh="instagram" disabled>📸 Instagram</button>
+<button class="mi sh" data-sh="youtube" disabled>▶️ YouTube</button>
+<button class="mi sh" data-sh="tiktok" disabled>🎵 TikTok</button>
+<button class="mi sh" data-sh="telegram" disabled>✈️ Telegram</button>
+<button class="mi sh" data-sh="x" disabled>✖️ X</button>
+<button class="mi sh" data-sh="threads" disabled>🧵 Threads</button>
+<button class="mi sh" data-sh="reddit" disabled>👽 Reddit</button>
+<button class="mi sh" data-sh="substack" disabled>📬 Substack</button></div>
       </div>
       <div class="logo"><i>◉</i><div><span data-i="title"></span><small data-i="tag"></small></div></div>
     </div>
@@ -570,6 +582,10 @@ body.viewing{overflow:hidden}
 </div>
 
 <div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
+<div class="ovl" id="sbox"><div class="box"><h3 id="shT"></h3><p id="shP" style="font-size:14px"></p>
+<button class="btn primary" id="shGo" style="width:100%;margin-top:14px"></button>
+<button class="btn" id="shSave" style="width:100%;margin-top:8px"></button>
+<button class="btn" id="shClose" style="width:100%;margin-top:8px" data-i="iClose"></button></div></div>
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
 <div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button></div></div>
 <div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
@@ -768,6 +784,9 @@ Object.assign(I18.hy,{edhint:'Սեղմեք՝ տեքստը փոխելու համ�
 Object.assign(I18.en,{subSet:'Sub Settings',themeLbl:'🌓 Light / Dark',setKey:'🔑 Set API key'});
 Object.assign(I18.ru,{subSet:'Настройки субтитров',themeLbl:'🌓 Светлая / тёмная',setKey:'🔑 Задать API ключ'});
 Object.assign(I18.hy,{subSet:'Ենթագրերի կարգավորումներ',themeLbl:'🌓 Լույս / Մութ',setKey:'🔑 Սահմանել API բանալի'});
+Object.assign(I18.en,{orExp:'Or Export',shT:'Video is ready for {0}',shP:'Tap the button and pick {0} in the share sheet. The video goes into the app: add a caption and publish.',shGo:'Share to {0}',shSave:'Save file and open {0}',shNo:'This browser cannot pass files to apps. The file is saved: attach it in the app.'});
+Object.assign(I18.ru,{orExp:'Или экспорт в',shT:'Видео готово для {0}',shP:'Нажмите кнопку и выберите {0} в окне «Поделиться». Видео попадёт в приложение: добавьте описание и опубликуйте.',shGo:'Отправить в {0}',shSave:'Сохранить файл и открыть {0}',shNo:'Браузер не передаёт файлы в приложения. Файл сохранён: прикрепите его в приложении.'});
+Object.assign(I18.hy,{orExp:'Կամ արտահանել',shT:'Տեսանյութը պատրաստ է {0}-ի համար',shP:'Սեղմեք կոճակը և ընտրեք {0}-ը «Կիսվել» պատուհանում։ Տեսանյութը կանցնի հավելված՝ ավելացրեք նկարագրություն և հրապարակեք։',shGo:'Ուղարկել {0}',shSave:'Պահել ֆայլը և բացել {0}-ը',shNo:'Դիտարկիչը ֆայլեր չի փոխանցում հավելվածներին։ Ֆայլը պահվեց՝ կցեք այն հավելվածում։'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -1674,6 +1693,7 @@ function syncMenuExp(){
   const m=$('#mExp');if(!m)return;
   m.disabled=expBtn.disabled;
   m.textContent=expBtn.textContent;
+  document.querySelectorAll('.sh').forEach(b=>b.disabled=expBtn.disabled);
 }
 function renderAll(){renderList();renderTL();updateButtons()}
 
@@ -2428,13 +2448,16 @@ async function xdiag(b,exp,n){
     $('#ibox').classList.add('show');
   }catch(x){toast('diag err '+x,10000)}
 }
-async function exportVideo(){
+async function exportVideo(target){
   if(!hasVideo||exporting||recording||passing)return;
   const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
   const W=dc?dc.w:v.videoWidth,H=dc?dc.h:v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
   if(!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
+  if(target&&shareCache&&shareCache.sig===expSig()){showShare(target);return}
   xaPre();nameHook=xaPrep;
-  const nm=await askName();if(!nm)return;
+  if(target&&!projName)projName=defName();
+  const nm=target?projName:await askName();if(!nm)return;
+  if(target)xaPrep();
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
   exporting=true;updateButtons();v.controls=false;
   toast(t('exToast'),5000);
@@ -2451,7 +2474,7 @@ async function exportVideo(){
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
     xaStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
-    if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});(isMp4&&isIOSdev()?Promise.resolve(bl):fixDur(bl,isMp4,expDur)).then(b=>{xdiag(bl,expDur,out.length);download(b,fn)},()=>download(bl,fn))}
+    if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});(isMp4&&isIOSdev()?Promise.resolve(bl):fixDur(bl,isMp4,expDur)).then(b=>{if(target)stashExport(b,fn,target);else{xdiag(bl,expDur,out.length);download(b,fn)}},()=>{if(target)stashExport(bl,fn,target);else download(bl,fn)})}
     updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
   };
   /* остановка идемпотентна; если запись не закрылась сама (бывает на iPhone), через 4 секунды завершаем принудительно */
@@ -2484,6 +2507,43 @@ async function exportVideo(){
   try{await v.play()}catch(e){}
   rc.xs=performance.now();r2.start(isIOSdev()?undefined:1000);
 }
+
+/* ---------- экспорт в соцсети ---------- */
+const SH={
+  instagram:['Instagram','instagram://app','https://www.instagram.com/'],
+  youtube:['YouTube','youtube://','https://studio.youtube.com/'],
+  tiktok:['TikTok','tiktok://','https://www.tiktok.com/upload'],
+  telegram:['Telegram','tg://','https://web.telegram.org/'],
+  x:['X','twitter://post','https://x.com/compose/post'],
+  threads:['Threads','barcelona://','https://www.threads.net/'],
+  reddit:['Reddit','reddit://','https://www.reddit.com/submit'],
+  substack:['Substack','substack://','https://substack.com/']
+};
+let shareCache=null,shareTarget=null;
+const expSig=()=>JSON.stringify([phrases.map(p=>[p.s,p.e,p.t,p.cut,(p.c||[]).map(c=>[c.s,c.e,c.t])]),style,anim,custom,url]);
+function stashExport(b,fn,target){shareCache={sig:expSig(),blob:b,fn};showShare(target)}
+function showShare(target){
+  shareTarget=target;const n=SH[target][0];
+  $('#shT').textContent=t('shT',n);$('#shP').textContent=t('shP',n);
+  $('#shGo').textContent=t('shGo',n);$('#shSave').textContent=t('shSave',n);
+  $('#sbox').classList.add('show');
+}
+function openApp(target){
+  const s=SH[target];location.href=s[1];
+  setTimeout(()=>{if(!document.hidden)window.open(s[2],'_blank')},1300);
+}
+$('#shGo').onclick=async()=>{
+  const c=shareCache;if(!c)return;
+  const f=new File([c.blob],c.fn,{type:c.blob.type||'video/mp4'}),data={files:[f],title:projName||c.fn};
+  if(navigator.canShare&&navigator.canShare(data)){
+    try{await navigator.share(data);$('#sbox').classList.remove('show');return}
+    catch(e){if(e&&e.name==='AbortError')return}
+  }
+  download(c.blob,c.fn);toast(t('shNo'),7000);setTimeout(()=>openApp(shareTarget),900);
+};
+$('#shSave').onclick=()=>{const c=shareCache;if(!c)return;download(c.blob,c.fn);setTimeout(()=>openApp(shareTarget),700)};
+$('#shClose').onclick=()=>$('#sbox').classList.remove('show');
+document.querySelectorAll('.sh').forEach(b=>b.onclick=()=>{closeMenus();exportVideo(b.dataset.sh)});
 
 /* ---------- редактор дорожки ---------- */
 let ec=null,enew=false;
@@ -2634,7 +2694,7 @@ setStyle('classic',true);setAnim('fade',true);
   $('#lsize').oninput=e=>{custom.size=parseFloat(e.target.value)||1;setStyle(style,false,true)};
   $('#lreset').onclick=()=>{Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1});setStyle(style,false,true)};
 })();
-srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#passX').onclick=()=>finishPass();
+srtBtn.onclick=downloadSrt;expBtn.onclick=()=>exportVideo();$('#add').onclick=addManual;$('#passX').onclick=()=>finishPass();
 $('#clear').onclick=()=>{
   if(recording||exporting)return;
   if(phrases.length&&!confirm(t('clearQ')))return;
