@@ -1477,7 +1477,7 @@ async function finishRec(){
   audioPlayback();
   let blob=new Blob(blobs,{type:(mr&&mr.mimeType)||'video/webm'});
   try{const hd=new Uint8Array(await blob.slice(0,12).arrayBuffer());if(hd[4]===0x66&&hd[5]===0x74&&hd[6]===0x79&&hd[7]===0x70&&recDur>0)blob=await fixDur(blob,true,recDur)}catch(e){}
-  url=URL.createObjectURL(blob);
+  recBlob=blob;url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
   updateButtons();
@@ -1890,7 +1890,7 @@ function tick(){
     const t=v.currentTime;
     for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
   }
-  if(exporting&&xctx)drawExportFrame();
+  if(exporting&&xctx){drawExportFrame();xaSync()}
   layoutSub();updateSub();updatePreview();updatePlayhead(true);updatePlayerUI();
 }
 
@@ -2028,11 +2028,59 @@ function fixWebm(u,sec){
   out.set(u.subarray(0,p+4));out.set(nb,p+4);out.set(u.subarray(cs,ce),p+12);out.set(el,p+12+sz.v);out.set(u.subarray(ce),p+23+sz.v);
   return out;
 }
+let recBlob=null,xaBuf=null,XA=null,xaOsc=null;
+function xaPrep(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+    if(!AC)AC=new C();
+    if(AC.state!=='running')AC.resume();
+  }catch(e){}
+}
+function decodeBuf(ab){
+  return new Promise((res,rej)=>{
+    const r=AC.decodeAudioData(ab,res,rej);
+    if(r&&r.then)r.then(res,rej);
+  });
+}
+async function xaTrack(){
+  xaBuf=null;
+  try{
+    if(!AC||!recBlob)throw 0;
+    if(AC.state!=='running'){await Promise.race([AC.resume(),sleep(1500)])}
+    xaBuf=await decodeBuf(await recBlob.arrayBuffer());
+    ADEST=AC.createMediaStreamDestination();
+    xaOsc=AC.createOscillator();const g=AC.createGain();g.gain.value=0.00001;
+    xaOsc.connect(g);g.connect(ADEST);xaOsc.start();
+    v.muted=true;
+    return ADEST.stream.getAudioTracks()[0]||null;
+  }catch(e){xaBuf=null;return exportAudioTrack()}
+}
+function xaSync(){
+  if(!xaBuf||!AC)return;
+  const ct=v.currentTime;
+  if(XA){
+    const ex=XA.vid+(AC.currentTime-XA.ctx);
+    if(!v.paused&&Math.abs(ex-ct)<0.25)return;
+    try{XA.src.stop()}catch(e){}
+    try{XA.src.disconnect()}catch(e){}
+    XA=null;
+  }
+  if(v.paused||v.ended||ct>=xaBuf.duration-0.02)return;
+  const s=AC.createBufferSource();s.buffer=xaBuf;s.connect(ADEST);s.start(0,ct);
+  XA={src:s,ctx:AC.currentTime,vid:ct};
+}
+function xaStop(){
+  try{if(XA){XA.src.stop();XA.src.disconnect()}}catch(e){}
+  XA=null;
+  try{if(xaOsc){xaOsc.stop();xaOsc.disconnect()}}catch(e){}
+  xaOsc=null;xaBuf=null;v.muted=false;
+}
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
   const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
   const W=dc?dc.w:v.videoWidth,H=dc?dc.h:v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
   if(!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
+  xaPrep();
   const nm=await askName();if(!nm)return;
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
   exporting=true;updateButtons();v.controls=false;
@@ -2040,7 +2088,7 @@ async function exportVideo(){
   v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
   v.muted=false;v.volume=1;
   const cs=cv.captureStream(30),out=[],expDur=Math.max(0.5,(totalT()||dur)-cutSpans().reduce((a,s)=>a+s[1]-s[0],0));
-  const at=exportAudioTrack();if(at)cs.addTrack(at);
+  const at=await xaTrack();if(at)cs.addTrack(at);
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
   try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
@@ -2048,7 +2096,7 @@ async function exportVideo(){
   const finalize=()=>{
     if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
-    exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
+    xaStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
     if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});fixDur(bl,isMp4,expDur).then(b=>download(b,fn),()=>download(bl,fn))}
     updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
