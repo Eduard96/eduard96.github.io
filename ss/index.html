@@ -433,7 +433,8 @@ body.viewing{overflow:hidden}
 .subwrap.open{display:grid}
 .dmenu{max-height:80dvh;overflow:auto}
 .mor{padding:6px 6px 0;font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
-.dmenu .mi.sh{min-height:42px}
+.dmenu .mi.sh{min-height:42px;gap:12px}
+.dmenu .mi.sh .ic{width:24px;height:24px;flex:none;display:block}
 </style>
 </head>
 <body>
@@ -444,14 +445,14 @@ body.viewing{overflow:hidden}
         <button class="icon-btn" id="mbL" aria-label="Menu" aria-haspopup="true">☰</button>
         <div class="dmenu" id="menuL"><button class="mi" id="mExp" disabled></button>
 <div class="mor" data-i="orExp"></div>
-<button class="mi sh" data-sh="instagram" disabled>📸 Instagram</button>
-<button class="mi sh" data-sh="youtube" disabled>▶️ YouTube</button>
-<button class="mi sh" data-sh="tiktok" disabled>🎵 TikTok</button>
-<button class="mi sh" data-sh="telegram" disabled>✈️ Telegram</button>
-<button class="mi sh" data-sh="x" disabled>✖️ X</button>
-<button class="mi sh" data-sh="threads" disabled>🧵 Threads</button>
-<button class="mi sh" data-sh="reddit" disabled>👽 Reddit</button>
-<button class="mi sh" data-sh="substack" disabled>📬 Substack</button></div>
+<button class="mi sh" data-sh="instagram" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".3" stop-color="#FA7E1E"/><stop offset=".55" stop-color="#D62976"/><stop offset=".8" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#igg)"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.3" cy="7.7" r="1.1" fill="#fff"/></svg><span>Instagram</span></button>
+<button class="mi sh" data-sh="youtube" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#fff"/><rect x="1.5" y="5" width="21" height="14" rx="4.2" fill="#FF0000"/><path d="M10 9l5.2 3L10 15z" fill="#fff"/></svg><span>YouTube</span></button>
+<button class="mi sh" data-sh="tiktok" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#000"/><g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g stroke="#25F4EE" transform="translate(-.8 -.6)"><path d="M13.6 5v9.3a2.9 2.9 0 1 1-2.9-2.9"/><path d="M13.6 5c.3 2.2 1.7 3.6 3.9 3.8"/></g><g stroke="#FE2C55" transform="translate(.8 .6)"><path d="M13.6 5v9.3a2.9 2.9 0 1 1-2.9-2.9"/><path d="M13.6 5c.3 2.2 1.7 3.6 3.9 3.8"/></g><g stroke="#fff"><path d="M13.6 5v9.3a2.9 2.9 0 1 1-2.9-2.9"/><path d="M13.6 5c.3 2.2 1.7 3.6 3.9 3.8"/></g></g></svg><span>TikTok</span></button>
+<button class="mi sh" data-sh="telegram" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#27A7E7"/><path d="M5.2 11.7l12.5-4.8c.6-.2 1.1.1.9 1l-2.1 10c-.2.7-.6.9-1.2.5l-3.3-2.4-1.6 1.5c-.2.2-.3.3-.7.3l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2l-7.5 4.7-3.2-1c-.7-.2-.7-.7.2-1z" fill="#fff"/></svg><span>Telegram</span></button>
+<button class="mi sh" data-sh="x" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#000"/><path fill="#fff" transform="translate(4.2 4.2) scale(.65)" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg><span>X</span></button>
+<button class="mi sh" data-sh="threads" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#000"/><text x="12" y="17.2" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#fff">@</text></svg><span>Threads</span></button>
+<button class="mi sh" data-sh="reddit" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#FF4500"/><circle cx="18.2" cy="5.6" r="1.4" fill="#fff"/><path d="M12.4 8.6l.9-3.6 3.9.8" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.6" cy="12.4" r="1.8" fill="#fff"/><circle cx="18.4" cy="12.4" r="1.8" fill="#fff"/><ellipse cx="12" cy="13.8" rx="6.6" ry="4.7" fill="#fff"/><circle cx="9.3" cy="13" r="1.25" fill="#FF4500"/><circle cx="14.7" cy="13" r="1.25" fill="#FF4500"/><path d="M9.2 15.9c1.7 1.2 4 1.2 5.6 0" fill="none" stroke="#FF4500" stroke-width="1.1" stroke-linecap="round"/></svg><span>Reddit</span></button>
+<button class="mi sh" data-sh="substack" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#FF6719"/><rect x="5.5" y="5.2" width="13" height="1.9" fill="#fff"/><rect x="5.5" y="8.9" width="13" height="1.9" fill="#fff"/><path d="M5.5 12.6h13v6.8L12 15.9l-6.5 3.5z" fill="#fff"/></svg><span>Substack</span></button></div>
       </div>
       <div class="logo"><i>◉</i><div><span data-i="title"></span><small data-i="tag"></small></div></div>
     </div>
@@ -539,6 +540,10 @@ body.viewing{overflow:hidden}
           <div class="hint" id="keyst"></div>
         </details>
 
+        <div class="label"><span data-i="capLbl"></span></div>
+        <textarea id="cap" class="sel" rows="3" maxlength="2200" style="min-height:84px;padding:10px;font-weight:500;line-height:1.35;resize:vertical"></textarea>
+        <div class="hint" data-i="capHint"></div>
+
         <div class="actions">
           <button class="btn" id="srt" disabled data-i="srt"></button>
           <button class="btn primary" id="exp" disabled>🎬 Экспорт</button>
@@ -583,6 +588,7 @@ body.viewing{overflow:hidden}
 
 <div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
 <div class="ovl" id="sbox"><div class="box"><h3 id="shT"></h3><p id="shP" style="font-size:14px"></p>
+<textarea id="shCap" class="sel" rows="3" maxlength="2200" style="min-height:84px;padding:10px;margin-top:10px;font-weight:500;line-height:1.35;resize:vertical;text-align:left"></textarea>
 <button class="btn primary" id="shGo" style="width:100%;margin-top:14px"></button>
 <button class="btn" id="shSave" style="width:100%;margin-top:8px"></button>
 <button class="btn" id="shClose" style="width:100%;margin-top:8px" data-i="iClose"></button></div></div>
@@ -784,9 +790,9 @@ Object.assign(I18.hy,{edhint:'Սեղմեք՝ տեքստը փոխելու համ�
 Object.assign(I18.en,{subSet:'Sub Settings',themeLbl:'🌓 Light / Dark',setKey:'🔑 Set API key'});
 Object.assign(I18.ru,{subSet:'Настройки субтитров',themeLbl:'🌓 Светлая / тёмная',setKey:'🔑 Задать API ключ'});
 Object.assign(I18.hy,{subSet:'Ենթագրերի կարգավորումներ',themeLbl:'🌓 Լույս / Մութ',setKey:'🔑 Սահմանել API բանալի'});
-Object.assign(I18.en,{orExp:'Or Export',shT:'Video is ready for {0}',shP:'Tap the button and pick {0} in the share sheet. The video goes into the app: add a caption and publish.',shGo:'Share to {0}',shSave:'Save file and open {0}',shNo:'This browser cannot pass files to apps. The file is saved: attach it in the app.'});
-Object.assign(I18.ru,{orExp:'Или экспорт в',shT:'Видео готово для {0}',shP:'Нажмите кнопку и выберите {0} в окне «Поделиться». Видео попадёт в приложение: добавьте описание и опубликуйте.',shGo:'Отправить в {0}',shSave:'Сохранить файл и открыть {0}',shNo:'Браузер не передаёт файлы в приложения. Файл сохранён: прикрепите его в приложении.'});
-Object.assign(I18.hy,{orExp:'Կամ արտահանել',shT:'Տեսանյութը պատրաստ է {0}-ի համար',shP:'Սեղմեք կոճակը և ընտրեք {0}-ը «Կիսվել» պատուհանում։ Տեսանյութը կանցնի հավելված՝ ավելացրեք նկարագրություն և հրապարակեք։',shGo:'Ուղարկել {0}',shSave:'Պահել ֆայլը և բացել {0}-ը',shNo:'Դիտարկիչը ֆայլեր չի փոխանցում հավելվածներին։ Ֆայլը պահվեց՝ կցեք այն հավելվածում։'});
+Object.assign(I18.en,{orExp:'Or Export',shT:'Video is ready for {0}',shP:'Tap the button and pick {0} in the share sheet. The video goes into the app together with your caption, which is also copied to the clipboard.',shGo:'Share to {0}',shSave:'Save file and open {0}',shNo:'This browser cannot pass files to apps. The file is saved: attach it in the app.'});
+Object.assign(I18.ru,{orExp:'Или экспорт в',shT:'Видео готово для {0}',shP:'Нажмите кнопку и выберите {0} в окне «Поделиться». Видео попадёт в приложение вместе с вашим описанием, оно также скопировано в буфер обмена.',shGo:'Отправить в {0}',shSave:'Сохранить файл и открыть {0}',shNo:'Браузер не передаёт файлы в приложения. Файл сохранён: прикрепите его в приложении.'});
+Object.assign(I18.hy,{orExp:'Կամ արտահանել',shT:'Տեսանյութը պատրաստ է {0}-ի համար',shP:'Սեղմեք կոճակը և ընտրեք {0}-ը «Կիսվել» պատուհանում։ Տեսանյութը կանցնի հավելված ձեր նկարագրության հետ, այն նաև պատճենվել է clipboard-ում։',shGo:'Ուղարկել {0}',shSave:'Պահել ֆայլը և բացել {0}-ը',shNo:'Դիտարկիչը ֆայլեր չի փոխանցում հավելվածներին։ Ֆայլը պահվեց՝ կցեք այն հավելվածում։'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -2520,6 +2526,10 @@ const SH={
   substack:['Substack','substack://','https://substack.com/']
 };
 let shareCache=null,shareTarget=null;
+let capTxt='';try{capTxt=localStorage.getItem('substudio-cap')||''}catch(e){}
+function capSync(src){capTxt=src.value;['#cap','#shCap'].forEach(q=>{const e=$(q);if(e&&e!==src)e.value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}}
+function capCopy(){const c=capTxt.trim();if(!c)return false;try{navigator.clipboard.writeText(c).catch(()=>{})}catch(e){}return true}
+['#cap','#shCap'].forEach(q=>{const e=$(q);e.value=capTxt;e.oninput=ev=>capSync(ev.target)});
 const expSig=()=>JSON.stringify([phrases.map(p=>[p.s,p.e,p.t,p.cut,(p.c||[]).map(c=>[c.s,c.e,c.t])]),style,anim,custom,url]);
 function stashExport(b,fn,target){shareCache={sig:expSig(),blob:b,fn};showShare(target)}
 function showShare(target){
@@ -2534,14 +2544,14 @@ function openApp(target){
 }
 $('#shGo').onclick=async()=>{
   const c=shareCache;if(!c)return;
-  const f=new File([c.blob],c.fn,{type:c.blob.type||'video/mp4'}),data={files:[f],title:projName||c.fn};
+  const f=new File([c.blob],c.fn,{type:c.blob.type||'video/mp4'}),cp=capCopy(),data={files:[f],title:projName||c.fn};if(cp)data.text=capTxt.trim();
   if(navigator.canShare&&navigator.canShare(data)){
-    try{await navigator.share(data);$('#sbox').classList.remove('show');return}
+    try{await navigator.share(data);$('#sbox').classList.remove('show');if(cp)toast(t('capCopied'),5000);return}
     catch(e){if(e&&e.name==='AbortError')return}
   }
   download(c.blob,c.fn);toast(t('shNo'),7000);setTimeout(()=>openApp(shareTarget),900);
 };
-$('#shSave').onclick=()=>{const c=shareCache;if(!c)return;download(c.blob,c.fn);setTimeout(()=>openApp(shareTarget),700)};
+$('#shSave').onclick=()=>{const c=shareCache;if(!c)return;if(capCopy())toast(t('capCopied'),5000);download(c.blob,c.fn);setTimeout(()=>openApp(shareTarget),700)};
 $('#shClose').onclick=()=>$('#sbox').classList.remove('show');
 document.querySelectorAll('.sh').forEach(b=>b.onclick=()=>{closeMenus();exportVideo(b.dataset.sh)});
 
@@ -2607,7 +2617,7 @@ function applyLang(){
   document.querySelectorAll('#styles .sty').forEach((b,i)=>{b.querySelector('.nm').textContent=SN[ui][i];b.querySelector('.pv span').textContent=t('subWord')});
   recTxt.textContent=t(recording?'stop':'rec');
   document.querySelectorAll('#anims .anim').forEach((b,i)=>{b.querySelector('.nm').textContent=ANIM[i].n[ui]});
-  $('#lfont').options[0].textContent=t('fontPreset');
+  $('#lfont').options[0].textContent=t('fontPreset');$('#cap').placeholder=t('capPh');$('#shCap').placeholder=t('capPh');
   $('#pz').textContent=t(paused?'resume':'pause');
   badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
   $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
@@ -2620,6 +2630,9 @@ function applyLang(){
 document.querySelectorAll('#uil button').forEach(b=>b.onclick=()=>{ui=b.dataset.u;try{localStorage.setItem('substudio-ui',ui)}catch(e){}applyLang()});
 
 /* ---------- живые превью движения: каждая кнопка «Subtitle motion» сама играет свою анимацию ---------- */
+Object.assign(I18.en,{capLbl:'Caption for the post',capHint:'This text goes with the video when you share it to a social network.',capPh:'Write the text for your post here',capCopied:'Caption copied: paste it into the post if the app leaves the field empty'});
+Object.assign(I18.ru,{capLbl:'Описание под видео',capHint:'Этот текст уходит вместе с видео, когда вы отправляете его в соцсеть.',capPh:'Напишите здесь текст для публикации',capCopied:'Текст скопирован: если приложение оставит поле пустым, вставьте его в описание'});
+Object.assign(I18.hy,{capLbl:'Նկարագրություն տեսանյութի տակ',capHint:'Այս տեքստը գնում է տեսանյութի հետ, երբ այն ուղարկում եք սոցցանց։',capPh:'Գրեք այստեղ հրապարակման տեքստը',capCopied:'Տեքստը պատճենվեց․ եթե հավելվածը դաշտը դատարկ թողնի, տեղադրեք այն նկարագրության մեջ'});
 Object.assign(I18.en,{apvTxt:'Look at this'});
 Object.assign(I18.ru,{apvTxt:'Смотри на это'});
 Object.assign(I18.hy,{apvTxt:'Նայիր սրան հիմա'});
