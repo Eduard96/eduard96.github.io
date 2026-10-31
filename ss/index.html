@@ -2028,7 +2028,7 @@ function fixWebm(u,sec){
   out.set(u.subarray(0,p+4));out.set(nb,p+4);out.set(u.subarray(cs,ce),p+12);out.set(el,p+12+sz.v);out.set(u.subarray(ce),p+23+sz.v);
   return out;
 }
-let recBlob=null,xaBuf=null,XA=null,xaOsc=null;
+let recBlob=null,xaBuf=null,XA=null,xaOsc=null,xaMix=null,xaOsc2=null;
 function xaPrep(){
   try{
     const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
@@ -2051,6 +2051,10 @@ async function xaTrack(){
     ADEST=AC.createMediaStreamDestination();
     xaOsc=AC.createOscillator();const g=AC.createGain();g.gain.value=0.00001;
     xaOsc.connect(g);g.connect(ADEST);xaOsc.start();
+    xaMix=AC.createGain();xaMix.connect(ADEST);
+    const mu=AC.createGain();mu.gain.value=0;xaMix.connect(mu);mu.connect(AC.destination);
+    const o2=AC.createOscillator(),g2=AC.createGain();g2.gain.value=0;o2.connect(g2);g2.connect(AC.destination);o2.start();xaOsc2=o2;
+    toast('audio: '+AC.state+', '+xaBuf.duration.toFixed(1)+'s',6000);
     v.muted=true;
     return ADEST.stream.getAudioTracks()[0]||null;
   }catch(e){xaBuf=null;return exportAudioTrack()}
@@ -2066,14 +2070,14 @@ function xaSync(){
     XA=null;
   }
   if(v.paused||v.ended||ct>=xaBuf.duration-0.02)return;
-  const s=AC.createBufferSource();s.buffer=xaBuf;s.connect(ADEST);s.start(0,ct);
+  const s=AC.createBufferSource();s.buffer=xaBuf;s.connect(xaMix||ADEST);s.start(0,ct);
   XA={src:s,ctx:AC.currentTime,vid:ct};
 }
 function xaStop(){
   try{if(XA){XA.src.stop();XA.src.disconnect()}}catch(e){}
   XA=null;
   try{if(xaOsc){xaOsc.stop();xaOsc.disconnect()}}catch(e){}
-  xaOsc=null;xaBuf=null;v.muted=false;
+  xaOsc=null;try{if(xaOsc2){xaOsc2.stop();xaOsc2.disconnect()}}catch(e){}xaOsc2=null;xaMix=null;xaBuf=null;v.muted=false;
 }
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
