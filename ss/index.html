@@ -790,13 +790,13 @@ function askName(){
 }
 
 /* ---------- сохранение ---------- */
-function save(){try{localStorage.setItem('substudio',JSON.stringify({phrases,dur,style,anim,custom},(k,v)=>k==='g'?undefined:v))}catch(e){}}
+function save(){try{localStorage.setItem('substudio',JSON.stringify({style,anim,custom}))}catch(e){}}
 function load(){
+  /* прошлая сессия (фразы, видео) не восстанавливается: всегда чистый старт; помним только вид субтитров */
   try{
     const d=JSON.parse(localStorage.getItem('substudio')||'null');if(!d)return;
-    phrases=d.phrases||[];dur=d.dur||0;if(d.custom)Object.assign(custom,d.custom);setStyle(d.style||style,true);if(d.anim)setAnim(d.anim,true);
-    phrases.forEach(p=>{if(p.c)p.c.forEach(c=>c.g=p);else buildPhrase(p)});
-    if(phrases.length)toast(t('restored'));
+    if(d.custom)Object.assign(custom,d.custom);setStyle(d.style||style,true);if(d.anim)setAnim(d.anim,true);
+    localStorage.setItem('substudio',JSON.stringify({style,anim,custom}));
   }catch(e){}
 }
 
@@ -1046,9 +1046,38 @@ $('#camFlip').onclick=()=>{
   s.selectedIndex=(s.selectedIndex+1)%s.options.length;s.onchange();
 };
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
+/* на некоторых Android камера отдаёт горизонтальный кадр с вертикальной картинкой посередине и чёрными полосами.
+   Находим реальную картинку и пишем только её, тогда субтитры и итоговый файл идут по настоящему кадру. */
+let crop=null;
+async function detectCrop(){
+  crop=null;
+  const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return;
+  const sc=Math.min(1,200/Math.max(vw,vh)),cw=Math.max(8,Math.round(vw*sc)),ch=Math.max(8,Math.round(vh*sc));
+  const c=document.createElement('canvas');c.width=cw;c.height=ch;
+  let x;try{x=c.getContext('2d',{willReadFrequently:true})}catch(e){return}
+  let l=cw,r=-1,t0=ch,b=-1;
+  for(let n=0;n<3;n++){
+    try{
+      x.drawImage(v,0,0,cw,ch);const d=x.getImageData(0,0,cw,ch).data;
+      for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const k=(j*cw+i)*4;
+        if(d[k]>24||d[k+1]>24||d[k+2]>24){if(i<l)l=i;if(i>r)r=i;if(j<t0)t0=j;if(j>b)b=j}}
+    }catch(e){return}
+    if(n<2)await sleep(90);
+  }
+  if(r<0||b<0)return;
+  const bx=l/cw,ex=(cw-1-r)/cw,by=t0/ch,ey=(ch-1-b)/ch;
+  /* обрезаем ось только если полосы заметные и примерно симметричные (так выглядят настоящие чёрные поля) */
+  const cx=(Math.max(bx,ex)>=0.04&&Math.abs(bx-ex)<0.03),cy=(Math.max(by,ey)>=0.04&&Math.abs(by-ey)<0.03);
+  if(!cx&&!cy)return;
+  const L=cx?l:0,R=cx?r:cw-1,T=cy?t0:0,B=cy?b:ch-1;
+  if((R-L+1)/cw<0.25||(B-T+1)/ch<0.25)return;
+  const ev=n=>n-(n%2);
+  crop={x:Math.floor(L/sc),y:Math.floor(T/sc),w:ev(Math.min(vw,Math.round((R-L+1)/sc))),h:ev(Math.min(vh,Math.round((B-T+1)/sc)))};
+  if(crop.x+crop.w>vw)crop.x=vw-crop.w;if(crop.y+crop.h>vh)crop.y=vh-crop.h;
+}
 function canvasTrack(){
   /* запись идёт через холст постоянного размера: размер кадра не прыгает при повороте телефона или смене камеры */
-  let W=v.videoWidth||1280,H=v.videoHeight||720;
+  const cr=crop;let W=cr?cr.w:(v.videoWidth||1280),H=cr?cr.h:(v.videoHeight||720);
   const m=Math.max(W,H);if(m>1280){const k=1280/m;W=Math.round(W*k);H=Math.round(H*k)}
   W-=W%2;H-=H%2;
   rc.cv.width=W;rc.cv.height=H;
@@ -1056,10 +1085,10 @@ function canvasTrack(){
   const draw=()=>{
     const vw=v.videoWidth,vh=v.videoHeight;
     if(!vw||!vh||v.readyState<2)return;
-    const z=hwZoom?1:zoom,k=Math.min(W/vw,H/vh),dw=vw*k,dh=vh*k;
+    const uc=cr&&cr.x+cr.w<=vw&&cr.y+cr.h<=vh,sw0=uc?cr.w:vw,sh0=uc?cr.h:vh,z=hwZoom?1:zoom,k=Math.min(W/sw0,H/sh0),dw=sw0*k,dh=sh0*k;
     x.save();x.fillStyle='#000';x.fillRect(0,0,W,H);
     x.translate(W/2,H/2);if(mirror)x.scale(-1,1);x.scale(z,z);
-    try{x.drawImage(v,-dw/2,-dh/2,dw,dh)}catch(e){}
+    try{if(uc)x.drawImage(v,cr.x,cr.y,cr.w,cr.h,-dw/2,-dh/2,dw,dh);else x.drawImage(v,-dw/2,-dh/2,dw,dh)}catch(e){}
     x.restore();
   };
   draw();rc.on=true;rc.t=setInterval(draw,33);
@@ -1188,6 +1217,7 @@ async function _startRec(){
   const pmv=cloudMode?'cloud':(later?'later':'normal');
   let rs=stream;
   if(pmv==='later')toast(t('laterMode'),6000);
+  try{await detectCrop()}catch(e){crop=null}
   try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}
   try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
@@ -1242,7 +1272,7 @@ function resumeRec(){
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 function finishRec(){
-  stopCanvas();$('#camSel').disabled=false;buildCamMenu();
+  stopCanvas();crop=null;$('#camSel').disabled=false;buildCamMenu();
   const blob=new Blob(blobs,{type:'video/webm'});
   url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
@@ -1470,7 +1500,8 @@ function layoutSub(){
   const sw=stage.clientWidth,sh=stage.clientHeight;if(!sw||!sh)return;
   const vw=v.videoWidth,vh=v.videoHeight;
   let cw=sw,ch=sh,ox=0,oy=0;
-  if(vw&&vh){const k=Math.min(sw/vw,sh/vh);cw=vw*k;ch=vh*k;ox=(sw-cw)/2;oy=(sh-ch)/2}
+  if(vw&&vh){const k=Math.min(sw/vw,sh/vh);cw=vw*k;ch=vh*k;ox=(sw-cw)/2;oy=(sh-ch)/2;
+    if(crop&&!hasVideo&&crop.x+crop.w<=vw&&crop.y+crop.h<=vh){ox+=crop.x*k;oy+=crop.y*k;cw=crop.w*k;ch=crop.h*k}}
   const fs=(0.044*cw*custom.size).toFixed(2),key=[ox.toFixed(1),oy.toFixed(1),cw.toFixed(1),ch.toFixed(1),fs].join('|');
   if(key===lastLay)return;lastLay=key;
   const o=sub.style;
@@ -1754,15 +1785,38 @@ async function exportVideo(){
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
   try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:6000000,audioBitsPerSecond:128000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
-  v.onended=()=>{v.onended=null;setTimeout(()=>{if(r2.state!=='inactive')r2.stop()},300)};
-  r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
-  r2.onstop=()=>{
+  let finished=false,stopping=false,wdx=null,lastCt=-1,lastMove=performance.now(),triedResume=false;
+  const finalize=()=>{
+    if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
-    exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent=explbl();$('#xbox').classList.remove('show');
+    exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
-    download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),fn);
-    updateButtons();toast(t('exDone',fn));
+    if(out.length)download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),fn);
+    updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
   };
+  /* остановка идемпотентна; если запись не закрылась сама (бывает на iPhone), через 4 секунды завершаем принудительно */
+  const stopExport=()=>{
+    if(stopping)return;stopping=true;
+    setTimeout(()=>{
+      try{if(r2.state!=='inactive')r2.stop()}catch(e){}
+      setTimeout(finalize,4000);
+    },300);
+  };
+  v.onended=()=>{v.onended=null;stopExport()};
+  r2.ondataavailable=e=>{if(e.data&&e.data.size)out.push(e.data)};
+  r2.onstop=finalize;
+  /* сторож: iPhone иногда не присылает ended или замирает у самого конца */
+  wdx=setInterval(()=>{
+    if(finished||stopping)return;
+    const total=isFinite(v.duration)&&v.duration>0?v.duration:dur,ct=v.currentTime,now=performance.now();
+    if(ct!==lastCt){lastCt=ct;lastMove=now}
+    if(AC&&AC.state==='suspended')try{AC.resume()}catch(e){}
+    const stalled=now-lastMove>2500&&ct>0.3;
+    if(stalled&&!v.ended&&total&&ct<total-1&&!triedResume){
+      triedResume=true;lastMove=now;try{v.play().catch(()=>{})}catch(e){}return;
+    }
+    if(v.ended||(total&&ct>=total-0.12)||stalled)stopExport();
+  },300);
   $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
   try{await v.play()}catch(e){}
