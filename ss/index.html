@@ -977,7 +977,7 @@ $('#keysave').onclick=()=>{const k=$('#key').value.trim();try{localStorage.setIt
 let camId='',mirror=false,zoom=1,hwZoom=false,zmin=1,zmax=4,zstep=0.1;
 try{camId=localStorage.getItem('substudio-cam')||'';mirror=localStorage.getItem('substudio-mirror')==='1'}catch(e){}
 const rc={on:false,t:null,cv:document.createElement('canvas')};
-function applyView(){v.style.transform=(stream&&!hasVideo)?'scaleX('+(mirror?-1:1)+') scale('+(hwZoom?1:zoom)+')':''}
+function applyView(){v.style.transform=(stream&&!hasVideo)?'scaleX('+(mirror?-1:1)+') scale('+(hwZoom?1:zoom)+')':'';applyVLayout()}
 function zlabel(){$('#zv').textContent=(Math.round(zoom*10)/10).toFixed(1)+'×'}
 function hwApply(){try{const tr=stream&&stream.getVideoTracks()[0];if(tr)tr.applyConstraints({advanced:[{zoom:zoom}]}).catch(()=>{})}catch(e){}}
 function setupZoom(){
@@ -1046,34 +1046,91 @@ $('#camFlip').onclick=()=>{
   s.selectedIndex=(s.selectedIndex+1)%s.options.length;s.onchange();
 };
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
-/* на некоторых Android камера отдаёт горизонтальный кадр с вертикальной картинкой посередине и чёрными полосами.
-   Находим реальную картинку и пишем только её, тогда субтитры и итоговый файл идут по настоящему кадру. */
-let crop=null;
-async function detectCrop(){
-  crop=null;
-  const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return;
-  const sc=Math.min(1,200/Math.max(vw,vh)),cw=Math.max(8,Math.round(vw*sc)),ch=Math.max(8,Math.round(vh*sc));
+/* ---------- формат рилса: поиск настоящей картинки внутри кадра с чёрными полосами ----------
+   Некоторые камеры Android отдают горизонтальный кадр (например 1280x720), в котором вертикальная картинка
+   лежит по центру, а по бокам чёрные полосы. Находим реальную картинку (всегда по центру, симметрично)
+   и работаем только с ней: сцена получает вертикальный формат 9:16, субтитры лежат внутри кадра,
+   запись и экспорт идут без полос.
+   crop  — область картинки в живой камере и при записи
+   vcrop — область картинки в уже записанном видео (если полосы всё-таки попали в запись) */
+let crop=null,vcrop=null,scanTok=0,rzT=0;
+async function findCrop(){
+  const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return null;
+  const sc=Math.min(1,240/Math.max(vw,vh)),cw=Math.max(8,Math.round(vw*sc)),ch=Math.max(8,Math.round(vh*sc));
   const c=document.createElement('canvas');c.width=cw;c.height=ch;
-  let x;try{x=c.getContext('2d',{willReadFrequently:true})}catch(e){return}
-  let l=cw,r=-1,t0=ch,b=-1;
-  for(let n=0;n<3;n++){
+  let x;try{x=c.getContext('2d',{willReadFrequently:true})}catch(e){return null}
+  const cs=new Array(cw).fill(0),rs=new Array(ch).fill(0),NF=3;let any=0;
+  for(let n=0;n<NF;n++){
     try{
       x.drawImage(v,0,0,cw,ch);const d=x.getImageData(0,0,cw,ch).data;
       for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const k=(j*cw+i)*4;
-        if(d[k]>24||d[k+1]>24||d[k+2]>24){if(i<l)l=i;if(i>r)r=i;if(j<t0)t0=j;if(j>b)b=j}}
-    }catch(e){return}
-    if(n<2)await sleep(90);
+        if((d[k]+d[k+1]+d[k+2])/3>28){cs[i]++;rs[j]++;any++}}
+    }catch(e){return null}
+    if(n<NF-1)await sleep(90);
   }
-  if(r<0||b<0)return;
-  const bx=l/cw,ex=(cw-1-r)/cw,by=t0/ch,ey=(ch-1-b)/ch;
-  /* обрезаем ось только если полосы заметные и примерно симметричные (так выглядят настоящие чёрные поля) */
-  const cx=(Math.max(bx,ex)>=0.04&&Math.abs(bx-ex)<0.03),cy=(Math.max(by,ey)>=0.04&&Math.abs(by-ey)<0.03);
-  if(!cx&&!cy)return;
-  const L=cx?l:0,R=cx?r:cw-1,T=cy?t0:0,B=cy?b:ch-1;
-  if((R-L+1)/cw<0.25||(B-T+1)/ch<0.25)return;
+  if(any<cw*ch*NF*0.02)return null;
+  /* столбец/строка считается чёрной, если в ней почти нет светлых точек */
+  const tc=Math.max(3,ch*NF*0.01),tr=Math.max(3,cw*NF*0.01);
+  let l=0;while(l<cw&&cs[l]<tc)l++;
+  let r=cw-1;while(r>=0&&cs[r]<tc)r--;
+  let t1=0;while(t1<ch&&rs[t1]<tr)t1++;
+  let b=ch-1;while(b>=0&&rs[b]<tr)b--;
+  if(r<l||b<t1)return null;
+  /* полосы всегда симметричны: берём меньшее поле, чтобы ничего не отрезать от картинки */
+  const mxp=Math.min(l,cw-1-r),myp=Math.min(t1,ch-1-b);
+  const cx=mxp/cw>=0.04,cy=myp/ch>=0.04;
+  if(!cx&&!cy)return null;
   const ev=n=>n-(n%2);
-  crop={x:Math.floor(L/sc),y:Math.floor(T/sc),w:ev(Math.min(vw,Math.round((R-L+1)/sc))),h:ev(Math.min(vh,Math.round((B-T+1)/sc)))};
-  if(crop.x+crop.w>vw)crop.x=vw-crop.w;if(crop.y+crop.h>vh)crop.y=vh-crop.h;
+  const X=cx?Math.round(mxp/sc):0,Y=cy?Math.round(myp/sc):0;
+  const w=ev(vw-2*X),h=ev(vh-2*Y);
+  if(w/vw<0.25||h/vh<0.25)return null;
+  return{x:Math.floor((vw-w)/2),y:Math.floor((vh-h)/2),w,h};
+}
+async function detectCrop(){
+  crop=await findCrop();
+  applyVLayout();
+}
+/* показываем в сцене только настоящую картинку: сцена получает её пропорции (для рилса это 9:16) */
+function applyVLayout(){
+  const d=hasVideo?vcrop:crop,vw=v.videoWidth,vh=v.videoHeight,s=v.style;
+  const ok=!!(d&&vw&&vh&&d.x+d.w<=vw&&d.y+d.h<=vh);
+  if(vw&&vh)stage.style.setProperty('--ar',(ok?d.w/d.h:vw/vh).toFixed(4));
+  if(ok){
+    s.objectFit='fill';
+    s.width=(vw/d.w*100)+'%';s.height=(vh/d.h*100)+'%';
+    s.left=(-d.x/d.w*100)+'%';s.top=(-d.y/d.h*100)+'%';
+    s.right='auto';s.bottom='auto';
+  }else{
+    s.objectFit='';s.width='';s.height='';s.left='';s.top='';s.right='';s.bottom='';
+  }
+}
+function seekTo(tm){
+  return new Promise(res=>{
+    if(Math.abs(v.currentTime-tm)<0.05)return res();
+    let done=false;
+    const fin=()=>{if(done)return;done=true;v.removeEventListener('seeked',fin);res()};
+    v.addEventListener('seeked',fin);
+    try{v.currentTime=tm}catch(e){fin();return}
+    setTimeout(fin,1500);
+  });
+}
+/* после записи проверяем готовое видео: если в нём остались чёрные полосы, обрезаем показ и экспорт по картинке */
+async function scanPlayback(){
+  const tok=++scanTok;
+  vcrop=null;applyVLayout();
+  for(let i=0;i<80&&hasVideo&&(fixing||v.readyState<2||!v.videoWidth||!isFinite(v.duration)||v.seeking);i++)await sleep(100);
+  if(tok!==scanTok||!hasVideo||!v.videoWidth)return;
+  let c=null;
+  if(v.paused&&!exporting&&!passing){
+    const T=(isFinite(v.duration)&&v.duration>0)?v.duration:2,mid=Math.min(1,T/2);
+    await seekTo(mid);
+    if(tok!==scanTok||!hasVideo)return;
+    c=await findCrop();
+    await seekTo(0);
+  }else c=await findCrop();
+  if(tok!==scanTok||!hasVideo)return;
+  vcrop=c;applyVLayout();lastLay='';
+  renderTL();
 }
 function canvasTrack(){
   /* запись идёт через холст постоянного размера: размер кадра не прыгает при повороте телефона или смене камеры */
@@ -1149,6 +1206,7 @@ let camQ=Promise.resolve();
 function initCam(){const p=camQ.then(_initCam,_initCam);camQ=p.catch(()=>{});return p}
 async function _initCam(){
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null;await sleep(300)}
+  crop=null;
   try{
     stream=await openStream(false);
     v.srcObject=stream;v.muted=true;v.controls=false;
@@ -1165,6 +1223,8 @@ async function _initCam(){
     }
     try{const id=stream.getVideoTracks()[0].getSettings().deviceId;if(id){camId=id;localStorage.setItem('substudio-cam',id)}}catch(e){}
     listCams();
+    /* сразу находим настоящую картинку, чтобы превью тоже было в формате рилса, без чёрных полос по бокам */
+    findCrop().then(c=>{if(!recording&&!hasVideo&&camLive()){crop=c;applyVLayout();lastLay=''}}).catch(()=>{});
     return true;
   }catch(err){
     const n=err&&err.name;
@@ -1205,7 +1265,7 @@ async function _startRec(){
     catch(e){toast(t('camDenied'),7000)}
   }
   if(url){URL.revokeObjectURL(url);url=null}
-  hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
+  hasVideo=false;vcrop=null;scanTok++;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
   phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';
   const mt=pickMime();
   const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
@@ -1217,7 +1277,7 @@ async function _startRec(){
   const pmv=cloudMode?'cloud':(later?'later':'normal');
   let rs=stream;
   if(pmv==='later')toast(t('laterMode'),6000);
-  try{await detectCrop()}catch(e){crop=null}
+  try{await detectCrop()}catch(e){crop=null;applyVLayout()}
   try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}
   try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
@@ -1272,21 +1332,31 @@ function resumeRec(){
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 function finishRec(){
-  stopCanvas();crop=null;$('#camSel').disabled=false;buildCamMenu();
+  stopCanvas();crop=null;vcrop=null;$('#camSel').disabled=false;buildCamMenu();
   const blob=new Blob(blobs,{type:'video/webm'});
   url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
   updateButtons();
   checkAudio(blob);
-  if(pendingPass){pendingPass=false;setTimeout(()=>transcribe(true),500)}
+  /* запись уже обрезана по картинке; на случай, если полосы всё же попали в видео, проверяем и готовый файл */
+  const sp=scanPlayback().catch(()=>{});
+  if(pendingPass){pendingPass=false;sp.then(()=>setTimeout(()=>transcribe(true),300))}
 }
 v.addEventListener('loadedmetadata',()=>{
-  if(v.videoWidth)stage.style.setProperty('--ar',(v.videoWidth/v.videoHeight).toFixed(4));
+  applyVLayout();
   if(hasVideo&&v.duration===Infinity){fixing=true;v.currentTime=1e101}
   renderTL();
 });
-v.addEventListener('resize',()=>{if(v.videoWidth)stage.style.setProperty('--ar',(v.videoWidth/v.videoHeight).toFixed(4))});
+v.addEventListener('resize',()=>{
+  if(!recording&&!hasVideo&&!exporting){
+    /* камера сменила размер кадра (поворот, другая камера): старая область уже неверна */
+    crop=null;
+    clearTimeout(rzT);
+    rzT=setTimeout(()=>{findCrop().then(c=>{if(!recording&&!hasVideo){crop=c;applyVLayout();lastLay=''}}).catch(()=>{})},500);
+  }
+  applyVLayout();
+});
 v.addEventListener('timeupdate',()=>{
   if(fixing){fixing=false;v.currentTime=0;renderTL();return}
 });
@@ -1494,14 +1564,15 @@ function applySubAnim(el,words,tm,d){
     setWordChars(w,rem===Infinity?1e9:Math.max(0,rem));rem-=w.txt.length+1;
   });
 }
-/* субтитры живут внутри реального кадра видео (а не по всей чёрной сцене): считаем, где кадр лежит в сцене */
+/* субтитры живут внутри реального кадра видео (а не по всей чёрной сцене): считаем, где кадр лежит в сцене.
+   Если найдена настоящая картинка (формат рилса), она занимает всю сцену, и субтитры лежат внутри неё. */
 let lastLay='';
 function layoutSub(){
   const sw=stage.clientWidth,sh=stage.clientHeight;if(!sw||!sh)return;
   const vw=v.videoWidth,vh=v.videoHeight;
   let cw=sw,ch=sh,ox=0,oy=0;
-  if(vw&&vh){const k=Math.min(sw/vw,sh/vh);cw=vw*k;ch=vh*k;ox=(sw-cw)/2;oy=(sh-ch)/2;
-    if(crop&&!hasVideo&&crop.x+crop.w<=vw&&crop.y+crop.h<=vh){ox+=crop.x*k;oy+=crop.y*k;cw=crop.w*k;ch=crop.h*k}}
+  const dc=hasVideo?vcrop:crop,okc=!!(dc&&vw&&vh&&dc.x+dc.w<=vw&&dc.y+dc.h<=vh);
+  if(vw&&vh&&!okc){const k=Math.min(sw/vw,sh/vh);cw=vw*k;ch=vh*k;ox=(sw-cw)/2;oy=(sh-ch)/2}
   const fs=(0.044*cw*custom.size).toFixed(2),key=[ox.toFixed(1),oy.toFixed(1),cw.toFixed(1),ch.toFixed(1),fs].join('|');
   if(key===lastLay)return;lastLay=key;
   const o=sub.style;
@@ -1765,14 +1836,18 @@ function drawSubOnCanvas(ctx,W,H,text,tm,d2){
 }
 function drawExportFrame(){
   const W=cv.width,H=cv.height;
-  xctx.drawImage(v,0,0,W,H);
+  /* если в записи остались чёрные полосы, копируем только настоящую картинку (формат рилса) */
+  const dc=vcrop;
+  if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);
+  else xctx.drawImage(v,0,0,W,H);
   const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t,Math.max(0,v.currentTime-c.s),c.e-c.s);
   const total=isFinite(v.duration)&&v.duration>0?v.duration:dur;
   if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent=t('exPct',pc);$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
 }
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
-  const W=v.videoWidth,H=v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
+  const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
+  const W=dc?dc.w:v.videoWidth,H=dc?dc.h:v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
   if(!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
   const nm=await askName();if(!nm)return;
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
