@@ -2208,6 +2208,19 @@ async function xaTrack(){
     return ADEST.stream.getAudioTracks()[0]||null;
   }catch(e){xaBuf=null;return exportAudioTrack()}
 }
+async function xdiag(b,exp,n){
+  try{
+    const w=rc.xs?((performance.now()-rc.xs)/1000):0;
+    const r=mp4info(new Uint8Array(await b.arrayBuffer()));
+    const txt='exp '+exp.toFixed(1)+'\nwall '+w.toFixed(1)+'\nsr '+(AC?AC.sampleRate:0)+'\nchunks '+n+'\n'+r.split(' || ').join('\n');
+    const pre=document.createElement('pre');
+    pre.style.cssText='white-space:pre-wrap;text-align:left;font-size:14px;user-select:all;-webkit-user-select:all';
+    pre.textContent=txt;
+    const it=$('#itxt');it.textContent='';it.appendChild(pre);
+    $('#ibox h3').textContent='Diagnostics';
+    $('#ibox').classList.add('show');
+  }catch(x){toast('diag err '+x,10000)}
+}
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
   const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
