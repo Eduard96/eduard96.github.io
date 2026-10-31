@@ -414,13 +414,46 @@ body.viewing{overflow:hidden}
 .cpanel #zr{height:20px}
 .cpanel .camrow:last-child .btn.sm{min-height:30px;width:34px;font-size:16px}
 .cpanel #zv{font-size:12px;min-width:38px}
+
+/* ===== бургер-меню в шапке и «Sub Settings» ===== */
+.hl{display:flex;align-items:center;gap:10px;min-width:0}
+.menuwrap{position:relative;flex:none}
+.dmenu{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:120;min-width:230px;padding:8px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);gap:8px}
+.dmenu.right{left:auto;right:0}
+.dmenu.show{display:grid}
+.dmenu .mi{min-height:46px;padding:0 14px;border-radius:12px;background:var(--chip);font-weight:700;text-align:left;display:flex;align-items:center;gap:8px;width:100%}
+.dmenu .mi:disabled{opacity:.4;cursor:default}
+.dmenu .seg{box-shadow:none}
+.dmenu .seg button{flex:1;min-height:42px}
+.subhead{padding:6px 10px}
+.subtog{width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;font-size:16px;padding:0 4px;text-align:left}
+.subtog .arr{font-size:14px;color:var(--mute);transition:transform .2s}
+.subtog.open .arr{transform:rotate(180deg)}
+.subwrap{display:none;gap:14px;min-width:0}
+.subwrap.open{display:grid}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="logo"><i>◉</i><div><span data-i="title"></span><small data-i="tag"></small></div></div>
-    <div class="hbtns"><div class="seg" id="uil"><button data-u="en">EN</button><button data-u="ru">RU</button><button data-u="hy">ՀԱՅ</button></div><button class="icon-btn" id="inst" data-i="inst"></button><button class="icon-btn" id="theme" aria-label="Сменить тему">🌓</button></div>
+    <div class="hl">
+      <div class="menuwrap">
+        <button class="icon-btn" id="mbL" aria-label="Menu" aria-haspopup="true">☰</button>
+        <div class="dmenu" id="menuL"><button class="mi" id="mExp" disabled></button></div>
+      </div>
+      <div class="logo"><i>◉</i><div><span data-i="title"></span><small data-i="tag"></small></div></div>
+    </div>
+    <div class="hbtns">
+      <button class="icon-btn" id="inst" data-i="inst"></button>
+      <div class="menuwrap">
+        <button class="icon-btn" id="mbR" aria-label="Menu" aria-haspopup="true">☰</button>
+        <div class="dmenu right" id="menuR">
+          <div class="seg" id="uil"><button data-u="en">EN</button><button data-u="ru">RU</button><button data-u="hy">ՀԱՅ</button></div>
+          <button class="mi" id="theme" data-i="themeLbl"></button>
+          <button class="mi" id="mKey" data-i="setKey"></button>
+        </div>
+      </div>
+    </div>
   </header>
 
   <div class="banner" id="banner"></div>
@@ -463,20 +496,25 @@ body.viewing{overflow:hidden}
         </div>
       </div>
 
-      <div class="card">
-        <h2><span data-i="styleLbl"></span></h2>
-        <div class="chips styles" id="styles" role="listbox" aria-label="Стиль субтитров"></div>
+      <div class="card subhead">
+        <button class="subtog" id="subTog" aria-expanded="false"><span data-i="subSet"></span><span class="arr">▾</span></button>
       </div>
-      <div class="card">
-        <h2><span data-i="lettersLbl"></span><button class="btn sm" id="lreset" data-i="reset"></button></h2>
-        <div class="lrow"><label data-i="colLbl"></label><input type="color" id="lcol" value="#ffffff"><div class="sw" id="sw"></div></div>
-        <div class="lrow"><label data-i="fontLbl"></label><select class="sel" id="lfont"></select></div>
-        <div class="lrow"><label></label><button class="chip" id="lb"><b>B</b></button><button class="chip" id="li"><i>I</i></button><button class="chip" id="lu">AA</button></div>
-        <div class="lrow"><label data-i="sizeLbl"></label><input type="range" id="lsize" min="0.7" max="1.6" step="0.05" value="1"><span id="lsv">100%</span></div>
-      </div>
-      <div class="card">
-        <h2><span data-i="animLbl"></span></h2>
-        <div class="chips anims" id="anims" role="listbox" aria-label="Движение субтитров"></div>
+      <div class="subwrap" id="subWrap">
+        <div class="card">
+          <h2><span data-i="styleLbl"></span></h2>
+          <div class="chips styles" id="styles" role="listbox" aria-label="Стиль субтитров"></div>
+        </div>
+        <div class="card">
+          <h2><span data-i="lettersLbl"></span><button class="btn sm" id="lreset" data-i="reset"></button></h2>
+          <div class="lrow"><label data-i="colLbl"></label><input type="color" id="lcol" value="#ffffff"><div class="sw" id="sw"></div></div>
+          <div class="lrow"><label data-i="fontLbl"></label><select class="sel" id="lfont"></select></div>
+          <div class="lrow"><label></label><button class="chip" id="lb"><b>B</b></button><button class="chip" id="li"><i>I</i></button><button class="chip" id="lu">AA</button></div>
+          <div class="lrow"><label data-i="sizeLbl"></label><input type="range" id="lsize" min="0.7" max="1.6" step="0.05" value="1"><span id="lsv">100%</span></div>
+        </div>
+        <div class="card">
+          <h2><span data-i="animLbl"></span></h2>
+          <div class="chips anims" id="anims" role="listbox" aria-label="Движение субтитров"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -726,6 +764,10 @@ kSave:'Պահել բանալին և սկսել ձայնագրությունը',k
 Object.assign(I18.en,{edhint:'Tap to edit. Drag to move; drag the edges to trim. Long-press to select several and move them together.',selN:'Selected: {0}',camFront:'Front',camBack:'Back'});
 Object.assign(I18.ru,{edhint:'Тап — изменить текст. Перетаскивание — сдвиг, края — обрезка. Долгое нажатие — выбрать несколько и двигать вместе.',selN:'Выбрано: {0}',camFront:'Фронтальная',camBack:'Задняя'});
 Object.assign(I18.hy,{edhint:'Սեղմեք՝ տեքստը փոխելու համար։ Քաշեք՝ տեղափոխելու, ծայրերը՝ կտրելու համար։ Երկար սեղմեք՝ մի քանիսն ընտրելու և միասին տեղափոխելու համար։',selN:'Ընտրված է՝ {0}',camFront:'Առջևի',camBack:'Հետևի'});
+/* новые подписи: Sub Settings и бургер-меню */
+Object.assign(I18.en,{subSet:'Sub Settings',themeLbl:'🌓 Light / Dark',setKey:'🔑 Set API key'});
+Object.assign(I18.ru,{subSet:'Настройки субтитров',themeLbl:'🌓 Светлая / тёмная',setKey:'🔑 Задать API ключ'});
+Object.assign(I18.hy,{subSet:'Ենթագրերի կարգավորումներ',themeLbl:'🌓 Լույս / Մութ',setKey:'🔑 Սահմանել API բանալի'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -1625,6 +1667,13 @@ function updateButtons(){
   document.querySelectorAll('#ctl .pb:not(#fs),#seek').forEach(e=>e.disabled=pe);
   srtBtn.disabled=!phrases.some(p=>p.c&&p.c.length);
   expBtn.disabled=!(hasVideo&&!recording&&!exporting&&!passing);
+  syncMenuExp();
+}
+/* пункт Export в левом бургер-меню повторяет кнопку экспорта внизу (текст, процент и доступность) */
+function syncMenuExp(){
+  const m=$('#mExp');if(!m)return;
+  m.disabled=expBtn.disabled;
+  m.textContent=expBtn.textContent;
 }
 function renderAll(){renderList();renderTL();updateButtons()}
 
@@ -2503,6 +2552,7 @@ function applyLang(){
   badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
   $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
   if(!exporting)expBtn.textContent=explbl();
+  syncMenuExp();
   mirrLabel();keyStat();listCams();buildDock();
   if(!recording&&!hasVideo&&!passing)setSt(t('stIdle'));
   renderList();
@@ -2593,7 +2643,7 @@ $('#clear').onclick=()=>{
 document.addEventListener('keydown',e=>{
   const a=document.activeElement;
   if(a&&(a.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))return;
-  if(e.code==='Escape'){if(viewOn)setView(false);else setEdit(false)}
+  if(e.code==='Escape'){closeMenus();if(viewOn)setView(false);else setEdit(false)}
   if(hasVideo&&!recording&&!exporting&&!passing&&!(a&&/^(BUTTON|INPUT)$/.test(a.tagName))){
     if(e.code==='Space'){e.preventDefault();togglePlay()}
     else if(e.code==='ArrowLeft')skip(-5);else if(e.code==='ArrowRight')skip(5);
@@ -2609,6 +2659,32 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
   document.documentElement.dataset.theme=t;
 })();
 
+/* ---------- бургер-меню в шапке и блок «Sub Settings» ---------- */
+function closeMenus(){document.querySelectorAll('.dmenu').forEach(m=>m.classList.remove('show'))}
+function toggleMenu(id,e){
+  e.stopPropagation();
+  const m=$(id),was=m.classList.contains('show');
+  closeMenus();
+  if(!was){syncMenuExp();m.classList.add('show')}
+}
+$('#mbL').onclick=e=>toggleMenu('#menuL',e);
+$('#mbR').onclick=e=>toggleMenu('#menuR',e);
+document.addEventListener('click',e=>{if(!e.target.closest('.dmenu'))closeMenus()});
+/* Export MP4 из меню делает то же, что кнопка внизу */
+$('#mExp').onclick=()=>{closeMenus();if(!expBtn.disabled)expBtn.click()};
+/* Set API key: раскрываем блок облачного распознавания внизу и ставим курсор в поле ключа */
+$('#mKey').onclick=()=>{
+  closeMenus();
+  const d=$('#cloud');d.open=true;
+  try{d.scrollIntoView({behavior:'smooth',block:'center'})}catch(e){d.scrollIntoView()}
+  setTimeout(()=>{try{$('#key').focus({preventScroll:true})}catch(e){}},350);
+};
+$('#subTog').onclick=()=>{
+  const o=$('#subWrap').classList.toggle('open');
+  $('#subTog').classList.toggle('open',o);
+  $('#subTog').setAttribute('aria-expanded',o?'true':'false');
+};
+
 /* ---------- свайп вниз от верха страницы: обновить (на iPhone в режиме приложения своего обновления нет) ---------- */
 (function(){
   const el=document.createElement('div');el.id='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↻</b>';document.body.appendChild(el);
@@ -2618,7 +2694,7 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
   function startOk(t){
     if(busy()||!pageTop())return false;
     for(let n=t;n&&n!==document.body&&n.nodeType===1;n=n.parentElement){
-      if(n.matches&&n.matches('input,select,textarea,.tl,.cammenu,#stage'))return false;
+      if(n.matches&&n.matches('input,select,textarea,.tl,.cammenu,.dmenu,#stage'))return false;
       if(n.scrollTop>0)return false;
     }
     return true;
