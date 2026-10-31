@@ -377,6 +377,13 @@ body.editing .pvbox{display:none!important}
 #ruler{top:auto;bottom:0;margin-top:auto;flex:none;border-bottom:0;border-top:1px solid var(--line);border-radius:0 0 12px 12px}
 .ph{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
 .ph .gr{top:auto;bottom:0;flex:none}
+/* запись: камера почти на весь экран */
+body.recording{overflow:hidden}
+.player.recfull{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;overflow:hidden;
+  padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+.player.recfull .stage{width:min(100%,calc((100dvh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom))*var(--ar)));flex:none}
+.player.recfull .cpanel{width:100%;max-width:520px;margin-top:0}
+.player.recfull #pp,.player.recfull #seek,.player.recfull #ptime,.player.recfull #spd,.player.recfull #ed,.player.recfull #fs,.player.recfull .camrow:not(:last-child){display:none}
 /* ===== патч UI 1: компактная панель ===== */
 .cpanel{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px;margin-top:6px;border-radius:16px}
 .cpanel .ctl{display:contents}
@@ -1999,7 +2006,16 @@ $('#edone').onclick=()=>setEdit(false);
 
 /* ---------- главный цикл ---------- */
 let xctx=null;
-let fh=0;
+let fh=0,recFullOn=false;
+/* во время записи камера занимает почти весь экран; после стопа всё возвращается как было */
+function setRecFull(on){
+  recFullOn=on;
+  const pl=$('#player'),card=pl.parentElement;
+  if(on)card.style.minHeight=card.offsetHeight+'px';
+  pl.classList.toggle('recfull',on);
+  document.body.classList.toggle('recording',on);
+  if(!on){card.style.minHeight='';}
+}
 function tick(){
   requestAnimationFrame(tick);
   if(hasVideo&&!v.paused&&!v.ended){
@@ -2008,6 +2024,7 @@ function tick(){
   }
   if(exporting&&xctx){drawExportFrame();xaSync()}
   stage.classList.toggle('recx',!!recording);
+  if(!!recording!==recFullOn)setRecFull(!!recording);
   if(!recording&&!exporting){const h=Math.round(innerHeight*0.5);if(h!==fh){fh=h;stage.style.setProperty('--stageh',h+'px')}}
   layoutSub();updateSub();updatePreview();updateAnimPv();updatePlayhead(true);updatePlayerUI();
 }
