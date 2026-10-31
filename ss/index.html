@@ -435,6 +435,14 @@ body.viewing{overflow:hidden}
 .mor{padding:6px 6px 0;font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
 .dmenu .mi.sh{min-height:42px;gap:12px}
 .dmenu .mi.sh .ic{width:24px;height:24px;flex:none;display:block}
+.ovl#pbox{touch-action:auto}
+#plist{display:grid;gap:8px;max-height:min(55dvh,420px);overflow:auto;touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin-top:8px}
+.prow{display:flex;align-items:stretch;gap:8px;padding:8px;border-radius:14px;background:var(--chip);border:2px solid transparent}
+.prow.cur{border-color:var(--acc)}
+.prow .po{flex:1;min-width:0;text-align:left;padding:2px 4px}
+.prow .pn{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .pm{font-size:12px;color:var(--mute);margin-top:2px}
+.prow .px{flex:none;width:44px;min-height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:18px;font-weight:800;color:var(--danger)}
 </style>
 </head>
 <body>
@@ -462,6 +470,7 @@ body.viewing{overflow:hidden}
         <button class="icon-btn" id="mbR" aria-label="Menu" aria-haspopup="true">☰</button>
         <div class="dmenu right" id="menuR">
           <div class="seg" id="uil"><button data-u="en">EN</button><button data-u="ru">RU</button><button data-u="hy">ՀԱՅ</button></div>
+          <button class="mi" id="mPrj" data-i="prjLbl"></button>
           <button class="mi" id="theme" data-i="themeLbl"></button>
           <button class="mi" id="mKey" data-i="setKey"></button>
         </div>
@@ -589,12 +598,18 @@ body.viewing{overflow:hidden}
 <div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
 <div class="ovl" id="sbox"><div class="box"><h3 id="shT"></h3><p id="shP" style="font-size:14px"></p>
 <textarea id="shCap" class="sel" rows="3" maxlength="2200" style="min-height:84px;padding:10px;margin-top:10px;font-weight:500;line-height:1.35;resize:vertical;text-align:left"></textarea>
-<button class="btn primary" id="shGo" style="width:100%;margin-top:14px"></button>
+<button class="btn" id="shCopy" style="width:100%;margin-top:8px" data-i="capCopyBtn"></button>
+<button class="btn primary" id="shGo" style="width:100%;margin-top:8px"></button>
 <button class="btn" id="shSave" style="width:100%;margin-top:8px"></button>
 <button class="btn" id="shClose" style="width:100%;margin-top:8px" data-i="iClose"></button></div></div>
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
 <div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button></div></div>
 <div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
+<div class="ovl" id="pbox"><div class="box" style="text-align:left">
+<h3 style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span data-i="prjTitle"></span><button class="btn sm" id="pclear" style="color:var(--danger)" data-i="clear"></button></h3>
+<div id="plist"></div>
+<button class="btn primary" id="pclose" style="width:100%;margin-top:12px" data-i="iClose"></button>
+</div></div>
 <div class="pvbox" id="pvbox" aria-hidden="true"><div class="pvtag" data-i="previewLbl"></div><div class="sub" id="pvsub"></div></div>
 <canvas id="cv" style="display:none"></canvas>
 <div class="toast" id="toast"></div>
@@ -807,7 +822,7 @@ Object.assign(I18.ru,{ptrQ:'Обновить страницу? Текущая з
 Object.assign(I18.hy,{ptrQ:'Թարմացնե՞լ էջը։ Ընթացիկ ձայնագրությունը կկորչի։'});
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
-let projName='';let recDur=0;
+let projName='';let recDur=0;let curId=null,dirty=false,saveT=0,savingP=null;
 const STY={
 classic:{n:'Классика',c:'#fff',bg:'rgba(0,0,0,.6)',r:.2,w:600},
 bold:{n:'Жирный жёлтый',c:'#FFD60A',up:1,w:900,st:.2,sc:'#000'},
@@ -951,14 +966,14 @@ function askName(){
     box.classList.add('show');
     setTimeout(()=>{try{inp.focus();inp.select()}catch(e){}},60);
     const done=val=>{box.classList.remove('show');ok.onclick=null;cn.onclick=null;inp.onkeydown=null;res(val)};
-    ok.onclick=()=>{let n=inp.value.trim().replace(/[\\\/:*?"<>|]+/g,'_');if(!n)n=defName();projName=n;if(nameHook){const h=nameHook;nameHook=null;h()}done(n)};
+    ok.onclick=()=>{let n=inp.value.trim().replace(/[\\\/:*?"<>|]+/g,'_');if(!n)n=defName();projName=n;markDirty();if(nameHook){const h=nameHook;nameHook=null;h()}done(n)};
     cn.onclick=()=>done(null);
     inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();ok.onclick()}else if(e.key==='Escape')done(null)};
   });
 }
 
 /* ---------- сохранение ---------- */
-function save(){try{localStorage.setItem('substudio',JSON.stringify({style,anim,custom}))}catch(e){}}
+function save(){try{localStorage.setItem('substudio',JSON.stringify({style,anim,custom}))}catch(e){}markDirty()}
 function load(){
   /* прошлая сессия (фразы, видео) не восстанавливается: всегда чистый старт; помним только вид субтитров */
   try{
@@ -1556,7 +1571,7 @@ async function startRec(){
   }
 }
 async function _startRec(){
-  if(hasVideo&&phrases.length&&!confirm(t('newRec')))return;
+  if(hasVideo&&recBlob){const ok=await saveCurrent();if(!ok&&phrases.length&&!confirm(t('newRec')))return;capTxt='';['#cap','#shCap'].forEach(q=>{const e=$(q);if(e)e.value=''});try{localStorage.setItem('substudio-cap','')}catch(e){}}
   if(MOB&&!getKey()){openKey();return}
   if(!camLive()&&!(await initCam()))return;
   /* микрофон подключается только на время записи */
@@ -1566,7 +1581,7 @@ async function _startRec(){
   }
   if(url){URL.revokeObjectURL(url);url=null}
   hasVideo=false;vcrop=null;scanTok++;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
-  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';recDur=0;
+  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';recDur=0;curId=null;recBlob=null;dirty=false;clearTimeout(saveT);
   const mt=pickMime();
   const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
   /* на телефоне распознавание речи глушит микрофон записи: пишем звук всегда,
@@ -1636,7 +1651,7 @@ function resumeRec(){
   setSt(laterRec?t('laterSt'):t('listenSimple'),'ok');
 }
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
-window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
+window.addEventListener('beforeunload',e=>{if((hasVideo&&(dirty||!curId||doSave.failed))||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 async function finishRec(){
   stopCanvas();crop=null;vcrop=null;$('#camSel').disabled=false;buildCamMenu();
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
@@ -1647,7 +1662,7 @@ async function finishRec(){
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
   updateButtons();
-  checkAudio(blob);
+  checkAudio(blob);saveCurrent();
   /* запись уже обрезана по картинке; на случай, если полосы всё же попали в видео, проверяем и готовый файл */
   const sp=scanPlayback().catch(()=>{});
   if(pendingPass){pendingPass=false;sp.then(()=>setTimeout(()=>transcribe(true),300))}
@@ -2527,7 +2542,7 @@ const SH={
 };
 let shareCache=null,shareTarget=null;
 let capTxt='';try{capTxt=localStorage.getItem('substudio-cap')||''}catch(e){}
-function capSync(src){capTxt=src.value;['#cap','#shCap'].forEach(q=>{const e=$(q);if(e&&e!==src)e.value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}}
+function capSync(src){capTxt=src.value;['#cap','#shCap'].forEach(q=>{const e=$(q);if(e&&e!==src)e.value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}markDirty()}
 function capCopy(){const c=capTxt.trim();if(!c)return false;try{navigator.clipboard.writeText(c).catch(()=>{})}catch(e){}return true}
 ['#cap','#shCap'].forEach(q=>{const e=$(q);e.value=capTxt;e.oninput=ev=>capSync(ev.target)});
 const expSig=()=>JSON.stringify([phrases.map(p=>[p.s,p.e,p.t,p.cut,(p.c||[]).map(c=>[c.s,c.e,c.t])]),style,anim,custom,url]);
@@ -2546,7 +2561,7 @@ $('#shGo').onclick=async()=>{
   const c=shareCache;if(!c)return;
   const f=new File([c.blob],c.fn,{type:c.blob.type||'video/mp4'}),cp=capCopy(),data={files:[f],title:projName||c.fn};if(cp)data.text=capTxt.trim();
   if(navigator.canShare&&navigator.canShare(data)){
-    try{await navigator.share(data);$('#sbox').classList.remove('show');if(cp)toast(t('capCopied'),5000);return}
+    try{await navigator.share(data);if(cp)toast(t('capCopied'),5000);return}
     catch(e){if(e&&e.name==='AbortError')return}
   }
   download(c.blob,c.fn);toast(t('shNo'),7000);setTimeout(()=>openApp(shareTarget),900);
@@ -2633,6 +2648,9 @@ document.querySelectorAll('#uil button').forEach(b=>b.onclick=()=>{ui=b.dataset.
 Object.assign(I18.en,{capLbl:'Caption for the post',capHint:'This text goes with the video when you share it to a social network.',capPh:'Write the text for your post here',capCopied:'Caption copied: paste it into the post if the app leaves the field empty'});
 Object.assign(I18.ru,{capLbl:'Описание под видео',capHint:'Этот текст уходит вместе с видео, когда вы отправляете его в соцсеть.',capPh:'Напишите здесь текст для публикации',capCopied:'Текст скопирован: если приложение оставит поле пустым, вставьте его в описание'});
 Object.assign(I18.hy,{capLbl:'Նկարագրություն տեսանյութի տակ',capHint:'Այս տեքստը գնում է տեսանյութի հետ, երբ այն ուղարկում եք սոցցանց։',capPh:'Գրեք այստեղ հրապարակման տեքստը',capCopied:'Տեքստը պատճենվեց․ եթե հավելվածը դաշտը դատարկ թողնի, տեղադրեք այն նկարագրության մեջ'});
+Object.assign(I18.en,{capLbl:'Description for the post',capCopyBtn:'Copy text',prjLbl:'📁 Projects',prjTitle:'Projects',prjEmpty:'Your projects will appear here: every recording is saved automatically together with its text and settings.',prjDelQ:'Delete "{0}" from this device? The video and its text will be erased for good.',prjClearQ:'Delete ALL projects? Every saved video and text will be erased for good.',prjFail:'Saving the project on this device failed (storage may be full).',prjBusy:'Finish the current recording or export first.',prjSub:'{0} phrases'});
+Object.assign(I18.ru,{capLbl:'Описание для поста',capCopyBtn:'Скопировать текст',prjLbl:'📁 Проекты',prjTitle:'Проекты',prjEmpty:'Здесь появятся ваши проекты: каждая запись сохраняется автоматически вместе с текстом и настройками.',prjDelQ:'Удалить «{0}» с этого устройства? Видео и текст исчезнут навсегда.',prjClearQ:'Удалить ВСЕ проекты? Все сохранённые видео и тексты исчезнут навсегда.',prjFail:'Сохранение проекта на устройстве сорвалось (возможно, память заполнена).',prjBusy:'Сначала завершите текущую запись или экспорт.',prjSub:'фраз: {0}'});
+Object.assign(I18.hy,{capLbl:'Նկարագրություն հրապարակման համար',capCopyBtn:'Պատճենել տեքստը',prjLbl:'📁 Նախագծեր',prjTitle:'Նախագծեր',prjEmpty:'Այստեղ կհայտնվեն ձեր նախագծերը․ ամեն ձայնագրություն պահվում է ավտոմատ՝ տեքստի և կարգավորումների հետ։',prjDelQ:'Ջնջե՞լ «{0}»-ը այս սարքից։ Տեսանյութը և տեքստը կվերանան ընդմիշտ։',prjClearQ:'Ջնջե՞լ ԲՈԼՈՐ նախագծերը։ Բոլոր պահված տեսանյութերն ու տեքստերը կվերանան ընդմիշտ։',prjFail:'Նախագիծը սարքում պահելը խափանվեց (հնարավոր է՝ հիշողությունը լցված է)։',prjBusy:'Նախ ավարտեք ընթացիկ ձայնագրությունը կամ արտահանումը։',prjSub:'արտահայտություն՝ {0}'});
 Object.assign(I18.en,{apvTxt:'Look at this'});
 Object.assign(I18.ru,{apvTxt:'Смотри на это'});
 Object.assign(I18.hy,{apvTxt:'Նայիր սրան հիմա'});
@@ -2792,10 +2810,10 @@ $('#subTog').onclick=()=>{
     if(!go||!on){go=false;return}
     const hit=dy>=TH;go=false;
     if(!hit){reset();return}
-    if(hasVideo&&!confirm(t('ptrQ'))){reset();return}
+    if(hasVideo&&doSave.failed&&!confirm(t('ptrQ'))){reset();return}
     el.classList.add('spin');el.style.transform='';el.style.opacity='';
     try{if(stream)stream.getTracks().forEach(x=>x.stop())}catch(x){}
-    setTimeout(()=>location.reload(),150);
+    Promise.resolve(dirty?saveCurrent():savingP).catch(()=>{}).then(()=>setTimeout(()=>location.reload(),150));
   },{passive:true});
   addEventListener('touchcancel',()=>{go=false;if(on)reset()},{passive:true});
 })();
@@ -2830,6 +2848,136 @@ function buildDock(){
 }
 document.querySelectorAll('#dktabs button').forEach(b=>b.onclick=()=>{$('#dkbody').dataset.tab=b.dataset.k;buildDock()});
 $('#edh').onclick=()=>$('#edh').classList.toggle('open');
+/* ---------- проекты: хранение в памяти браузера (IndexedDB) ---------- */
+function dbOpen(){return new Promise((res,rej)=>{
+  if(!window.indexedDB){rej(new Error('no idb'));return}
+  const r=indexedDB.open('substudio-db',1);
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'id'});if(!d.objectStoreNames.contains('data'))d.createObjectStore('data',{keyPath:'id'})};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error('blocked'));
+})}
+async function dbTx(stores,mode,fn){
+  const db=await dbOpen();
+  return new Promise((res,rej)=>{
+    let out;const tx=db.transaction(stores,mode);
+    try{out=fn(tx)}catch(e){try{db.close()}catch(x){}rej(e);return}
+    tx.oncomplete=()=>{db.close();res(out&&out.result)};
+    tx.onerror=tx.onabort=()=>{db.close();rej(tx.error||new Error('tx'))};
+  });
+}
+const dbPut=(m,d)=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').put(m);tx.objectStore('data').put(d)});
+const dbList=()=>dbTx(['meta'],'readonly',tx=>tx.objectStore('meta').getAll());
+const dbGet=id=>dbTx(['data'],'readonly',tx=>tx.objectStore('data').get(id));
+const dbDel=id=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').delete(id);tx.objectStore('data').delete(id)});
+const dbClear=()=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').clear();tx.objectStore('data').clear()});
+
+function snapPhrases(){return phrases.map(p=>({s:p.s,e:p.e,l:p.l,t:p.t,raw:p.raw,cut:!!p.cut,c:(p.c||[]).map(c=>({t:c.t,s:c.s,e:c.e}))}))}
+function markDirty(){try{if(!hasVideo||!recBlob||recording)return;dirty=true;clearTimeout(saveT);saveT=setTimeout(()=>{saveCurrent()},700)}catch(e){}}
+function saveCurrent(){clearTimeout(saveT);savingP=(savingP||Promise.resolve()).then(doSave,doSave);return savingP}
+async function doSave(){
+  if(!hasVideo||!recBlob)return false;
+  if(!curId)curId='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  if(!projName)projName=defName();
+  const id=curId,d=recDur||totalT()||dur;
+  const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size};
+  const data={id,name:projName,blob:recBlob,phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d};
+  dirty=false;
+  try{
+    await dbPut(meta,data);doSave.failed=false;
+    if(!doSave.persisted){doSave.persisted=true;try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}
+    return true;
+  }catch(e){
+    dirty=true;doSave.failed=true;
+    if(!doSave.warned){doSave.warned=true;toast(t('prjFail'),7000)}
+    return false;
+  }
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&dirty)saveCurrent()});
+addEventListener('pagehide',()=>{if(dirty)saveCurrent()});
+
+/* вернуть экран к пустому состоянию с камерой (после удаления открытого проекта) */
+function closeProject(){
+  clearTimeout(saveT);dirty=false;
+  setEdit(false);setView(false);
+  try{v.pause()}catch(e){}
+  if(url){URL.revokeObjectURL(url);url=null}
+  v.removeAttribute('src');v.srcObject=null;
+  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';
+  applyView();renderAll();updateButtons();setSt(t('stIdle'));
+  initCam();
+}
+async function openProject(id){
+  if(recording||exporting||passing){toast(t('prjBusy'));return}
+  let d=null;try{d=await dbGet(id)}catch(e){}
+  if(!d||!d.blob){renderProjects();return}
+  if(hasVideo&&recBlob)await saveCurrent();
+  clearTimeout(saveT);dirty=false;
+  setEdit(false);setView(false);
+  try{v.pause()}catch(e){}
+  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
+  if(url){URL.revokeObjectURL(url);url=null}
+  hasVideo=false;scanTok++;
+  curId=d.id;projName=d.name||defName();recDur=d.dur||0;dur=recDur;
+  phrases=(d.phrases||[]).map(q=>{
+    const p={s:q.s,e:q.e,l:q.l,t:q.t,raw:q.raw,cut:!!q.cut};
+    p.c=(q.c||[]).map(x=>({g:p,t:x.t,s:x.s,e:x.e}));
+    if(!p.c.length&&p.t)buildPhrase(p);
+    return p;
+  });
+  map={};
+  langLog=(d.langLog&&d.langLog.length)?d.langLog:[{t:0,l:lang}];
+  Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1},d.custom||{});
+  setStyle(d.style||'classic',true);setAnim(d.anim||'fade',true);
+  capTxt=d.cap||'';['#cap','#shCap'].forEach(q=>{$(q).value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}
+  recBlob=d.blob;url=URL.createObjectURL(recBlob);
+  crop=null;vcrop=null;shareCache=null;lastSub='';
+  audioPlayback();
+  v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;v.playbackRate=1;$('#spd').textContent='1×';
+  hasVideo=true;applyView();
+  $('#pbox').classList.remove('show');
+  renderAll();updateButtons();
+  setSt(t('doneSt'),'ok');banner('');
+  scanPlayback().catch(()=>{});
+  toast(projName,2500);
+}
+async function renderProjects(){
+  const box=$('#plist');let list=[];
+  try{list=await dbList()}catch(e){list=[]}
+  list.sort((a,b)=>b.t-a.t);
+  box.textContent='';
+  $('#pclear').style.display=list.length?'':'none';
+  if(!list.length){const e=document.createElement('div');e.className='empty';e.textContent=t('prjEmpty');box.appendChild(e);return}
+  const loc=ui==='ru'?'ru-RU':ui==='hy'?'hy-AM':'en-GB';
+  list.forEach(m=>{
+    const r=document.createElement('div');r.className='prow'+(m.id===curId?' cur':'');
+    const o=document.createElement('button');o.className='po';
+    const n=document.createElement('div');n.className='pn';n.textContent=m.name;
+    const sm=document.createElement('div');sm.className='pm';
+    let ds='';try{ds=new Date(m.t).toLocaleString(loc,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){}
+    sm.textContent=[ds,fmt(m.dur||0),t('prjSub',m.n||0),((m.size||0)/1048576).toFixed(1)+' MB'].join(' · ');
+    o.append(n,sm);o.onclick=()=>openProject(m.id);
+    const x=document.createElement('button');x.className='px';x.textContent='✕';x.setAttribute('aria-label','Delete');
+    x.onclick=async()=>{
+      if(exporting||passing){toast(t('prjBusy'));return}
+      if(!confirm(t('prjDelQ',m.name)))return;
+      try{await dbDel(m.id)}catch(e){}
+      if(m.id===curId&&hasVideo)closeProject();
+      renderProjects();
+    };
+    r.append(o,x);box.appendChild(r);
+  });
+}
+$('#mPrj').onclick=()=>{closeMenus();renderProjects();$('#pbox').classList.add('show')};
+$('#pclose').onclick=()=>$('#pbox').classList.remove('show');
+$('#pbox').addEventListener('click',e=>{if(e.target===$('#pbox'))$('#pbox').classList.remove('show')});
+$('#pclear').onclick=async()=>{
+  if(exporting||passing){toast(t('prjBusy'));return}
+  if(!confirm(t('prjClearQ')))return;
+  try{await dbClear()}catch(e){}
+  if(curId&&hasVideo)closeProject();
+  renderProjects();
+};
+$('#shCopy').onclick=()=>{if(capCopy())toast(t('capCopied'),4000)};
+
 /* ---------- старт ---------- */
 (function init(){audioPlayback();
   applyLang();
