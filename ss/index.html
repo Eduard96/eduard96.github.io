@@ -451,7 +451,7 @@ html,body{overscroll-behavior-y:contain}
 
 <div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
-<div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button><button class="btn" id="kskip" style="width:100%;margin-top:8px" data-i="kSkip"></button></div></div>
+<div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button></div></div>
 <div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
 <div class="pvbox" id="pvbox" aria-hidden="true"><div class="pvtag" data-i="previewLbl"></div><div class="sub" id="pvsub"></div></div>
 <canvas id="cv" style="display:none"></canvas>
@@ -1072,6 +1072,7 @@ function ratioTxt(w,h){
 }
 function frameSize(){
   const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return null;
+  if(!hasVideo&&wantAR()){const o=outDims();return{w:o.W,h:o.H}}
   const d=hasVideo?vcrop:crop;
   if(d&&d.x+d.w<=vw&&d.y+d.h<=vh)return{w:d.w,h:d.h};
   return{w:vw,h:vh};
@@ -1099,6 +1100,7 @@ let orTry='';
 /* телефон держат вертикально, а камера отдаёт горизонтальный кадр (так делает часть Android-браузеров):
    берём из него по центру вертикальную часть 3:4, как в родной камере; превью, запись и субтитры работают по ней */
 function orientCrop(){
+  return null;
   const vw=v.videoWidth,vh=v.videoHeight;
   if(!vw||!vh||innerHeight<innerWidth||vw<=vh)return null;
   const h=vh-(vh%2);let w=Math.round(h*3/4);w-=w%2;
@@ -1106,6 +1108,7 @@ function orientCrop(){
   return{x:Math.floor((vw-w)/2),y:Math.floor((vh-h)/2),w,h,_o:true};
 }
 async function orientCheck(){
+  relayout();return;
   if(recording||hasVideo||exporting||passing||!camLive()||!v.videoWidth)return;
   const por=innerHeight>=innerWidth,fp=v.videoHeight>=v.videoWidth;
   if(por===fp){orTry='';if(crop&&crop._o)crop=null;relayout();return}
@@ -1126,7 +1129,7 @@ if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.med
    crop  — область картинки в живой камере и при записи
    vcrop — область картинки в уже записанном видео (если полосы всё-таки попали в запись) */
 let crop=null,vcrop=null,scanTok=0,rzT=0;
-const targetAR=()=>null; /* PATCH: без принудительного формата и обрезки, кадр как отдаёт камера */
+const targetAR=()=>9/16;
 const wantAR=()=>!hasVideo&&targetAR()!==null;
 async function findCrop(){
   if(!/Android/i.test(navigator.userAgent))return null;
@@ -1210,18 +1213,26 @@ async function scanPlayback(){
   vcrop=c;applyVLayout();lastLay='';
   renderTL();
 }
-function canvasTrack(){
-  /* запись идёт через холст постоянного размера: размер кадра не прыгает при повороте телефона или смене камеры */
-  const fcv=wantAR(),cr=fcv?null:crop;let W=cr?cr.w:(v.videoWidth||1280),H=cr?cr.h:(v.videoHeight||720);
-  if(fcv){const ar=targetAR();if(ar>=1){W=Math.min(1280,Math.max(v.videoWidth||1280,v.videoHeight||720));H=Math.round(W/ar)}else{H=Math.min(1280,Math.max(v.videoHeight||1280,v.videoWidth||720));W=Math.round(H*ar)}}
-  const m=Math.max(W,H);if(m>1920){const k=1920/m;W=Math.round(W*k);H=Math.round(H*k)}
+function outDims(){
+  const vw=v.videoWidth,vh=v.videoHeight;
+  const cr=(crop&&!crop._o&&vw&&vh&&crop.x+crop.w<=vw&&crop.y+crop.h<=vh)?crop:null;
+  const sw=cr?cr.w:(vw||1080),sh=cr?cr.h:(vh||1920),A=9/16;
+  let W,H;
+  if(sw/sh>A){H=sh;W=Math.round(sh*A)}else{W=sw;H=Math.round(sw/A)}
+  const cap=isIOSdev()?2560:3840,m=Math.max(W,H);
+  if(m>cap){const k=cap/m;W=Math.round(W*k);H=Math.round(H*k)}
   W-=W%2;H-=H%2;
+  return{W,H,cr};
+}
+function canvasTrack(){
+  const o=outDims(),W=o.W,H=o.H,cr=o.cr;
   rc.cv.width=W;rc.cv.height=H;
-  const x=rc.cv.getContext('2d');
+  const x=rc.cv.getContext('2d',{alpha:false});
   const draw=()=>{
     const vw=v.videoWidth,vh=v.videoHeight;
     if(!vw||!vh||v.readyState<2)return;
-    const uc=cr&&cr.x+cr.w<=vw&&cr.y+cr.h<=vh,sw0=uc?cr.w:vw,sh0=uc?cr.h:vh,z=hwZoom?1:zoom,k=(fcv?Math.max:Math.min)(W/sw0,H/sh0),dw=sw0*k,dh=sh0*k;
+    const uc=cr&&cr.x+cr.w<=vw&&cr.y+cr.h<=vh,sw0=uc?cr.w:vw,sh0=uc?cr.h:vh,z=hwZoom?1:zoom,
+      k=Math.max(W/sw0,H/sh0),dw=sw0*k,dh=sh0*k;
     x.save();x.fillStyle='#000';x.fillRect(0,0,W,H);
     x.translate(W/2,H/2);if(mirror)x.scale(-1,1);x.scale(z,z);
     try{if(uc)x.drawImage(v,cr.x,cr.y,cr.w,cr.h,-dw/2,-dh/2,dw,dh);else x.drawImage(v,-dw/2,-dh/2,dw,dh)}catch(e){}
@@ -1257,6 +1268,7 @@ function isIOSdev(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)||(navig
 /* iPhone иногда отдаёт альбомный кадр (1280x720, 1920x1080) при вертикальном экране.
    Проверяем размеры трека и по очереди пробуем: повернуть размеры, открыть камеру заново без размеров, поднять разрешение. */
 async function fixOrient(s,lite){
+  return s;
   if(!/Android/i.test(navigator.userAgent)||lite)return s; /* PATCH2: на Android кадр приходил горизонтальным при вертикальном телефоне */
   const por=()=>innerHeight>=innerWidth;
   let tr=s.getVideoTracks()[0];if(!tr||!tr.getSettings)return s;
@@ -1285,12 +1297,18 @@ async function fixOrient(s,lite){
   return s2;
 }
 async function openStream0(lite){
-  const por=innerHeight>=innerWidth,tar=targetAR(),ios=isIOSdev(),base=lite?{}:Object.assign(ios?{width:{ideal:por?720:1280},height:{ideal:por?1280:720},frameRate:{ideal:30}}:{width:{ideal:por?1080:1440},height:{ideal:por?1440:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
+  const por=innerHeight>=innerWidth;
+  const dev=camId?{deviceId:{exact:camId}}:{facingMode:'user'};
   const tries=[];
-  /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
-     и кнопки громкости начинают менять только громкость разговора */
-  if(camId)tries.push({video:Object.assign({deviceId:{exact:camId}},base),audio:false});
-  tries.push({video:Object.assign({facingMode:'user'},base),audio:false});
+  /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка */
+  if(!lite){
+    for(const [w,h] of [[2160,3840],[1440,2560],[1080,1920],[720,1280]]){
+      const pr=[{width:{exact:w},height:{exact:h}},{width:{exact:h},height:{exact:w}}];
+      (por?pr:pr.reverse()).forEach(s=>tries.push({video:Object.assign({frameRate:{ideal:30}},dev,s),audio:false}));
+    }
+    tries.push({video:Object.assign({width:{ideal:1080},height:{ideal:1920},frameRate:{ideal:30}},dev),audio:false});
+  }
+  tries.push({video:Object.assign({},dev),audio:false});
   tries.push({video:true,audio:false});
   let last=null;
   for(const c of tries){
@@ -1373,6 +1391,7 @@ async function startRec(){
 }
 async function _startRec(){
   if(hasVideo&&phrases.length&&!confirm(t('newRec')))return;
+  if(MOB&&!getKey()){openKey();return}
   if(!camLive()&&!(await initCam()))return;
   /* микрофон подключается только на время записи */
   if(!stream.getAudioTracks().length){
@@ -1386,7 +1405,7 @@ async function _startRec(){
   const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
   /* на телефоне распознавание речи глушит микрофон записи: пишем звук всегда,
      а текст собираем после остановки по готовой записи */
-  const later=MOB&&!cloudMode&&!!SR;
+  const later=false;
   laterRec=later;
   pendingPass=later;
   const pmv=cloudMode?'cloud':(later?'later':'normal');
@@ -1394,7 +1413,13 @@ async function _startRec(){
   if(pmv==='later')toast(t('laterMode'),6000);
   try{await detectCrop()}catch(e){crop=null;applyVLayout()}
   if(!isIOSdev()||crop||mirror||(!hwZoom&&zoom>1.001)||wantAR()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
-  try{mr=new MediaRecorder(rs,(isIOSdev()?(mt?{mimeType:mt}:{}):Object.assign(mt?{mimeType:mt}:{},{videoBitsPerSecond:10000000,audioBitsPerSecond:128000})))}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
+  {
+    const px=rc.on?rc.cv.width*rc.cv.height:1920*1080;
+    const bps=Math.round(Math.min(40e6,Math.max(8e6,px*30*0.14)));
+    const base=mt?{mimeType:mt}:{};
+    try{mr=new MediaRecorder(rs,Object.assign({},base,{videoBitsPerSecond:bps,audioBitsPerSecond:128000}))}
+    catch(e){try{mr=new MediaRecorder(rs,base)}catch(e2){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}}
+  }
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
@@ -1800,7 +1825,7 @@ async function finishPass(){
   v.currentTime=0;
   buildAll();
   const ok=phrases.some(p=>p.t);
-  if(!ok&&!retried){retried=true;toast('Текст пока пуст. Пробую ещё раз через динамик: включите погромче.',7000);setTimeout(()=>transcribe(true,true),500);return}
+  
   setSt(ok?t('doneSt'):t('nothing'),ok?'ok':'err');
   toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык и громкость или добавьте фразы вручную.',6000);
 }
@@ -2018,7 +2043,7 @@ async function exportVideo(){
   const at=exportAudioTrack();if(at)cs.addTrack(at);
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
-  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(20e6,Math.max(8e6,Math.round(W*H*30*0.2))),audioBitsPerSecond:192000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
   let finished=false,stopping=false,wdx=null,lastCt=-1,lastMove=performance.now(),triedResume=false;
   const finalize=()=>{
     if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
@@ -2134,7 +2159,7 @@ document.querySelectorAll('#uil button').forEach(b=>b.onclick=()=>{ui=b.dataset.
 expBtn.textContent=explbl();
 let keySkip=false;
 const kbox=$('#kbox');
-const needKey=()=>MOB&&!getKey()&&!keySkip;
+const needKey=()=>MOB&&!getKey();
 function openKey(){kbox.classList.add('show');setTimeout(()=>{try{$('#kkey').focus()}catch(e){}},60)}
 $('#ksave').onclick=()=>{
   const k=$('#kkey').value.trim();
@@ -2143,7 +2168,7 @@ $('#ksave').onclick=()=>{
   $('#key').value=k;keyStat();toast(t('toastKeyOk'),2500);
   kbox.classList.remove('show');startRec();
 };
-$('#kskip').onclick=()=>{keySkip=true;kbox.classList.remove('show');startRec()};
+
 kbox.addEventListener('click',e=>{if(e.target===kbox)kbox.classList.remove('show')});
 recBtn.onclick=e=>{
   e.stopPropagation();
