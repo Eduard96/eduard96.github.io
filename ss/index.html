@@ -60,19 +60,22 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .badge.on{display:flex}
 .badge b{width:8px;height:8px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.25}}
-.sub{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);max-width:90%;width:max-content;text-align:center;
+.sub{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);max-width:90%;width:max-content;text-align:center;
   font-size:4.4cqw;line-height:1.25;padding:.2em .55em;pointer-events:none;display:none;overflow-wrap:anywhere}
 .sub.show{display:block}
 
 /* controls */
 .rec-row{display:flex;align-items:center;gap:12px}
-#rec{flex:1;min-height:56px;border-radius:16px;font-weight:800;font-size:18px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;
-  background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 8px 22px rgba(124,58,237,.4);transition:transform .1s}
-#rec:active{transform:scale(.98)}
-#rec .dot{width:14px;height:14px;border-radius:50%;background:#fff}
-#rec.on{background:linear-gradient(135deg,#ef4444,#b91c1c);box-shadow:0 8px 22px rgba(239,68,68,.45)}
-#rec.on .dot{border-radius:3px;animation:pulse 1s infinite}
-#timer{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;color:var(--mute)}
+#rec{position:absolute;left:50%;bottom:3cqw;transform:translateX(-50%);z-index:3;width:clamp(46px,12cqw,64px);height:clamp(46px,12cqw,64px);padding:0;border-radius:50%;
+  border:3px solid #fff;background:rgba(0,0,0,.25);display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.45);backdrop-filter:blur(3px)}
+#rec .dot{width:76%;height:76%;border-radius:50%;background:#ef4444;transition:all .15s}
+#rec:active .dot{transform:scale(.88)}
+#rec.on .dot{width:42%;height:42%;border-radius:7px;animation:pulse 1s infinite}
+#rec:disabled{opacity:.5}
+#recTxt{display:none}
+.player.edit #rec,.player.edit #pz{display:none!important}
+#timer{display:none;position:absolute;top:10px;right:10px;z-index:3;padding:4px 10px;border-radius:99px;background:rgba(0,0,0,.55);color:#fff;font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;backdrop-filter:blur(6px)}
+.badge.on~#timer{display:block}
 #st{margin-top:8px;font-size:13px;font-weight:600;color:var(--mute)}
 #st.ok{color:var(--ok)}#st.err{color:var(--danger)}
 .label{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;justify-content:space-between;gap:8px}
@@ -82,7 +85,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .chip{min-height:46px;padding:8px 10px;border-radius:13px;background:var(--chip);border:2px solid transparent;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s;text-align:center}
 .chip kbd{font:600 11px/1 ui-monospace,monospace;padding:3px 5px;border-radius:6px;background:var(--card);color:var(--mute);border:1px solid var(--line)}
 .chip.active{border-color:var(--acc);background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(236,72,153,.14));color:var(--ink);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
-.chips.lang .chip{font-size:18px}
+.chips.lang .chip{font-size:16px;min-height:40px;padding:4px 8px}
 .sel{width:100%;min-height:48px;padding:0 12px;border-radius:13px;background:var(--chip);color:var(--ink);border:2px solid var(--acc);font:700 16px/1 inherit;font-family:inherit}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .btn{min-height:50px;border-radius:14px;font-weight:700;background:var(--chip);border:1px solid var(--line);padding:0 14px;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -157,7 +160,7 @@ details li{margin:4px 0}
 .ovl p{margin:6px 0 0;font-size:13px;color:var(--mute)}
 .ovl ol{text-align:left;margin:10px 0 0;padding-left:20px;font-size:14px}
 .ovl li{margin:6px 0}
-#pz{display:none;min-height:56px;padding:0 14px;border-radius:16px;font-weight:800;font-size:16px;background:var(--chip);border:2px solid var(--acc);white-space:nowrap}
+#pz{display:none;position:absolute;right:3cqw;bottom:calc(3cqw + clamp(46px,12cqw,64px)/2 - 18px);z-index:3;min-height:36px;padding:0 12px;border-radius:99px;font-weight:700;font-size:13px;color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.3);white-space:nowrap;backdrop-filter:blur(6px)}
 #pz.show{display:block}
 .chips.styles{grid-template-columns:repeat(3,1fr);max-height:262px;overflow:auto;padding:2px;-webkit-overflow-scrolling:touch}
 .sty{flex-direction:column;align-items:stretch;justify-content:flex-start;padding:6px;gap:6px;min-height:0}
@@ -167,9 +170,11 @@ header{flex-wrap:wrap}
 .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}
 .seg button{padding:0 9px;min-height:42px;font-size:12px;font-weight:800;color:var(--mute)}
 .seg button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
-.camrow{display:flex;gap:8px;align-items:center;margin-top:10px}
-.camrow .sel{flex:1;min-width:0;min-height:42px;font-size:14px}
-.camrow .chip{flex:none;min-height:42px;font-size:13px;white-space:nowrap}
+.camrow{display:flex;gap:6px;align-items:center;margin-top:6px}
+.camrow .sel{flex:1;min-width:0;min-height:36px;font-size:13px;border-width:1px}
+.camrow .chip{flex:none;min-height:36px;padding:4px 10px;font-size:12px;white-space:nowrap}
+.camrow .btn.sm{min-height:36px}
+.stage-wrap .chips.lang{margin-top:8px}
 .camrow .btn.sm{width:40px;flex:none;padding:0}
 #zr{flex:1;min-width:0;accent-color:var(--acc);height:28px;margin:0}
 #zv{min-width:42px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px;font-weight:700;color:var(--mute)}
@@ -207,15 +212,15 @@ header{flex-wrap:wrap}
         <div class="stage" id="stage">
           <video id="v" playsinline muted autoplay></video>
           <div class="badge" id="badge"><b></b>REC</div>
+          <div id="timer">00:00</div>
           <div class="sub" id="sub"></div>
+          <button id="rec" aria-label="Record"><span class="dot"></span><span id="recTxt"></span></button>
+          <button id="pz">⏸ Пауза</button>
         </div>
         <div class="ctl" id="ctl">
-          <button class="pb" id="bk" disabled>−5</button>
           <button class="pb" id="pp" disabled>▶</button>
-          <button class="pb" id="fw" disabled>+5</button>
           <input type="range" id="seek" min="0" max="1000" value="0" step="1" disabled aria-label="Перемотка">
           <div id="ptime">00:00 / 00:00</div>
-          <button class="pb" id="mu" disabled>ЗВУК</button>
           <button class="pb" id="spd" disabled>1×</button>
           <button class="pb" id="ed" disabled>✎ Edit voice timing</button>
           <button class="pb" id="fs">⛶</button>
@@ -225,16 +230,16 @@ header{flex-wrap:wrap}
           <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
         </div>
         </div>
+        <div class="chips lang" id="langs" title="Speech language">
+          <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
+          <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
+          <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
+        </div>
         <div class="camrow"><select class="sel" id="camSel" aria-label="Camera"></select><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
         <div class="camrow"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
       </div>
 
       <div class="card">
-        <div class="rec-row">
-          <button id="rec"><span class="dot"></span><span id="recTxt">Запись</span></button>
-          <button id="pz">⏸ Пауза</button>
-          <div id="timer">00:00</div>
-        </div>
         <div id="st">Распознавание речи: ожидание записи</div>
         <div id="pass" style="display:none;margin-top:8px"><div class="hint" id="passTxt" style="margin:0 0 6px"></div><progress id="passBar" max="100" value="0" style="width:100%;height:16px;accent-color:var(--acc)"></progress><button class="btn sm" id="passX" style="margin-top:6px">Остановить и сохранить то, что есть</button></div>
 
@@ -243,13 +248,6 @@ header{flex-wrap:wrap}
           <div style="display:flex;gap:8px"><input id="key" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:40px;font-size:14px;flex:1"><button class="btn sm" id="keysave" data-i="save"></button></div>
           <div class="hint" id="keyst"></div>
         </details>
-
-        <div class="label"><b data-i="speechLang" style="font-weight:inherit"></b><span data-i="speechLangHint"></span></div>
-        <div class="chips lang" id="langs">
-          <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
-          <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
-          <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
-        </div>
 
         <div class="label" data-i="styleLbl"></div>
         <div class="chips styles" id="styles" role="listbox" aria-label="Стиль субтитров"></div>
@@ -293,6 +291,7 @@ header{flex-wrap:wrap}
 
 <div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
+<div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button><button class="btn" id="kskip" style="width:100%;margin-top:8px" data-i="kSkip"></button></div></div>
 <canvas id="cv" style="display:none"></canvas>
 <div class="toast" id="toast"></div>
 
@@ -359,7 +358,10 @@ iIos:'<p><b>iPhone / iPad.</b> Open the page in Safari (other browsers cannot in
 iAnd:'<p><b>Android.</b> Open the page in Chrome.</p><ol><li>Tap ⋮ (three dots) at the top right.</li><li>Choose Install app or Add to Home screen.</li><li>Confirm Install. The icon appears on your home screen.</li></ol>',
 iDesk:'<p><b>Computer.</b> In Chrome click the install icon ⊕ on the right of the address bar or the menu ⋮ → Install Subtitle Studio.</p><p>On phone: Android, Chrome menu ⋮ → Install app; iPhone, Safari Share → Add to Home Screen.</p>',
 iNote:'<p>Installing works when the page is opened from an https address (not as a file on the device).</p>',installed:'App installed',
-eTitle:'Track text',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save'
+eTitle:'Track text',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save',
+kTitle:'🔑 One step before recording',
+kText:'To record <b>with sound and live text together</b> on a phone you need a free Groq key. No card needed.<br>1) Open <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> and sign in with Google or email.<br>2) Tap <b>Create API Key</b> and enter any name.<br>3) Copy the key (it starts with gsk_) and paste it below.',
+kSave:'Save key and start recording',kSkip:'Record without sound'
 },
 ru:{
 title:'Студия субтитров',tag:'Пишите видео, текст и монтаж появляются сразу',inst:'⬇ Установить',
@@ -413,7 +415,10 @@ iIos:'<p><b>iPhone / iPad.</b> Откройте страницу именно в
 iAnd:'<p><b>Android.</b> Откройте страницу в Chrome.</p><ol><li>Нажмите ⋮ (три точки) справа вверху.</li><li>Выберите «Установить приложение» или «Добавить на главный экран».</li><li>Подтвердите «Установить». Иконка появится на главном экране.</li></ol>',
 iDesk:'<p><b>Компьютер.</b> В Chrome нажмите значок установки ⊕ справа в адресной строке или меню ⋮ → «Установить Студию субтитров».</p><p>На телефоне: Android — Chrome, меню ⋮ → «Установить приложение»; iPhone — Safari, «Поделиться» → «На экран Домой».</p>',
 iNote:'<p>Установка работает, когда страница открыта по адресу https (не как файл на устройстве).</p>',installed:'Приложение установлено',
-eTitle:'Текст дорожки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить'
+eTitle:'Текст дорожки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить',
+kTitle:'🔑 Один шаг перед записью',
+kText:'Чтобы на телефоне писать <b>со звуком и текстом одновременно</b>, нужен бесплатный ключ Groq. Карта не нужна.<br>1) Откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту.<br>2) Нажмите <b>Create API Key</b> и введите любое имя.<br>3) Скопируйте ключ (он начинается с gsk_) и вставьте его ниже.',
+kSave:'Сохранить ключ и начать запись',kSkip:'Записать без звука'
 },
 hy:{
 title:'Ենթագրերի ստուդիա',tag:'Նկարեք տեսանյութ, տեքստն ու մոնտաժը հայտնվում են անմիջապես',inst:'⬇ Տեղադրել',
@@ -467,7 +472,10 @@ iIos:'<p><b>iPhone / iPad։</b> Բացեք էջը հենց Safari-ում (այլ
 iAnd:'<p><b>Android։</b> Բացեք էջը Chrome-ում։</p><ol><li>Վերևի աջ մասում սեղմեք ⋮ (երեք կետ)։</li><li>Ընտրեք «Տեղադրել հավելվածը» կամ «Ավելացնել գլխավոր էկրան»։</li><li>Հաստատեք «Տեղադրել»։ Պատկերակը կհայտնվի գլխավոր էկրանին։</li></ol>',
 iDesk:'<p><b>Համակարգիչ։</b> Chrome-ում սեղմեք տեղադրման պատկերակը ⊕ հասցեագոտու աջ մասում կամ ցանկը ⋮ → «Տեղադրել Ենթագրերի ստուդիան»։</p><p>Հեռախոսում․ Android՝ Chrome, ցանկ ⋮ → «Տեղադրել հավելվածը»․ iPhone՝ Safari, «Կիսվել» → «Ավելացնել Home Screen»։</p>',
 iNote:'<p>Տեղադրումը աշխատում է, երբ էջը բաց է https հասցեով (ոչ թե որպես սարքի ֆայլ)։</p>',installed:'Հավելվածը տեղադրվեց',
-eTitle:'Ուղու տեքստ',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել'
+eTitle:'Ուղու տեքստ',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել',
+kTitle:'🔑 Մեկ քայլ ձայնագրությունից առաջ',
+kText:'Հեռախոսում <b>ձայնով և տեքստով միասին</b> ձայնագրելու համար պետք է Groq-ի անվճար բանալի։ Քարտ պետք չէ։<br>1) Բացեք <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> և մուտք գործեք Google-ով կամ փոստով։<br>2) Սեղմեք <b>Create API Key</b> և մուտքագրեք ցանկացած անուն։<br>3) Պատճենեք բանալին (սկսվում է gsk_-ով) և տեղադրեք ներքևում։',
+kSave:'Պահել բանալին և սկսել ձայնագրությունը',kSkip:'Ձայնագրել առանց ձայնի'
 }
 };
 const SN={
@@ -892,7 +900,7 @@ function resumeRec(){
   $('#pz').textContent=t('pause');badge.innerHTML='<b></b>'+t('badgeRec');
   setSt(t('listenSimple'),'ok');
 }
-$('#pz').onclick=()=>{paused?resumeRec():pauseRec()};
+$('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 function finishRec(){
   stopCanvas();$('#camSel').disabled=false;
@@ -1147,7 +1155,6 @@ function updatePlayerUI(){
   if(!hasVideo)$('#seek').value=0;
   $('#ptime').textContent=fmt(c)+' / '+fmt(T);
   $('#pp').textContent=(hasVideo&&!v.paused&&!v.ended)?'❚❚':'▶';
-  $('#mu').textContent=t(v.muted?'muted':'sound');
 }
 function togglePlay(){
   if(!hasVideo||recording||exporting||passing)return;
@@ -1156,8 +1163,6 @@ function togglePlay(){
 }
 function skip(d){if(hasVideo&&!recording&&!exporting&&!passing)v.currentTime=Math.max(0,Math.min(totalT()||1e9,v.currentTime+d))}
 $('#pp').onclick=togglePlay;
-$('#bk').onclick=()=>skip(-5);$('#fw').onclick=()=>skip(5);
-$('#mu').onclick=()=>{v.muted=!v.muted};
 $('#spd').onclick=()=>{
   const i=SPD.indexOf(v.playbackRate);v.playbackRate=SPD[(i+1)%SPD.length];
   $('#spd').textContent=(v.playbackRate)+'×';
@@ -1243,7 +1248,7 @@ function drawSubOnCanvas(ctx,W,H,text){
   if(d.up)text=text.toUpperCase();
   const lines=wrap(ctx,text,W*0.9-2*padX);
   const bw=Math.max(...lines.map(l=>ctx.measureText(l).width))+2*padX,bh=lines.length*lh+2*padY;
-  const bx=(W-bw)/2,by=H*0.88-bh;
+  const bx=(W-bw)/2,by=H*0.78-bh;
   if(d.bg){ctx.fillStyle=d.bg;rrect(ctx,bx,by,bw,bh,fs*(d.r||0));ctx.fill()}
   lines.forEach((l,i)=>{
     const y=by+padY+lh*(i+0.5),x=W/2;
@@ -1364,7 +1369,26 @@ document.querySelectorAll('#uil button').forEach(b=>b.onclick=()=>{ui=b.dataset.
 
 /* ---------- события ---------- */
 expBtn.textContent=explbl();
-recBtn.onclick=()=>{if(exporting||passing)return;recording?stopRec():startRec()};
+let keySkip=false;
+const kbox=$('#kbox');
+const needKey=()=>MOB&&!getKey()&&!keySkip;
+function openKey(){kbox.classList.add('show');setTimeout(()=>{try{$('#kkey').focus()}catch(e){}},60)}
+$('#ksave').onclick=()=>{
+  const k=$('#kkey').value.trim();
+  if(!k){$('#kkey').focus();return}
+  try{localStorage.setItem('substudio-key',k)}catch(e){}
+  $('#key').value=k;keyStat();toast(t('toastKeyOk'),2500);
+  kbox.classList.remove('show');startRec();
+};
+$('#kskip').onclick=()=>{keySkip=true;kbox.classList.remove('show');startRec()};
+kbox.addEventListener('click',e=>{if(e.target===kbox)kbox.classList.remove('show')});
+recBtn.onclick=e=>{
+  e.stopPropagation();
+  if(exporting||passing)return;
+  if(recording){stopRec();return}
+  if(needKey()){openKey();return}
+  startRec();
+};
 document.querySelectorAll('#langs .chip').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
 Object.keys(STY).forEach(k=>{
   const d=STY[k],b=document.createElement('button');b.className='chip sty';b.dataset.k=k;
