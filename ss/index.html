@@ -2084,6 +2084,26 @@ function xaStop(){
   xaOsc=null;try{if(xaOsc2){xaOsc2.stop();xaOsc2.disconnect()}}catch(e){}xaOsc2=null;xaMix=null;xaBuf=null;v.muted=false;
 }
 let xaP=null,nameHook=null;
+function xdiag(b,exp,n){
+  try{
+    const w=rc.xs?((performance.now()-rc.xs)/1000):0;
+    const u2=URL.createObjectURL(b),e=document.createElement('video');
+    e.preload='metadata';e.muted=true;e.playsInline=true;
+    const src=isFinite(v.duration)?v.duration:-1;
+    let md=0,au=0,sent=false;
+    const show=()=>{
+      if(sent)return;sent=true;URL.revokeObjectURL(u2);
+      toast('src '+src.toFixed(1)+' | exp '+exp.toFixed(1)+' | wall '+w.toFixed(1)+' | file '+md.toFixed(1)+' | audio '+au.toFixed(1)+' | chunks '+n+' | '+(b.size/1048576).toFixed(1)+'MB',30000);
+    };
+    e.onloadedmetadata=()=>{
+      md=isFinite(e.duration)?e.duration:-1;
+      (async()=>{try{if(AC){const ab=await decodeBuf(await b.arrayBuffer());au=ab.duration}}catch(x){au=-1}show()})();
+    };
+    e.onerror=()=>{md=-2;show()};
+    e.src=u2;
+    setTimeout(show,8000);
+  }catch(x){}
+}
 function xaPrep(){
   try{
     const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
@@ -2145,7 +2165,7 @@ async function exportVideo(){
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
     xaStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
-    if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});fixDur(bl,isMp4,expDur).then(b=>download(b,fn),()=>download(bl,fn))}
+    if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});fixDur(bl,isMp4,expDur).then(b=>{xdiag(b,expDur,out.length);download(b,fn)},()=>download(bl,fn))}
     updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
   };
   /* остановка идемпотентна; если запись не закрылась сама (бывает на iPhone), через 4 секунды завершаем принудительно */
@@ -2174,7 +2194,7 @@ async function exportVideo(){
   $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
   try{await v.play()}catch(e){}
-  r2.start(1000);
+  rc.xs=performance.now();r2.start(isIOSdev()?undefined:1000);
 }
 
 /* ---------- редактор дорожки ---------- */
