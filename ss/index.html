@@ -372,6 +372,11 @@ body.editing .pvbox{display:none!important}
 .anim .nm{font-size:12px;font-weight:700;line-height:1.15;color:var(--ink)}
 .chips.anims{max-height:340px}
 .dkrow2 .anim{flex:0 0 106px;width:106px;padding:4px;min-height:0;white-space:normal}
+/* таймлайн: линейка времени и ручка красной линии внизу, дорожки сверху */
+.tlin{display:flex;flex-direction:column;min-height:100%}
+#ruler{top:auto;bottom:0;margin-top:auto;flex:none;border-bottom:0;border-top:1px solid var(--line);border-radius:0 0 12px 12px}
+.ph{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start}
+.ph .gr{top:auto;bottom:0;flex:none}
 /* ===== патч UI 1: компактная панель ===== */
 .cpanel{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px;margin-top:6px;border-radius:16px}
 .cpanel .ctl{display:contents}
@@ -1647,11 +1652,11 @@ function renderTL(){
     let k=ends.findIndex(e=>e<=c.s+0.01);if(k<0){k=ends.length;ends.push(0)}
     ends[k]=Math.max(c.e,c.s+12/PX);lane.set(c,k);
   });
-  const nl=Math.max(2,ends.length),th=40+nl*48+8;
+  const nl=Math.max(2,ends.length),th=52+nl*48;
   tlin.style.height=th+'px';tl.style.height=Math.min(Math.max(132,th),290)+'px';
   allC().forEach(c=>{
     const b=document.createElement('div');b.className='blk '+c.g.l+(c.g.cut?' cut':'');
-    b.textContent=c.t;b.style.top=(40+lane.get(c)*48)+'px';place(b,c);
+    b.textContent=c.t;b.style.top=(8+lane.get(c)*48)+'px';place(b,c);
     const hl=document.createElement('div');hl.className='h l';hl.dataset.h='l';
     const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
     b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);blkEl.set(c,b);
