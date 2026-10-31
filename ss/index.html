@@ -95,13 +95,11 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 
 /* player */
 .player:fullscreen{background:#000;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:8px}
-.player:fullscreen .stage{width:min(100%,calc((100dvh - 110px)*var(--ar)))}
-.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;
-  --pc:#fff;--pbg:rgba(0,0,0,.5);--pr:.4em;--pw:700;--pf:inherit;--pst:none;--pa:#7c3aed;--pup:none;--pstroke:0}
-.pb{min-height:40px;min-width:44px;padding:0 12px;color:var(--pc);background:var(--pbg);border-radius:var(--pr);font-weight:var(--pw);font-family:var(--pf);
-  text-shadow:var(--pst);text-transform:var(--pup);-webkit-text-stroke:var(--pstroke);paint-order:stroke fill;font-size:15px;line-height:1;border:1px solid rgba(255,255,255,.18);font-style:var(--pit,normal)}
+.player:fullscreen .stage{width:min(100%,calc((100dvh - 150px)*var(--ar)))}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pb{min-height:40px;min-width:44px;padding:0 12px;font-size:15px;line-height:1}
 .pb:disabled,#seek:disabled{opacity:.4;cursor:default}
-#seek{flex:1 1 140px;min-width:120px;accent-color:var(--pa);height:28px;margin:0}
+#seek{flex:1 1 140px;min-width:120px;height:28px;margin:0}
 #ptime{font-variant-numeric:tabular-nums;font-size:13px;color:var(--mute);min-width:88px;text-align:center}
 .chk{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--mute)}
 .chk input{width:18px;height:18px;accent-color:var(--acc)}
@@ -110,7 +108,7 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px;pa
 .player.edit{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;justify-content:flex-start;gap:8px;overflow:hidden;
   padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left))}
 .player.edit .stage{width:min(100%,calc(34dvh*var(--ar)));flex:none}
-.player.edit .ctl{margin-top:0}
+.player.edit .cpanel{margin-top:0}
 .player.edit .edit-pane{display:flex;flex-direction:column;flex:1;min-height:0;gap:6px}
 .player.edit .tl{height:auto!important;flex:1;min-height:0}
 .ephead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--mute)}
@@ -148,7 +146,7 @@ details{font-size:13px;color:var(--mute)}
 details summary{cursor:pointer;font-weight:700;color:var(--ink);padding:4px 0}
 details ul{margin:8px 0 0;padding-left:18px}
 details li{margin:4px 0}
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:90;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);max-width:min(92vw,520px);padding:12px 16px;border-radius:14px;background:#1b1736;color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:300;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 .ovl{display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:20px;background:rgba(14,12,28,.82);backdrop-filter:blur(6px);touch-action:none}
@@ -174,12 +172,59 @@ header{flex-wrap:wrap}
 .camrow .sel{flex:1;min-width:0;min-height:36px;font-size:13px;border-width:1px}
 .camrow .chip{flex:none;min-height:36px;padding:4px 10px;font-size:12px;white-space:nowrap}
 .camrow .btn.sm{min-height:36px}
-.stage-wrap .chips.lang{margin-top:8px}
 .camrow .btn.sm{width:40px;flex:none;padding:0}
-#zr{flex:1;min-width:0;accent-color:var(--acc);height:28px;margin:0}
 #zv{min-width:42px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px;font-weight:700;color:var(--mute)}
 .hbtns{display:flex;gap:8px;align-items:center}
 #inst{width:auto;padding:0 12px;font-size:14px;font-weight:700;gap:6px;white-space:nowrap}
+
+/* ===== панель управления под камерой ===== */
+.cpanel{margin-top:10px;padding:12px;border-radius:26px;display:grid;gap:10px;color:#f1efff;
+  background:linear-gradient(165deg,#2a1f5c,#17122f 70%);border:1px solid rgba(124,58,237,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 30px rgba(20,10,60,.35)}
+.cpanel .ctl{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;margin:0}
+.cpanel .pb{min-height:56px;min-width:56px;padding:0 14px;border-radius:18px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(160deg,#2f2569,#221a4a);color:#f1efff;font:600 16px/1 inherit;font-family:inherit;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px}
+.cpanel #pp{width:62px;min-height:62px;border-radius:20px;font-size:24px;border:0;
+  background:linear-gradient(145deg,#8b5cf6,#5b34c9);box-shadow:0 6px 18px rgba(124,58,237,.5)}
+.cpanel #spd{min-width:88px;min-height:62px;font-size:20px;font-weight:800;border-radius:20px;background:linear-gradient(145deg,#5b34c9,#3f2a8a)}
+.cpanel #spd::after{content:"▾";font-size:14px;opacity:.9}
+.cpanel #ed{grid-column:1/4;justify-content:flex-start;min-height:62px;padding:0 22px;border-radius:22px;font-size:19px;font-weight:600;
+  background:linear-gradient(90deg,#4a32a0,#2b2160)}
+.cpanel #fs{grid-column:4;min-width:62px;min-height:62px;font-size:26px;border-radius:22px;background:linear-gradient(160deg,#2a2352,#1f1a42)}
+.cpanel #ptime{font-size:18px;color:#d8d4f5;min-width:0;padding:0 4px;white-space:nowrap}
+.cpanel input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:34px;margin:0;width:100%;min-width:0;flex:1 1 auto;--p:0%;--rt:rgba(230,225,255,.85)}
+.cpanel input[type=range]:focus{outline:none}
+.cpanel input[type=range]::-webkit-slider-runnable-track{height:12px;border-radius:99px;background:linear-gradient(90deg,#7c3aed var(--p),var(--rt) var(--p))}
+.cpanel input[type=range]::-moz-range-track{height:12px;border-radius:99px;background:var(--rt)}
+.cpanel input[type=range]::-moz-range-progress{height:12px;border-radius:99px;background:#7c3aed}
+.cpanel input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-9px;border-radius:50%;background:#7c3aed;border:3px solid #a78bfa;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.cpanel input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#7c3aed;border:3px solid #a78bfa;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.cpanel #zr{--rt:rgba(255,255,255,.28)}
+.cpanel .chips.lang{margin:0;gap:10px}
+.cpanel .chips.lang .chip{position:relative;min-height:60px;border-radius:22px;font-size:20px;color:#f1efff;
+  background:linear-gradient(160deg,#2a2158,#1d1740);border:1px solid rgba(255,255,255,.06)}
+.cpanel .chip kbd{display:none}
+.cpanel .chips.lang .chip.active{background:linear-gradient(135deg,#6d3fe0,#43267f);border:2px solid #b79cff;
+  box-shadow:0 0 0 3px rgba(124,58,237,.28),0 0 18px rgba(124,58,237,.5)}
+.cpanel .chips.lang .chip.active::after{content:"✓";position:absolute;right:14px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;
+  background:#8b5cf6;display:grid;place-items:center;font-size:16px;color:#fff}
+.cpanel .camrow{margin:0;gap:10px}
+.cpanel .selw{position:relative;flex:1;min-width:0}
+.cpanel .selw::before{content:"📷";position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:22px;pointer-events:none}
+.cpanel .camrow .sel{width:100%;min-height:60px;border-radius:22px;color:#f1efff;font-size:17px;font-weight:500;padding:0 46px 0 58px;border:1px solid rgba(124,58,237,.75);
+  -webkit-appearance:none;appearance:none;text-overflow:ellipsis;
+  background:#1d1740 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M4 7l6 6 6-6' fill='none' stroke='%23f1efff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 18px center}
+.cpanel .camrow .sel option{color:#111;background:#fff}
+.cpanel .camrow .btn.sm{width:62px;min-height:60px;border-radius:22px;font-size:22px;color:#f1efff;background:#241c4d;border:1px solid rgba(255,255,255,.08)}
+.cpanel #mirr{min-height:60px;border-radius:22px;background:#241c4d;color:#f1efff;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,.08);gap:8px}
+.cpanel #mirr::before{content:"◭";font-size:24px;color:#b79cff}
+.cpanel #mirr.active{border-color:#b79cff;background:#33266b}
+.cpanel #zv{font-size:22px;font-weight:500;color:#b9b3e6;min-width:68px;text-align:center}
+.player.edit .xtra,.player:fullscreen .xtra{display:none}
+.player:fullscreen .cpanel{background:rgba(20,16,50,.9)}
+#nname{min-height:50px;font-size:17px;font-weight:600;margin-top:6px}
+
 @media (max-width:900px){
   .grid{grid-template-columns:1fr}
   .plist{max-height:none}
@@ -193,6 +238,10 @@ header{flex-wrap:wrap}
   .row .tx{grid-column:1 / -1;grid-row:2}
   .logo small{display:none}
   .chip kbd{display:none}
+  .cpanel{padding:10px;gap:8px}
+  .cpanel #ptime{font-size:14px}
+  .cpanel #mirr{font-size:13px;padding:0 8px}
+  .cpanel .camrow .btn.sm{width:54px}
 }
 </style>
 </head>
@@ -217,26 +266,28 @@ header{flex-wrap:wrap}
           <button id="rec" aria-label="Record"><span class="dot"></span><span id="recTxt"></span></button>
           <button id="pz">⏸ Пауза</button>
         </div>
-        <div class="ctl" id="ctl">
-          <button class="pb" id="pp" disabled>▶</button>
-          <input type="range" id="seek" min="0" max="1000" value="0" step="1" disabled aria-label="Перемотка">
-          <div id="ptime">00:00 / 00:00</div>
-          <button class="pb" id="spd" disabled>1×</button>
-          <button class="pb" id="ed" disabled>✎ Edit voice timing</button>
-          <button class="pb" id="fs">⛶</button>
+        <div class="cpanel">
+          <div class="ctl" id="ctl">
+            <button class="pb" id="pp" disabled>▶</button>
+            <input type="range" id="seek" min="0" max="1000" value="0" step="1" disabled aria-label="Перемотка">
+            <div id="ptime">00:00 / 00:00</div>
+            <button class="pb" id="spd" disabled>1×</button>
+            <button class="pb" id="ed" disabled>✎ Edit voice timing</button>
+            <button class="pb" id="fs">⛶</button>
+          </div>
+          <div class="chips lang xtra" id="langs" title="Speech language">
+            <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
+            <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
+            <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
+          </div>
+          <div class="camrow xtra"><div class="selw"><select class="sel" id="camSel" aria-label="Camera"></select></div><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
+          <div class="camrow xtra"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
         </div>
         <div class="edit-pane" id="ep">
           <div class="ephead"><span data-i="edhint"></span><span style="display:flex;gap:6px;flex:none"><button class="btn sm" id="eadd" data-i="addHere"></button><button class="btn sm" id="edone" data-i="done"></button></span></div>
           <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
         </div>
         </div>
-        <div class="chips lang" id="langs" title="Speech language">
-          <button class="chip active" data-l="hy">Հայ <kbd>1</kbd></button>
-          <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
-          <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
-        </div>
-        <div class="camrow"><select class="sel" id="camSel" aria-label="Camera"></select><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
-        <div class="camrow"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
       </div>
 
       <div class="card">
@@ -292,6 +343,7 @@ header{flex-wrap:wrap}
 <div class="ovl" id="xbox"><div class="box"><h3 data-i="xTitle"></h3><div class="pct" id="xpct">0%</div><progress id="xbar" max="100" value="0"></progress><p data-i="xP"></p></div></div>
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
 <div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button><button class="btn" id="kskip" style="width:100%;margin-top:8px" data-i="kSkip"></button></div></div>
+<div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
 <canvas id="cv" style="display:none"></canvas>
 <div class="toast" id="toast"></div>
 
@@ -314,7 +366,7 @@ addHere:'＋ Phrase here',done:'Done',rec:'Record',stop:'Stop',pause:'⏸ Pause'
 stIdle:'waiting for recording',srp:'Speech recognition: ',
 cloudSum:'☁ Cloud recognition (free): sound and text together on phone',
 cloudHint:'<b>It is free, no card needed.</b> How to get a key: 1) open <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> and sign in with Google or email; 2) tap <b>Create API Key</b>; 3) enter any name and copy the key (it starts with gsk_); 4) paste it below and tap Save. Audio goes to Groq (Whisper) in 7-second pieces, text appears a few seconds later. The key is stored only in this browser.',
-save:'Save',keyOk:'Key saved: on phone, sound and text will work together.',keyOff:'Key removed: on phone text appears live, but the video has no sound.',toastKeyOk:'Key saved',toastKeyOff:'Key removed',
+save:'Save',keyOk:'Key saved: on phone, text appears a few seconds after the words, with sound.',keyOff:'Key removed: on phone the text is recognized right after you stop recording.',toastKeyOk:'Key saved',toastKeyOff:'Key removed',
 speechLang:'Speech language',speechLangHint:'switch even while recording',styleLbl:'Subtitle style',
 cam:'Camera',camN:'Camera {0}',mirOff:'Mirror: off',mirOn:'Mirror: on',zoom:'Zoom',mirLock:'Mirror cannot be changed during this recording',
 srt:'⬇ Download SRT',expMp4:'🎬 Export MP4',expWebm:'🎬 Export WebM',exPct:'Export… {0}%',
@@ -322,7 +374,7 @@ addM:'＋ Add phrase manually (at current moment)',
 expHint:'Export runs in real time and the audio is recorded with the video. Keep the tab open and active until it finishes.',
 phrases:'Phrases',clear:'Clear',limits:'Limits and tips',
 l1:'You need Chrome, internet (Chrome recognizes speech through Google) and camera and microphone permissions. If the page is open in an embedded window, open it in a separate tab.',
-l2:'On a phone the camera and speech recognition compete for the microphone. Without a cloud key the video is recorded without sound and text appears live. With a free Groq key, sound and text work together.',
+l2:'On a phone the video is always recorded with sound. Without a cloud key the text is recognized right after you stop (the video plays once while the text is collected). With a free Groq key the text arrives while you record.',
 l3:'Word timing is approximate because the browser gives it only for a whole phrase. Use the timeline for exact adjustment.',
 l4:'Mixed speech is recognized by switching the language with the buttons or the 1, 2, 3 keys.',
 l5:'For automatic language detection and exact word timing, server-side Whisper large-v3 works well (Armenian is weaker there).',
@@ -330,7 +382,7 @@ empty:'Phrases will appear here when you start speaking.',
 restored:'Phrases restored from the saved session',
 errNA:'Access to speech recognition is blocked. Allow the microphone in site settings and open the page in a separate Chrome tab.',
 errSNA:'Speech recognition is not allowed in this window. Open the page in a separate Chrome tab (not an embedded view).',
-errAC:'Recognition gets no audio: the microphone is busy with video recording. On phone text appears live and the video has no sound.',
+errAC:'Recognition gets no audio: the microphone is busy with video recording.',
 errNet:'No connection to the Google recognition service. Check your internet.',
 errLang:'This language is not supported by recognition in your browser.',
 errGeneric:'Recognition error: {0}',srNo:'not supported by this browser. Chrome is required',
@@ -339,7 +391,7 @@ cloudSend:'cloud: sending audio…',keyBad:'The service rejected the key. Check 
 doneSt:'done ✓',nothing:'nothing recognized',
 camDenied:'Camera and microphone access is blocked. Allow it in site settings and open the page in a separate tab.',
 newRec:'Start a new recording? Current phrases will be deleted.',
-mutedMode:'Phone mode: video is recorded without sound, the microphone is used for text recognition.',
+mutedMode:'Recording with sound.',
 recUnsup:'Video recording is available in Chrome.',starting:'starting…',
 cloudRec:'cloud: recording with sound, text arrives a few seconds later',cloudToast:'Recording with sound. Text appears a few seconds after the words.',
 noText:'No text appeared within 8 seconds. Common reasons: the page is open in an embedded window (open it in a separate Chrome tab) or there is no internet (Chrome recognizes speech via Google). You can add phrases manually with the Add phrase manually button and adjust them on the timeline.',
@@ -358,10 +410,10 @@ iIos:'<p><b>iPhone / iPad.</b> Open the page in Safari (other browsers cannot in
 iAnd:'<p><b>Android.</b> Open the page in Chrome.</p><ol><li>Tap ⋮ (three dots) at the top right.</li><li>Choose Install app or Add to Home screen.</li><li>Confirm Install. The icon appears on your home screen.</li></ol>',
 iDesk:'<p><b>Computer.</b> In Chrome click the install icon ⊕ on the right of the address bar or the menu ⋮ → Install Subtitle Studio.</p><p>On phone: Android, Chrome menu ⋮ → Install app; iPhone, Safari Share → Add to Home Screen.</p>',
 iNote:'<p>Installing works when the page is opened from an https address (not as a file on the device).</p>',installed:'App installed',
-eTitle:'Track text',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save',
+eTitle:'Track text',nTitle:'Project name',laterMode:'Recording with sound. Text will be recognized right after you stop.',laterSt:'recording with sound, text after stop',eNew:'New phrase',eCancel:'Cancel',eDel:'🗑 Delete',eSave:'Save',
 kTitle:'🔑 One step before recording',
-kText:'To record <b>with sound and live text together</b> on a phone you need a free Groq key. No card needed.<br>1) Open <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> and sign in with Google or email.<br>2) Tap <b>Create API Key</b> and enter any name.<br>3) Copy the key (it starts with gsk_) and paste it below.',
-kSave:'Save key and start recording',kSkip:'Record without sound'
+kText:'To get <b>live text while recording</b> on a phone you need a free Groq key. No card needed.<br>1) Open <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> and sign in with Google or email.<br>2) Tap <b>Create API Key</b> and enter any name.<br>3) Copy the key (it starts with gsk_) and paste it below.',
+kSave:'Save key and start recording',kSkip:'Record with sound, text after stop'
 },
 ru:{
 title:'Студия субтитров',tag:'Пишите видео, текст и монтаж появляются сразу',inst:'⬇ Установить',
@@ -371,15 +423,15 @@ addHere:'＋ Фраза здесь',done:'Готово',rec:'Запись',stop:
 stIdle:'ожидание записи',srp:'Распознавание речи: ',
 cloudSum:'☁ Облачное распознавание (бесплатно): звук и текст вместе на телефоне',
 cloudHint:'<b>Это бесплатно, карта не нужна.</b> Как получить ключ: 1) откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту; 2) нажмите <b>Create API Key</b>; 3) введите любое имя и скопируйте ключ (он начинается с gsk_); 4) вставьте его ниже и нажмите «Сохранить». Звук уходит в Groq (Whisper) кусочками по 7 секунд, текст появляется с задержкой в несколько секунд. Ключ хранится только в этом браузере.',
-save:'Сохранить',keyOk:'Ключ сохранён: на телефоне звук и текст пойдут вместе.',keyOff:'Ключ удалён: на телефоне текст сразу, но видео без звука.',toastKeyOk:'Ключ сохранён',toastKeyOff:'Ключ удалён',
+save:'Сохранить',keyOk:'Ключ сохранён: на телефоне звук пишется вместе с текстом, текст приходит через несколько секунд после слов.',keyOff:'Ключ удалён: на телефоне текст распознаётся сразу после остановки записи.',toastKeyOk:'Ключ сохранён',toastKeyOff:'Ключ удалён',
 speechLang:'Язык речи',speechLangHint:'переключайте даже во время записи',styleLbl:'Стиль субтитров',
-cam:'Камера',camN:'Камера {0}',mirOff:'Зеркало: выкл',mirOn:'Зеркало: вкл',zoom:'Зум',mirLock:'Зеркало нельзя менять во время этой записи',
+cam:'Камера',camN:'Камера {0}',mirOff:'Зеркало: выкл',mirOn:'Зеркало: вкл',zoom:'Зум',mirLock:'Зеркало можно менять только вне записи',
 srt:'⬇ Скачать SRT',expMp4:'🎬 Экспорт MP4',expWebm:'🎬 Экспорт WebM',exPct:'Экспорт… {0}%',
 addM:'＋ Фраза вручную (в текущий момент)',
 expHint:'Экспорт идёт в реальном времени, звук записывается вместе с видео. Держите вкладку открытой и активной до конца.',
 phrases:'Фразы',clear:'Очистить',limits:'Ограничения и подсказки',
 l1:'Нужен Chrome, интернет (Chrome распознаёт речь через сервер Google) и разрешения на камеру и микрофон. Если страница открыта во встроенном окне, откройте её в отдельной вкладке.',
-l2:'На телефоне камера и распознавание речи спорят за микрофон. Без облачного ключа видео пишется без звука, а текст идёт сразу. С бесплатным ключом Groq звук и текст работают вместе.',
+l2:'На телефоне видео всегда пишется со звуком. Без облачного ключа текст распознаётся сразу после остановки (видео проигрывается один раз, пока собирается текст). С бесплатным ключом Groq текст приходит прямо во время записи.',
 l3:'Время слов приблизительное, браузер его отдаёт только для фразы целиком. Для точной подгонки есть таймлайн.',
 l4:'Смешанная речь распознаётся через переключение языка кнопками или клавишами 1, 2, 3.',
 l5:'Для автоопределения языка и точных таймкодов по словам подойдёт серверный Whisper large-v3 (армянский у него слабее).',
@@ -387,38 +439,38 @@ empty:'Фразы появятся здесь, когда вы начнёте г
 restored:'Фразы восстановлены из сохранения',
 errNA:'Доступ к распознаванию речи закрыт. Разрешите микрофон в настройках сайта и откройте страницу в отдельной вкладке Chrome.',
 errSNA:'Распознавание речи запрещено в этом окне. Откройте страницу в отдельной вкладке Chrome (не во встроенном просмотре).',
-errAC:'Распознавание не получает звук: микрофон занят видеозаписью. На телефоне текст идёт сразу, видео пишется без звука.',
+errAC:'Распознавание получает тишину: микрофон занят видеозаписью.',
 errNet:'Нет связи с сервисом распознавания Google. Проверьте интернет.',
 errLang:'Этот язык не поддерживается распознаванием в вашем браузере.',
 errGeneric:'Ошибка распознавания: {0}',srNo:'не поддерживается браузером. Нужен Chrome',
 listen:'слушаю ({0})…',audioOn:'звук идёт, жду речь…',speech:'слышу речь…',textOn:'текст идёт ✓',silence:'тишина, жду речь…',errSt:'ошибка «{0}»',startFail:'не удалось запустить ({0})',
-cloudSend:'облако: отправляю звук…',keyBad:'Ключ не принят сервисом. Проверьте ключ в блоке «Облачное распознавание».',keyBadSt:'ключ не принят',cloudLim:'облако: лимит сервиса, часть фраз пропущена',cloudErr:'облако: ошибка {0}',cloudOk:'облако: текст идёт ✓',cloudWait:'облако: жду речь…',cloudNet:'облако: нет связи с сервисом',
+cloudSend:'облако: отправляю звук…',keyBad:'Ключ отклонён сервисом. Проверьте ключ в блоке «Облачное распознавание».',keyBadSt:'ключ отклонён',cloudLim:'облако: лимит сервиса, часть фраз пропущена',cloudErr:'облако: ошибка {0}',cloudOk:'облако: текст идёт ✓',cloudWait:'облако: жду речь…',cloudNet:'облако: связь с сервисом прервана',
 doneSt:'готово ✓',nothing:'ничего не распознано',
 camDenied:'Доступ к камере и микрофону закрыт. Разрешите его в настройках сайта и откройте страницу в отдельной вкладке.',
 newRec:'Начать новую запись? Текущие фразы будут удалены.',
-mutedMode:'Режим телефона: видео записывается без звука, микрофон работает на распознавание текста.',
+mutedMode:'Запись со звуком.',
 recUnsup:'Запись видео доступна в Chrome.',starting:'запускаю…',
 cloudRec:'облако: запись со звуком, текст придёт через несколько секунд',cloudToast:'Запись со звуком. Текст появится через несколько секунд после слов.',
-noText:'Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); нет интернета (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.',
+noText:'Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); интернет отключён (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.',
 finishing:'доделываю текст…',stopped:'остановлено',paused:'пауза',listenSimple:'слушаю…',
-noAudio:'В записи нет звука: микрофон был занят или заглушён. Запишите ещё раз.',
+noAudio:'В записи тишина: микрофон был занят или выключен. Запишите ещё раз.',
 newPhrase:'Новая фраза',example:'Пример субтитров',subWord:'Субтитры',cutT:'Вырезать',restoreT:'Вернуть',noSrt:'Нет фраз для SRT.',
 fsNA:'Полный экран недоступен в этом окне.',fsNS:'Полный экран не поддерживается.',
 exNA:'Экспорт видео доступен в Chrome.',vidLoading:'Видео ещё загружается.',exToast:'Экспорт идёт в реальном времени. Держите вкладку открытой.',
-exWebm:'Этот браузер не умеет писать MP4, сохраню WebM. Для MP4 откройте страницу в свежем Chrome.',exDone:'Готово: {0} (видео, звук и субтитры вместе)',
+exWebm:'Этот браузер пишет только WebM, сохраню WebM. Для MP4 откройте страницу в свежем Chrome.',exDone:'Готово: {0} (видео, звук и субтитры вместе)',
 clearQ:'Очистить все фразы?',
 bNoSR:'Распознавание речи работает в Chrome. Откройте страницу в Chrome, чтобы текст появлялся во время записи.',
 bNoMedia:'Камера и микрофон доступны на странице с защищённым соединением. Откройте файл в Chrome в отдельной вкладке.',
-xTitle:'🎬 Идёт экспорт видео',xP:'Не закрывайте и не сворачивайте вкладку, не нажимайте ничего. Файл скачается сам, когда экспорт закончится.',
+xTitle:'🎬 Идёт экспорт видео',xP:'Держите вкладку открытой и на экране, ничего не нажимайте. Файл скачается сам, когда экспорт закончится.',
 iTitle:'Установить на телефон',iClose:'Понятно',
 iIos:'<p><b>iPhone / iPad.</b> Откройте страницу именно в Safari (в других браузерах установки нет).</p><ol><li>Нажмите «Поделиться» (квадрат со стрелкой вверх) внизу экрана.</li><li>Прокрутите список вниз и выберите «На экран Домой».</li><li>Нажмите «Добавить». Иконка появится на главном экране.</li></ol>',
 iAnd:'<p><b>Android.</b> Откройте страницу в Chrome.</p><ol><li>Нажмите ⋮ (три точки) справа вверху.</li><li>Выберите «Установить приложение» или «Добавить на главный экран».</li><li>Подтвердите «Установить». Иконка появится на главном экране.</li></ol>',
 iDesk:'<p><b>Компьютер.</b> В Chrome нажмите значок установки ⊕ справа в адресной строке или меню ⋮ → «Установить Студию субтитров».</p><p>На телефоне: Android — Chrome, меню ⋮ → «Установить приложение»; iPhone — Safari, «Поделиться» → «На экран Домой».</p>',
 iNote:'<p>Установка работает, когда страница открыта по адресу https (не как файл на устройстве).</p>',installed:'Приложение установлено',
-eTitle:'Текст дорожки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить',
+eTitle:'Текст дорожки',nTitle:'Название проекта',laterMode:'Запись со звуком. Текст распознается сразу после остановки.',laterSt:'запись со звуком, текст после остановки',eNew:'Новая фраза',eCancel:'Отмена',eDel:'🗑 Удалить',eSave:'Сохранить',
 kTitle:'🔑 Один шаг перед записью',
-kText:'Чтобы на телефоне писать <b>со звуком и текстом одновременно</b>, нужен бесплатный ключ Groq. Карта не нужна.<br>1) Откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту.<br>2) Нажмите <b>Create API Key</b> и введите любое имя.<br>3) Скопируйте ключ (он начинается с gsk_) и вставьте его ниже.',
-kSave:'Сохранить ключ и начать запись',kSkip:'Записать без звука'
+kText:'Чтобы на телефоне получать <b>текст прямо во время записи</b>, нужен бесплатный ключ Groq. Карта не нужна.<br>1) Откройте <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> и войдите через Google или почту.<br>2) Нажмите <b>Create API Key</b> и введите любое имя.<br>3) Скопируйте ключ (он начинается с gsk_) и вставьте его ниже.',
+kSave:'Сохранить ключ и начать запись',kSkip:'Записать со звуком, текст после стопа'
 },
 hy:{
 title:'Ենթագրերի ստուդիա',tag:'Նկարեք տեսանյութ, տեքստն ու մոնտաժը հայտնվում են անմիջապես',inst:'⬇ Տեղադրել',
@@ -428,15 +480,15 @@ addHere:'＋ Արտահայտություն այստեղ',done:'Պատրաստ �
 stIdle:'սպասում է ձայնագրության',srp:'Խոսքի ճանաչում՝ ',
 cloudSum:'☁ Ամպային ճանաչում (անվճար)՝ ձայնն ու տեքստը միասին հեռախոսում',
 cloudHint:'<b>Անվճար է, քարտ պետք չէ։</b> Ինչպես ստանալ բանալի․ 1) բացեք <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> և մուտք գործեք Google-ով կամ փոստով․ 2) սեղմեք <b>Create API Key</b>․ 3) մուտքագրեք ցանկացած անուն և պատճենեք բանալին (սկսվում է gsk_-ով)․ 4) տեղադրեք այն ներքևում և սեղմեք «Պահել»։ Ձայնը Groq-ին (Whisper) է ուղարկվում 7 վայրկյանանոց կտորներով, տեքստը հայտնվում է մի քանի վայրկյան ուշացումով։ Բանալին պահվում է միայն այս դիտարկիչում։',
-save:'Պահել',keyOk:'Բանալին պահվեց․ հեռախոսում ձայնն ու տեքստը կաշխատեն միասին։',keyOff:'Բանալին ջնջվեց․ հեռախոսում տեքստը գալիս է անմիջապես, բայց տեսանյութը՝ առանց ձայնի։',toastKeyOk:'Բանալին պահվեց',toastKeyOff:'Բանալին ջնջվեց',
+save:'Պահել',keyOk:'Բանալին պահվեց․ հեռախոսում ձայնը ձայնագրվում է տեքստի հետ, տեքստը գալիս է բառերից մի քանի վայրկյան անց։',keyOff:'Բանալին ջնջվեց․ հեռախոսում տեքստը ճանաչվում է ձայնագրությունը կանգնեցնելուց անմիջապես հետո։',toastKeyOk:'Բանալին պահվեց',toastKeyOff:'Բանալին ջնջվեց',
 speechLang:'Խոսքի լեզու',speechLangHint:'փոխեք նույնիսկ ձայնագրության ժամանակ',styleLbl:'Ենթագրերի ոճ',
-cam:'Տեսախցիկ',camN:'Տեսախցիկ {0}',mirOff:'Հայելի՝ անջատ',mirOn:'Հայելի՝ միացված',zoom:'Խոշորացում',mirLock:'Հայելին չի կարելի փոխել այս ձայնագրության ժամանակ',
+cam:'Տեսախցիկ',camN:'Տեսախցիկ {0}',mirOff:'Հայելի՝ անջատ',mirOn:'Հայելի՝ միացված',zoom:'Խոշորացում',mirLock:'Հայելին կարելի է փոխել միայն ձայնագրությունից դուրս',
 srt:'⬇ Ներբեռնել SRT',expMp4:'🎬 Արտահանել MP4',expWebm:'🎬 Արտահանել WebM',exPct:'Արտահանում… {0}%',
 addM:'＋ Ավելացնել արտահայտություն (ընթացիկ պահին)',
 expHint:'Արտահանումը կատարվում է իրական ժամանակում, ձայնը ձայնագրվում է տեսանյութի հետ։ Պահեք էջը բաց և ակտիվ մինչև ավարտը։',
 phrases:'Արտահայտություններ',clear:'Մաքրել',limits:'Սահմանափակումներ և հուշումներ',
 l1:'Պետք է Chrome, ինտերնետ (Chrome-ը խոսքը ճանաչում է Google-ի սերվերով) և տեսախցիկի ու խոսափողի թույլտվություն։ Եթե էջը բաց է ներկառուցված պատուհանում, բացեք առանձին ներդիրում։',
-l2:'Հեռախոսում տեսախցիկը և խոսքի ճանաչումը վիճում են խոսափողի համար։ Առանց ամպային բանալու տեսանյութը ձայնագրվում է առանց ձայնի, իսկ տեքստը գալիս է անմիջապես։ Groq-ի անվճար բանալիով ձայնն ու տեքստը աշխատում են միասին։',
+l2:'Հեռախոսում տեսանյութը միշտ ձայնագրվում է ձայնով։ Ամպային բանալիով տեքստը գալիս է ձայնագրության ընթացքում, առանց բանալու՝ կանգնեցնելուց անմիջապես հետո։',
 l3:'Բառերի ժամանակը մոտավոր է, դիտարկիչը այն տալիս է միայն ամբողջ արտահայտության համար։ Ճշգրիտ կարգավորման համար կա ժամանակագիծը։',
 l4:'Խառը խոսքը ճանաչվում է լեզվի փոխարկմամբ՝ կոճակներով կամ 1, 2, 3 ստեղներով։',
 l5:'Լեզվի ավտոմատ որոշման և բառերի ճշգրիտ ժամանակի համար հարմար է սերվերային Whisper large-v3 (հայերենը նրա մոտ ավելի թույլ է)։',
@@ -444,38 +496,38 @@ empty:'Արտահայտությունները կհայտնվեն այստեղ, �
 restored:'Արտահայտությունները վերականգնվեցին պահպանումից',
 errNA:'Խոսքի ճանաչման հասանելիությունը փակ է։ Թույլատրեք խոսափողը կայքի կարգավորումներում և բացեք էջը Chrome-ի առանձին ներդիրում։',
 errSNA:'Խոսքի ճանաչումն այս պատուհանում արգելված է։ Բացեք էջը Chrome-ի առանձին ներդիրում (ոչ թե ներկառուցված դիտման մեջ)։',
-errAC:'Ճանաչումը ձայն չի ստանում․ խոսափողը զբաղված է տեսաձայնագրությամբ։ Հեռախոսում տեքստը գալիս է անմիջապես, տեսանյութը՝ առանց ձայնի։',
+errAC:'Ճանաչումը լռություն է ստանում․ խոսափողը զբաղված է տեսաձայնագրությամբ։',
 errNet:'Կապ չկա Google-ի ճանաչման ծառայության հետ։ Ստուգեք ինտերնետը։',
 errLang:'Այս լեզուն չի աջակցվում ձեր դիտարկիչի ճանաչմամբ։',
 errGeneric:'Ճանաչման սխալ՝ {0}',srNo:'չի աջակցվում դիտարկիչի կողմից։ Պետք է Chrome',
 listen:'լսում եմ ({0})…',audioOn:'ձայն կա, սպասում եմ խոսքի…',speech:'լսում եմ խոսք…',textOn:'տեքստը գալիս է ✓',silence:'լռություն, սպասում եմ խոսքի…',errSt:'սխալ «{0}»',startFail:'չհաջողվեց գործարկել ({0})',
-cloudSend:'ամպ՝ ուղարկում եմ ձայնը…',keyBad:'Ծառայությունը չընդունեց բանալին։ Ստուգեք բանալին «Ամպային ճանաչում» բլոկում։',keyBadSt:'բանալին չընդունվեց',cloudLim:'ամպ՝ ծառայության սահման, որոշ արտահայտություններ բաց են թողնվել',cloudErr:'ամպ՝ սխալ {0}',cloudOk:'ամպ՝ տեքստը գալիս է ✓',cloudWait:'ամպ՝ սպասում եմ խոսքի…',cloudNet:'ամպ՝ կապ չկա ծառայության հետ',
+cloudSend:'ամպ՝ ուղարկում եմ ձայնը…',keyBad:'Ծառայությունը մերժեց բանալին։ Ստուգեք բանալին «Ամպային ճանաչում» բլոկում։',keyBadSt:'բանալին մերժվեց',cloudLim:'ամպ՝ ծառայության սահման, որոշ արտահայտություններ բաց են թողնվել',cloudErr:'ամպ՝ սխալ {0}',cloudOk:'ամպ՝ տեքստը գալիս է ✓',cloudWait:'ամպ՝ սպասում եմ խոսքի…',cloudNet:'ամպ՝ կապը ծառայության հետ ընդհատվեց',
 doneSt:'պատրաստ է ✓',nothing:'ոչինչ չճանաչվեց',
 camDenied:'Տեսախցիկի և խոսափողի հասանելիությունը փակ է։ Թույլատրեք այն կայքի կարգավորումներում և բացեք էջը առանձին ներդիրում։',
 newRec:'Սկսե՞լ նոր ձայնագրություն։ Ընթացիկ արտահայտությունները կջնջվեն։',
-mutedMode:'Հեռախոսի ռեժիմ․ տեսանյութը ձայնագրվում է առանց ձայնի, խոսափողն աշխատում է տեքստի ճանաչման համար։',
+mutedMode:'Ձայնագրություն ձայնով։',
 recUnsup:'Տեսաձայնագրությունը հասանելի է Chrome-ում։',starting:'գործարկվում է…',
 cloudRec:'ամպ՝ ձայնագրություն ձայնով, տեքստը կգա մի քանի վայրկյանից',cloudToast:'Ձայնագրություն ձայնով։ Տեքստը կհայտնվի բառերից մի քանի վայրկյան անց։',
-noText:'Տեքստը 8 վայրկյանում չհայտնվեց։ Հաճախ պատճառը՝ էջը բաց է ներկառուցված պատուհանում (բացեք Chrome-ի առանձին ներդիրում) կամ ինտերնետ չկա։ Արտահայտությունները կարելի է ավելացնել ձեռքով «Ավելացնել արտահայտություն» կոճակով և ճշգրտել ժամանակագծի վրա։',
+noText:'Տեքստը 8 վայրկյանում չհայտնվեց։ Հաճախ պատճառը՝ էջը բաց է ներկառուցված պատուհանում (բացեք Chrome-ի առանձին ներդիրում) կամ ինտերնետը անջատված է։ Արտահայտությունները կարելի է ավելացնել ձեռքով «Ավելացնել արտահայտություն» կոճակով և ճշգրտել ժամանակագծի վրա։',
 finishing:'ավարտում եմ տեքստը…',stopped:'կանգնեցված է',paused:'դադար',listenSimple:'լսում եմ…',
-noAudio:'Ձայնագրության մեջ ձայն չկա․ խոսափողը զբաղված էր կամ անջատված։ Ձայնագրեք նորից։',
+noAudio:'Ձայնագրության մեջ լռություն է․ խոսափողը զբաղված էր կամ անջատված։ Ձայնագրեք նորից։',
 newPhrase:'Նոր արտահայտություն',example:'Ենթագրերի օրինակ',subWord:'Ենթագրեր',cutT:'Կտրել',restoreT:'Վերադարձնել',noSrt:'SRT-ի համար արտահայտություններ չկան։',
 fsNA:'Լիաէկրանն այս պատուհանում հասանելի չէ։',fsNS:'Լիաէկրանը չի աջակցվում։',
 exNA:'Տեսանյութի արտահանումը հասանելի է Chrome-ում։',vidLoading:'Տեսանյութը դեռ բեռնվում է։',exToast:'Արտահանումը կատարվում է իրական ժամանակում։ Պահեք էջը բաց։',
-exWebm:'Այս դիտարկիչը չի կարող գրել MP4, կպահեմ WebM։ MP4-ի համար բացեք էջը թարմ Chrome-ում։',exDone:'Պատրաստ է՝ {0} (տեսանյութ, ձայն և ենթագրեր միասին)',
+exWebm:'Այս դիտարկիչը գրում է միայն WebM, կպահեմ WebM։ MP4-ի համար բացեք էջը թարմ Chrome-ում։',exDone:'Պատրաստ է՝ {0} (տեսանյութ, ձայն և ենթագրեր միասին)',
 clearQ:'Մաքրե՞լ բոլոր արտահայտությունները։',
 bNoSR:'Խոսքի ճանաչումը աշխատում է Chrome-ում։ Բացեք էջը Chrome-ում, որպեսզի ձայնագրության ժամանակ տեքստ հայտնվի։',
 bNoMedia:'Տեսախցիկն ու խոսափողը հասանելի են պաշտպանված (https) էջում։ Բացեք ֆայլը Chrome-ի առանձին ներդիրում։',
-xTitle:'🎬 Տեսանյութը արտահանվում է',xP:'Մի փակեք և մի ծալեք ներդիրը, ոչինչ մի սեղմեք։ Ֆայլը ինքն իրեն կներբեռնվի, երբ արտահանումն ավարտվի։',
+xTitle:'🎬 Տեսանյութը արտահանվում է',xP:'Պահեք ներդիրը բաց և էկրանին, ոչինչ մի սեղմեք։ Ֆայլը ինքն իրեն կներբեռնվի, երբ արտահանումն ավարտվի։',
 iTitle:'Տեղադրել հեռախոսում',iClose:'Հասկանալի է',
 iIos:'<p><b>iPhone / iPad։</b> Բացեք էջը հենց Safari-ում (այլ դիտարկիչներում տեղադրում չկա)։</p><ol><li>Էկրանի ներքևում սեղմեք «Կիսվել» (քառակուսի՝ վերև սլաքով)։</li><li>Ցանկը ոլորեք ներքև և ընտրեք «Ավելացնել Home Screen»։</li><li>Սեղմեք «Ավելացնել»։ Պատկերակը կհայտնվի գլխավոր էկրանին։</li></ol>',
 iAnd:'<p><b>Android։</b> Բացեք էջը Chrome-ում։</p><ol><li>Վերևի աջ մասում սեղմեք ⋮ (երեք կետ)։</li><li>Ընտրեք «Տեղադրել հավելվածը» կամ «Ավելացնել գլխավոր էկրան»։</li><li>Հաստատեք «Տեղադրել»։ Պատկերակը կհայտնվի գլխավոր էկրանին։</li></ol>',
 iDesk:'<p><b>Համակարգիչ։</b> Chrome-ում սեղմեք տեղադրման պատկերակը ⊕ հասցեագոտու աջ մասում կամ ցանկը ⋮ → «Տեղադրել Ենթագրերի ստուդիան»։</p><p>Հեռախոսում․ Android՝ Chrome, ցանկ ⋮ → «Տեղադրել հավելվածը»․ iPhone՝ Safari, «Կիսվել» → «Ավելացնել Home Screen»։</p>',
 iNote:'<p>Տեղադրումը աշխատում է, երբ էջը բաց է https հասցեով (ոչ թե որպես սարքի ֆայլ)։</p>',installed:'Հավելվածը տեղադրվեց',
-eTitle:'Ուղու տեքստ',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել',
+eTitle:'Ուղու տեքստ',nTitle:'Նախագծի անվանում',laterMode:'Ձայնագրություն ձայնով։ Տեքստը կճանաչվի կանգնեցնելուց անմիջապես հետո։',laterSt:'ձայնագրություն ձայնով, տեքստը՝ կանգից հետո',eNew:'Նոր արտահայտություն',eCancel:'Չեղարկել',eDel:'🗑 Ջնջել',eSave:'Պահել',
 kTitle:'🔑 Մեկ քայլ ձայնագրությունից առաջ',
-kText:'Հեռախոսում <b>ձայնով և տեքստով միասին</b> ձայնագրելու համար պետք է Groq-ի անվճար բանալի։ Քարտ պետք չէ։<br>1) Բացեք <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> և մուտք գործեք Google-ով կամ փոստով։<br>2) Սեղմեք <b>Create API Key</b> և մուտքագրեք ցանկացած անուն։<br>3) Պատճենեք բանալին (սկսվում է gsk_-ով) և տեղադրեք ներքևում։',
-kSave:'Պահել բանալին և սկսել ձայնագրությունը',kSkip:'Ձայնագրել առանց ձայնի'
+kText:'Հեռախոսում <b>տեքստը ձայնագրության ընթացքում</b> ստանալու համար պետք է Groq-ի անվճար բանալի։ Քարտ պետք չէ։<br>1) Բացեք <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> և մուտք գործեք Google-ով կամ փոստով։<br>2) Սեղմեք <b>Create API Key</b> և մուտքագրեք ցանկացած անուն։<br>3) Պատճենեք բանալին (սկսվում է gsk_-ով) և տեղադրեք ներքևում։',
+kSave:'Պահել բանալին և սկսել ձայնագրությունը',kSkip:'Ձայնագրել ձայնով, տեքստը՝ կանգից հետո'
 }
 };
 const SN={
@@ -489,6 +541,7 @@ const t=(k,...a)=>{let s=(I18[ui]&&I18[ui][k])||I18.en[k]||k;a.forEach((x,i)=>{s
 let phrases=[], map={}, dur=0, lang='hy', style='classic';
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
+let projName='';
 const STY={
 classic:{n:'Классика',c:'#fff',bg:'rgba(0,0,0,.6)',r:.2,w:600},
 bold:{n:'Жирный жёлтый',c:'#FFD60A',up:1,w:900,st:.2,sc:'#000'},
@@ -522,6 +575,7 @@ const pad=(n,l)=>String(n).padStart(l||2,'0');
 function fmt(t){t=Math.max(0,t);return pad(Math.floor(t/60))+':'+pad(Math.floor(t%60))}
 function fmtSrt(t){t=Math.max(0,t);const ms=Math.round(t*1000);const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60;return pad(h)+':'+pad(m)+':'+pad(s)+','+pad(ms%1000,3)}
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+function fillR(el){const mn=parseFloat(el.min)||0,mx=parseFloat(el.max)||100,p=mx>mn?(el.value-mn)/(mx-mn)*100:0;el.style.setProperty('--p',Math.max(0,Math.min(100,p))+'%')}
 const allC=()=>phrases.flatMap(p=>p.c||[]);
 function span(p){const c=p.c&&p.c.length?p.c:null;return c?[Math.min(...c.map(x=>x.s)),Math.max(...c.map(x=>x.e))]:[p.s,p.e]}
 function cutSpans(){
@@ -531,6 +585,21 @@ function cutSpans(){
 }
 function chunkAt(t){let r=null;for(const p of phrases){if(p.cut||!p.c)continue;for(const c of p.c){if(c.s<=t&&t<c.e)r=c}}return r}
 function pickMime(){const l=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];for(const m of l){if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m))return m}return''}
+
+/* ---------- название проекта при сохранении ---------- */
+function defName(){const d=new Date();return 'SS_'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())}
+function askName(){
+  return new Promise(res=>{
+    const box=$('#nbox'),inp=$('#nname'),ok=$('#nok'),cn=$('#ncancel');
+    inp.value=projName||defName();
+    box.classList.add('show');
+    setTimeout(()=>{try{inp.focus();inp.select()}catch(e){}},60);
+    const done=val=>{box.classList.remove('show');ok.onclick=null;cn.onclick=null;inp.onkeydown=null;res(val)};
+    ok.onclick=()=>{let n=inp.value.trim().replace(/[\\\/:*?"<>|]+/g,'_');if(!n)n=defName();projName=n;done(n)};
+    cn.onclick=()=>done(null);
+    inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();ok.onclick()}else if(e.key==='Escape')done(null)};
+  });
+}
 
 /* ---------- сохранение ---------- */
 function save(){try{localStorage.setItem('substudio',JSON.stringify({phrases,dur,style},(k,v)=>k==='g'?undefined:v))}catch(e){}}
@@ -617,13 +686,19 @@ function startSR(){
 function setLang(l){
   lang=l;if(recording)langLog.push({t:rt(),l});
   document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
-  if((recording||passing)&&SR&&!paused){
+  if((recording||passing)&&SR&&!paused&&!laterRec){
     epoch++;
     if(sr){sr.onend=null;sr.onresult=null;sr.onerror=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}sr=null}
     clearTimeout(setLang._t);setLang._t=setTimeout(()=>{if((recording||passing)&&!paused)startSR()},120);
   }
+  if(passing&&SR&&!recording){
+    epoch++;
+    if(sr){sr.onend=null;sr.onresult=null;sr.onerror=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}sr=null}
+    clearTimeout(setLang._t);setLang._t=setTimeout(()=>{if(passing)startSR()},120);
+  }
   if(recording&&cl.on&&!paused){clearTimeout(cl.timer);const old=cl.rec;cloudNext();try{old&&old.state!=='inactive'&&old.stop()}catch(e){}}
 }
+let laterRec=false;
 function setStyle(k,quiet){
   if(!STY[k])k='classic';
   style=k;const d=STY[k];
@@ -634,17 +709,6 @@ function setStyle(k,quiet){
   o.textTransform=d.up?'uppercase':'none';
   o.webkitTextStroke=d.st?d.st+'em '+d.sc:'0';o.paintOrder=d.st?'stroke fill':'normal';
   o.textShadow=d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none';
-  const c=$('#ctl').style;
-  c.setProperty('--pc',d.c);
-  c.setProperty('--pbg',d.bg||'rgba(0,0,0,.55)');
-  c.setProperty('--pr',(d.bg?(d.r||.1):.4)+'em');
-  c.setProperty('--pw',d.w);
-  c.setProperty('--pf',d.fam||'inherit');
-  c.setProperty('--pit',d.it?'italic':'normal');
-  c.setProperty('--pup',d.up?'uppercase':'none');
-  c.setProperty('--pstroke',d.st?(d.st*0.5)+'em '+d.sc:'0');
-  c.setProperty('--pst',d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none');
-  c.setProperty('--pa',(d.bg&&!/^rgba\(0,0,0/.test(d.bg))?d.bg:d.c);
   if(!quiet){previewUntil=performance.now()+2000;save()}
 }
 
@@ -714,11 +778,11 @@ function setupZoom(){
   try{const tr=stream.getVideoTracks()[0],c=tr.getCapabilities?tr.getCapabilities():{};
     if(c.zoom&&c.zoom.max>c.zoom.min){hwZoom=true;zmin=c.zoom.min;zmax=c.zoom.max;zstep=c.zoom.step||0.1}}catch(e){}
   zoom=Math.min(zmax,Math.max(zmin,zoom));
-  const r=$('#zr');r.min=zmin;r.max=zmax;r.step=zstep;r.value=zoom;
-  if(hwZoom)hwApply();
+  const r=$('#zr');r.min=zmin;r.max=zmax;r.step=zstep;r.value=zoom;fillR(r);
+  if(hwZoom&&zoom>zmin+0.01)hwApply();
   zlabel();
 }
-function setZoom(z){zoom=Math.min(zmax,Math.max(zmin,z));$('#zr').value=zoom;if(hwZoom)hwApply();applyView();zlabel()}
+function setZoom(z){zoom=Math.min(zmax,Math.max(zmin,z));$('#zr').value=zoom;fillR($('#zr'));if(hwZoom)hwApply();applyView();zlabel()}
 $('#zr').oninput=e=>setZoom(parseFloat(e.target.value));
 $('#zi').onclick=()=>setZoom(zoom+Math.max(zstep,(zmax-zmin)/10));
 $('#zo').onclick=()=>setZoom(zoom-Math.max(zstep,(zmax-zmin)/10));
@@ -782,8 +846,9 @@ function gum(c){
     );
   });
 }
-async function openStream(){
-  const base={width:{ideal:1280},height:{ideal:720}};
+/* lite=true: запрос без размеров, нужен когда камера открылась, но кадр чёрный */
+async function openStream(lite){
+  const base=lite?{}:{width:{ideal:1280},height:{ideal:720}};
   const tries=[];
   if(camId)tries.push({video:Object.assign({deviceId:{exact:camId}},base),audio:true});
   tries.push({video:Object.assign({facingMode:'user'},base),audio:true});
@@ -796,16 +861,42 @@ async function openStream(){
   }
   throw last;
 }
+/* проверка: пошли ли кадры и не чёрные ли они */
+function blackFrame(){
+  try{
+    const c=document.createElement('canvas');c.width=c.height=16;
+    const x=c.getContext('2d');x.drawImage(v,0,0,16,16);
+    const d=x.getImageData(0,0,16,16).data;
+    for(let i=0;i<d.length;i+=4){if(d[i]|d[i+1]|d[i+2])return false}
+    return true;
+  }catch(e){return false}
+}
+async function frameOk(){
+  let ok=false;
+  for(let i=0;i<20;i++){if(v.videoWidth>0&&v.readyState>=2){ok=true;break}await sleep(100)}
+  if(!ok)return false;
+  await sleep(450);
+  return !blackFrame();
+}
 let camQ=Promise.resolve();
 function initCam(){const p=camQ.then(_initCam,_initCam);camQ=p.catch(()=>{});return p}
 async function _initCam(){
-  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
+  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null;await sleep(300)}
   try{
-    stream=await openStream();
-    try{const id=stream.getVideoTracks()[0].getSettings().deviceId;if(id){camId=id;localStorage.setItem('substudio-cam',id)}}catch(e){}
+    stream=await openStream(false);
     v.srcObject=stream;v.muted=true;v.controls=false;
     setupZoom();applyView();
     await v.play().catch(()=>{});
+    if(!(await frameOk())){
+      /* чёрный кадр: переоткрываем камеру с мягкими параметрами */
+      stream.getTracks().forEach(x=>x.stop());stream=null;await sleep(400);
+      zoom=1;
+      stream=await openStream(true);
+      v.srcObject=stream;v.muted=true;
+      setupZoom();applyView();
+      await v.play().catch(()=>{});
+    }
+    try{const id=stream.getVideoTracks()[0].getSettings().deviceId;if(id){camId=id;localStorage.setItem('substudio-cam',id)}}catch(e){}
     listCams();
     return true;
   }catch(err){
@@ -817,7 +908,7 @@ async function _initCam(){
     return false;
   }
 }
-/* возврат в приложение: после сворачивания камера «умирает», перезапускаем */
+/* возврат в приложение: после сворачивания камера «засыпает», перезапускаем */
 async function revive(){
   if(document.visibilityState!=='visible'||recording||hasVideo||exporting||passing)return;
   await camQ;
@@ -829,7 +920,7 @@ document.addEventListener('visibilitychange',revive);
 async function startRec(){
   try{await _startRec()}
   catch(e){
-    recording=false;clearInterval(tmr);clearTimeout(wd);epoch++;
+    recording=false;laterRec=false;clearInterval(tmr);clearTimeout(wd);epoch++;
     try{if(mr){mr.onstop=null;if(mr.state!=='inactive')mr.stop()}}catch(x){}
     try{cloudStop()}catch(x){}
     try{stopCanvas()}catch(x){}
@@ -843,32 +934,36 @@ async function _startRec(){
   if(!camLive()&&!(await initCam()))return;
   if(url){URL.revokeObjectURL(url);url=null}
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
-  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;
+  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';
   const mt=pickMime();
   const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
-  const pmv=cloudMode?'cloud':(MOB?'mute':'normal');
+  /* на телефоне распознавание речи глушит микрофон записи: пишем звук всегда,
+     а текст собираем после остановки по готовой записи */
+  const later=MOB&&!cloudMode&&!!SR;
+  laterRec=later;
+  pendingPass=later;
+  const pmv=cloudMode?'cloud':(later?'later':'normal');
   let rs=stream;
-  if(pmv==='mute'){stream.getAudioTracks().forEach(t=>t.stop());rs=new MediaStream(stream.getVideoTracks());toast(t('mutedMode'),5000)}
+  if(pmv==='later')toast(t('laterMode'),6000);
   if(mirror||(!hwZoom&&zoom>1.001)){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
-  try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){stopCanvas();toast(t('recUnsup'));return}
+  try{mr=new MediaRecorder(rs,mt?{mimeType:mt}:undefined)}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
   recording=true;t0=performance.now();
   setSt(t('starting'));banner('');$('#camSel').disabled=true;
   if(pmv==='cloud'){cloudStart();setSt(t('cloudRec'),'ok');toast(t('cloudToast'),5000)}
-  else if(pmv==='mute')setTimeout(()=>{if(recording)startSR()},500);
+  else if(pmv==='later'){setSt(t('laterSt'),'ok')}
   else startSR();
   clearTimeout(wd);
   wd=setTimeout(()=>{
-    if(recording&&!paused&&pmv!=='cloud'&&!phrases.some(p=>p.t))banner(t('noText'));
+    if(recording&&!paused&&pmv==='normal'&&!phrases.some(p=>p.t))banner(t('noText'));
   },8000);
   recBtn.classList.add('on');recTxt.textContent=t('stop');badge.innerHTML='<b></b>'+t('badgeRec');badge.classList.add('on');$('#pz').textContent=t('pause');$('#pz').classList.add('show');
   tmr=setInterval(()=>{timerEl.textContent=fmt(rt());renderTL()},1000);
   save();renderAll();updateButtons();
 }
 function stopRec(){
-  pendingPass=false;
   recording=false;dur=rt();
   if(paused){pausedMs+=performance.now()-pauseAt;paused=false}
   $('#pz').classList.remove('show');
@@ -878,6 +973,7 @@ function stopRec(){
   try{mr.stop()}catch(e){}
   recBtn.classList.remove('on');recTxt.textContent=t('rec');badge.classList.remove('on');
   setSt(wasCloud?t('finishing'):t('stopped'));
+  laterRec=false;
   buildAll();
   setTimeout(buildAll,900);
 }
@@ -896,9 +992,9 @@ function resumeRec(){
   if(!recording||!paused)return;
   pausedMs+=performance.now()-pauseAt;paused=false;
   try{mr.resume()}catch(e){}
-  if(cl.on)cloudNext();else startSR();
+  if(cl.on)cloudNext();else if(!laterRec)startSR();
   $('#pz').textContent=t('pause');badge.innerHTML='<b></b>'+t('badgeRec');
-  setSt(t('listenSimple'),'ok');
+  setSt(laterRec?t('laterSt'):t('listenSimple'),'ok');
 }
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
@@ -907,9 +1003,9 @@ function finishRec(){
   const blob=new Blob(blobs,{type:'video/webm'});
   url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-  v.srcObject=null;v.src=url;v.muted=false;v.controls=false;hasVideo=true;applyView();
+  v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
   updateButtons();
-  if(!MOB)checkAudio(blob);
+  checkAudio(blob);
   if(pendingPass){pendingPass=false;setTimeout(()=>transcribe(true),500)}
 }
 v.addEventListener('loadedmetadata',()=>{
@@ -1088,8 +1184,8 @@ async function transcribe(auto,speaker){
   if(!hasVideo||recording||exporting||passing)return;
   if(!auto&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
   for(let i=0;i<40&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
-  const T=totalT();if(!T){toast('Не удалось определить длину видео.');return}
-  if(!audioGraph()){toast('Не удалось подготовить звук для распознавания.');return}
+  const T=totalT();if(!T){toast('Длину видео определить пока не удалось.');return}
+  if(!audioGraph()){toast('Звук для распознавания подготовить не удалось.');return}
   setEdit(false);
   setLang(langLog[0]?langLog[0].l:lang);
   phrases=[];map={};save();renderAll();
@@ -1103,8 +1199,8 @@ async function transcribe(auto,speaker){
   $('#pass').style.display='block';updateButtons();
   setSt('распознаю запись…');
   startSR();
-  try{await v.play()}catch(e){toast('Браузер не дал запустить воспроизведение.');finishPass();return}
-  toast('Идёт распознавание: займёт время, равное длине видео ('+fmt(T)+'). Не закрывайте вкладку.'+(usingTrack?'':' Включите громкость: микрофон слушает звук видео.'),8000);
+  try{await v.play()}catch(e){toast('Браузер заблокировал воспроизведение.');finishPass();return}
+  toast('Идёт распознавание: займёт время, равное длине видео ('+fmt(T)+'). Держите вкладку открытой.'+(usingTrack?'':' Включите громкость: микрофон слушает звук видео.'),8000);
   passTimer=setInterval(passTick,250);
   v.onended=()=>finishPass();
 }
@@ -1127,7 +1223,6 @@ function passFallback(){
 }
 async function finishPass(){
   if(!passing)return;
-  const wasTrack=usingTrack;
   v.onended=null;clearInterval(passTimer);v.pause();
   epoch++;
   setSt('завершаю распознавание…');
@@ -1140,25 +1235,28 @@ async function finishPass(){
   v.currentTime=0;
   buildAll();
   const ok=phrases.some(p=>p.t);
-  if(!ok&&!retried){retried=true;toast('Текст не найден. Пробую ещё раз через динамик: включите громкость погромче.',7000);setTimeout(()=>transcribe(true,true),500);return}
+  if(!ok&&!retried){retried=true;toast('Текст пока пуст. Пробую ещё раз через динамик: включите погромче.',7000);setTimeout(()=>transcribe(true,true),500);return}
   setSt(ok?t('doneSt'):t('nothing'),ok?'ok':'err');
-  toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык, громкость или добавьте фразы вручную.',6000);
+  toast(ok?'Готово. Фразы можно править в списке и в Edit voice timing.':'Текст не распознан. Проверьте язык и громкость или добавьте фразы вручную.',6000);
 }
 
 /* ---------- плеер ---------- */
 let seeking=false;
 const SPD=[0.5,0.75,1,1.25,1.5,2];
-const totalT=()=>isFinite(v.duration)&&v.duration>0?v.duration:dur;
+/* без видео длительность равна нулю, остаток прошлой сессии на плеере не показывается */
+const totalT=()=>hasVideo?(isFinite(v.duration)&&v.duration>0?v.duration:dur):0;
 function updatePlayerUI(){
   const T=totalT(),c=hasVideo?v.currentTime:0;
   if(!seeking&&T)$('#seek').value=Math.round(Math.min(1,c/T)*1000);
   if(!hasVideo)$('#seek').value=0;
   $('#ptime').textContent=fmt(c)+' / '+fmt(T);
   $('#pp').textContent=(hasVideo&&!v.paused&&!v.ended)?'❚❚':'▶';
+  fillR($('#seek'));
 }
 function togglePlay(){
   if(!hasVideo||recording||exporting||passing)return;
   if(AC&&AC.state==='suspended')AC.resume();
+  v.muted=false;
   if(v.paused||v.ended){if(v.ended)v.currentTime=0;v.play().catch(()=>{})}else v.pause();
 }
 function skip(d){if(hasVideo&&!recording&&!exporting&&!passing)v.currentTime=Math.max(0,Math.min(totalT()||1e9,v.currentTime+d))}
@@ -1171,7 +1269,7 @@ const sk=$('#seek');
 sk.addEventListener('pointerdown',()=>{seeking=true});
 sk.addEventListener('pointerup',()=>{seeking=false});
 sk.addEventListener('pointercancel',()=>{seeking=false});
-sk.addEventListener('input',()=>{const T=totalT();if(T&&hasVideo)v.currentTime=sk.value/1000*T});
+sk.addEventListener('input',()=>{const T=totalT();fillR(sk);if(T&&hasVideo)v.currentTime=sk.value/1000*T});
 $('#fs').onclick=()=>{
   const pl=$('#player');
   if(document.fullscreenElement)document.exitFullscreen();
@@ -1203,7 +1301,7 @@ function tick(){
 
 /* ---------- SRT ---------- */
 function shiftT(t,spans){let d=0;for(const s of spans){if(t>=s[1])d+=s[1]-s[0];else if(t>s[0])d+=t-s[0]}return t-d}
-function downloadSrt(){
+async function downloadSrt(){
   const spans=cutSpans();
   const kept=allC().filter(c=>!c.g.cut).sort((a,b)=>a.s-b.s);
   let out='',n=0;
@@ -1213,7 +1311,8 @@ function downloadSrt(){
     out+=n+'\n'+fmtSrt(s)+' --> '+fmtSrt(e)+'\n'+c.t+'\n\n';
   }
   if(!n){toast(t('noSrt'));return}
-  download(new Blob([out],{type:'text/plain;charset=utf-8'}),'subtitles.srt');
+  const nm=await askName();if(!nm)return;
+  download(new Blob([out],{type:'text/plain;charset=utf-8'}),nm+'.srt');
 }
 
 /* ---------- экспорт видео ---------- */
@@ -1269,11 +1368,12 @@ async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
   const W=v.videoWidth,H=v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
   if(!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
+  const nm=await askName();if(!nm)return;
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
   exporting=true;updateButtons();v.controls=false;
   toast(t('exToast'),5000);
   v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
-  v.muted=false;
+  v.muted=false;v.volume=1;
   const cs=cv.captureStream(30),out=[];
   const at=exportAudioTrack();if(at)cs.addTrack(at);
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
@@ -1284,8 +1384,9 @@ async function exportVideo(){
   r2.onstop=()=>{
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
     exporting=false;xctx=null;v.controls=false;v.currentTime=0;expBtn.textContent=explbl();$('#xbox').classList.remove('show');
-    download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),isMp4?'edited.mp4':'edited.webm');
-    updateButtons();toast(t('exDone',isMp4?'edited.mp4':'edited.webm'));
+    const fn=nm+(isMp4?'.mp4':'.webm');
+    download(new Blob(out,{type:isMp4?'video/mp4':'video/webm'}),fn);
+    updateButtons();toast(t('exDone',fn));
   };
   $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
@@ -1334,9 +1435,6 @@ const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==
 const isAnd=/Android/i.test(navigator.userAgent);
 (function(){
   try{
-    const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#7c3aed'/><stop offset='1' stop-color='#ec4899'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='url(#g)'/><circle cx='32' cy='32' r='13' fill='none' stroke='#fff' stroke-width='5'/><circle cx='32' cy='32' r='5' fill='#fff'/></svg>";
-    const icon='data:image/svg+xml,'+encodeURIComponent(svg);
-    const man={name:t('title'),short_name:t('subWord'),start_url:location.href.split('#')[0],display:'standalone',background_color:'#0e0c1c',theme_color:'#7c3aed',icons:[{src:icon,sizes:'any',type:'image/svg+xml',purpose:'any'}]};
     if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
   }catch(e){}
   if(isStandalone())$('#inst').style.display='none';
