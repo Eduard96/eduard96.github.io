@@ -641,7 +641,7 @@ const t=(k,...a)=>{let s=(I18[ui]&&I18[ui][k])||I18.en[k]||k;a.forEach((x,i)=>{s
 let phrases=[], map={}, dur=0, lang='hy', style='classic';
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
-let projName='';
+let projName='';let recDur=0;
 const STY={
 classic:{n:'Классика',c:'#fff',bg:'rgba(0,0,0,.6)',r:.2,w:600},
 bold:{n:'Жирный жёлтый',c:'#FFD60A',up:1,w:900,st:.2,sc:'#000'},
@@ -1056,6 +1056,7 @@ if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.med
 let crop=null,vcrop=null,scanTok=0,rzT=0;
 const wantAR=()=>MOB&&innerHeight>=innerWidth&&!hasVideo;
 async function findCrop(){
+  if(!/Android/i.test(navigator.userAgent))return null;
   const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return null;
   const sc=Math.min(1,240/Math.max(vw,vh)),cw=Math.max(8,Math.round(vw*sc)),ch=Math.max(8,Math.round(vh*sc));
   const c=document.createElement('canvas');c.width=cw;c.height=ch;
@@ -1065,13 +1066,13 @@ async function findCrop(){
     try{
       x.drawImage(v,0,0,cw,ch);const d=x.getImageData(0,0,cw,ch).data;
       for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const k=(j*cw+i)*4;
-        if((d[k]+d[k+1]+d[k+2])/3>28){cs[i]++;rs[j]++;any++}}
+        if((d[k]+d[k+1]+d[k+2])/3>14){cs[i]++;rs[j]++;any++}}
     }catch(e){return null}
     if(n<NF-1)await sleep(90);
   }
   if(any<cw*ch*NF*0.02)return null;
   /* столбец/строка считается чёрной, если в ней почти нет светлых точек */
-  const tc=Math.max(3,ch*NF*0.01),tr=Math.max(3,cw*NF*0.01);
+  const tc=Math.max(2,ch*NF*0.004),tr=Math.max(2,cw*NF*0.004);
   let l=0;while(l<cw&&cs[l]<tc)l++;
   let r=cw-1;while(r>=0&&cs[r]<tc)r--;
   let t1=0;while(t1<ch&&rs[t1]<tr)t1++;
@@ -1085,6 +1086,7 @@ async function findCrop(){
   const X=cx?Math.round(mxp/sc):0,Y=cy?Math.round(myp/sc):0;
   const w=ev(vw-2*X),h=ev(vh-2*Y);
   if(w/vw<0.25||h/vh<0.25)return null;
+  {const ar=w/h;if(![0.5625,1.7778,0.75,1.3333].some(s=>Math.abs(ar/s-1)<0.1))return null}
   return{x:Math.floor((vw-w)/2),y:Math.floor((vh-h)/2),w,h};
 }
 async function detectCrop(){
@@ -1124,7 +1126,7 @@ async function scanPlayback(){
   if(tok!==scanTok||!hasVideo||!v.videoWidth)return;
   let c=null;
   if(v.paused&&!exporting&&!passing){
-    const T=(isFinite(v.duration)&&v.duration>0)?v.duration:2,mid=Math.min(1,T/2);
+    const T=totalT()||2,mid=Math.min(1,T/2);
     await seekTo(mid);
     if(tok!==scanTok||!hasVideo)return;
     c=await findCrop();
@@ -1227,7 +1229,7 @@ async function _initCam(){
     try{const id=stream.getVideoTracks()[0].getSettings().deviceId;if(id){camId=id;localStorage.setItem('substudio-cam',id)}}catch(e){}
     listCams();
     /* сразу находим настоящую картинку, чтобы превью тоже было в формате рилса, без чёрных полос по бокам */
-    try{const s0=stream.getVideoTracks()[0].getSettings();toast('Камера: '+s0.width+'x'+s0.height+' / видео: '+v.videoWidth+'x'+v.videoHeight,6000)}catch(e){}
+    
     findCrop().then(c=>{if(!recording&&!hasVideo&&camLive()){crop=c;applyVLayout();lastLay=''}}).catch(()=>{});
     return true;
   }catch(err){
@@ -1270,7 +1272,7 @@ async function _startRec(){
   }
   if(url){URL.revokeObjectURL(url);url=null}
   hasVideo=false;vcrop=null;scanTok++;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
-  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';
+  phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';recDur=0;
   const mt=pickMime();
   const cloudMode=MOB&&!!getKey()&&stream.getAudioTracks().length>0;
   /* на телефоне распознавание речи глушит микрофон записи: пишем звук всегда,
@@ -1301,7 +1303,7 @@ async function _startRec(){
   save();renderAll();updateButtons();
 }
 function stopRec(){
-  recording=false;dur=rt();
+  recording=false;dur=rt();recDur=dur;
   if(paused){pausedMs+=performance.now()-pauseAt;paused=false}
   $('#pz').classList.remove('show');
   clearInterval(tmr);clearTimeout(wd);epoch++;
@@ -1335,9 +1337,10 @@ function resumeRec(){
 }
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
-function finishRec(){
+async function finishRec(){
   stopCanvas();crop=null;vcrop=null;$('#camSel').disabled=false;buildCamMenu();
-  const blob=new Blob(blobs,{type:(mr&&mr.mimeType)||'video/webm'});
+  let blob=new Blob(blobs,{type:(mr&&mr.mimeType)||'video/webm'});
+  try{const hd=new Uint8Array(await blob.slice(0,12).arrayBuffer());if(hd[4]===0x66&&hd[5]===0x74&&hd[6]===0x79&&hd[7]===0x70&&recDur>0)blob=await fixDur(blob,true,recDur)}catch(e){}
   url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
@@ -1418,7 +1421,7 @@ function renderList(){
 function renderTL(){
   const el=recording?rt():0;
   const maxE=Math.max(0,...allC().map(c=>c.e));
-  const total=Math.max(dur,el,isFinite(v.duration)&&hasVideo?v.duration:0,maxE)+2;
+  const total=Math.max(dur,el,hasVideo?totalT():0,maxE)+2;
   tlin.style.width=Math.ceil(total*PX)+'px';
   tlin.innerHTML='';blkEl.clear();{const ac=allC();[...selSet].forEach(x=>{if(!ac.includes(x))selSet.delete(x)})}
   for(let i=0;i<=total;i+=5){const t=document.createElement('div');t.className='tick';t.style.left=i*PX+'px';t.textContent=fmt(i);tlin.appendChild(t)}
@@ -1695,7 +1698,12 @@ async function finishPass(){
 let seeking=false;
 const SPD=[0.5,0.75,1,1.25,1.5,2];
 /* без видео длительность равна нулю, остаток прошлой сессии на плеере не показывается */
-const totalT=()=>hasVideo?(isFinite(v.duration)&&v.duration>0?v.duration:dur):0;
+const totalT=()=>{
+  if(!hasVideo)return 0;
+  const d=(isFinite(v.duration)&&v.duration>0)?v.duration:0;
+  if(recDur>0&&(!d||Math.abs(d-recDur)>Math.max(1,recDur*0.2)))return recDur;
+  return d||dur;
+};
 function updatePlayerUI(){
   const T=totalT(),c=hasVideo?v.currentTime:0;
   if(!seeking&&T)$('#seek').value=Math.round(Math.min(1,c/T)*1000);
@@ -1845,7 +1853,7 @@ function drawExportFrame(){
   if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);
   else xctx.drawImage(v,0,0,W,H);
   const c=chunkAt(v.currentTime);if(c)drawSubOnCanvas(xctx,W,H,c.t,Math.max(0,v.currentTime-c.s),c.e-c.s);
-  const total=isFinite(v.duration)&&v.duration>0?v.duration:dur;
+  const total=totalT()||dur;
   if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent=t('exPct',pc);$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
 }
 async function fixDur(blob,isMp4,sec){
@@ -1895,7 +1903,7 @@ async function exportVideo(){
   toast(t('exToast'),5000);
   v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
   v.muted=false;v.volume=1;
-  const cs=cv.captureStream(30),out=[],expDur=Math.max(0.5,((isFinite(v.duration)&&v.duration>0)?v.duration:dur)-cutSpans().reduce((a,s)=>a+s[1]-s[0],0));
+  const cs=cv.captureStream(30),out=[],expDur=Math.max(0.5,(totalT()||dur)-cutSpans().reduce((a,s)=>a+s[1]-s[0],0));
   const at=exportAudioTrack();if(at)cs.addTrack(at);
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
@@ -1923,7 +1931,7 @@ async function exportVideo(){
   /* сторож: iPhone иногда не присылает ended или замирает у самого конца */
   wdx=setInterval(()=>{
     if(finished||stopping)return;
-    const total=isFinite(v.duration)&&v.duration>0?v.duration:dur,ct=v.currentTime,now=performance.now();
+    const total=totalT()||dur,ct=v.currentTime,now=performance.now();
     if(ct!==lastCt){lastCt=ct;lastMove=now}
     if(AC&&AC.state==='suspended')try{AC.resume()}catch(e){}
     const stalled=now-lastMove>2500&&ct>0.3;
