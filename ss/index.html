@@ -884,9 +884,10 @@ function gum(c){
 async function openStream(lite){
   const base=lite?{}:{width:{ideal:1280},height:{ideal:720}};
   const tries=[];
-  if(camId)tries.push({video:Object.assign({deviceId:{exact:camId}},base),audio:true});
-  tries.push({video:Object.assign({facingMode:'user'},base),audio:true});
-  tries.push({video:true,audio:true});
+  /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
+     и кнопки громкости начинают менять только громкость разговора */
+  if(camId)tries.push({video:Object.assign({deviceId:{exact:camId}},base),audio:false});
+  tries.push({video:Object.assign({facingMode:'user'},base),audio:false});
   tries.push({video:true,audio:false});
   let last=null;
   for(const c of tries){
@@ -966,6 +967,11 @@ async function startRec(){
 async function _startRec(){
   if(hasVideo&&phrases.length&&!confirm(t('newRec')))return;
   if(!camLive()&&!(await initCam()))return;
+  /* микрофон подключается только на время записи */
+  if(!stream.getAudioTracks().length){
+    try{const a=await gum({audio:true});a.getAudioTracks().forEach(x=>stream.addTrack(x))}
+    catch(e){toast(t('camDenied'),7000)}
+  }
   if(url){URL.revokeObjectURL(url);url=null}
   hasVideo=false;v.removeAttribute('src');v.srcObject=stream;v.muted=true;v.controls=false;v.play().catch(()=>{});applyView();
   phrases=[];map={};dur=0;blobs=[];lastSub='';langLog=[{t:0,l:lang}];paused=false;pausedMs=0;projName='';
