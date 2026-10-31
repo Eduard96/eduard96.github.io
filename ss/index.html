@@ -464,6 +464,15 @@ body.viewing{overflow:hidden}
 .st-b .h.l{left:0;border-radius:9px 0 0 9px}
 .st-b .h.r{right:0;border-radius:0 9px 9px 0}
 .st-ph{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;pointer-events:none;z-index:6;box-shadow:0 0 6px rgba(239,68,68,.8)}
+.studio .sel{min-height:46px;border-radius:16px;color:#f1efff;font-weight:500;font-size:15px;border:1px solid rgba(124,58,237,.75);-webkit-appearance:none;appearance:none;text-overflow:ellipsis;padding:0 40px 0 14px;
+  background:#1d1740 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M4 7l6 6 6-6' fill='none' stroke='%23f1efff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center}
+.studio textarea.sel{background:#1d1740;padding:10px 14px;line-height:1.4}
+.studio .sel option{color:#111;background:#fff}
+.studio .btn:not(.primary){background:#241c4d;color:#f1efff;border:1px solid rgba(255,255,255,.08)}
+.stpl{margin-top:10px;padding:12px}
+.cpanel.stpl .ctl{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;gap:12px}
+.stpl .pb.pp{width:54px;min-height:54px;border-radius:18px;font-size:22px;border:0;background:linear-gradient(145deg,#8b5cf6,#5b34c9);box-shadow:0 6px 18px rgba(124,58,237,.5)}
+.stpl .ptm{font-size:15px;color:#d8d4f5;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -633,7 +642,8 @@ body.viewing{overflow:hidden}
  <div class="stbar"><button class="btn sm" id="trBack" data-i="back"></button><b data-i="trBtn"></b><span class="sp"></span><button class="btn sm" id="trKey" aria-label="Gemini API key">🔑</button></div>
  <div class="stbody">
   <div class="card">
-   <video id="trVid" playsinline controls preload="metadata" style="width:100%;max-height:42dvh;background:#000;border-radius:12px"></video>
+   <video id="trVid" playsinline preload="metadata" style="width:100%;max-height:42dvh;background:#000;border-radius:12px"></video>
+   <div class="cpanel stpl"><div class="ctl" id="trPl"></div></div>
    <div class="hint" id="trHint" data-i="trHint"></div>
    <label class="btn primary" for="trFile" style="cursor:pointer;margin-top:10px" data-i="trPick"></label>
    <input type="file" id="trFile" accept="video/*" hidden>
@@ -641,7 +651,7 @@ body.viewing{overflow:hidden}
   <div class="card">
    <div class="lrow"><label data-i="trLang"></label><select class="sel" id="trLangSel" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select></div>
    <div class="lrow"><label data-i="trVoice"></label><select class="sel" id="trVoice" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select></div>
-   <div class="lrow"><label data-i="trStyle"></label><input id="trStyleIn" class="sel" type="text" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></div>
+   <div class="lrow"><label data-i="trStyle"></label><select id="trStyleIn" class="sel" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select></div>
    <div class="lrow"><label data-i="trOrig"></label><input type="range" id="trOrig" min="0" max="100" value="100" style="flex:1;accent-color:var(--acc)"><span id="trOrigV" style="min-width:42px;text-align:right;font-size:13px;font-weight:700;color:var(--mute)">100%</span></div>
    <div class="actions" style="grid-template-columns:1fr 1fr 1fr"><button class="btn" id="trS1" style="font-size:13px;padding:0 6px" data-i="trS1"></button><button class="btn" id="trS2" style="font-size:13px;padding:0 6px" data-i="trS2"></button><button class="btn primary" id="trS3" style="font-size:13px;padding:0 6px" data-i="trS3"></button></div>
    <progress id="trBar" max="100" value="0" style="width:100%;height:12px;accent-color:var(--acc);margin-top:10px;display:none"></progress>
@@ -670,12 +680,13 @@ body.viewing{overflow:hidden}
   </div>
   <div class="card">
    <div class="lrow"><label data-i="trVoice"></label><select class="sel" id="ttsVoice" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select><button class="btn sm" id="ttsSample" data-i="ttsSample"></button></div>
-   <div class="lrow"><label data-i="trStyle"></label><input id="ttsStyle" class="sel" type="text" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></div>
+   <div class="lrow"><label data-i="trStyle"></label><select id="ttsStyle" class="sel" style="flex:1;min-height:42px;font-size:14px;border-width:1px"></select></div>
    <button class="btn primary" id="ttsGen" style="width:100%;margin-top:12px" data-i="ttsGen"></button>
    <progress id="ttsBar" max="100" value="0" style="width:100%;height:12px;accent-color:var(--acc);margin-top:10px;display:none"></progress>
    <div class="hint" id="ttsSt"></div>
    <button class="btn sm" id="ttsStop" style="display:none;margin-top:6px" data-i="trCancel"></button>
-   <audio id="ttsAud" controls style="width:100%;margin-top:10px;display:none"></audio>
+   <audio id="ttsAud" style="display:none"></audio>
+   <div class="cpanel stpl" id="ttsPlW" style="display:none"><div class="ctl" id="ttsPl"></div></div>
    <div class="actions"><button class="btn" id="ttsMp3" disabled data-i="ttsMp3"></button><button class="btn" id="ttsWav" disabled data-i="ttsWav"></button></div>
   </div>
  </div>
@@ -2759,6 +2770,9 @@ trPick:'🎞 Ընտրել տեսանյութ',trHint:'Սկսելու համար 
 trTlHint:'Սեղմեք տեքստային բլոկին՝ փոխելու համար։ Քաշեք ձայնային բլոկը՝ տեղափոխելու, ծայրերը՝ կտրելու համար։ Ընտրեք բլոկ և օգտվեք ներքևի կոճակներից։',
 trDecoding:'Կարդում եմ ձայնը…',trTranscribing:'Խոսքի ճանաչում {0}/{1}…',trTranslating:'Թարգմանում եմ {0}/{1}…',trVoicing:'Ձայնագրում {0}/{1}…',trDone:'Պատրաստ է ✓',trNoSpeech:'Այս տեսանյութում խոսք չի գտնվել։',trNeedVid:'Նախ ընտրեք տեսանյութ։',trNeedText:'Նախ ճանաչեք տեքստը։',trNeedTr:'Նախ թարգմանեք տեքստը։',trFailN:'{0} արտահայտություն չհաջողվեց։ Սեղմեք «Ձայնագրել» նորից՝ կրկնելու համար։',trDecodeFail:'Այս դիտարկիչը չկարողացավ կարդալ ֆայլի ձայնը։ Փորձեք MP4 կամ WebM։',trTooBig:'Ֆայլը շատ մեծ է դիտարկիչում մշակելու համար (սահման՝ 500 ՄԲ)։',trEdit:'Փոխել տեքստը',trNoClip:'Նախ ընտրեք ձայնային բլոկ։',trSplitFail:'Կարմիր գիծը դրեք ձայնային բլոկի վրա։',stCloseQ:'Առաջադրանքը դեռ ընթանում է։ Փակե՞լ և կանգնեցնել։',trExpNeed:'Նախ ստեղծեք ձայնագրությունը։',
 ttsPh:'Մուտքագրեք կամ տեղադրեք ձայնագրվելիք տեքստը',ttsCnt:'Նիշեր՝ {0}',ttsGen:'▶ Ձայնագրել',ttsSample:'▶ Նմուշ',ttsMp3:'⬇ MP3',ttsWav:'⬇ WAV',ttsEmpty:'Նախ մուտքագրեք տեքստ։',ttsMp3Fail:'MP3 կոդավորիչը չբեռնվեց, ուստի պահվեց WAV ֆայլ։',ttsWorking:'Ձայնագրում եմ {0}/{1}…',ttsRes:'Ձայնագրությունը պատրաստ է՝ {0}',ttsEnc:'Կոդավորում եմ MP3…'});
+Object.assign(I18.en,{stNone:'Default style',sty1:'Calm',sty2:'Warm and friendly',sty3:'Cheerful',sty4:'Energetic',sty5:'Serious',sty6:'News anchor',sty7:'Storyteller',sty8:'Whisper',sty9:'Sad and soft',sty10:'Dramatic'});
+Object.assign(I18.ru,{stNone:'Стиль по умолчанию',sty1:'Спокойно',sty2:'Тепло и дружелюбно',sty3:'Весело',sty4:'Энергично',sty5:'Серьёзно',sty6:'Диктор новостей',sty7:'Рассказчик',sty8:'Шёпотом',sty9:'Грустно и мягко',sty10:'Драматично'});
+Object.assign(I18.hy,{stNone:'Լռելյայն ոճ',sty1:'Հանգիստ',sty2:'Ջերմ և բարեկամական',sty3:'Ուրախ',sty4:'Եռանդուն',sty5:'Լուրջ',sty6:'Լրատվական',sty7:'Պատմող',sty8:'Շշուկով',sty9:'Տխուր և մեղմ',sty10:'Դրամատիկ'});
 Object.assign(I18.en,{apvTxt:'Look at this'});
 Object.assign(I18.ru,{apvTxt:'Смотри на это'});
 Object.assign(I18.hy,{apvTxt:'Նայիր սրան հիմա'});
@@ -2975,7 +2989,7 @@ async function dbTx(stores,mode,fn){
 const dbPut=(m,d)=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').put(m);tx.objectStore('data').put(d)});
 const dbList=()=>dbTx(['meta'],'readonly',tx=>tx.objectStore('meta').getAll());
 const dbGet=id=>dbTx(['data'],'readonly',tx=>tx.objectStore('data').get(id));
-const dbDel=id=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').delete(id);tx.objectStore('data').delete(id)});
+const dbDel=id=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').delete(id);tx.objectStore('data').delete(id);tx.objectStore('data').delete(id+'#s')});
 const dbClear=()=>dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').clear();tx.objectStore('data').clear()});
 
 function snapPhrases(){return phrases.map(p=>({s:p.s,e:p.e,l:p.l,t:p.t,raw:p.raw,cut:!!p.cut,c:(p.c||[]).map(c=>({t:c.t,s:c.s,e:c.e}))}))}
@@ -3056,18 +3070,19 @@ async function renderProjects(){
   if(!list.length){const e=document.createElement('div');e.className='empty';e.textContent=t('prjEmpty');box.appendChild(e);return}
   const loc=ui==='ru'?'ru-RU':ui==='hy'?'hy-AM':'en-GB';
   list.forEach(m=>{
-    const r=document.createElement('div');r.className='prow'+(m.id===curId?' cur':'');
+    const r=document.createElement('div');r.className='prow'+((m.id===curId||m.id===TR.pid||m.id===TS.pid)?' cur':'');
     const o=document.createElement('button');o.className='po';
-    const n=document.createElement('div');n.className='pn';n.textContent=m.name;
+    const n=document.createElement('div');n.className='pn';n.textContent=(m.kind==='tr'?'🌐 ':m.kind==='tts'?'🔊 ':'')+m.name;
     const sm=document.createElement('div');sm.className='pm';
     let ds='';try{ds=new Date(m.t).toLocaleString(loc,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){}
-    sm.textContent=[ds,fmt(m.dur||0),t('prjSub',m.n||0),((m.size||0)/1048576).toFixed(1)+' MB'].join(' · ');
-    o.append(n,sm);o.onclick=()=>openProject(m.id);
+    sm.textContent=[ds,fmt(m.dur||0),m.kind==='tts'?'':t('prjSub',m.n||0),((m.size||0)/1048576).toFixed(1)+' MB'].filter(Boolean).join(' · ');
+    o.append(n,sm);o.onclick=()=>m.kind==='tr'?trOpen(m.id):m.kind==='tts'?ttsOpen(m.id):openProject(m.id);
     const x=document.createElement('button');x.className='px';x.textContent='✕';x.setAttribute('aria-label','Delete');
     x.onclick=async()=>{
       if(exporting||passing){toast(t('prjBusy'));return}
       if(!confirm(t('prjDelQ',m.name)))return;
       try{await dbDel(m.id)}catch(e){}
+      if(m.id===TR.pid){TR.pid=null;TR.fsaved=false;clearTimeout(trSaveT)}if(m.id===TS.pid)TS.pid=null;
       if(m.id===curId&&hasVideo)closeProject();
       renderProjects();
     };
@@ -3081,6 +3096,7 @@ $('#pclear').onclick=async()=>{
   if(exporting||passing){toast(t('prjBusy'));return}
   if(!confirm(t('prjClearQ')))return;
   try{await dbClear()}catch(e){}
+  TR.pid=null;TR.fsaved=false;clearTimeout(trSaveT);TS.pid=null;
   if(curId&&hasVideo)closeProject();
   renderProjects();
 };
@@ -3184,7 +3200,7 @@ const TLANGS=[['en','English','English'],['ru','Russian','Русский'],['hy'
 TLANGS.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=x[2]+' · '+x[1];$('#trLangSel').appendChild(o)});
 {let l='en';try{l=localStorage.getItem('substudio-tlang')||'en'}catch(e){}$('#trLangSel').value=l;$('#trLangSel').onchange=()=>{try{localStorage.setItem('substudio-tlang',$('#trLangSel').value)}catch(e){}}}
 function studioLang(){
-  $('#ttsIn').placeholder=t('ttsPh');$('#trStyleIn').placeholder=t('trStylePh');$('#ttsStyle').placeholder=t('trStylePh');
+  $('#ttsIn').placeholder=t('ttsPh');styleOpts();
   $('#trExp').textContent=explbl();ttsCntUpd();
 }
 
@@ -3212,9 +3228,9 @@ $('#trBack').onclick=()=>closeStudio('trs');$('#ttsBack').onclick=()=>closeStudi
 document.addEventListener('keydown',e=>{if(studioOpen)e.stopImmediatePropagation()},true);
 
 /* ---------- TTS Studio ---------- */
-const TS={pcm:null,sr:24000,url:null,run:false,cancel:false,cache:{}};
+const TS={pid:null,name:null,pcm:null,sr:24000,url:null,run:false,cancel:false,cache:{}};
 function ttsCntUpd(){$('#ttsCnt').textContent=t('ttsCnt',$('#ttsIn').value.length)}
-$('#ttsIn').addEventListener('input',ttsCntUpd);
+$('#ttsIn').addEventListener('input',()=>{ttsCntUpd();TS.pid=null;TS.name=null});
 function ttsSt(m,p){$('#ttsSt').textContent=m||'';const b=$('#ttsBar');if(p==null)b.style.display='none';else{b.style.display='block';b.value=Math.round(p*100)}}
 function splitText(s,max){
   const parts=(s.replace(/\r/g,'').match(/[^.!?…։。！？\n]+[.!?…։。！？]*\s*|\n+/g)||[s]).map(x=>x.trim()).filter(Boolean),out=[];let cur='';
@@ -3242,11 +3258,7 @@ $('#ttsGen').onclick=async()=>{
     if(outs.length){
       const sr=outs[0].sr,gap=Math.round(sr*0.18);let n=0;outs.forEach(o=>{n+=o.f.length+gap});
       const all=new Float32Array(n);let p=0;outs.forEach(o=>{all.set(o.f,p);p+=o.f.length+gap});
-      TS.pcm=all;TS.sr=sr;
-      if(TS.url)URL.revokeObjectURL(TS.url);
-      TS.url=URL.createObjectURL(wavBlob(all,sr));
-      const a=$('#ttsAud');a.src=TS.url;a.style.display='block';
-      $('#ttsMp3').disabled=false;$('#ttsWav').disabled=false;
+      ttsSet(all,sr);ttsSave(voice,style,text);
       ttsSt(t('ttsRes',fmt(all.length/sr)));
     }else ttsSt('');
   }catch(e){ttsSt('');if(!e.noKey)toast(e.message,9000)}
@@ -3287,7 +3299,7 @@ $('#ttsMp3').onclick=async()=>{
 };
 
 /* ---------- Translate studio ---------- */
-const TR={file:null,url:null,dur:0,segs:[],clips:[],sel:null,run:false,cancel:false,exp:false,srcs:[],nid:1,ac:null,orig:null,bus:null,mon:null,touched:false};
+const TR={pid:null,name:null,fsaved:false,loading:false,file:null,url:null,dur:0,segs:[],clips:[],sel:null,run:false,cancel:false,exp:false,srcs:[],nid:1,ac:null,orig:null,bus:null,mon:null,touched:false};
 const tvid=$('#trVid'),trTl=$('#trTl'),trIn=$('#trIn'),TPX=60,trBlk=new Map();
 function trSt(m,p){$('#trSt').textContent=m||'';const b=$('#trBar');if(p==null)b.style.display='none';else{b.style.display='block';b.value=Math.round(p*100)}}
 function trUpd(){
@@ -3305,7 +3317,7 @@ function ensureAC(){
   src.connect(TR.orig);TR.orig.connect(TR.bus);TR.bus.connect(TR.mon);TR.mon.connect(ac.destination);
   return ac;
 }
-$('#trOrig').oninput=e=>{TR.touched=true;$('#trOrigV').textContent=e.target.value+'%';if(TR.orig)TR.orig.gain.value=e.target.value/100};
+$('#trOrig').oninput=e=>{TR.touched=true;trMark();$('#trOrigV').textContent=e.target.value+'%';if(TR.orig)TR.orig.gain.value=e.target.value/100};
 function clipBuf(c){
   if(!c._ab||c._ac!==TR.ac){const b=TR.ac.createBuffer(1,c.f.length,c.sr);b.copyToChannel(c.f,0);c._ab=b;c._ac=TR.ac}
   return c._ab;
@@ -3330,7 +3342,7 @@ $('#trFile').onchange=e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   if(f.size>500*1048576){toast(t('trTooBig'),7000);return}
   ttStop();tvid.pause();if(TR.url)URL.revokeObjectURL(TR.url);
-  TR.file=f;TR.url=URL.createObjectURL(f);tvid.src=TR.url;TR.segs=[];TR.clips=[];TR.sel=null;TR.nid=1;TR.touched=false;
+  TR.pid=null;TR.name=null;TR.fsaved=false;TR.file=f;TR.url=URL.createObjectURL(f);tvid.src=TR.url;TR.segs=[];TR.clips=[];TR.sel=null;TR.nid=1;TR.touched=false;
   $('#trOrig').value=100;$('#trOrigV').textContent='100%';if(TR.orig)TR.orig.gain.value=1;
   trSt('');renderTR();e.target.value='';
 };
@@ -3364,7 +3376,7 @@ function renderTR(){
     attachClip(b,c);trIn.appendChild(b);trBlk.set(c,b);
   });
   const ph=document.createElement('div');ph.className='st-ph';ph.id='trPh';trIn.appendChild(ph);
-  updSel();trUpd();$('#trHint').style.display=TR.file?'none':'';
+  updSel();trUpd();$('#trHint').style.display=TR.file?'none':'';trMark();
   $('#trExp').textContent=explbl();
 }
 function trScrub(e){
@@ -3554,6 +3566,84 @@ $('#trExp').onclick=async()=>{
     download(bl,fn);toast(t('exDone',fn));
   }else toast('Export failed: no data was recorded.');
 };
+
+/* ---------- стили голоса, плееры, сохранение студий в проекты ---------- */
+const STYLES=[['','stNone'],['calm and soothing','sty1'],['warm and friendly','sty2'],['cheerful','sty3'],['excited and energetic','sty4'],['serious and professional','sty5'],['like a news anchor','sty6'],['like a storyteller','sty7'],['whispering','sty8'],['sad and soft','sty9'],['dramatic','sty10']];
+function styleOpts(){
+  ['#trStyleIn','#ttsStyle'].forEach(q=>{
+    const sel=$(q),cur=sel.value;
+    if(!sel.options.length)STYLES.forEach(x=>{const o=document.createElement('option');o.value=x[0];sel.appendChild(o)});
+    STYLES.forEach((x,i)=>{sel.options[i].textContent=t(x[1])});
+    sel.value=cur;
+  });
+}
+styleOpts();
+function mkPlayer(m,ctl){
+  const pb=document.createElement('button');pb.className='pb pp';pb.textContent='▶';
+  const sk=document.createElement('input');sk.type='range';sk.min=0;sk.max=1000;sk.value=0;sk.setAttribute('aria-label','Seek');
+  const tm=document.createElement('div');tm.className='ptm';ctl.append(pb,sk,tm);
+  let drag=false;
+  const dd=()=>isFinite(m.duration)?m.duration:0;
+  const upd=()=>{const d=dd();tm.textContent=fmt(m.currentTime||0)+' / '+fmt(d);if(!drag){sk.value=d?m.currentTime/d*1000:0;fillR(sk)}pb.textContent=m.paused?'▶':'⏸'};
+  ['timeupdate','play','pause','ended','loadedmetadata','durationchange','seeked','emptied'].forEach(e=>m.addEventListener(e,upd));
+  pb.onclick=()=>{if(TR.exp&&m===tvid)return;if(m.paused)m.play().catch(()=>{});else m.pause()};
+  sk.addEventListener('pointerdown',()=>{drag=true});
+  ['pointerup','pointercancel','change'].forEach(e=>sk.addEventListener(e,()=>{drag=false}));
+  sk.addEventListener('input',()=>{const d=dd();if(d)m.currentTime=sk.value/1000*d;fillR(sk)});
+  upd();return upd;
+}
+mkPlayer(tvid,$('#trPl'));mkPlayer($('#ttsAud'),$('#ttsPl'));
+tvid.addEventListener('click',()=>{if(!TR.exp){if(tvid.paused)tvid.play().catch(()=>{});else tvid.pause()}});
+const rid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+function ttsSet(all,sr){
+  TS.pcm=all;TS.sr=sr;if(TS.url)URL.revokeObjectURL(TS.url);
+  TS.url=URL.createObjectURL(wavBlob(all,sr));
+  const a=$('#ttsAud');a.src=TS.url;$('#ttsPlW').style.display='';
+  $('#ttsMp3').disabled=false;$('#ttsWav').disabled=false;
+}
+async function ttsSave(voice,sty,text){
+  if(!TS.pcm)return;
+  if(!TS.pid){TS.pid=rid('t');TS.name='TTS_'+stamp()}
+  const wav=wavBlob(TS.pcm,TS.sr),id=TS.pid;
+  try{await dbPut({id,kind:'tts',name:TS.name,t:Date.now(),dur:TS.pcm.length/TS.sr,n:0,size:wav.size},{id,kind:'tts',name:TS.name,text,voice,style:sty,wav})}catch(e){}
+}
+async function ttsOpen(id){
+  let d=null;try{d=await dbGet(id)}catch(e){}
+  if(!d||!d.wav){renderProjects();return}
+  openStudio('tts');if(!$('#tts').classList.contains('show'))return;
+  $('#pbox').classList.remove('show');
+  const a=parseAudio(new Uint8Array(await d.wav.arrayBuffer()),'');
+  $('#ttsIn').value=d.text||'';$('#ttsVoice').value=d.voice||'Kore';$('#ttsStyle').value=d.style||'';
+  ttsSet(a.f,a.sr);ttsCntUpd();TS.pid=d.id;TS.name=d.name;ttsSt(t('ttsRes',fmt(a.f.length/a.sr)));
+}
+let trSaveT=0;
+function trMark(){if(!TR.file||TR.loading)return;clearTimeout(trSaveT);trSaveT=setTimeout(trSave,900)}
+async function trSave(){
+  clearTimeout(trSaveT);if(!TR.file||TR.loading)return;
+  if(!TR.pid){TR.pid=rid('r');TR.name='TS_'+stamp();TR.fsaved=false}
+  const id=TR.pid,f=TR.file;
+  const state={id:id+'#s',kind:'trs',lang:$('#trLangSel').value,voice:$('#trVoice').value,style:$('#trStyleIn').value,burn:$('#trBurn').checked,orig:$('#trOrig').value,touched:TR.touched,nid:TR.nid,
+    segs:TR.segs.map(x=>({id:x.id,s:x.s,e:x.e,src:x.src,tr:x.tr,ver:x.ver})),
+    clips:TR.clips.map(c=>({id:c.id,sid:c.sid,ver:c.ver,voice:c.voice,style:c.style,f:c.f,sr:c.sr,off:c.off,len:c.len,start:c.start,label:c.label}))};
+  try{
+    if(!TR.fsaved){await dbTx(['data'],'readwrite',tx=>{tx.objectStore('data').put({id,kind:'trf',name:TR.name,file:f})});TR.fsaved=true}
+    await dbTx(['meta','data'],'readwrite',tx=>{tx.objectStore('meta').put({id,kind:'tr',name:TR.name,t:Date.now(),dur:TR.dur||0,n:TR.segs.length,size:f.size});tx.objectStore('data').put(state)});
+  }catch(e){}
+}
+['#trLangSel','#trVoice','#trStyleIn','#trBurn'].forEach(q=>$(q).addEventListener('change',trMark));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&trSaveT)trSave()});
+async function trOpen(id){
+  let f=null,st=null;try{f=await dbGet(id);st=await dbGet(id+'#s')}catch(e){}
+  if(!f||!f.file||!st){renderProjects();return}
+  openStudio('trs');if(!$('#trs').classList.contains('show'))return;
+  $('#pbox').classList.remove('show');
+  TR.loading=true;ttStop();tvid.pause();if(TR.url)URL.revokeObjectURL(TR.url);
+  TR.file=f.file;TR.url=URL.createObjectURL(f.file);tvid.src=TR.url;TR.pid=id;TR.name=f.name;TR.fsaved=true;
+  TR.segs=st.segs||[];TR.clips=st.clips||[];TR.sel=null;TR.nid=st.nid||1;TR.touched=!!st.touched;
+  $('#trLangSel').value=st.lang;$('#trVoice').value=st.voice;$('#trStyleIn').value=st.style||'';$('#trBurn').checked=!!st.burn;
+  $('#trOrig').value=st.orig;$('#trOrigV').textContent=st.orig+'%';if(TR.orig)TR.orig.gain.value=st.orig/100;
+  TR.loading=false;trSt('');renderTR();
+}
 
 /* ---------- старт ---------- */
 (function init(){audioPlayback();
