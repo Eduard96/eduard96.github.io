@@ -243,6 +243,40 @@ header{flex-wrap:wrap}
   .cpanel #mirr{font-size:13px;padding:0 8px}
   .cpanel .camrow .btn.sm{width:54px}
 }
+/* ===== компактный режим панели ===== */
+.stage{width:min(100%,calc(50vh*var(--ar)));width:min(100%,calc(50dvh*var(--ar)))}
+.cpanel{margin-top:8px;padding:8px;gap:6px;border-radius:20px}
+.cpanel .ctl{gap:6px}
+.cpanel .pb{min-height:40px;min-width:40px;padding:0 10px;border-radius:13px;font-size:14px}
+.cpanel #pp{width:46px;min-height:46px;border-radius:14px;font-size:18px}
+.cpanel #spd{min-width:64px;min-height:46px;font-size:15px;border-radius:14px}
+.cpanel #spd::after{font-size:11px}
+.cpanel #ed{min-height:42px;padding:0 14px;font-size:15px;border-radius:14px}
+.cpanel #fs{min-width:64px;min-height:42px;font-size:20px;border-radius:14px}
+.cpanel #ptime{font-size:13px}
+.cpanel input[type=range]{height:26px}
+.cpanel input[type=range]::-webkit-slider-runnable-track{height:8px}
+.cpanel input[type=range]::-moz-range-track,.cpanel input[type=range]::-moz-range-progress{height:8px}
+.cpanel input[type=range]::-webkit-slider-thumb{width:22px;height:22px;margin-top:-7px;border-width:2px}
+.cpanel input[type=range]::-moz-range-thumb{width:18px;height:18px;border-width:2px}
+.cpanel .chips.lang{gap:6px}
+.cpanel .chips.lang .chip{min-height:40px;border-radius:14px;font-size:16px}
+.cpanel .chips.lang .chip.active{border-width:2px;box-shadow:0 0 0 2px rgba(124,58,237,.28),0 0 12px rgba(124,58,237,.45)}
+.cpanel .chips.lang .chip.active::after{width:22px;height:22px;right:10px;font-size:13px}
+.cpanel .camrow{gap:6px}
+.cpanel .selw::before{left:14px;font-size:17px}
+.cpanel .camrow .sel{min-height:40px;border-radius:14px;font-size:14px;padding:0 34px 0 40px;background-position:right 11px center;background-size:16px}
+.cpanel .camrow .btn.sm{width:44px;min-height:40px;border-radius:14px;font-size:17px}
+.cpanel #mirr{min-height:40px;border-radius:14px;font-size:12px;padding:0 8px;gap:5px}
+.cpanel #mirr::before{font-size:17px}
+.cpanel #zr{height:24px}
+.cpanel .camrow:last-child .btn.sm{min-height:36px;width:42px;font-size:18px}
+.cpanel #zv{font-size:15px;min-width:46px}
+@media (max-width:520px){
+  .cpanel{padding:8px;gap:6px}
+  .cpanel #mirr{font-size:12px;padding:0 6px}
+  .cpanel .camrow .btn.sm{width:42px}
+}
 </style>
 </head>
 <body>
