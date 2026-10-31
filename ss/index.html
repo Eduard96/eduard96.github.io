@@ -257,7 +257,8 @@ html,body{overscroll-behavior-y:contain}
   .cpanel .camrow .btn.sm{width:54px}
 }
 /* ===== компактный режим панели ===== */
-.stage{width:min(100%,calc(50vh*var(--ar)));width:min(100%,calc(50dvh*var(--ar)))}
+.stage{width:min(100%,calc(50vh*var(--ar)));width:min(100%,calc(50dvh*var(--ar)));width:min(100%,calc(var(--stageh,50dvh)*var(--ar)))}
+.stage.recx video{object-fit:cover!important;width:100%!important;height:100%!important;left:0!important;top:0!important}
 .cpanel{margin-top:8px;padding:8px;gap:6px;border-radius:20px}
 .cpanel .ctl{gap:6px}
 .cpanel .pb{min-height:40px;min-width:40px;padding:0 10px;border-radius:13px;font-size:14px}
@@ -802,7 +803,7 @@ function askName(){
     box.classList.add('show');
     setTimeout(()=>{try{inp.focus();inp.select()}catch(e){}},60);
     const done=val=>{box.classList.remove('show');ok.onclick=null;cn.onclick=null;inp.onkeydown=null;res(val)};
-    ok.onclick=()=>{let n=inp.value.trim().replace(/[\\\/:*?"<>|]+/g,'_');if(!n)n=defName();projName=n;done(n)};
+    ok.onclick=()=>{let n=inp.value.trim().replace(/[\\\/:*?"<>|]+/g,'_');if(!n)n=defName();projName=n;if(nameHook){const h=nameHook;nameHook=null;h()}done(n)};
     cn.onclick=()=>done(null);
     inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();ok.onclick()}else if(e.key==='Escape')done(null)};
   });
@@ -1884,6 +1885,7 @@ $('#edone').onclick=()=>setEdit(false);
 
 /* ---------- главный цикл ---------- */
 let xctx=null;
+let fh=0;
 function tick(){
   requestAnimationFrame(tick);
   if(hasVideo&&!v.paused&&!v.ended){
@@ -1891,6 +1893,8 @@ function tick(){
     for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
   }
   if(exporting&&xctx){drawExportFrame();xaSync()}
+  stage.classList.toggle('recx',!!recording);
+  if(!recording&&!exporting){const h=Math.round(innerHeight*0.5);if(h!==fh){fh=h;stage.style.setProperty('--stageh',h+'px')}}
   layoutSub();updateSub();updatePreview();updatePlayhead(true);updatePlayerUI();
 }
 
@@ -2079,12 +2083,51 @@ function xaStop(){
   try{if(xaOsc){xaOsc.stop();xaOsc.disconnect()}}catch(e){}
   xaOsc=null;try{if(xaOsc2){xaOsc2.stop();xaOsc2.disconnect()}}catch(e){}xaOsc2=null;xaMix=null;xaBuf=null;v.muted=false;
 }
+let xaP=null,nameHook=null;
+function xaPrep(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+    if(AC){try{AC.close()}catch(e){}AC=null;ASRC=null}
+    AC=new C();
+    if(AC.state!=='running')AC.resume();
+  }catch(e){}
+}
+function xaPre(){
+  xaP=null;
+  try{
+    if(!recBlob)return;
+    const O=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    const oc=new O(2,44100,44100);
+    xaP=recBlob.arrayBuffer().then(ab=>new Promise((res,rej)=>{
+      const r=oc.decodeAudioData(ab,res,rej);
+      if(r&&r.then)r.then(res,rej);
+    }));
+    xaP.catch(()=>{});
+  }catch(e){xaP=null}
+}
+async function xaTrack(){
+  xaBuf=null;
+  try{
+    if(!AC||!recBlob)throw 0;
+    if(AC.state!=='running'){await Promise.race([AC.resume(),sleep(1500)])}
+    try{xaBuf=await xaP}catch(e){xaBuf=null}
+    if(!xaBuf)xaBuf=await decodeBuf(await recBlob.arrayBuffer());
+    ADEST=AC.createMediaStreamDestination();
+    xaOsc=AC.createOscillator();const g=AC.createGain();g.gain.value=0.00001;
+    xaOsc.connect(g);g.connect(ADEST);xaOsc.start();
+    xaMix=AC.createGain();xaMix.connect(ADEST);
+    const mu=AC.createGain();mu.gain.value=0;xaMix.connect(mu);mu.connect(AC.destination);
+    const o2=AC.createOscillator(),g2=AC.createGain();g2.gain.value=0;o2.connect(g2);g2.connect(AC.destination);o2.start();xaOsc2=o2;
+    v.muted=true;
+    return ADEST.stream.getAudioTracks()[0]||null;
+  }catch(e){xaBuf=null;return exportAudioTrack()}
+}
 async function exportVideo(){
   if(!hasVideo||exporting||recording||passing)return;
   const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
   const W=dc?dc.w:v.videoWidth,H=dc?dc.h:v.videoHeight;if(!W||!H){toast(t('vidLoading'));return}
   if(!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
-  xaPrep();
+  xaPre();nameHook=xaPrep;
   const nm=await askName();if(!nm)return;
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
   exporting=true;updateButtons();v.controls=false;
