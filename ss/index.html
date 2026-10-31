@@ -290,6 +290,16 @@ header{flex-wrap:wrap}
   .cpanel #mirr{font-size:12px;padding:0 6px}
   .cpanel .camrow .btn.sm{width:42px}
 }
+
+/* ===== живой пример субтитров: всплывает прямо перед пользователем при выборе стиля / движения / букв ===== */
+.pvbox{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
+  width:min(92vw,440px);aspect-ratio:16/6.5;z-index:150;border-radius:18px;overflow:hidden;
+  background:linear-gradient(135deg,#1c1738,#3b2a6b 55%,#5a2a5f);border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 14px 40px rgba(0,0,0,.5);pointer-events:none;opacity:0;visibility:hidden;
+  transition:opacity .2s,transform .2s,visibility 0s .2s;container-type:inline-size}
+.pvbox.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);transition:opacity .2s,transform .2s}
+.pvbox .pvtag{position:absolute;top:8px;left:12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.pvbox .sub{bottom:34%}
 </style>
 </head>
 <body>
@@ -404,6 +414,7 @@ header{flex-wrap:wrap}
 <div class="ovl" id="ibox"><div class="box"><h3 data-i="iTitle"></h3><div id="itxt"></div><button class="btn primary" id="iclose" style="width:100%;margin-top:14px" data-i="iClose"></button></div></div>
 <div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button><button class="btn" id="kskip" style="width:100%;margin-top:8px" data-i="kSkip"></button></div></div>
 <div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
+<div class="pvbox" id="pvbox" aria-hidden="true"><div class="pvtag" data-i="previewLbl"></div><div class="sub" id="pvsub"></div></div>
 <canvas id="cv" style="display:none"></canvas>
 <div class="toast" id="toast"></div>
 
@@ -412,6 +423,7 @@ header{flex-wrap:wrap}
 'use strict';
 const $=s=>document.querySelector(s);
 const v=$('#v'),stage=$('#stage'),sub=$('#sub'),listEl=$('#list'),tl=$('#tl'),tlin=$('#tlin'),cv=$('#cv');
+const pvBox=$('#pvbox'),pvSub=$('#pvsub');
 const recBtn=$('#rec'),recTxt=$('#recTxt'),timerEl=$('#timer'),srtBtn=$('#srt'),expBtn=$('#exp'),badge=$('#badge');
 const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -457,7 +469,7 @@ cloudRec:'cloud: recording with sound, text arrives a few seconds later',cloudTo
 noText:'No text appeared within 8 seconds. Common reasons: the page is open in an embedded window (open it in a separate Chrome tab) or there is no internet (Chrome recognizes speech via Google). You can add phrases manually with the Add phrase manually button and adjust them on the timeline.',
 finishing:'finishing text…',stopped:'stopped',paused:'paused',listenSimple:'listening…',
 noAudio:'No sound in the recording: the microphone was busy or muted. Record again.',
-newPhrase:'New phrase',example:'Example subtitles',subWord:'Subtitles',cutT:'Cut',restoreT:'Restore',noSrt:'No phrases for SRT.',
+newPhrase:'New phrase',example:'This is subtitle example',previewLbl:'Preview',subWord:'Subtitles',cutT:'Cut',restoreT:'Restore',noSrt:'No phrases for SRT.',
 fsNA:'Fullscreen is not available in this window.',fsNS:'Fullscreen is not supported.',
 exNA:'Video export is available in Chrome.',vidLoading:'The video is still loading.',exToast:'Export runs in real time. Keep the tab open.',
 exWebm:'This browser cannot write MP4, so WebM will be saved. For MP4 open the page in a recent Chrome.',exDone:'Done: {0} (video, sound and subtitles together)',
@@ -514,7 +526,7 @@ cloudRec:'облако: запись со звуком, текст придёт 
 noText:'Текст не появился за 8 секунд. Частые причины: страница открыта во встроенном окне (откройте в отдельной вкладке Chrome); интернет отключён (Chrome распознаёт речь через Google). Фразы можно добавить вручную кнопкой «＋ Фраза вручную» и подогнать на таймлайне.',
 finishing:'доделываю текст…',stopped:'остановлено',paused:'пауза',listenSimple:'слушаю…',
 noAudio:'В записи тишина: микрофон был занят или выключен. Запишите ещё раз.',
-newPhrase:'Новая фраза',example:'Пример субтитров',subWord:'Субтитры',cutT:'Вырезать',restoreT:'Вернуть',noSrt:'Нет фраз для SRT.',
+newPhrase:'Новая фраза',example:'Это пример субтитров',previewLbl:'Пример',subWord:'Субтитры',cutT:'Вырезать',restoreT:'Вернуть',noSrt:'Нет фраз для SRT.',
 fsNA:'Полный экран недоступен в этом окне.',fsNS:'Полный экран не поддерживается.',
 exNA:'Экспорт видео доступен в Chrome.',vidLoading:'Видео ещё загружается.',exToast:'Экспорт идёт в реальном времени. Держите вкладку открытой.',
 exWebm:'Этот браузер пишет только WebM, сохраню WebM. Для MP4 откройте страницу в свежем Chrome.',exDone:'Готово: {0} (видео, звук и субтитры вместе)',
@@ -571,7 +583,7 @@ cloudRec:'ամպ՝ ձայնագրություն ձայնով, տեքստը կգ�
 noText:'Տեքստը 8 վայրկյանում չհայտնվեց։ Հաճախ պատճառը՝ էջը բաց է ներկառուցված պատուհանում (բացեք Chrome-ի առանձին ներդիրում) կամ ինտերնետը անջատված է։ Արտահայտությունները կարելի է ավելացնել ձեռքով «Ավելացնել արտահայտություն» կոճակով և ճշգրտել ժամանակագծի վրա։',
 finishing:'ավարտում եմ տեքստը…',stopped:'կանգնեցված է',paused:'դադար',listenSimple:'լսում եմ…',
 noAudio:'Ձայնագրության մեջ լռություն է․ խոսափողը զբաղված էր կամ անջատված։ Ձայնագրեք նորից։',
-newPhrase:'Նոր արտահայտություն',example:'Ենթագրերի օրինակ',subWord:'Ենթագրեր',cutT:'Կտրել',restoreT:'Վերադարձնել',noSrt:'SRT-ի համար արտահայտություններ չկան։',
+newPhrase:'Նոր արտահայտություն',example:'Սա ենթագրերի օրինակ է',previewLbl:'Օրինակ',subWord:'Ենթագրեր',cutT:'Կտրել',restoreT:'Վերադարձնել',noSrt:'SRT-ի համար արտահայտություններ չկան։',
 fsNA:'Լիաէկրանն այս պատուհանում հասանելի չէ։',fsNS:'Լիաէկրանը չի աջակցվում։',
 exNA:'Տեսանյութի արտահանումը հասանելի է Chrome-ում։',vidLoading:'Տեսանյութը դեռ բեռնվում է։',exToast:'Արտահանումը կատարվում է իրական ժամանակում։ Պահեք էջը բաց։',
 exWebm:'Այս դիտարկիչը գրում է միայն WebM, կպահեմ WebM։ MP4-ի համար բացեք էջը թարմ Chrome-ում։',exDone:'Պատրաստ է՝ {0} (տեսանյութ, ձայն և ենթագրեր միասին)',
@@ -847,25 +859,36 @@ function setLang(l){
   if(recording&&cl.on&&!paused){clearTimeout(cl.timer);const old=cl.rec;cloudNext();try{old&&old.state!=='inactive'&&old.stop()}catch(e){}}
 }
 let laterRec=false;
-function setStyle(k,quiet){
-  if(!STY[k])k='classic';
-  style=k;const d=effStyle();
-  document.querySelectorAll('#styles .sty').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
-  const o=sub.style;
+/* красим один элемент субтитров по текущему стилю; fs: базовый размер шрифта в cqw */
+function paintSub(el,fs){
+  const d=effStyle(),o=el.style;
   o.color=d.c;o.background=bgOf(d);o.borderRadius=(d.bg||d.g)?(d.r||0)+'em':'0';
   o.fontWeight=d.w;o.fontStyle=d.it?'italic':'normal';o.fontFamily=d.fam||BASEFAM;
   o.textTransform=d.up?'uppercase':'none';
   o.webkitTextStroke=d.st?d.st+'em '+d.sc:'0';o.paintOrder=d.st?'stroke fill':'normal';
   o.textShadow=d.sh?'0 '+d.sh[2]+'em '+d.sh[1]+'em '+d.sh[0]:'none';
-  o.fontSize=(4.4*custom.size)+'cqw';
+  o.fontSize=(fs*custom.size)+'cqw';
+}
+/* показать живой пример: restart=true запускает движение заново, false только продлевает показ */
+function showPreview(restart){
+  const n=performance.now();
+  if(restart||n>=previewUntil)previewT0=n;
+  previewUntil=n+3400;
+  save();
+}
+function setStyle(k,quiet,keep){
+  if(!STY[k])k='classic';
+  style=k;
+  document.querySelectorAll('#styles .sty').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
+  paintSub(sub,4.4);paintSub(pvSub,7.2);
   syncLetters();
-  if(!quiet){previewT0=performance.now();previewUntil=previewT0+2600;save()}
+  if(!quiet)showPreview(!keep);
 }
 function setAnim(k,quiet){
   if(!ANIMD[k])k='none';
   anim=k;
   document.querySelectorAll('#anims .anim').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
-  if(!quiet){previewT0=performance.now();previewUntil=previewT0+2600;save()}
+  if(!quiet)showPreview(true);
 }
 
 /* ---------- облачное распознавание (Groq Whisper) ---------- */
@@ -1313,29 +1336,31 @@ function updatePlayhead(follow){
 }
 
 /* ---------- субтитры на экране ---------- */
-let subWords=[];
+let subWords=[],pvWords=[],pvLast='',pvOn=false;
 function setWordChars(o,k){
   if(o.k===k)return;o.k=k;
   const n=k>=o.txt.length?o.txt.length:Math.max(0,k);
   o.vis.textContent=o.txt.slice(0,n);o.hid.textContent=o.txt.slice(n);
 }
-function buildSubDom(txt){
-  sub.textContent='';subWords=[];
+/* строит слова внутри элемента el и возвращает их список */
+function buildSubDom(el,txt){
+  el.textContent='';const words=[];
   txt.split(/\s+/).filter(Boolean).forEach((w,i)=>{
-    if(i)sub.appendChild(document.createTextNode(' '));
-    const el=document.createElement('span');el.style.display='inline-block';
+    if(i)el.appendChild(document.createTextNode(' '));
+    const sp=document.createElement('span');sp.style.display='inline-block';
     const vis=document.createElement('span'),hid=document.createElement('span');hid.style.visibility='hidden';
-    el.append(vis,hid);sub.appendChild(el);
-    const o={el,vis,hid,txt:w,k:-1};subWords.push(o);setWordChars(o,1e9);
+    sp.append(vis,hid);el.appendChild(sp);
+    const o={el:sp,vis,hid,txt:w,k:-1};words.push(o);setWordChars(o,1e9);
   });
+  return words;
 }
-function applySubAnim(tm,d){
-  const st=animState(tm,subWords.length,d),B=st.B,o=sub.style;
+function applySubAnim(el,words,tm,d){
+  const st=animState(tm,words.length,d),B=st.B,o=el.style;
   o.opacity=B.a;
   o.transform='translate(-50%,0) translate('+B.x+'em,'+B.y+'em) rotate('+B.r+'deg) scale('+B.s+','+(B.s*B.sy)+')';
   o.filter=B.b>.001?'blur('+B.b+'em)':'none';
   let rem=st.ch;const hc=hlCol(effStyle());
-  subWords.forEach((w,i)=>{
+  words.forEach((w,i)=>{
     const W=st.W(i),e=w.el.style;
     e.opacity=W.a;
     e.transform=(W.x||W.y||W.r||W.s!==1)?'translate('+W.x+'em,'+W.y+'em) rotate('+W.r+'deg) scale('+W.s+')':'none';
@@ -1353,13 +1378,22 @@ function updateSub(){
     const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g;tm=Math.max(0,v.currentTime-c.s);dd=c.e-c.s}
   }
   if(!txt&&performance.now()<previewUntil){txt=t('example');tm=(performance.now()-previewT0)/1000;dd=2}
-  if(txt!==lastSub){lastSub=txt;buildSubDom(txt);sub.classList.toggle('show',!!txt)}
-  if(txt)applySubAnim(tm,dd);
+  if(txt!==lastSub){lastSub=txt;subWords=buildSubDom(sub,txt);sub.classList.toggle('show',!!txt)}
+  if(txt)applySubAnim(sub,subWords,tm,dd);
   if(cur!==lastNow){
     if(lastNow&&rows.get(lastNow))rows.get(lastNow).classList.remove('now');
     if(cur&&rows.get(cur))rows.get(cur).classList.add('now');
     lastNow=cur;
   }
+}
+/* плавающий пример «This is subtitle example»: виден сразу перед пальцем, где бы ни был экран страницы */
+function updatePreview(){
+  const now=performance.now(),on=now<previewUntil;
+  if(on!==pvOn){pvOn=on;pvBox.classList.toggle('show',on);if(on)pvLast=''}
+  if(!on)return;
+  const txt=t('example');
+  if(txt!==pvLast){pvLast=txt;pvWords=buildSubDom(pvSub,txt);pvSub.classList.add('show')}
+  applySubAnim(pvSub,pvWords,(now-previewT0)/1000,2);
 }
 
 /* ---------- проверка звука и распознавание по записи ---------- */
@@ -1497,7 +1531,7 @@ function tick(){
     for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
   }
   if(exporting&&xctx)drawExportFrame();
-  updateSub();updatePlayhead(true);updatePlayerUI();
+  updateSub();updatePreview();updatePlayhead(true);updatePlayerUI();
 }
 
 /* ---------- SRT ---------- */
@@ -1739,12 +1773,13 @@ setStyle('classic',true);setAnim('fade',true);
   const lf=$('#lfont');
   const o0=document.createElement('option');o0.value='';lf.appendChild(o0);
   FONTS.forEach(f=>{const o=document.createElement('option');o.value=f[1];o.textContent=f[0];o.style.fontFamily=f[1];lf.appendChild(o)});
-  lf.onchange=()=>{custom.font=lf.value;setStyle(style)};
-  SW.forEach(c=>{const b=document.createElement('button');b.style.background=c;b.setAttribute('aria-label',c);b.onclick=()=>{custom.col=c;setStyle(style)};$('#sw').appendChild(b)});
-  $('#lcol').oninput=e=>{custom.col=e.target.value;setStyle(style)};
-  [['#lb','b'],['#li','i'],['#lu','up']].forEach(p=>{$(p[0]).onclick=()=>{custom[p[1]]=!custom[p[1]];setStyle(style)}});
-  $('#lsize').oninput=e=>{custom.size=parseFloat(e.target.value)||1;setStyle(style)};
-  $('#lreset').onclick=()=>{Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1});setStyle(style)};
+  /* изменения букв продлевают показ примера, но не перезапускают движение (иначе ползунок мигает) */
+  lf.onchange=()=>{custom.font=lf.value;setStyle(style,false,true)};
+  SW.forEach(c=>{const b=document.createElement('button');b.style.background=c;b.setAttribute('aria-label',c);b.onclick=()=>{custom.col=c;setStyle(style,false,true)};$('#sw').appendChild(b)});
+  $('#lcol').oninput=e=>{custom.col=e.target.value;setStyle(style,false,true)};
+  [['#lb','b'],['#li','i'],['#lu','up']].forEach(p=>{$(p[0]).onclick=()=>{custom[p[1]]=!custom[p[1]];setStyle(style,false,true)}});
+  $('#lsize').oninput=e=>{custom.size=parseFloat(e.target.value)||1;setStyle(style,false,true)};
+  $('#lreset').onclick=()=>{Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1});setStyle(style,false,true)};
 })();
 srtBtn.onclick=downloadSrt;expBtn.onclick=exportVideo;$('#add').onclick=addManual;$('#passX').onclick=()=>finishPass();
 $('#clear').onclick=()=>{
