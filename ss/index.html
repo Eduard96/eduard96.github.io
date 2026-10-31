@@ -306,6 +306,11 @@ header{flex-wrap:wrap}
 .cammenu button.on::after{content:"✓";margin-left:auto;color:#b79cff}
 .cammenu button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+.donate{margin-top:14px;text-align:center}
+.donate h2{justify-content:center}
+.dn-net{font-weight:700;margin-bottom:8px}
+.dn-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.dn-row code{font:600 13px/1.4 ui-monospace,SFMono-Regular,monospace;padding:8px 10px;border-radius:10px;background:var(--chip);border:1px solid var(--line);overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
 /* ===== живой пример субтитров: всплывает прямо перед пользователем при выборе стиля / движения / букв ===== */
 .pvbox{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
   width:min(92vw,440px);aspect-ratio:16/6.5;z-index:150;border-radius:18px;overflow:hidden;
@@ -410,6 +415,11 @@ header{flex-wrap:wrap}
         </details>
       </div>
     </div>
+  </div>
+  <div class="card donate" lang="en">
+    <h2><span>Support Project with BTC</span></h2>
+    <div class="dn-net">BSC (BEP20)</div>
+    <div class="dn-row"><code id="dnAddr">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="btn sm" id="dnCopy" type="button">Copy</button></div>
   </div>
 </div>
 
@@ -1901,6 +1911,14 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
   requestAnimationFrame(tick);
 })();
 })();
+</script>
+<script>
+document.getElementById('dnCopy').onclick=function(){
+  var b=this,a='0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2';
+  function ok(){b.textContent='Copied ✓';setTimeout(function(){b.textContent='Copy'},1800)}
+  try{navigator.clipboard.writeText(a).then(ok,function(){sel()})}catch(e){sel()}
+  function sel(){var r=document.createRange();r.selectNodeContents(document.getElementById('dnAddr'));var g=getSelection();g.removeAllRanges();g.addRange(r)}
+};
 </script>
 </body>
 </html>
