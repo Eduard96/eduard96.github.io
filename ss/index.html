@@ -1087,7 +1087,7 @@ function camInfoUpd(){
   if(!hasVideo&&zoom>1.05)l2.push((Math.round(zoom*10)/10).toFixed(1)+'×');
   e.innerHTML='';
   e.appendChild(document.createTextNode((f.h>=f.w?'▯ ':'▭ ')+f.w+'×'+f.h));
-  const sm=document.createElement('small');sm.textContent=l2.join(' · ');e.appendChild(sm);
+  const sm=document.createElement('small');sm.textContent=l2.join(' · ')+((!hasVideo&&crop&&crop._o)?'\n✂ '+v.videoWidth+'×'+v.videoHeight:'');e.appendChild(sm);
   e.classList.add('on');
 }
 /* кадр может смениться сам (поворот телефона, другая камера): сцена и подпись сразу подстраиваются */
@@ -1096,14 +1096,23 @@ v.addEventListener('loadedmetadata',relayout);v.addEventListener('resize',relayo
 /* кадр должен совпадать с положением экрана: если телефон вертикально, а кадр пришёл горизонтальным (или наоборот),
    один раз переоткрываем камеру с размерами под текущую ориентацию */
 let orTry='';
+/* телефон держат вертикально, а камера отдаёт горизонтальный кадр (так делает часть Android-браузеров):
+   берём из него по центру вертикальную часть 3:4, как в родной камере; превью, запись и субтитры работают по ней */
+function orientCrop(){
+  const vw=v.videoWidth,vh=v.videoHeight;
+  if(!vw||!vh||innerHeight<innerWidth||vw<=vh)return null;
+  const h=vh-(vh%2);let w=Math.round(h*3/4);w-=w%2;
+  if(w>=vw)return null;
+  return{x:Math.floor((vw-w)/2),y:Math.floor((vh-h)/2),w,h,_o:true};
+}
 async function orientCheck(){
   if(recording||hasVideo||exporting||passing||!camLive()||!v.videoWidth)return;
-  relayout();
   const por=innerHeight>=innerWidth,fp=v.videoHeight>=v.videoWidth;
-  if(por===fp){orTry='';return}
-  if(orTry===String(por))return;
-  orTry=String(por);
-  await initCam();
+  if(por===fp){orTry='';if(crop&&crop._o)crop=null;relayout();return}
+  /* iPhone: один раз переоткрываем камеру с размерами под ориентацию */
+  if(isIOSdev()&&orTry!==String(por)){orTry=String(por);await initCam();return}
+  if(!crop||crop._o)crop=orientCrop();
+  relayout();
 }
 let orT=0;
 const orSoon=()=>{clearTimeout(orT);orT=setTimeout(orientCheck,350)};
@@ -1330,7 +1339,7 @@ async function _initCam(){
     listCams();setTimeout(orientCheck,250);
     /* сразу находим настоящую картинку, чтобы превью тоже было в формате рилса, без чёрных полос по бокам */
     
-    findCrop().then(c=>{if(!recording&&!hasVideo&&camLive()){crop=c;applyVLayout();lastLay=''}}).catch(()=>{});
+    findCrop().then(c=>{if(!recording&&!hasVideo&&camLive()){crop=c||orientCrop();applyVLayout();lastLay=''}}).catch(()=>{});
     return true;
   }catch(err){
     const n=err&&err.name;
@@ -1384,7 +1393,7 @@ async function _startRec(){
   let rs=stream;
   if(pmv==='later')toast(t('laterMode'),6000);
   try{await detectCrop()}catch(e){crop=null;applyVLayout()}
-  if(!isIOSdev()||mirror||(!hwZoom&&zoom>1.001)||wantAR()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
+  if(!isIOSdev()||crop||mirror||(!hwZoom&&zoom>1.001)||wantAR()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
   try{mr=new MediaRecorder(rs,(isIOSdev()?(mt?{mimeType:mt}:{}):Object.assign(mt?{mimeType:mt}:{},{videoBitsPerSecond:10000000,audioBitsPerSecond:128000})))}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
