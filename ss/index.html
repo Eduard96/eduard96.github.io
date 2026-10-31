@@ -224,7 +224,19 @@ header{flex-wrap:wrap}
 .player.edit .xtra,.player:fullscreen .xtra{display:none}
 .player:fullscreen .cpanel{background:rgba(20,16,50,.9)}
 #nname{min-height:50px;font-size:17px;font-weight:600;margin-top:6px}
-#camInfo{flex:none;max-width:55%;font-size:11px;line-height:1.25;font-weight:600;color:#b9b3e6;white-space:normal;text-align:right}
+#camInfo{display:none;position:absolute;left:10px;bottom:10px;z-index:3;padding:4px 9px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;
+  font:700 clamp(10px,2.8cqw,12px)/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre;text-align:left;pointer-events:none;backdrop-filter:blur(6px)}
+#camInfo.on{display:block}
+#camInfo small{display:block;font:600 .88em/1.3 inherit;color:#d6ccff}
+.player.edit #camInfo{display:none!important}
+html,body{overscroll-behavior-y:contain}
+#ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 6px);z-index:300;width:40px;height:40px;margin-left:-20px;border-radius:50%;
+  display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));
+  box-shadow:0 6px 18px rgba(124,58,237,.45);opacity:0;transform:translateY(-60px);pointer-events:none;will-change:transform,opacity}
+#ptr.spin{opacity:1;transform:translateY(24px)!important;transition:transform .2s}
+#ptr.spin b{display:block;animation:ptrspin .7s linear infinite}
+#ptr b{display:block;font-weight:800}
+@keyframes ptrspin{to{transform:rotate(360deg)}}
 
 @media (max-width:900px){
   .grid{grid-template-columns:1fr}
@@ -340,6 +352,7 @@ header{flex-wrap:wrap}
           <video id="v" playsinline muted autoplay></video>
           <div class="badge" id="badge"><b></b>REC</div>
           <div id="timer">00:00</div>
+          <div id="camInfo"></div>
           <div class="sub" id="sub"></div>
           <button id="rec" aria-label="Record"><span class="dot"></span><span id="recTxt"></span></button>
           <button id="pz">⏸ Пауза</button>
@@ -359,7 +372,6 @@ header{flex-wrap:wrap}
             <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
           </div>
           <div class="camrow xtra"><div class="selw"><select class="sel" id="camSel" aria-label="Camera" style="display:none"></select><button type="button" class="sel camsel" id="camBtn" aria-label="Camera"></button><div class="cammenu" id="camMenu"></div></div><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
-          <div class="camrow xtra" style="display:none"><div style="flex:1;min-width:0"><select class="sel" id="fmtSel" aria-label="Format" style="padding-left:14px"></select></div><span id="camInfo"></span></div>
           <div class="camrow xtra"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
         </div>
         <div class="edit-pane" id="ep">
@@ -632,9 +644,6 @@ kSave:'Պահել բանալին և սկսել ձայնագրությունը',k
 Object.assign(I18.en,{edhint:'Tap a block to edit its text. Drag a block to move it, drag its edges to change start and end. Swipe on an empty spot to scrub. Long-press a block to select it, tap more blocks to add them, then hold a selected block and drag to move them all together.',selN:'Selected: {0}',camFront:'Front',camBack:'Back'});
 Object.assign(I18.ru,{edhint:'Нажмите на блок, чтобы изменить текст. Тяните блок целиком, края меняют начало и конец. Проведите пальцем по пустому месту, чтобы перемотать. Долгое нажатие выбирает блок, тапами добавляйте другие, затем удерживайте выбранный блок и тяните: сдвинутся все вместе.',selN:'Выбрано: {0}',camFront:'Фронтальная',camBack:'Задняя'});
 Object.assign(I18.hy,{edhint:'Սեղմեք բլոկին՝ տեքստը փոխելու համար։ Քաշեք բլոկը՝ տեղափոխելու համար, ծայրերը՝ սկիզբն ու ավարտը փոխելու համար։ Երկար սեղմեք՝ բլոկն ընտրելու համար, հպումներով ավելացրեք մյուսները, ապա պահեք ընտրված բլոկը և քաշեք՝ բոլորը միասին կտեղափոխվեն։',selN:'Ընտրված է՝ {0}',camFront:'Առջևի',camBack:'Հետևի'});
-Object.assign(I18.en,{fmtAuto:'Format: auto (as the camera gives)',fmt916:'9:16 vertical (Reels)',fmt34:'3:4 vertical',fmt11:'1:1 square',fmt43:'4:3 horizontal',fmt169:'16:9 horizontal'});
-Object.assign(I18.ru,{fmtAuto:'Формат: авто (как даёт камера)',fmt916:'9:16 вертикальный (рилс)',fmt34:'3:4 вертикальный',fmt11:'1:1 квадрат',fmt43:'4:3 горизонтальный',fmt169:'16:9 горизонтальный'});
-Object.assign(I18.hy,{fmtAuto:'Ձևաչափ՝ ավտո (ինչպես տալիս է տեսախցիկը)',fmt916:'9:16 ուղղահայաց',fmt34:'3:4 ուղղահայաց',fmt11:'1:1 քառակուսի',fmt43:'4:3 հորիզոնական',fmt169:'16:9 հորիզոնական'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -644,6 +653,9 @@ let ui='en';try{const u=localStorage.getItem('substudio-ui');if(u&&I18[u])ui=u}c
 const t=(k,...a)=>{let s=(I18[ui]&&I18[ui][k])||I18.en[k]||k;a.forEach((x,i)=>{s=s.split('{'+i+'}').join(x)});return s};
 
 let phrases=[], map={}, dur=0, lang='hy', style='classic';
+Object.assign(I18.en,{ptrQ:'Reload the page? The current recording will be lost.'});
+Object.assign(I18.ru,{ptrQ:'Обновить страницу? Текущая запись будет потеряна.'});
+Object.assign(I18.hy,{ptrQ:'Թարմացնե՞լ էջը։ Ընթացիկ ձայնագրությունը կկորչի։'});
 let recording=false, exporting=false, hasVideo=false, fixing=false;
 let t0=0, epoch=0, sr=null, stream=null, mr=null, blobs=[], url=null;
 let projName='';let recDur=0;
@@ -1052,27 +1064,50 @@ $('#camFlip').onclick=()=>{
   const s=$('#camSel');if(recording||s.options.length<2)return;
   s.selectedIndex=(s.selectedIndex+1)%s.options.length;s.onchange();
 };
-function buildFmt(){
-  const s=$('#fmtSel');if(!s)return;s.innerHTML='';
-  [['auto','fmtAuto'],['9:16','fmt916'],['3:4','fmt34'],['1:1','fmt11'],['4:3','fmt43'],['16:9','fmt169']].forEach(p=>{const o=document.createElement('option');o.value=p[0];o.textContent=t(p[1]);s.appendChild(o)});
-  s.value=fmtSel;
+/* ---------- реальный кадр: ширина × высота, как их отдаёт камера телефона ---------- */
+function ratioTxt(w,h){
+  const r=w/h;
+  for(const q of [[9,16],[3,4],[2,3],[4,5],[1,1],[5,4],[4,3],[3,2],[16,9],[21,9],[9,21]])if(Math.abs(r/(q[0]/q[1])-1)<0.02)return q[0]+':'+q[1];
+  return r>=1?r.toFixed(2)+':1':'1:'+(1/r).toFixed(2);
 }
-$('#fmtSel').onchange=async()=>{
-  const nv=$('#fmtSel').value;
-  if(recording||exporting){$('#fmtSel').value=fmtSel;return}
-  fmtSel=nv;try{localStorage.setItem('substudio-fmt',fmtSel)}catch(e){}
-  if(hasVideo||passing)return;
-  crop=null;lastLay='';applyVLayout();
-  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
-  zoom=1;await initCam();
-};
+function frameSize(){
+  const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return null;
+  const d=hasVideo?vcrop:crop;
+  if(d&&d.x+d.w<=vw&&d.y+d.h<=vh)return{w:d.w,h:d.h};
+  return{w:vw,h:vh};
+}
 function camInfoUpd(){
   const e=$('#camInfo');if(!e)return;
-  if(!v.videoWidth){e.textContent='';return}
-  let g={};try{const tr=stream&&stream.getVideoTracks()[0];if(tr&&tr.getSettings)g=tr.getSettings()}catch(x){}
-  e.textContent=''; /* PATCH: убрана строка с разрешением */
+  const f=frameSize();
+  if(!f||(!stream&&!hasVideo)){e.classList.remove('on');e.textContent='';return}
+  let fps=0;
+  if(!hasVideo){try{const g=stream.getVideoTracks()[0].getSettings();fps=Math.round(g.frameRate||0)}catch(x){}}
+  const l2=[ratioTxt(f.w,f.h)];
+  if(fps)l2.push(fps+' fps');
+  if(!hasVideo&&zoom>1.05)l2.push((Math.round(zoom*10)/10).toFixed(1)+'×');
+  e.innerHTML='';
+  e.appendChild(document.createTextNode((f.h>=f.w?'▯ ':'▭ ')+f.w+'×'+f.h));
+  const sm=document.createElement('small');sm.textContent=l2.join(' · ');e.appendChild(sm);
+  e.classList.add('on');
 }
-v.addEventListener('loadedmetadata',camInfoUpd);v.addEventListener('resize',camInfoUpd);
+/* кадр может смениться сам (поворот телефона, другая камера): сцена и подпись сразу подстраиваются */
+const relayout=()=>{applyVLayout();lastLay=''};
+v.addEventListener('loadedmetadata',relayout);v.addEventListener('resize',relayout);
+/* кадр должен совпадать с положением экрана: если телефон вертикально, а кадр пришёл горизонтальным (или наоборот),
+   один раз переоткрываем камеру с размерами под текущую ориентацию */
+let orTry='';
+async function orientCheck(){
+  if(recording||hasVideo||exporting||passing||!camLive()||!v.videoWidth)return;
+  relayout();
+  const por=innerHeight>=innerWidth,fp=v.videoHeight>=v.videoWidth;
+  if(por===fp){orTry='';return}
+  if(orTry===String(por))return;
+  orTry=String(por);
+  await initCam();
+}
+let orT=0;
+const orSoon=()=>{clearTimeout(orT);orT=setTimeout(orientCheck,350)};
+addEventListener('orientationchange',orSoon);addEventListener('resize',orSoon);
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
 /* ---------- формат рилса: поиск настоящей картинки внутри кадра с чёрными полосами ----------
    Некоторые камеры Android отдают горизонтальный кадр (например 1280x720), в котором вертикальная картинка
@@ -1082,8 +1117,6 @@ if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.med
    crop  — область картинки в живой камере и при записи
    vcrop — область картинки в уже записанном видео (если полосы всё-таки попали в запись) */
 let crop=null,vcrop=null,scanTok=0,rzT=0;
-let fmtSel='auto';try{fmtSel=localStorage.getItem('substudio-fmt')||'auto'}catch(e){}
-const FMTS={'9:16':9/16,'3:4':3/4,'1:1':1,'4:3':4/3,'16:9':16/9};
 const targetAR=()=>null; /* PATCH: без принудительного формата и обрезки, кадр как отдаёт камера */
 const wantAR=()=>!hasVideo&&targetAR()!==null;
 async function findCrop(){
@@ -1138,6 +1171,7 @@ function applyVLayout(){
   }else{
     s.objectFit=fc?'cover':'';s.width='';s.height='';s.left='';s.top='';s.right='';s.bottom='';
   }
+  camInfoUpd();
 }
 function seekTo(tm){
   return new Promise(res=>{
@@ -1242,7 +1276,7 @@ async function fixOrient(s,lite){
   return s2;
 }
 async function openStream0(lite){
-  const por=innerHeight>=innerWidth,tar=targetAR(),ios=isIOSdev(),base=lite?{}:Object.assign(ios?{width:{ideal:1280},height:{ideal:720}}:{width:{ideal:por?1080:1440},height:{ideal:por?1440:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
+  const por=innerHeight>=innerWidth,tar=targetAR(),ios=isIOSdev(),base=lite?{}:Object.assign(ios?{width:{ideal:por?720:1280},height:{ideal:por?1280:720},frameRate:{ideal:30}}:{width:{ideal:por?1080:1440},height:{ideal:por?1440:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
   const tries=[];
   /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
      и кнопки громкости начинают менять только громкость разговора */
@@ -1293,7 +1327,7 @@ async function _initCam(){
       await v.play().catch(()=>{});
     }
     try{const id=stream.getVideoTracks()[0].getSettings().deviceId;if(id){camId=id;localStorage.setItem('substudio-cam',id)}}catch(e){}
-    listCams();
+    listCams();setTimeout(orientCheck,250);
     /* сразу находим настоящую картинку, чтобы превью тоже было в формате рилса, без чёрных полос по бокам */
     
     findCrop().then(c=>{if(!recording&&!hasVideo&&camLive()){crop=c;applyVLayout();lastLay=''}}).catch(()=>{});
@@ -2081,7 +2115,7 @@ function applyLang(){
   badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
   $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
   if(!exporting)expBtn.textContent=explbl();
-  mirrLabel();keyStat();listCams();buildFmt();
+  mirrLabel();keyStat();listCams();
   if(!recording&&!hasVideo&&!passing)setSt(t('stIdle'));
   renderList();
 }
@@ -2159,6 +2193,48 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
   let t=null;try{t=localStorage.getItem('substudio-theme')}catch(e){}
   if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
   document.documentElement.dataset.theme=t;
+})();
+
+/* ---------- свайп вниз от верха страницы: обновить (на iPhone в режиме приложения своего обновления нет) ---------- */
+(function(){
+  const el=document.createElement('div');el.id='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↻</b>';document.body.appendChild(el);
+  const TH=90;let x0=0,y0=0,dy=0,on=false,go=false;
+  const pageTop=()=>(document.scrollingElement||document.documentElement).scrollTop<=0;
+  const busy=()=>recording||exporting||passing||fixing||document.fullscreenElement||$('#player').classList.contains('edit')||$('#kbox').classList.contains('show');
+  function startOk(t){
+    if(busy()||!pageTop())return false;
+    for(let n=t;n&&n!==document.body&&n.nodeType===1;n=n.parentElement){
+      if(n.matches&&n.matches('input,select,textarea,.tl,.cammenu,#stage'))return false;
+      if(n.scrollTop>0)return false;
+    }
+    return true;
+  }
+  function reset(){el.style.transition='transform .2s,opacity .2s';el.style.transform='translateY(-60px)';el.style.opacity='0';on=false;dy=0}
+  addEventListener('touchstart',e=>{
+    go=false;on=false;dy=0;
+    if(e.touches.length!==1||!startOk(e.target))return;
+    x0=e.touches[0].clientX;y0=e.touches[0].clientY;go=true;el.style.transition='none';
+  },{passive:true});
+  addEventListener('touchmove',e=>{
+    if(!go||e.touches.length!==1)return;
+    const dx=e.touches[0].clientX-x0;dy=e.touches[0].clientY-y0;
+    if(dy<=0||Math.abs(dx)>dy){if(on)reset();return}
+    if(!pageTop()){go=false;reset();return}
+    on=true;
+    const p=Math.min(1,dy/TH),y=Math.min(dy*.55,70)-60;
+    el.style.transform='translateY('+y+'px)';el.style.opacity=String(p);
+    el.firstChild.style.transform='rotate('+(dy*3)+'deg)';
+  },{passive:true});
+  addEventListener('touchend',()=>{
+    if(!go||!on){go=false;return}
+    const hit=dy>=TH;go=false;
+    if(!hit){reset();return}
+    if(hasVideo&&!confirm(t('ptrQ'))){reset();return}
+    el.classList.add('spin');el.style.transform='';el.style.opacity='';
+    try{if(stream)stream.getTracks().forEach(x=>x.stop())}catch(x){}
+    setTimeout(()=>location.reload(),150);
+  },{passive:true});
+  addEventListener('touchcancel',()=>{go=false;if(on)reset()},{passive:true});
 })();
 
 /* ---------- старт ---------- */
