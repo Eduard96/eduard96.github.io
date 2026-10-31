@@ -291,6 +291,21 @@ header{flex-wrap:wrap}
   .cpanel .camrow .btn.sm{width:42px}
 }
 
+/* ===== выбор нескольких дорожек и свой выпадающий список камер ===== */
+.blk{-webkit-touch-callout:none}
+.blk.sel{box-shadow:0 0 0 3px #fff,0 4px 14px rgba(0,0,0,.45)}
+.blk.sel::before{content:"✓ "}
+.blk.grab{transform:translateY(-3px) scale(1.03);z-index:6;box-shadow:0 0 0 3px #fff,0 10px 22px rgba(0,0,0,.55)}
+#selbar{display:none;align-items:center;gap:6px;font-weight:700;color:var(--acc);white-space:nowrap}
+.cpanel .camrow .sel.camsel{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cpanel .camrow .sel.camsel:disabled{opacity:.6;cursor:default}
+.cammenu{display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;max-height:240px;overflow:auto;padding:6px;border-radius:18px;background:#1d1740;border:1px solid rgba(124,58,237,.75);box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.cammenu.show{display:block}
+.cammenu button{display:flex;width:100%;align-items:center;gap:10px;min-height:44px;padding:0 12px;border-radius:12px;color:#f1efff;font-size:15px;text-align:left}
+.cammenu button.on{background:#33266b}
+.cammenu button.on::after{content:"✓";margin-left:auto;color:#b79cff}
+.cammenu button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 /* ===== живой пример субтитров: всплывает прямо перед пользователем при выборе стиля / движения / букв ===== */
 .pvbox{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(14px);
   width:min(92vw,440px);aspect-ratio:16/6.5;z-index:150;border-radius:18px;overflow:hidden;
@@ -337,11 +352,11 @@ header{flex-wrap:wrap}
             <button class="chip" data-l="ru">Рус <kbd>2</kbd></button>
             <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
           </div>
-          <div class="camrow xtra"><div class="selw"><select class="sel" id="camSel" aria-label="Camera"></select></div><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
+          <div class="camrow xtra"><div class="selw"><select class="sel" id="camSel" aria-label="Camera" style="display:none"></select><button type="button" class="sel camsel" id="camBtn" aria-label="Camera"></button><div class="cammenu" id="camMenu"></div></div><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
           <div class="camrow xtra"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
         </div>
         <div class="edit-pane" id="ep">
-          <div class="ephead"><span data-i="edhint"></span><span style="display:flex;gap:6px;flex:none"><button class="btn sm" id="eadd" data-i="addHere"></button><button class="btn sm" id="edone" data-i="done"></button></span></div>
+          <div class="ephead"><span data-i="edhint"></span><span style="display:flex;gap:6px;flex:none;align-items:center"><span id="selbar"><span id="selcnt"></span><button class="btn sm" id="selclr" aria-label="Clear selection">✕</button></span><button class="btn sm" id="eadd" data-i="addHere"></button><button class="btn sm" id="edone" data-i="done"></button></span></div>
           <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
         </div>
         </div>
@@ -602,6 +617,9 @@ kText:'Հեռախոսում <b>տեքստը ձայնագրության ընթա�
 kSave:'Պահել բանալին և սկսել ձայնագրությունը',kSkip:'Ձայնագրել ձայնով, տեքստը՝ կանգից հետո'
 }
 };
+Object.assign(I18.en,{edhint:'Tap a block to edit its text. Drag a block to move it, drag its edges to change start and end. Swipe on an empty spot to scrub. Long-press a block to select it, tap more blocks to add them, then hold a selected block and drag to move them all together.',selN:'Selected: {0}',camFront:'Front',camBack:'Back'});
+Object.assign(I18.ru,{edhint:'Нажмите на блок, чтобы изменить текст. Тяните блок целиком, края меняют начало и конец. Проведите пальцем по пустому месту, чтобы перемотать. Долгое нажатие выбирает блок, тапами добавляйте другие, затем удерживайте выбранный блок и тяните: сдвинутся все вместе.',selN:'Выбрано: {0}',camFront:'Фронтальная',camBack:'Задняя'});
+Object.assign(I18.hy,{edhint:'Սեղմեք բլոկին՝ տեքստը փոխելու համար։ Քաշեք բլոկը՝ տեղափոխելու համար, ծայրերը՝ սկիզբն ու ավարտը փոխելու համար։ Երկար սեղմեք՝ բլոկն ընտրելու համար, հպումներով ավելացրեք մյուսները, ապա պահեք ընտրված բլոկը և քաշեք՝ բոլորը միասին կտեղափոխվեն։',selN:'Ընտրված է՝ {0}',camFront:'Առջևի',camBack:'Հետևի'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -977,11 +995,35 @@ async function listCams(){
     const sel=$('#camSel');sel.innerHTML='';
     let cur=camId;
     if(stream){try{cur=stream.getVideoTracks()[0].getSettings().deviceId||cur}catch(e){}}
-    d.forEach((x,i)=>{const o=document.createElement('option');o.value=x.deviceId;o.textContent=x.label||t('camN',i+1);sel.appendChild(o)});
+    d.forEach((x,i)=>{const o=document.createElement('option');o.value=x.deviceId;o.textContent=camName(x.label,i);sel.appendChild(o)});
     if(cur&&d.some(x=>x.deviceId===cur))sel.value=cur;
     sel.disabled=recording||d.length<2;
+    buildCamMenu();
   }catch(e){}
 }
+/* Android отдаёт подписи вида «camera2 1, facing back»: делаем понятнее, остальное не трогаем */
+function camName(label,i){
+  if(!label)return t('camN',i+1);
+  const m=label.match(/(\d+),?\s*facing\s*(front|back)/i);
+  if(m)return t(m[2].toLowerCase()==='front'?'camFront':'camBack')+' #'+m[1];
+  return label;
+}
+/* свой выпадающий список: на iPhone и Android выглядит одинаково, логика выбора осталась на скрытом select */
+function buildCamMenu(){
+  const sel=$('#camSel'),btn=$('#camBtn'),menu=$('#camMenu');
+  menu.innerHTML='';
+  const o=sel.options[sel.selectedIndex];
+  btn.textContent=o?o.textContent:t('cam');
+  btn.disabled=sel.disabled;
+  Array.from(sel.options).forEach((op,i)=>{
+    const b=document.createElement('button');b.type='button';b.className=i===sel.selectedIndex?'on':'';
+    const sp=document.createElement('span');sp.textContent=op.textContent;b.appendChild(sp);
+    b.onclick=()=>{menu.classList.remove('show');if(i===sel.selectedIndex)return;sel.selectedIndex=i;sel.onchange()};
+    menu.appendChild(b);
+  });
+}
+$('#camBtn').onclick=e=>{e.stopPropagation();if($('#camBtn').disabled)return;$('#camMenu').classList.toggle('show')};
+document.addEventListener('click',()=>$('#camMenu').classList.remove('show'));
 $('#camSel').onchange=async()=>{
   camId=$('#camSel').value;try{localStorage.setItem('substudio-cam',camId)}catch(e){}
   if(recording||hasVideo||exporting)return;
@@ -1142,7 +1184,7 @@ async function _startRec(){
   mr.onstop=finishRec;
   mr.start(1000);
   recording=true;t0=performance.now();
-  setSt(t('starting'));banner('');$('#camSel').disabled=true;
+  setSt(t('starting'));banner('');$('#camSel').disabled=true;buildCamMenu();
   if(pmv==='cloud'){cloudStart();setSt(t('cloudRec'),'ok');toast(t('cloudToast'),5000)}
   else if(pmv==='later'){setSt(t('laterSt'),'ok')}
   else startSR();
@@ -1190,7 +1232,7 @@ function resumeRec(){
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 function finishRec(){
-  stopCanvas();$('#camSel').disabled=false;
+  stopCanvas();$('#camSel').disabled=false;buildCamMenu();
   const blob=new Blob(blobs,{type:'video/webm'});
   url=URL.createObjectURL(blob);
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
@@ -1264,7 +1306,7 @@ function renderTL(){
   const maxE=Math.max(0,...allC().map(c=>c.e));
   const total=Math.max(dur,el,isFinite(v.duration)&&hasVideo?v.duration:0,maxE)+2;
   tlin.style.width=Math.ceil(total*PX)+'px';
-  tlin.innerHTML='';
+  tlin.innerHTML='';blkEl.clear();{const ac=allC();[...selSet].forEach(x=>{if(!ac.includes(x))selSet.delete(x)})}
   for(let i=0;i<=total;i+=5){const t=document.createElement('div');t.className='tick';t.style.left=i*PX+'px';t.textContent=fmt(i);tlin.appendChild(t)}
   const ends=[],lane=new Map();
   allC().slice().sort((a,b)=>a.s-b.s).forEach(c=>{
@@ -1278,23 +1320,63 @@ function renderTL(){
     b.textContent=c.t;b.style.top=(28+lane.get(c)*48)+'px';place(b,c);
     const hl=document.createElement('div');hl.className='h l';hl.dataset.h='l';
     const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
-    b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);
+    b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);blkEl.set(c,b);
   });
   ph=document.createElement('div');ph.className='ph';tlin.appendChild(ph);
+  selUI();
   updatePlayhead(false);
 }
 function place(b,c){b.style.left=c.s*PX+'px';b.style.width=Math.max(12,(c.e-c.s)*PX)+'px'}
 function seek(t){if(hasVideo&&!recording){try{v.currentTime=Math.max(0,t)}catch(e){}}}
 
+const selSet=new Set(),blkEl=new Map();
+function selUI(){
+  const n=selSet.size;
+  $('#selbar').style.display=n?'flex':'none';
+  $('#selcnt').textContent=t('selN',n);
+  blkEl.forEach((b,c)=>b.classList.toggle('sel',selSet.has(c)));
+}
+function buzz(){try{navigator.vibrate&&navigator.vibrate(18)}catch(e){}}
+$('#selclr').onclick=()=>{selSet.clear();selUI()};
+tl.addEventListener('contextmenu',e=>e.preventDefault());
+/* Управление блоком:
+   тап: правка текста (если что-то выбрано, тап добавляет/снимает выбор);
+   долгое нажатие: выбрать блок;
+   долгое нажатие на уже выбранный и тяга: двигаются все выбранные вместе;
+   быстрая тяга без выбора: как раньше, сдвиг одного блока или его краёв. */
 function attachDrag(b,c){
   b.addEventListener('pointerdown',e=>{
     if(recording||exporting)return;
     e.preventDefault();e.stopPropagation();
-    const mode=e.target.dataset&&e.target.dataset.h||'m';
+    const grp=selSet.size>0;
+    const mode=grp?'m':(e.target.dataset&&e.target.dataset.h||'m');
     b.setPointerCapture(e.pointerId);
-    const x0=e.clientX,s0=c.s,e0=c.e;let moved=0;
+    const x0=e.clientX,s0=c.s,e0=c.e,sl0=tl.scrollLeft;
+    let drag=false,lp=false,grab=false,lastX=x0,edge=null,items=null,minS=0;
+    const applyG=()=>{
+      let d=(lastX-x0+tl.scrollLeft-sl0)/PX;d=Math.max(d,-minS);
+      items.forEach(i=>{i.c.s=i.s+d;i.c.e=i.e+d;const el=blkEl.get(i.c);if(el)place(el,i.c)});
+      seek(c.s+0.05);
+    };
+    const timer=setTimeout(()=>{
+      if(drag)return;
+      lp=true;buzz();
+      if(selSet.has(c)){
+        grab=true;
+        items=[...selSet].map(x=>({c:x,s:x.s,e:x.e}));minS=Math.min(...items.map(i=>i.s));
+        items.forEach(i=>{const el=blkEl.get(i.c);if(el)el.classList.add('grab')});
+        edge=setInterval(()=>{
+          const r=tl.getBoundingClientRect();
+          if(lastX>r.right-50)tl.scrollLeft+=12;else if(lastX<r.left+50)tl.scrollLeft-=12;else return;
+          applyG();
+        },16);
+      }else{selSet.add(c);selUI()}
+    },420);
     const mv=ev=>{
-      moved=Math.max(moved,Math.abs(ev.clientX-x0));
+      lastX=ev.clientX;
+      if(Math.abs(ev.clientX-x0)>8)drag=true;
+      if(grab){applyG();return}
+      if(!drag||lp||grp)return;
       const d=(ev.clientX-x0)/PX;
       if(mode==='m'){const ns=Math.max(0,s0+d);c.s=ns;c.e=ns+(e0-s0)}
       else if(mode==='l'){c.s=Math.min(Math.max(0,s0+d),e0-0.2)}
@@ -1302,10 +1384,13 @@ function attachDrag(b,c){
       place(b,c);seek(c.s+0.05);
     };
     const up=ev=>{
+      clearTimeout(timer);clearInterval(edge);
       b.removeEventListener('pointermove',mv);b.removeEventListener('pointerup',up);b.removeEventListener('pointercancel',up);
-      const tap=ev.type==='pointerup'&&moved<5&&mode==='m';
-      save();renderTL();
-      if(tap)openEd(c,false);
+      if(items)items.forEach(i=>{const el=blkEl.get(i.c);if(el)el.classList.remove('grab')});
+      if(grab||(drag&&!grp&&!lp)){save();renderTL();return}
+      if(lp||drag||ev.type!=='pointerup')return;
+      if(grp){if(selSet.has(c))selSet.delete(c);else selSet.add(c);selUI();return}
+      if(mode==='m')openEd(c,false);
     };
     b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
   });
@@ -1515,7 +1600,7 @@ stage.addEventListener('click',togglePlay);
 function setEdit(on){
   const pl=$('#player');
   if(on&&!(hasVideo&&!recording&&!exporting&&!passing))return;
-  pl.classList.toggle('edit',on);document.body.style.overflow=on?'hidden':'';
+  pl.classList.toggle('edit',on);document.body.style.overflow=on?'hidden':'';if(!on){selSet.clear();selUI()}
   $('#ed').textContent=t(on?'edC':'edT');
   if(on){renderTL();tl.scrollLeft=Math.max(0,v.currentTime*PX-tl.clientWidth*0.3)}
 }
