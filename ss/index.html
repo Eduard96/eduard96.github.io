@@ -466,7 +466,7 @@ const pvBox=$('#pvbox'),pvSub=$('#pvsub');
 const recBtn=$('#rec'),recTxt=$('#recTxt'),timerEl=$('#timer'),srtBtn=$('#srt'),expBtn=$('#exp'),badge=$('#badge');
 const PX=60, LANGS={hy:'hy-AM',ru:'ru-RU',en:'en-US'};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-const MOB=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+const MOB=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&matchMedia('(pointer:coarse)').matches);
 
 const I18={
 en:{
@@ -893,7 +893,7 @@ function startSR(){
 function setLang(l){
   lang=l;if(recording)langLog.push({t:rt(),l});
   document.querySelectorAll('#langs .chip').forEach(b=>b.classList.toggle('active',b.dataset.l===l));
-  if((recording||passing)&&SR&&!paused&&!laterRec){
+  if((recording||passing)&&SR&&!paused&&!laterRec&&!cl.on){
     epoch++;
     if(sr){sr.onend=null;sr.onresult=null;sr.onerror=null;try{sr._t&&sr._t.stop()}catch(e){}try{sr.abort()}catch(e){}sr=null}
     clearTimeout(setLang._t);setLang._t=setTimeout(()=>{if((recording||passing)&&!paused)startSR()},120);
