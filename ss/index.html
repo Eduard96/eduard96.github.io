@@ -224,6 +224,7 @@ header{flex-wrap:wrap}
 .player.edit .xtra,.player:fullscreen .xtra{display:none}
 .player:fullscreen .cpanel{background:rgba(20,16,50,.9)}
 #nname{min-height:50px;font-size:17px;font-weight:600;margin-top:6px}
+#camInfo{flex:none;font-size:12px;font-weight:600;color:#b9b3e6;white-space:nowrap}
 
 @media (max-width:900px){
   .grid{grid-template-columns:1fr}
@@ -358,6 +359,7 @@ header{flex-wrap:wrap}
             <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
           </div>
           <div class="camrow xtra"><div class="selw"><select class="sel" id="camSel" aria-label="Camera" style="display:none"></select><button type="button" class="sel camsel" id="camBtn" aria-label="Camera"></button><div class="cammenu" id="camMenu"></div></div><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
+          <div class="camrow xtra"><div style="flex:1;min-width:0"><select class="sel" id="fmtSel" aria-label="Format" style="padding-left:14px"></select></div><span id="camInfo"></span></div>
           <div class="camrow xtra"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
         </div>
         <div class="edit-pane" id="ep">
@@ -630,6 +632,9 @@ kSave:'Պահել բանալին և սկսել ձայնագրությունը',k
 Object.assign(I18.en,{edhint:'Tap a block to edit its text. Drag a block to move it, drag its edges to change start and end. Swipe on an empty spot to scrub. Long-press a block to select it, tap more blocks to add them, then hold a selected block and drag to move them all together.',selN:'Selected: {0}',camFront:'Front',camBack:'Back'});
 Object.assign(I18.ru,{edhint:'Нажмите на блок, чтобы изменить текст. Тяните блок целиком, края меняют начало и конец. Проведите пальцем по пустому месту, чтобы перемотать. Долгое нажатие выбирает блок, тапами добавляйте другие, затем удерживайте выбранный блок и тяните: сдвинутся все вместе.',selN:'Выбрано: {0}',camFront:'Фронтальная',camBack:'Задняя'});
 Object.assign(I18.hy,{edhint:'Սեղմեք բլոկին՝ տեքստը փոխելու համար։ Քաշեք բլոկը՝ տեղափոխելու համար, ծայրերը՝ սկիզբն ու ավարտը փոխելու համար։ Երկար սեղմեք՝ բլոկն ընտրելու համար, հպումներով ավելացրեք մյուսները, ապա պահեք ընտրված բլոկը և քաշեք՝ բոլորը միասին կտեղափոխվեն։',selN:'Ընտրված է՝ {0}',camFront:'Առջևի',camBack:'Հետևի'});
+Object.assign(I18.en,{fmtAuto:'Format: auto (as the camera gives)',fmt916:'9:16 vertical (Reels)',fmt34:'3:4 vertical',fmt11:'1:1 square',fmt43:'4:3 horizontal',fmt169:'16:9 horizontal'});
+Object.assign(I18.ru,{fmtAuto:'Формат: авто (как даёт камера)',fmt916:'9:16 вертикальный (рилс)',fmt34:'3:4 вертикальный',fmt11:'1:1 квадрат',fmt43:'4:3 горизонтальный',fmt169:'16:9 горизонтальный'});
+Object.assign(I18.hy,{fmtAuto:'Ձևաչափ՝ ավտո (ինչպես տալիս է տեսախցիկը)',fmt916:'9:16 ուղղահայաց',fmt34:'3:4 ուղղահայաց',fmt11:'1:1 քառակուսի',fmt43:'4:3 հորիզոնական',fmt169:'16:9 հորիզոնական'});
 const SN={
 en:['Classic','Bold yellow','Minimal','Pop (purple box)','Neon','Comic','Yellow box','Red box','Lime','Outline','Retro terminal','Cinema (italic)','Pink box','Blue glass','Gold','White box','Black box','Blue box','Green box','Orange outline','Cyberpunk','Ice','Fire','Sticker','Mono','Book','Handwriting','Luxury','Sunset','Ocean'],
 ru:['Классика','Жирный жёлтый','Минимал','Поп (фиолетовая плашка)','Неон','Комикс','Жёлтая плашка','Красная плашка','Лайм','Контур','Ретро-терминал','Кино (курсив)','Розовая плашка','Синее стекло','Золото','Белая плашка','Чёрная плашка','Синяя плашка','Зелёная плашка','Оранжевый контур','Киберпанк','Лёд','Огонь','Стикер','Моно','Книга','Рукопись','Люкс','Закат','Океан'],
@@ -759,6 +764,8 @@ const nowT=()=>passing?v.currentTime:rt();
 function toast(msg,ms){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),ms||4200)}
 function setSt(s,k){const e=$('#st');e.textContent=t('srp')+s;e.className=k||''}
 function banner(msg){const b=$('#banner');if(msg){b.textContent=msg;b.classList.add('show')}else b.classList.remove('show')}
+function audioPlayback(){try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback'}catch(e){}}
+function audioRecordMode(){try{if(navigator.audioSession)navigator.audioSession.type='play-and-record'}catch(e){}}
 const pad=(n,l)=>String(n).padStart(l||2,'0');
 function fmt(t){t=Math.max(0,t);return pad(Math.floor(t/60))+':'+pad(Math.floor(t%60))}
 function fmtSrt(t){t=Math.max(0,t);const ms=Math.round(t*1000);const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60;return pad(h)+':'+pad(m)+':'+pad(s)+','+pad(ms%1000,3)}
@@ -1045,6 +1052,22 @@ $('#camFlip').onclick=()=>{
   const s=$('#camSel');if(recording||s.options.length<2)return;
   s.selectedIndex=(s.selectedIndex+1)%s.options.length;s.onchange();
 };
+function buildFmt(){
+  const s=$('#fmtSel');if(!s)return;s.innerHTML='';
+  [['auto','fmtAuto'],['9:16','fmt916'],['3:4','fmt34'],['1:1','fmt11'],['4:3','fmt43'],['16:9','fmt169']].forEach(p=>{const o=document.createElement('option');o.value=p[0];o.textContent=t(p[1]);s.appendChild(o)});
+  s.value=fmtSel;
+}
+$('#fmtSel').onchange=async()=>{
+  const nv=$('#fmtSel').value;
+  if(recording||exporting){$('#fmtSel').value=fmtSel;return}
+  fmtSel=nv;try{localStorage.setItem('substudio-fmt',fmtSel)}catch(e){}
+  if(hasVideo||passing)return;
+  crop=null;lastLay='';applyVLayout();
+  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
+  zoom=1;await initCam();
+};
+function camInfoUpd(){const e=$('#camInfo');if(e)e.textContent=v.videoWidth?v.videoWidth+'×'+v.videoHeight:''}
+v.addEventListener('loadedmetadata',camInfoUpd);v.addEventListener('resize',camInfoUpd);
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
 /* ---------- формат рилса: поиск настоящей картинки внутри кадра с чёрными полосами ----------
    Некоторые камеры Android отдают горизонтальный кадр (например 1280x720), в котором вертикальная картинка
@@ -1054,7 +1077,10 @@ if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.med
    crop  — область картинки в живой камере и при записи
    vcrop — область картинки в уже записанном видео (если полосы всё-таки попали в запись) */
 let crop=null,vcrop=null,scanTok=0,rzT=0;
-const wantAR=()=>MOB&&innerHeight>=innerWidth&&!hasVideo;
+let fmtSel='auto';try{fmtSel=localStorage.getItem('substudio-fmt')||'auto'}catch(e){}
+const FMTS={'9:16':9/16,'3:4':3/4,'1:1':1,'4:3':4/3,'16:9':16/9};
+const targetAR=()=>FMTS[fmtSel]||null;
+const wantAR=()=>!hasVideo&&targetAR()!==null;
 async function findCrop(){
   if(!/Android/i.test(navigator.userAgent))return null;
   const vw=v.videoWidth,vh=v.videoHeight;if(!vw||!vh)return null;
@@ -1095,10 +1121,10 @@ async function detectCrop(){
 }
 /* показываем в сцене только настоящую картинку: сцена получает её пропорции (для рилса это 9:16) */
 function applyVLayout(){
-  const d=hasVideo?vcrop:crop,vw=v.videoWidth,vh=v.videoHeight,s=v.style;
+  const d=hasVideo?vcrop:(wantAR()?null:crop),vw=v.videoWidth,vh=v.videoHeight,s=v.style;
   const ok=!!(d&&vw&&vh&&d.x+d.w<=vw&&d.y+d.h<=vh);
   const fc=!ok&&wantAR()&&vw&&vh;
-  if(vw&&vh)stage.style.setProperty('--ar',(ok?d.w/d.h:fc?0.5625:vw/vh).toFixed(4));
+  if(vw&&vh)stage.style.setProperty('--ar',(ok?d.w/d.h:fc?targetAR():vw/vh).toFixed(4));
   if(ok){
     s.objectFit='fill';
     s.width=(vw/d.w*100)+'%';s.height=(vh/d.h*100)+'%';
@@ -1138,8 +1164,8 @@ async function scanPlayback(){
 }
 function canvasTrack(){
   /* запись идёт через холст постоянного размера: размер кадра не прыгает при повороте телефона или смене камеры */
-  const cr=crop,fcv=!cr&&wantAR();let W=cr?cr.w:(v.videoWidth||1280),H=cr?cr.h:(v.videoHeight||720);
-  if(fcv){H=Math.min(1280,v.videoHeight||1280);W=Math.round(H*9/16)}
+  const fcv=wantAR(),cr=fcv?null:crop;let W=cr?cr.w:(v.videoWidth||1280),H=cr?cr.h:(v.videoHeight||720);
+  if(fcv){const ar=targetAR();if(ar>=1){W=Math.min(1280,Math.max(v.videoWidth||1280,v.videoHeight||720));H=Math.round(W/ar)}else{H=Math.min(1280,Math.max(v.videoHeight||1280,v.videoWidth||720));W=Math.round(H*ar)}}
   const m=Math.max(W,H);if(m>1280){const k=1280/m;W=Math.round(W*k);H=Math.round(H*k)}
   W-=W%2;H-=H%2;
   rc.cv.width=W;rc.cv.height=H;
@@ -1176,7 +1202,7 @@ function gum(c){
 }
 /* lite=true: запрос без размеров, нужен когда камера открылась, но кадр чёрный */
 async function openStream(lite){
-  const por=innerHeight>=innerWidth,base=lite?{}:{width:{ideal:por?1080:1920},height:{ideal:por?1920:1080},frameRate:{ideal:30},aspectRatio:{ideal:por?9/16:16/9}};
+  const por=innerHeight>=innerWidth,tar=targetAR(),base=lite?{}:Object.assign({width:{ideal:por?1080:1920},height:{ideal:por?1920:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
   const tries=[];
   /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
      и кнопки громкости начинают менять только громкость разговора */
@@ -1267,7 +1293,7 @@ async function _startRec(){
   if(!camLive()&&!(await initCam()))return;
   /* микрофон подключается только на время записи */
   if(!stream.getAudioTracks().length){
-    try{const a=await gum({audio:true});a.getAudioTracks().forEach(x=>stream.addTrack(x))}
+    try{audioRecordMode();const a=await gum({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});a.getAudioTracks().forEach(x=>stream.addTrack(x))}
     catch(e){toast(t('camDenied'),7000)}
   }
   if(url){URL.revokeObjectURL(url);url=null}
@@ -1339,6 +1365,8 @@ $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if(hasVideo||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 async function finishRec(){
   stopCanvas();crop=null;vcrop=null;$('#camSel').disabled=false;buildCamMenu();
+  if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
+  audioPlayback();
   let blob=new Blob(blobs,{type:(mr&&mr.mimeType)||'video/webm'});
   try{const hd=new Uint8Array(await blob.slice(0,12).arrayBuffer());if(hd[4]===0x66&&hd[5]===0x74&&hd[6]===0x79&&hd[7]===0x70&&recDur>0)blob=await fixDur(blob,true,recDur)}catch(e){}
   url=URL.createObjectURL(blob);
@@ -1578,7 +1606,7 @@ function layoutSub(){
   const sw=stage.clientWidth,sh=stage.clientHeight;if(!sw||!sh)return;
   const vw=v.videoWidth,vh=v.videoHeight;
   let cw=sw,ch=sh,ox=0,oy=0;
-  const dc=hasVideo?vcrop:crop,okc=!!(dc&&vw&&vh&&dc.x+dc.w<=vw&&dc.y+dc.h<=vh);
+  const dc=hasVideo?vcrop:(wantAR()?null:crop),okc=!!(dc&&vw&&vh&&dc.x+dc.w<=vw&&dc.y+dc.h<=vh);
   if(vw&&vh&&!okc&&!wantAR()){const k=Math.min(sw/vw,sh/vh);cw=vw*k;ch=vh*k;ox=(sw-cw)/2;oy=(sh-ch)/2}
   const fs=(0.044*cw*custom.size).toFixed(2),key=[ox.toFixed(1),oy.toFixed(1),cw.toFixed(1),ch.toFixed(1),fs].join('|');
   if(key===lastLay)return;lastLay=key;
@@ -1625,7 +1653,7 @@ async function checkAudio(blob){
     if(mx<0.002)banner(t('noAudio'));
   }catch(e){}
 }
-function audioGraph(){
+function audioGraph(){audioPlayback();
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
   if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
   if(AC.state==='suspended')AC.resume();
@@ -1782,7 +1810,7 @@ function exportMime(){
 const mp4x=exportMime().startsWith('video/mp4');
 const explbl=()=>t(mp4x?'expMp4':'expWebm');
 let AC=null,ASRC=null,ADEST=null;
-function exportAudioTrack(){
+function exportAudioTrack(){audioPlayback();
   try{
     const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
     if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
@@ -2013,7 +2041,7 @@ function applyLang(){
   badge.innerHTML='<b></b>'+t(paused?'badgePause':'badgeRec');
   $('#ed').textContent=t($('#player').classList.contains('edit')?'edC':'edT');
   if(!exporting)expBtn.textContent=explbl();
-  mirrLabel();keyStat();listCams();
+  mirrLabel();keyStat();listCams();buildFmt();
   if(!recording&&!hasVideo&&!passing)setSt(t('stIdle'));
   renderList();
 }
@@ -2094,7 +2122,7 @@ $('#theme').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dar
 })();
 
 /* ---------- старт ---------- */
-(function init(){
+(function init(){audioPlayback();
   applyLang();
   if(!SR){banner(t('bNoSR'));setSt(t('srNo'),'err')}
   else if(!navigator.mediaDevices){banner(t('bNoMedia'))}
