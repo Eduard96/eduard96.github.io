@@ -1171,7 +1171,7 @@ function canvasTrack(){
   /* запись идёт через холст постоянного размера: размер кадра не прыгает при повороте телефона или смене камеры */
   const fcv=wantAR(),cr=fcv?null:crop;let W=cr?cr.w:(v.videoWidth||1280),H=cr?cr.h:(v.videoHeight||720);
   if(fcv){const ar=targetAR();if(ar>=1){W=Math.min(1280,Math.max(v.videoWidth||1280,v.videoHeight||720));H=Math.round(W/ar)}else{H=Math.min(1280,Math.max(v.videoHeight||1280,v.videoWidth||720));W=Math.round(H*ar)}}
-  const m=Math.max(W,H);if(m>1280){const k=1280/m;W=Math.round(W*k);H=Math.round(H*k)}
+  const m=Math.max(W,H);if(m>1920){const k=1920/m;W=Math.round(W*k);H=Math.round(H*k)}
   W-=W%2;H-=H%2;
   rc.cv.width=W;rc.cv.height=H;
   const x=rc.cv.getContext('2d');
@@ -1214,7 +1214,7 @@ function isIOSdev(){return /iPhone|iPad|iPod/i.test(navigator.userAgent)||(navig
 /* iPhone иногда отдаёт альбомный кадр (1280x720, 1920x1080) при вертикальном экране.
    Проверяем размеры трека и по очереди пробуем: повернуть размеры, открыть камеру заново без размеров, поднять разрешение. */
 async function fixOrient(s,lite){
-  if(lite||!isIOSdev())return s;
+  return s;
   const por=()=>innerHeight>=innerWidth;
   let tr=s.getVideoTracks()[0];if(!tr||!tr.getSettings)return s;
   const dims=t=>{const g=t.getSettings();return{w:g.width||0,h:g.height||0}};
@@ -1242,7 +1242,7 @@ async function fixOrient(s,lite){
   return s2;
 }
 async function openStream0(lite){
-  const por=innerHeight>=innerWidth,tar=targetAR(),base=lite?{}:Object.assign({width:{ideal:por?1080:1920},height:{ideal:por?1920:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
+  const por=innerHeight>=innerWidth,tar=targetAR(),ios=isIOSdev(),base=lite?{}:Object.assign(ios?{width:{ideal:3840},height:{ideal:3840},frameRate:{ideal:30}}:{width:{ideal:por?1080:1920},height:{ideal:por?1920:1080},frameRate:{ideal:30}},tar?{aspectRatio:{ideal:tar}}:{});
   const tries=[];
   /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка,
      и кнопки громкости начинают менять только громкость разговора */
@@ -1351,7 +1351,7 @@ async function _startRec(){
   if(pmv==='later')toast(t('laterMode'),6000);
   try{await detectCrop()}catch(e){crop=null;applyVLayout()}
   try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}
-  try{mr=new MediaRecorder(rs,Object.assign(mt?{mimeType:mt}:{},{videoBitsPerSecond:6000000,audioBitsPerSecond:128000}))}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
+  try{mr=new MediaRecorder(rs,Object.assign(mt?{mimeType:mt}:{},{videoBitsPerSecond:10000000,audioBitsPerSecond:128000}))}catch(e){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
