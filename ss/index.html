@@ -359,7 +359,7 @@ header{flex-wrap:wrap}
             <button class="chip" data-l="en">Eng <kbd>3</kbd></button>
           </div>
           <div class="camrow xtra"><div class="selw"><select class="sel" id="camSel" aria-label="Camera" style="display:none"></select><button type="button" class="sel camsel" id="camBtn" aria-label="Camera"></button><div class="cammenu" id="camMenu"></div></div><button class="btn sm" id="camFlip" aria-label="Flip camera">🔄</button><button class="chip" id="mirr"></button></div>
-          <div class="camrow xtra"><div style="flex:1;min-width:0"><select class="sel" id="fmtSel" aria-label="Format" style="padding-left:14px"></select></div><span id="camInfo"></span></div>
+          <div class="camrow xtra" style="display:none"><div style="flex:1;min-width:0"><select class="sel" id="fmtSel" aria-label="Format" style="padding-left:14px"></select></div><span id="camInfo"></span></div>
           <div class="camrow xtra"><button class="btn sm" id="zo">−</button><input type="range" id="zr" min="1" max="4" step="0.1" value="1" aria-label="Zoom"><button class="btn sm" id="zi">＋</button><span id="zv">1.0×</span></div>
         </div>
         <div class="edit-pane" id="ep">
@@ -1070,7 +1070,7 @@ function camInfoUpd(){
   const e=$('#camInfo');if(!e)return;
   if(!v.videoWidth){e.textContent='';return}
   let g={};try{const tr=stream&&stream.getVideoTracks()[0];if(tr&&tr.getSettings)g=tr.getSettings()}catch(x){}
-  e.textContent=v.videoWidth+'×'+v.videoHeight+(g.width?' · трек '+g.width+'×'+g.height:'')+' · '+(innerHeight>=innerWidth?'экран ▯':'экран ▭');
+  e.textContent=''; /* PATCH: убрана строка с разрешением */
 }
 v.addEventListener('loadedmetadata',camInfoUpd);v.addEventListener('resize',camInfoUpd);
 if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.mediaDevices.addEventListener('devicechange',listCams);
@@ -1084,7 +1084,7 @@ if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)navigator.med
 let crop=null,vcrop=null,scanTok=0,rzT=0;
 let fmtSel='auto';try{fmtSel=localStorage.getItem('substudio-fmt')||'auto'}catch(e){}
 const FMTS={'9:16':9/16,'3:4':3/4,'1:1':1,'4:3':4/3,'16:9':16/9};
-const targetAR=()=>FMTS[fmtSel]||null;
+const targetAR=()=>null; /* PATCH: без принудительного формата и обрезки, кадр как отдаёт камера */
 const wantAR=()=>!hasVideo&&targetAR()!==null;
 async function findCrop(){
   if(!/Android/i.test(navigator.userAgent))return null;
