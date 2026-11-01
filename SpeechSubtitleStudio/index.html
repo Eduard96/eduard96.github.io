@@ -784,6 +784,17 @@ body:not([data-step="1"]) #fxtray{display:none!important}
 #fxtray .fxbg{display:none;align-items:center;gap:8px;font-weight:700;font-size:14px}
 #fxtray.mask .fxbg{display:flex}
 #fxtray .fxbg input{width:46px;height:38px;padding:0;border:2px solid rgba(255,255,255,.25);border-radius:12px;background:none;cursor:pointer}
+
+/* ===== «Поддержать проект» на экране «Готово»: тихая строка, раскрывается по касанию ===== */
+.dsup{margin:14px 0 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.dsupt{width:100%;min-height:46px;padding:0 14px;display:flex;align-items:center;justify-content:center;gap:8px;color:#b6b1e0;font-weight:600;font-size:14px}
+.dsupt .hrt{color:#f472b6;opacity:.85}
+.dsupt i{font-style:normal;opacity:.6;transition:transform .2s}
+.dsup.open .dsupt i{transform:rotate(180deg)}
+.dsupb{display:none;padding:2px 12px 14px;text-align:center}
+.dsup.open .dsupb{display:block}
+.dsupb .dn-net{color:#c4c0ec;font-size:13px;margin-bottom:8px}
+.dsupb .dn-row code{font-size:12px;color:#e2dffa;background:rgba(255,255,255,.06)}
 </style>
 </head>
 <body>
@@ -927,7 +938,7 @@ body:not([data-step="1"]) #fxtray{display:none!important}
   <div class="card donate" lang="en">
     <h2><span>Support Project with BTC</span></h2>
     <div class="dn-net">BSC (BEP20)</div>
-    <div class="dn-row"><code id="dnAddr">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="btn sm" id="dnCopy" type="button">Copy</button></div>
+    <div class="dn-row"><code id="dnAddr">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="btn sm" id="donCopy" type="button">Copy</button></div>
   </div>
 </div>
 
@@ -5995,6 +6006,8 @@ async function trOpen(id){
    +'<div class="sec">'+l3('Открыть в приложении','Open in an app','Բացել հավելվածում')+'</div><div class="dplat" id="dnPlat"></div><div class="fh" style="margin-top:6px;text-align:left">'+l3('Файл сохранится на устройство, описание скопируется. Останется выбрать видео в приложении.','The file is saved to your device and the caption is copied. Then pick the video in the app.','Ֆայլը կպահվի սարքում, նկարագրությունը կպատճենվի։ Մնում է ընտրել տեսանյութը հավելվածում։')+'</div>'
    +'<div class="dsrt"><button class="nb sm" id="dnSrt" type="button">'+l3('Субтитры .srt','Subtitles .srt','Ենթագրեր .srt')+'</button></div>'
    +'<div class="dinst" id="dnInst"><div><b>'+l3('Установите приложение','Install the app','Տեղադրեք հավելվածը')+'</b><span>'+l3('Откроется с главного экрана и работает без сети.','Opens from the home screen and works offline.','Բացվում է գլխավոր էկրանից և աշխատում է առանց ցանցի։')+'</span></div><button class="nb sm" id="dnInstB" type="button">'+l3('Установить','Install','Տեղադրել')+'</button></div>'
+   +'<div class="dsup" id="dnSup"><button class="dsupt" id="dnSupT" type="button" aria-expanded="false"><span class="hrt">♥</span><span>'+l3('Поддержать проект','Support the project','Աջակցել նախագծին')+'</span><i>▾</i></button>'
+   +'<div class="dsupb"><div class="dn-net">BSC (BEP20)</div><div class="dn-row"><code id="dnAddr2">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="nb sm" id="dnSupC" type="button">'+l3('Копировать','Copy','Պատճենել')+'</button></div></div></div>'
    +'<div class="dfoot"><button class="nb" id="dnBack" type="button">'+l3('Назад к правке','Back to editing','Վերադառնալ խմբագրմանը')+'</button><button class="nb pri" id="dnNew" type="button">'+l3('Новое видео','New video','Նոր տեսանյութ')+'</button></div></div>';
   B.appendChild(done);
 
@@ -6038,6 +6051,12 @@ async function trOpen(id){
   };
   fe('dnCap').oninput=e=>capSync(e.target);
   fe('dnCopy').onclick=()=>{toast(capCopy()?t('capCopied'):l3('Описание пустое.','The caption is empty.','Նկարագրությունը դատարկ է։'),3500)};
+  fe('dnSupT').onclick=()=>{const o=fe('dnSup').classList.toggle('open');fe('dnSupT').setAttribute('aria-expanded',o?'true':'false')};
+  fe('dnSupC').onclick=()=>{
+    const a='0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2',b=fe('dnSupC'),ok=()=>{b.textContent='✓';setTimeout(()=>{b.textContent=l3('Копировать','Copy','Պատճենել')},1800)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(fe('dnAddr2'));const g=getSelection();g.removeAllRanges();g.addRange(r)};
+    try{navigator.clipboard.writeText(a).then(ok,sel)}catch(e){sel()}
+  };
   fe('dnSrt').onclick=()=>downloadSrt();
   fe('dnInstB').onclick=()=>$$('#inst').click();
   fe('dnNew').onclick=()=>{closeDone();if(hasVideo)closeProject();VO.bufs=null;setDub(false);dst('');resetTr();setStep(1)};
@@ -6405,7 +6424,7 @@ async function trOpen(id){
 })();
 </script>
 <script>
-document.getElementById('dnCopy').onclick=function(){
+document.getElementById('donCopy').onclick=function(){
   var b=this,a='0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2';
   function ok(){b.textContent='Copied ✓';setTimeout(function(){b.textContent='Copy'},1800)}
   try{navigator.clipboard.writeText(a).then(ok,function(){sel()})}catch(e){sel()}
