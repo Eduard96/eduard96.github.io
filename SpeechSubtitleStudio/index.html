@@ -701,6 +701,51 @@ body.dragging #dropz{display:flex}
 .dinst div{display:flex;flex-direction:column;gap:2px;font-size:13px;color:#c4c0ec}
 .dinst b{color:#fff;font-size:14px}
 body.flowon #fFmt{text-align:left}
+/* ===== Медиатека ===== */
+#mdl{display:none;position:fixed;inset:0;z-index:125;background:rgba(5,4,14,.72);align-items:flex-end;justify-content:center}
+#mdl.show{display:flex}
+#mdl .mbx{width:min(100%,640px);height:min(92dvh,760px);display:flex;flex-direction:column;overflow:auto;background:#15122e;border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;padding:14px 14px 0;color:#f4f2ff}
+.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mhd b{font-size:20px}
+.mtabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+.mtabs .chip{flex:none;min-height:38px;padding:6px 14px;border-radius:99px;background:#1d1946;border:1.5px solid transparent;color:#c4c0ec;font-size:14px}
+.mtabs .chip.active{border-color:var(--acc);color:#fff;background:#2a2260}
+.msrch{display:flex;gap:8px}
+.msrch .sel{min-height:46px;font-size:15px;border-width:1.5px;flex:1;min-width:0}
+.msrch .nb{height:46px;flex:none}
+.msug{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px}
+.msug .chip{min-height:32px;padding:4px 12px;border-radius:99px;background:#1d1946;border:1px solid var(--line);color:#c4c0ec;font-size:13px}
+.mnote{text-align:left;margin:6px 0;min-height:18px}
+.mkey{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px;margin-bottom:8px;border-radius:14px;background:#1d1946}
+.mkey span{font-size:13px;color:#c4c0ec}
+.mkey .mkr{display:flex;gap:6px;width:100%}
+.mkey .mkr .sel{min-height:42px;font-size:14px;border-width:1.5px;flex:1;min-width:0}
+.mres.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mtile{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#0e0c24}
+.mtile>button{position:absolute;inset:0;width:100%;height:100%;padding:0}
+.mtile img{width:100%;height:100%;object-fit:cover;display:block}
+.mtile .mby{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 4px;font-size:10.5px;line-height:1.2;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75));text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mtile .mdur{position:absolute;right:6px;top:6px;padding:1px 6px;border-radius:99px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-style:normal}
+.mtile .mck{display:none;position:absolute;left:6px;top:6px;width:24px;height:24px;border-radius:50%;background:#10b981;color:#fff;font-style:normal;align-items:center;justify-content:center;font-size:14px}
+.mtile.done .mck{display:flex}
+.mtile.busy{opacity:.5}
+.mtile .mlnk{position:absolute;right:4px;bottom:22px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;text-decoration:none;font-size:14px}
+.mres.mlist{display:flex;flex-direction:column;gap:6px}
+.mrow{display:flex;align-items:center;gap:8px;padding:8px;border-radius:14px;background:#1d1946}
+.mrow.play{outline:1.5px solid var(--acc)}
+.mrow .mplay{width:40px;height:40px;flex:none;border-radius:50%;background:#2a2260;display:grid;place-items:center;color:#fff}
+.mrow .mtx{flex:1;min-width:0;display:flex;flex-direction:column}
+.mrow .mtx b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mtx span{font-size:12px;color:#c4c0ec;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mlnk{width:32px;height:32px;display:grid;place-items:center;color:#c4c0ec;text-decoration:none;flex:none}
+.mrow .nb.sm{flex:none;min-width:84px}
+.mrow.busy{opacity:.5}
+#mdl .mfoot{text-align:left;font-size:11.5px;margin:10px 0}
+#mdl .mdone{position:sticky;bottom:0;margin:auto -14px 0;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:#15122e;border-top:1px solid var(--line)}
+#mdl .mdone .nb{width:100%}
+body.mdopen .toast{top:auto;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,16px);z-index:140}
+body.mdopen .toast.show{transform:translate(-50%,0)}
+#tabAu{opacity:1}
 </style>
 </head>
 <body>
@@ -1600,7 +1645,7 @@ function setAnim(k,quiet){
    Порядок, включение и ключи хранятся в этом браузере (localStorage). */
 const LX=(ru,en)=>ui==='en'?en:ru;
 const GKEY='substudio-gkey',GBASE='https://generativelanguage.googleapis.com/v1beta/',GTTS='gemini-2.5-flash-tts',GTTS2='gemini-2.5-flash-preview-tts',GTXTS=['gemini-3.8-flash','gemini-2.5-flash','gemini-2.5-flash-lite'],GTXT=GTXTS[0];
-const AIST='substudio-ai',AIORD=['gemini','groq','openrouter','mistral','cohere','hf','deepgram','eleven'],AICD=new Map(),AIL={};
+const AIST='substudio-ai',AIORD=['gemini','groq','openrouter','mistral','cohere','hf','deepgram','eleven','pexels','pixabay','giphy','freesound'],AICD=new Map(),AIL={};
 const AIS={o:AIORD.slice(),p:{}};
 try{const s=JSON.parse(localStorage.getItem(AIST)||'null');if(s&&typeof s==='object'){
   if(Array.isArray(s.o))AIS.o=[...s.o.filter(i=>AIORD.includes(i)),...AIORD.filter(i=>!s.o.includes(i))];
@@ -1892,7 +1937,11 @@ const AIP={
     chk:k=>aiPing('https://api.deepgram.com/v1/projects',{Authorization:'Token '+k})},
   eleven:{id:'eleven',n:'ElevenLabs',k:['tts'],ph:'sk_…',url:'https://elevenlabs.io/app/settings/api-keys',
     tts:(k,tx,v2)=>elTts(k,tx,v2),
-    chk:k=>aiPing('https://api.elevenlabs.io/v1/models',{'xi-api-key':k})}
+    chk:k=>aiPing('https://api.elevenlabs.io/v1/models',{'xi-api-key':k})},
+  pexels:{id:'pexels',n:'Pexels',k:['media'],ph:'',url:'https://www.pexels.com/api/new/',chk:k=>aiPing('https://api.pexels.com/v1/search?query=nature&per_page=1',{Authorization:k})},
+  pixabay:{id:'pixabay',n:'Pixabay',k:['media'],ph:'',url:'https://pixabay.com/api/docs/',chk:k=>aiPing('https://pixabay.com/api/?key='+encodeURIComponent(k)+'&q=sea&per_page=3')},
+  giphy:{id:'giphy',n:'GIPHY',k:['media'],ph:'',url:'https://developers.giphy.com/dashboard/',chk:k=>aiPing('https://api.giphy.com/v1/gifs/trending?limit=1&api_key='+encodeURIComponent(k))},
+  freesound:{id:'freesound',n:'Freesound',k:['media'],ph:'',url:'https://freesound.org/apiv2/apply',chk:k=>aiPing('https://freesound.org/apiv2/search/text/?query=a&page_size=1&token='+encodeURIComponent(k))}
 };
 /* описания для окна ключей */
 const AIINFO={
@@ -1911,7 +1960,15 @@ const AIINFO={
   deepgram:{ru:'Запасной вариант распознавания речи (Nova-2) с таймкодами.',en:'Backup speech recognition (Nova-2) with timestamps.',
     fr:'При регистрации дают бесплатный стартовый кредит около $200, карту привязывать не нужно. Кредит разовый, не обновляется.',fe:'A one-time free starter credit of about $200 on sign-up, no card to attach. It does not renew.'},
   eleven:{ru:'Запасной вариант озвучки: очень естественные голоса. Русский и армянский (модель v3) поддерживаются.',en:'Backup voice-over with very natural voices. Russian and Armenian (v3 model) are supported.',
-    fr:'Бесплатно: 10 000 символов в месяц (около 10 минут речи), карту привязывать не нужно. Для коммерческого использования нужен платный тариф.',fe:'Free: 10,000 characters per month (about 10 minutes of speech), no card to attach. Commercial use needs a paid plan.'}
+    fr:'Бесплатно: 10 000 символов в месяц (около 10 минут речи), карту привязывать не нужно. Для коммерческого использования нужен платный тариф.',fe:'Free: 10,000 characters per month (about 10 minutes of speech), no card to attach. Commercial use needs a paid plan.'},
+  pexels:{ru:'Фото и видео из библиотеки Pexels. Лицензия Pexels разрешает бесплатное коммерческое использование без подписи.',en:'Photos and video from Pexels. The Pexels license allows free commercial use without credit.',
+    fr:'Бесплатно, карту привязывать не нужно. Лимит: 200 запросов в час и 20 000 в месяц.',fe:'Free, no card to attach. Limit: 200 requests per hour and 20,000 per month.'},
+  pixabay:{ru:'Фото, иллюстрации и видео из библиотеки Pixabay. Лицензия Pixabay разрешает свободное использование, в том числе коммерческое, без подписи.',en:'Photos, illustrations and video from Pixabay. The Pixabay license allows free use, including commercial, without credit.',
+    fr:'Бесплатно, карту привязывать не нужно.',fe:'Free, no card to attach.'},
+  giphy:{ru:'GIF-анимации. Права на сами GIF принадлежат их авторам: проверьте это перед публикацией. В поиске показывается пометка Powered by GIPHY.',en:'GIF animations. The rights to each GIF belong to its author: check them before publishing. Search shows a Powered by GIPHY mark.',
+    fr:'Бесплатно, карту привязывать не нужно. Тестовый ключ: до 100 запросов в час.',fe:'Free, no card to attach. A beta key allows up to 100 requests per hour.'},
+  freesound:{ru:'Звуковые эффекты. Приложение показывает только звуки CC0: подпись автора не нужна.',en:'Sound effects. The app shows CC0 sounds only: no credit to the author is needed.',
+    fr:'Бесплатно, нужна регистрация, карту привязывать не нужно.',fe:'Free, registration needed, no card to attach.'}
 };
 /* то, что раньше делали вызовы Gemini, теперь идёт через цепочку провайдеров */
 const aiText=(prompt,schema)=>aiTry('text',(p,k)=>p.text(k,prompt+(p.id==='gemini'?'':'\nReturn only valid JSON, with no markdown fences and no comments.'),p.id==='gemini'&&schema?{schema}:null));
@@ -4206,6 +4263,7 @@ function ovInspector(row,o,mk){
   mk('check',x('Готово','Done'),()=>{VE.osel=null;renderTL();buildDock()},true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
   mk('photo',x('Фото','Photo'),()=>ovPick('i'));
+  mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia());
   mk('undo',x('Отменить','Undo'),hUndo);
   const sv=document.createElement('b');sv.className='dksv';sv.textContent=Math.round(o.w*100)+'%';
   const sr=dkRange(.05,2,.01,o.w,val=>{o.w=val;sv.textContent=Math.round(val*100)+'%';markDirty()});
@@ -4269,6 +4327,7 @@ function vdRow(row){
   if(o){ovInspector(row,o,mk);return}
   ovUi.o=null;ovUi.size=null;
   mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
+  mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia(),true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
   mk('photo',x('Фото','Photo'),()=>ovPick('i'));
   mk('layers',x('Сделать слоем','Clip to layer'),ovFromSel);
@@ -4278,12 +4337,12 @@ function vdRow(row){
   mk('refresh',x('Вернуть всё','Restore all'),hRestoreAll);
   const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Переход ставится на стыке. Видео и фото ложатся поверх: их можно двигать, менять размер и время.','A transition sits on a join. Videos and photos go on top: move them, resize them, change their timing.');row.appendChild(hn);
 }
-function auRow(row){const E=(typeof ui!=='undefined'&&ui==='en'),b=document.createElement('div');b.className='dkaud';
+function auRow(row){if(VE.audRow){VE.audRow(row);return}const E=(typeof ui!=='undefined'&&ui==='en'),b=document.createElement('div');b.className='dkaud';
   b.innerHTML=VIC.a+'<span>'+(E?'Audio track editing':'Правка звуковой дорожки')+'</span><em>'+(E?'soon':'скоро')+'</em>';row.appendChild(b)}
 VE.hook=()=>{$('#dkbody').dataset.tab='vd';buildDock()};
 (function(){const E=(typeof ui!=='undefined'&&ui==='en');
   $('#tabVd').textContent=E?'Video':'Видео';{const tb=$('#dktabs');tb.insertBefore($('#tabVd'),tb.firstChild)}
-  $('#tabAu').innerHTML=VIC.a+'<span>'+(E?'Audio':'Звук')+'</span><em>'+(E?'soon':'скоро')+'</em>'})();
+  $('#tabAu').innerHTML=VIC.a+'<span>'+(E?'Audio':'Звук')+'</span>'})();
 function buildDock(){
   const body=$('#dkbody');if(!body)return;
   const tab=body.dataset.tab||'st',old=body.firstChild,same=body.dataset.last===tab,sl=(same&&old)?old.scrollLeft:0;
@@ -4447,7 +4506,7 @@ $('#shCopy').onclick=()=>{if(capCopy())toast(t('capCopied'),4000)};
 
 /* ---------- Окно ключей API (Gemini и другие провайдеры) ---------- */
 const gbox=$('#gbox');
-const AICAP={text:['Перевод текста','Text translation'],stt:['Речь → текст','Speech → text'],tts:['Озвучка','Voice-over']};
+const AICAP={text:['Перевод текста','Text translation'],stt:['Речь → текст','Speech → text'],tts:['Озвучка','Voice-over'],media:['Фото, видео, GIF, звуки','Photos, video, GIFs, sounds']};
 function openGem(){closeMenus();aiRenderKeys();$('#gst').textContent='';gbox.classList.add('show')}
 $('#mGem').onclick=openGem;$('#trKey').onclick=openGem;$('#ttsKey').onclick=openGem;
 $('#gclose').innerHTML=ico('close');
@@ -5525,6 +5584,355 @@ async function trOpen(id){
   fe('dnNew').onclick=()=>{closeDone();if(hasVideo)closeProject();VO.bufs=null;setDub(false);dst('');resetTr();setStep(1)};
 
   setInterval(()=>{if(step===1&&!hasVideo&&!recording&&gst==='ok'&&!camLive()&&camWanted&&!gbusy&&document.visibilityState==='visible'){startCam()}},2500);
+
+  /* ===== Медиатека: фото, видео, GIF, музыка и звуки из бесплатных библиотек ===== */
+  const MED={tab:'photo',q:'',page:1,seq:0,items:[],added:new Set(),keysOpen:false,aud:null,audId:null,busyId:null};
+  const MU={buf:null,name:'',cr:'',vol:.35,duck:true,g:null,xg:null};
+  const SFX=[];
+  const AUD={srcs:[],xs:[]};
+  const ENQ=new Map();
+  const dur2=s=>{s=Math.round(s||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+  const needKeyOf=id=>!aiKeys(id).length||!aiOn(id);
+  const keyOf=id=>aiKeys(id)[0]||'';
+  const LIC=l=>{l=String(l||'').toLowerCase();return l==='by'?'CC BY':l==='cc0'?'CC0':l==='pdm'?'PD':l.toUpperCase()};
+  const ext=(u,d)=>{const m=String(u||'').split(/[?#]/)[0].match(/\.([a-z0-9]{2,4})$/i);return m?m[1].toLowerCase():d};
+  const MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',mp4:'video/mp4',webm:'video/webm',mp3:'audio/mpeg',ogg:'audio/ogg',wav:'audio/wav',m4a:'audio/mp4'};
+  const HTTPERR=(r)=>{const e=new Error('HTTP '+r.status);e.status=r.status;return e};
+  async function jget(url,hdr){const r=await fetch(url,hdr?{headers:hdr}:undefined);if(!r.ok)throw HTTPERR(r);return r.json()}
+  /* поиск идёт по-английски: русский и армянский запрос переводится заранее */
+  async function qEn(q){
+    if(!/[^\x00-\x7F]/.test(q))return q;
+    if(ENQ.has(q))return ENQ.get(q);
+    const from=/[԰-֏]/.test(q)?'hy':'ru';let out=q;
+    try{out=String(await trLine(q,from,'en')||q).trim()||q}catch(e){}
+    ENQ.set(q,out);return out;
+  }
+  /* провайдеры: нормализованные результаты {id,prov,type,thumb,title,by,dur,w,h,dl,dl2,page,prev,lic,cr} */
+  const PROV={
+    openverse:{n:'Openverse',key:false,tabs:['photo','music'],async search(q,pg,tab){
+      const au=tab==='music';
+      const u='https://api.openverse.org/v1/'+(au?'audio':'images')+'/?q='+encodeURIComponent(q)+'&license=cc0,pdm,by&page_size=20&page='+pg+(au?'&category=music':'&mature=false');
+      const j=await jget(u);
+      return(j.results||[]).map(r=>({id:'ov'+r.id,prov:'Openverse',type:au?'aud':'img',thumb:r.thumbnail||r.url,title:r.title||'',by:r.creator||'',dur:au&&r.duration?r.duration/1000:0,w:r.width,h:r.height,dl:r.url,dl2:r.thumbnail,page:r.foreign_landing_url,prev:au?r.url:null,lic:LIC(r.license),cr:r.license==='by'?(r.attribution||('“'+(r.title||'')+'” '+(r.creator||'')+' CC BY')):''}));
+    }},
+    pexels:{n:'Pexels',key:true,tabs:['photo','video'],async search(q,pg,tab){
+      const h={Authorization:keyOf('pexels')},loc=ui==='ru'?'&locale=ru-RU':'';
+      if(tab==='video'){
+        const j=await jget('https://api.pexels.com/videos/search?query='+encodeURIComponent(q)+'&per_page=20&page='+pg+loc,h);
+        return(j.videos||[]).map(r=>{
+          const fs=(r.video_files||[]).filter(f=>/mp4/.test(f.file_type||'')&&f.link).sort((a,b)=>(a.width||0)-(b.width||0));
+          const f=fs.find(z=>Math.max(z.width||0,z.height||0)>=1000)||fs[fs.length-1];
+          return f?{id:'px'+r.id,prov:'Pexels',type:'vid',thumb:r.image,title:'',by:(r.user&&r.user.name)||'',dur:r.duration,w:f.width,h:f.height,dl:f.link,page:r.url,lic:'Pexels',cr:''}:null;
+        }).filter(Boolean);
+      }
+      const j=await jget('https://api.pexels.com/v1/search?query='+encodeURIComponent(q)+'&per_page=24&page='+pg+loc,h);
+      return(j.photos||[]).map(r=>({id:'px'+r.id,prov:'Pexels',type:'img',thumb:r.src.medium,title:r.alt||'',by:r.photographer||'',w:r.width,h:r.height,dl:r.src.large,dl2:r.src.medium,page:r.url,lic:'Pexels',cr:''}));
+    }},
+    pixabay:{n:'Pixabay',key:true,tabs:['photo','video'],async search(q,pg,tab){
+      const k=encodeURIComponent(keyOf('pixabay')),qq=encodeURIComponent(q);
+      if(tab==='video'){
+        const j=await jget('https://pixabay.com/api/videos/?key='+k+'&q='+qq+'&per_page=20&page='+pg+'&safesearch=true');
+        return(j.hits||[]).map(r=>{
+          const vs=r.videos||{},f=vs.medium&&vs.medium.url?vs.medium:(vs.small&&vs.small.url?vs.small:vs.large);
+          return f&&f.url?{id:'pb'+r.id,prov:'Pixabay',type:'vid',thumb:(f.thumbnail||(vs.tiny&&vs.tiny.thumbnail)||('https://i.vimeocdn.com/video/'+r.picture_id+'_295x166.jpg')),title:'',by:r.user||'',dur:r.duration,w:f.width,h:f.height,dl:f.url,page:r.pageURL,lic:'Pixabay',cr:''}:null;
+        }).filter(Boolean);
+      }
+      const j=await jget('https://pixabay.com/api/?key='+k+'&q='+qq+'&image_type=photo&per_page=24&page='+pg+'&safesearch=true');
+      return(j.hits||[]).map(r=>({id:'pb'+r.id,prov:'Pixabay',type:'img',thumb:r.webformatURL,title:'',by:r.user||'',w:r.imageWidth,h:r.imageHeight,dl:r.largeImageURL||r.webformatURL,dl2:r.webformatURL,page:r.pageURL,lic:'Pixabay',cr:''}));
+    }},
+    giphy:{n:'GIPHY',key:true,tabs:['gif'],async search(q,pg){
+      const j=await jget('https://api.giphy.com/v1/gifs/search?api_key='+encodeURIComponent(keyOf('giphy'))+'&q='+encodeURIComponent(q)+'&limit=24&offset='+((pg-1)*24)+'&rating=g');
+      return(j.data||[]).map(r=>{
+        const im=r.images||{},mp=(im.original_mp4&&im.original_mp4.mp4)||(im.fixed_height&&im.fixed_height.mp4)||(im.fixed_width&&im.fixed_width.mp4);
+        return mp?{id:'gf'+r.id,prov:'GIPHY',type:'vid',gif:true,thumb:(im.fixed_width&&im.fixed_width.url)||(im.fixed_width_still&&im.fixed_width_still.url),title:r.title||'',by:r.username||'',w:+(im.original&&im.original.width)||0,h:+(im.original&&im.original.height)||0,dl:mp,page:r.url,lic:'GIPHY',cr:''}:null;
+      }).filter(Boolean);
+    }},
+    freesound:{n:'Freesound',key:true,tabs:['sfx'],async search(q,pg){
+      const j=await jget('https://freesound.org/apiv2/search/text/?query='+encodeURIComponent(q)+'&token='+encodeURIComponent(keyOf('freesound'))+'&page_size=20&page='+pg+'&filter='+encodeURIComponent('license:"Creative Commons 0"')+'&fields=id,name,username,license,previews,duration,url');
+      return(j.results||[]).filter(r=>!r.license||/zero|publicdomain/i.test(r.license)).map(r=>{
+        const u=r.previews&&(r.previews['preview-hq-mp3']||r.previews['preview-lq-mp3']);
+        return u?{id:'fs'+r.id,prov:'Freesound',type:'aud',thumb:'',title:r.name||'',by:r.username||'',dur:r.duration,dl:u,page:r.url,prev:u,lic:'CC0',cr:''}:null;
+      }).filter(Boolean);
+    }}
+  };
+  const TABP={photo:['pexels','pixabay','openverse'],video:['pexels','pixabay'],gif:['giphy'],music:['openverse'],sfx:['freesound']};
+  const usable=id=>!PROV[id].key||!needKeyOf(id);
+  const SUG={
+    photo:[['Природа','Nature','Բնություն','nature'],['Город','City','Քաղաք','city'],['Море','Sea','Ծով','sea'],['Горы','Mountains','Լեռներ','mountains'],['Люди','People','Մարդիկ','people'],['Еда','Food','Սնունդ','food'],['Технологии','Technology','Տեխնոլոգիա','technology'],['Фон','Background','Ֆոն','abstract background']],
+    video:[['Природа','Nature','Բնություն','nature'],['Город','City','Քաղաք','city'],['Море','Sea','Ծով','ocean waves'],['Небо','Sky','Երկինք','sky clouds'],['Люди','People','Մարդիկ','people'],['Работа','Work','Աշխատանք','office work'],['Технологии','Technology','Տեխնոլոգիա','technology'],['Фон','Background','Ֆոն','abstract background']],
+    gif:[['Ура','Hooray','Ուռա','celebrate'],['Класс','Great','Հիանալի','thumbs up'],['Смешно','Funny','Ծիծաղ','laugh'],['Вау','Wow','Վայ','wow'],['Спасибо','Thanks','Շնորհակալություն','thank you'],['Любовь','Love','Սեր','love']],
+    music:[['Спокойная','Calm','Հանգիստ','calm'],['Бодрая','Upbeat','Եռանդուն','upbeat'],['Кино','Cinematic','Կինոյական','cinematic'],['Lo-fi','Lo-fi','Lo-fi','lofi'],['Акустика','Acoustic','Ակուստիկ','acoustic'],['Ambient','Ambient','Ambient','ambient']],
+    sfx:[['Вжух','Whoosh','Վժուխ','whoosh'],['Клик','Click','Կլիկ','click'],['Аплодисменты','Applause','Ծափահարություն','applause'],['Хлопок','Pop','Փոփ','pop'],['Сигнал','Notification','Ծանուցում','notification'],['Смех','Laugh','Ծիծաղ','laugh']]
+  };
+  const TABS=[['photo',l3('Фото','Photos','Նկարներ')],['video',l3('Видео','Video','Տեսանյութ')],['gif','GIF'],['music',l3('Музыка','Music','Երաժշտություն')],['sfx',l3('Звуки','Sounds','Հնչյուններ')]];
+  const KDESC={pexels:l3('Фото и видео. Бесплатно, карту привязывать не нужно.','Photos and video. Free, no card.','Նկարներ և տեսանյութ։ Անվճար է, քարտ պետք չէ։'),pixabay:l3('Фото и видео. Бесплатно, карту привязывать не нужно.','Photos and video. Free, no card.','Նկարներ և տեսանյութ։ Անվճար է, քարտ պետք չէ։'),giphy:l3('GIF-анимации. Бесплатно, карту привязывать не нужно.','GIF animations. Free, no card.','GIF անիմացիաներ։ Անվճար է, քարտ պետք չէ։'),freesound:l3('Звуковые эффекты (только CC0, подпись не нужна). Нужна регистрация.','Sound effects (CC0 only, no credit needed). Registration needed.','Ձայնային էֆեկտներ (միայն CC0)։ Պետք է գրանցում։')};
+
+  const md=document.createElement('div');md.id='mdl';md.setAttribute('role','dialog');md.setAttribute('aria-modal','true');
+  md.innerHTML='<div class="mbx"><div class="mhd"><b>'+l3('Медиа','Media','Մեդիա')+'</b><button class="nb sm" id="mdX" type="button" aria-label="'+l3('Закрыть','Close','Փակել')+'">'+svgI('<path d="M6 6l12 12M18 6L6 18"/>',16)+'</button></div>'
+   +'<div class="mtabs" id="mdTabs" role="tablist"></div>'
+   +'<div class="msrch"><input id="mdQ" class="sel" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" aria-label="'+l3('Поиск','Search','Որոնում')+'" placeholder="'+l3('Что ищем? Можно на русском или армянском','What are we looking for?','Ի՞նչ ենք փնտրում')+'"><button class="nb pri" id="mdGo" type="button">'+l3('Найти','Search','Որոնել')+'</button></div>'
+   +'<div class="msug" id="mdSug"></div><div class="fh mnote" id="mdNote"></div><div id="mdKeys"></div>'
+   +'<div class="mres" id="mdRes"></div><button class="nb sm" id="mdMore" type="button" style="display:none;margin:10px auto 0">'+l3('Показать ещё','Show more','Ցույց տալ ավելին')+'</button>'
+   +'<div class="fh mfoot" id="mdFoot"></div><div class="mdone"><button class="nb pri" id="mdDone" type="button">'+l3('Готово','Done','Պատրաստ է')+'</button></div></div>';
+  B.appendChild(md);
+
+  function paintTabs(){
+    const t=fe('mdTabs');t.textContent='';
+    TABS.forEach(([k,n])=>{const b=document.createElement('button');b.type='button';b.className='chip'+(MED.tab===k?' active':'');b.setAttribute('role','tab');b.setAttribute('aria-selected',MED.tab===k);b.textContent=n;b.onclick=()=>{MED.tab=k;MED.q=fe('mdQ').value='';MED.items=[];paintTabs();paintSug();paintKeys();paintRes();paintNote();mdStopAud()};t.appendChild(b)});
+  }
+  function paintSug(){
+    const s=fe('mdSug');s.textContent='';
+    SUG[MED.tab].forEach(a=>{const b=document.createElement('button');b.type='button';b.className='chip sm';b.textContent=l3(a[0],a[1],a[2]);b.onclick=()=>{fe('mdQ').value=a[3];mdSearch(false)};s.appendChild(b)});
+  }
+  function paintNote(msg){
+    const n=fe('mdNote'),ps=TABP[MED.tab].filter(usable).map(id=>PROV[id].n);
+    n.textContent=msg||(ps.length?l3('Источники: ','Sources: ','Աղբյուրներ՝ ')+ps.join(', '):'');
+    fe('mdFoot').textContent=(MED.tab==='gif'?'Powered by GIPHY. ':'')+(MED.tab==='music'||MED.tab==='photo'?l3('Из Openverse берутся только CC0, общественное достояние и CC BY: подпись попадёт в описание сама. ','Openverse results are limited to CC0, public domain and CC BY; the credit is added to your caption. ','Openverse-ից միայն CC0 և CC BY․ նշումը ավտոմատ կավելանա նկարագրությանը։ '):'')+l3('Проверьте, нет ли в кадре узнаваемых людей, логотипов и брендов.','Check the frame for recognisable people, logos and brands.','Ստուգեք, որ կադրում ճանաչելի մարդիկ, լոգոներ և բրենդներ չլինեն։');
+  }
+  function paintKeys(){
+    const box=fe('mdKeys');box.textContent='';
+    const locked=TABP[MED.tab].filter(id=>PROV[id].key&&needKeyOf(id)),open=!TABP[MED.tab].some(usable)||MED.keysOpen;
+    if(!locked.length)return;
+    if(!open){
+      const b=document.createElement('button');b.type='button';b.className='nb sm';b.textContent=l3('＋ Больше источников: добавить ключ','＋ More sources: add a key','＋ Ավելի շատ աղբյուրներ՝ ավելացնել բանալի');
+      b.onclick=()=>{MED.keysOpen=true;paintKeys()};box.appendChild(b);return;
+    }
+    const intro=document.createElement('div');intro.className='fh';intro.style.textAlign='left';
+    intro.textContent=TABP[MED.tab].some(usable)?'':l3('Для этого раздела нужен бесплатный ключ. Он хранится только в вашем браузере.','This section needs a free key. It is stored only in your browser.','Այս բաժնի համար պետք է անվճար բանալի։ Այն պահվում է միայն ձեր դիտարկիչում։');
+    if(intro.textContent)box.appendChild(intro);
+    locked.forEach(id=>{
+      const c=document.createElement('div');c.className='mkey';
+      const h=document.createElement('b');h.textContent=PROV[id].n;
+      const d=document.createElement('span');d.textContent=KDESC[id]||'';
+      const a=document.createElement('a');a.className='btn sm';a.href=AIP[id].url;a.target='_blank';a.rel='noopener';a.textContent=l3('Получить ключ →','Get a key →','Ստանալ բանալի →');
+      const r=document.createElement('div');r.className='mkr';
+      const i=document.createElement('input');i.type='password';i.className='sel';i.autocomplete='off';i.spellcheck=false;i.setAttribute('aria-label',PROV[id].n+' key');i.placeholder=l3('Вставьте ключ','Paste the key','Տեղադրեք բանալին');
+      const sv=document.createElement('button');sv.type='button';sv.className='nb sm';sv.textContent=l3('Сохранить','Save','Պահել');
+      const st=document.createElement('div');st.className='fh';st.style.textAlign='left';
+      sv.onclick=async()=>{
+        const k=i.value.trim();if(!k){i.focus();return}
+        sv.disabled=true;st.textContent=l3('Проверяю…','Checking…','Ստուգում եմ…');
+        let res='unk';try{res=await AIP[id].chk(k)}catch(e){}
+        sv.disabled=false;
+        if(res==='bad'){st.style.color='var(--danger)';st.textContent=l3('Ключ не подошёл. Проверьте, что он скопирован полностью.','The key was rejected. Check that it was copied in full.','Բանալին չընդունվեց։ Ստուգեք՝ արդյոք այն ամբողջությամբ է պատճենված։');return}
+        aiAddKey(id,k);AICD.clear();MED.keysOpen=false;toast(l3('Ключ сохранён: '+PROV[id].n,'Key saved: '+PROV[id].n,'Բանալին պահված է՝ '+PROV[id].n),3000);
+        paintKeys();paintNote();if(fe('mdQ').value.trim())mdSearch(false);
+      };
+      r.append(i,sv);c.append(h,d,a,r,st);box.appendChild(c);
+    });
+    const all=document.createElement('button');all.type='button';all.className='nb sm';all.style.marginTop='8px';all.textContent=l3('Все ключи API','All API keys','Բոլոր API բանալիները');all.onclick=()=>{closeMedia();openGem()};box.appendChild(all);
+  }
+  function mdStopAud(){if(MED.aud){try{MED.aud.pause()}catch(e){}MED.aud=null}MED.audId=null;document.querySelectorAll('#mdRes .mrow.play').forEach(e=>e.classList.remove('play'))}
+  function paintRes(){
+    const r=fe('mdRes');r.textContent='';r.className='mres '+((MED.tab==='music'||MED.tab==='sfx')?'mlist':'mgrid');
+    MED.items.forEach(it=>{
+      const done=MED.added.has(it.id);
+      if(it.type==='aud'){
+        const row=document.createElement('div');row.className='mrow'+(done?' done':'');
+        const pl=document.createElement('button');pl.type='button';pl.className='mplay';pl.setAttribute('aria-label',l3('Слушать','Play','Լսել'));pl.innerHTML=svgI('<path d="M8 5l11 7-11 7z" fill="currentColor"/>',18);
+        pl.onclick=()=>{
+          if(MED.audId===it.id){mdStopAud();return}
+          mdStopAud();const a=new Audio(it.prev);MED.aud=a;MED.audId=it.id;row.classList.add('play');a.onended=mdStopAud;a.onerror=()=>{toast(l3('Не удалось проиграть превью.','Could not play the preview.','Չհաջողվեց նվագարկել։'),3500);mdStopAud()};a.play().catch(()=>mdStopAud());
+        };
+        const tx=document.createElement('div');tx.className='mtx';
+        const t1=document.createElement('b');t1.textContent=it.title||'—';
+        const t2=document.createElement('span');t2.textContent=[it.by,it.prov,it.lic,it.dur?dur2(it.dur):''].filter(Boolean).join(' · ');
+        tx.append(t1,t2);
+        const lk=document.createElement('a');lk.className='mlnk';lk.href=it.page||'#';lk.target='_blank';lk.rel='noopener';lk.setAttribute('aria-label',l3('Страница источника','Source page','Աղբյուրի էջ'));lk.textContent='↗';
+        const ad=document.createElement('button');ad.type='button';ad.className='nb sm';ad.textContent=done?'✓':l3('Добавить','Add','Ավելացնել');
+        ad.onclick=()=>mdAdd(it,row,ad);
+        row.append(pl,tx,lk,ad);r.appendChild(row);
+      }else{
+        const w=document.createElement('div');w.className='mtile'+(done?' done':'');
+        const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',(it.title||it.by||'')+' — '+l3('добавить','add','ավելացնել'));
+        const im=document.createElement('img');im.loading='lazy';im.alt='';im.referrerPolicy='no-referrer';im.src=it.thumb||'';
+        const cap=document.createElement('span');cap.className='mby';cap.textContent=[it.by,it.prov].filter(Boolean).join(' · ');
+        b.append(im,cap);
+        if(it.dur){const d=document.createElement('i');d.className='mdur';d.textContent=dur2(it.dur);b.appendChild(d)}
+        const ck=document.createElement('i');ck.className='mck';ck.textContent='✓';b.appendChild(ck);
+        b.onclick=()=>mdAdd(it,w,null);
+        const lk=document.createElement('a');lk.className='mlnk';lk.href=it.page||'#';lk.target='_blank';lk.rel='noopener';lk.setAttribute('aria-label',l3('Страница источника','Source page','Աղբյուրի էջ'));lk.textContent='↗';
+        w.append(b,lk);r.appendChild(w);
+      }
+    });
+  }
+  function errText(p,e){
+    const s=e&&e.status;
+    if(s===429)return p.n+': '+l3('лимит запросов, попробуйте позже','request limit reached, try later','հարցումների սահմանը լրացել է');
+    if(s===401||s===403)return p.n+': '+l3('ключ не принят (проверьте в «Ключи API»)','the key was not accepted (check “API keys”)','բանալին չընդունվեց');
+    return p.n+': '+l3('нет ответа','no response','պատասխան չկա');
+  }
+  async function mdSearch(more){
+    const q=fe('mdQ').value.trim();if(!q){fe('mdQ').focus();return}
+    const my=++MED.seq;mdStopAud();
+    if(!more||q!==MED.q){MED.page=1;MED.items=[];MED.q=q}else MED.page++;
+    const ids=TABP[MED.tab].filter(usable);
+    if(!ids.length){paintKeys();return}
+    paintNote(l3('Ищу…','Searching…','Որոնում եմ…'));fe('mdMore').style.display='none';
+    const en=await qEn(q);if(my!==MED.seq)return;
+    const res=await Promise.all(ids.map(id=>PROV[id].search(en,MED.page,MED.tab).then(a=>({id,a}),e=>({id,e}))));
+    if(my!==MED.seq)return;
+    const lists=res.filter(r=>r.a).map(r=>r.a),errs=res.filter(r=>r.e).map(r=>errText(PROV[r.id],r.e));
+    const mix=[];for(let i=0;i<30;i++)lists.forEach(l=>{if(l[i])mix.push(l[i])});
+    const seen=new Set(MED.items.map(x=>x.id));mix.forEach(x=>{if(!seen.has(x.id)){MED.items.push(x);seen.add(x.id)}});
+    paintRes();
+    let msg='';
+    if(!MED.items.length)msg=errs.length?errs.join('. '):l3('Ничего не нашлось. Попробуйте другое слово.','Nothing found. Try another word.','Ոչինչ չգտնվեց։ Փորձեք այլ բառ։');
+    else if(errs.length)msg=errs.join('. ');
+    else if(en!==q)msg=l3('Ищу по запросу: ','Searching for: ','Որոնում եմ՝ ')+en;
+    paintNote(msg);
+    fe('mdMore').style.display=mix.length?'':'none';
+  }
+  async function getBlob(urls){
+    for(const u of urls){if(!u)continue;try{const r=await fetch(u);if(r.ok)return await r.blob()}catch(e){}}
+    return null;
+  }
+  async function mdAdd(it,el,btn){
+    if(MED.busyId)return;
+    const aud=it.type==='aud';
+    if(!aud&&!hasVideo){toast(l3('Сначала нужно основное видео.','The main video comes first.','Սկզբում պետք է հիմնական տեսանյութը։'),3500);return}
+    if(aud&&!hasVideo){toast(l3('Сначала нужно основное видео.','The main video comes first.','Սկզբում պետք է հիմնական տեսանյութը։'),3500);return}
+    MED.busyId=it.id;el.classList.add('busy');if(btn)btn.textContent='…';
+    try{
+      const bl=await getBlob([it.dl,it.dl2]);
+      if(!bl)throw new Error('dl');
+      if(aud){
+        if(!audioGraph())throw new Error('ac');
+        const buf=await decodeBuf(await bl.arrayBuffer());
+        if(it.cat==='sfx'||MED.tab==='sfx'){
+          SFX.push({s:Math.max(0,v.currentTime),buf,g:1,name:it.title,cr:it.cr||''});
+          toast(l3('Звук добавлен в текущий момент видео.','The sound was added at the current moment of the video.','Ձայնը ավելացվեց տեսանյութի ընթացիկ պահին։'),4000);
+        }else{
+          MU.buf=buf;MU.name=it.title||'';MU.cr=it.cr||'';
+          toast(l3('Музыка добавлена. Нажмите ▶ на видео, чтобы услышать.','Music added. Press ▶ on the video to hear it.','Երաժշտությունը ավելացվեց։ Սեղմեք ▶, որ լսեք։'),5000);
+        }
+        shareCache=null;buildDock();
+      }else{
+        const e=ext(it.dl,it.type==='vid'?'mp4':'jpg'),nm=(it.prov+'_'+it.id.replace(/\W/g,''))+'.'+e;
+        const type=bl.type&&/^(image|video)\//.test(bl.type)?bl.type:(MIME[e]||(it.type==='vid'?'video/mp4':'image/jpeg'));
+        const file=new File([bl],nm,{type});
+        const o=await ovAdd(file);
+        if(!o)throw new Error('ov');
+        o._cr=it.cr||'';o._src=it.prov;
+        if(it.type==='vid'){o.vol=0;if(!it.gif){const FA=frameAR();o.w=Math.min(1,o.ar/FA);o.x=o.y=.5;o.rad=0}}
+        markDirty();renderTL();buildDock();
+        toast(l3('Добавлено в слои. Двигайте и меняйте размер прямо на видео.','Added as a layer. Move and resize it right on the video.','Ավելացվեց շերտերում։ Տեղափոխեք և փոխեք չափը անմիջապես տեսանյութի վրա։'),5000);
+      }
+      MED.added.add(it.id);el.classList.remove('busy');el.classList.add('done');if(btn)btn.textContent='✓';
+    }catch(e){
+      el.classList.remove('busy');if(btn)btn.textContent=l3('Добавить','Add','Ավելացնել');
+      toast(e&&e.message==='dl'
+        ?l3('Источник не разрешил загрузку в браузере. Откройте страницу кнопкой ↗, скачайте файл и добавьте его вручную.','The source blocked the download in the browser. Open the page with ↗, download the file and add it manually.','Աղբյուրը արգելեց ներբեռնումը։ Բացեք էջը ↗-ով, ներբեռնեք ֆայլը և ավելացրեք ձեռքով։')
+        :l3('Не удалось добавить этот файл.','Could not add this file.','Չհաջողվեց ավելացնել այս ֆայլը։'),8000);
+    }
+    MED.busyId=null;
+  }
+  function openMedia(){
+    if(!hasVideo){toast(l3('Сначала нужно основное видео.','The main video comes first.','Սկզբում պետք է հիմնական տեսանյութը։'),3500);return}
+    paintTabs();paintSug();paintKeys();paintRes();paintNote();md.classList.add('show');B.classList.add('mdopen');
+    setTimeout(()=>{try{fe('mdQ').focus()}catch(e){}},80);
+  }
+  function closeMedia(){md.classList.remove('show');B.classList.remove('mdopen');mdStopAud()}
+  VE.openMedia=openMedia;
+  fe('mdX').onclick=closeMedia;fe('mdDone').onclick=closeMedia;
+  md.addEventListener('click',e=>{if(e.target===md)closeMedia()});
+  fe('mdGo').onclick=()=>mdSearch(false);
+  fe('mdQ').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();mdSearch(false)}});
+  fe('mdMore').onclick=()=>mdSearch(true);
+
+  /* --- вкладка «Звук» в редакторе: музыка и звуки --- */
+  function pickTrack(){
+    if(!hasVideo){toast(l3('Сначала нужно основное видео.','The main video comes first.','Սկզբում պետք է հիմնական տեսանյութը։'),3500);return}
+    const inp=document.createElement('input');inp.type='file';inp.accept='audio/*';
+    inp.onchange=async()=>{
+      const f=inp.files&&inp.files[0];if(!f)return;
+      if(f.size>60*1048576){toast(l3('Файл больше 60 МБ.','The file is over 60 MB.','Ֆայլը մեծ է 60 ՄԲ-ից։'),5000);return}
+      try{if(!audioGraph())throw 0;MU.buf=await decodeBuf(await f.arrayBuffer());MU.name=f.name.replace(/\.[a-z0-9]+$/i,'');MU.cr='';shareCache=null;buildDock();
+        toast(l3('Музыка добавлена. Нажмите ▶ на видео, чтобы услышать.','Music added. Press ▶ on the video to hear it.','Երաժշտությունը ավելացվեց։ Սեղմեք ▶, որ լսեք։'),5000)}
+      catch(e){toast(l3('Не удалось открыть этот аудиофайл.','Could not open this audio file.','Չհաջողվեց բացել այս աուդիոֆայլը։'),5000)}
+    };
+    inp.click();
+  }
+  VE.audRow=row=>{
+    const mk=(ic,txt,fn,hl)=>{const b=document.createElement('button');b.className='chip ichip'+(hl?' active':'');b.innerHTML=ico(ic)+'<span>'+txt+'</span>';b.onclick=fn;row.appendChild(b);return b};
+    mk('layers',l3('Медиатека','Stock media','Մեդիա'),openMedia,true);
+    if(MU.buf){
+      const nm=(MU.name||l3('Свой трек','Own track','Սեփական թրեք'));
+      const sv=document.createElement('b');sv.className='dksv';sv.textContent=Math.round(MU.vol*100)+'%';
+      const sr=dkRange(0,1,.01,MU.vol,val=>{MU.vol=val;sv.textContent=Math.round(val*100)+'%';shareCache=null;audGain()});
+      row.appendChild(dkg('♪ '+(nm.length>18?nm.slice(0,17)+'…':nm),sr,sv));
+      mk('mic',l3('Тише при речи','Quiet on speech','Հանգիստ խոսքի ժամանակ'),()=>{MU.duck=!MU.duck;shareCache=null;buildDock()},MU.duck);
+      mk('trash',l3('Убрать музыку','Remove music','Հեռացնել երաժշտությունը'),()=>{audStop();MU.buf=null;MU.name='';MU.cr='';shareCache=null;buildDock()});
+    }else mk('plus',l3('Свой трек','Own track','Սեփական թրեք'),pickTrack);
+    if(SFX.length)mk('trash',l3('Убрать звуки','Remove sounds','Հեռացնել ձայները')+' ('+SFX.length+')',()=>{SFX.length=0;audStop();shareCache=null;buildDock()});
+    const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=l3('Музыка звучит на весь ролик. Звуки встают в момент, где стоит указатель.','Music plays through the whole video. Sounds are placed where the playhead is.','Երաժշտությունը հնչում է ողջ տեսանյութի ընթացքում։ Ձայները դրվում են ցուցիչի տեղում։');row.appendChild(hn);
+  };
+
+  /* --- воспроизведение при просмотре --- */
+  function audStop(){AUD.srcs.forEach(s=>{try{s.stop()}catch(e){}try{s.disconnect()}catch(e){}});AUD.srcs=[]}
+  function audGain(){
+    if(!AC)return;
+    const sp=!!(MU.duck&&!v.paused&&speechAt(v.currentTime)),tg=MU.vol*(sp?.3:1);
+    if(MU.g)MU.g.gain.setTargetAtTime(tg,AC.currentTime,.12);
+    if(exporting&&MU.xg)MU.xg.gain.setTargetAtTime(tg,AC.currentTime,.12);
+  }
+  function audStart(){
+    audStop();
+    if(!AC||v.paused||exporting||passing||(!MU.buf&&!SFX.length))return;
+    const now=AC.currentTime,t=v.currentTime,sp=cutSpans(),t0=shiftT(t,sp);
+    if(MU.buf){
+      if(!MU.g||MU.g.context!==AC){MU.g=AC.createGain();MU.g.connect(AC.destination)}
+      MU.g.gain.value=MU.vol*((MU.duck&&speechAt(t))?.3:1);
+      const src=AC.createBufferSource();src.buffer=MU.buf;src.loop=true;src.connect(MU.g);
+      src.start(now,t0%MU.buf.duration);AUD.srcs.push(src);
+    }
+    SFX.forEach(b=>{
+      const d=shiftT(b.s,sp)-t0;if(d<-.05||b.s<t-.05)return;
+      const src=AC.createBufferSource();src.buffer=b.buf;const g=AC.createGain();g.gain.value=b.g;g.connect(AC.destination);src.connect(g);
+      src.start(now+Math.max(0,d));AUD.srcs.push(src);
+    });
+  }
+  v.addEventListener('play',audStart);v.addEventListener('pause',audStop);v.addEventListener('ended',audStop);
+  v.addEventListener('seeked',()=>{if(!v.paused)audStart()});
+  setInterval(()=>{if((MU.buf)&&AC)audGain()},120);
+
+  /* --- микс в экспорт --- */
+  {
+    const xaPrev=xaTrack;
+    xaTrack=async function(){
+      const tr=await xaPrev();
+      try{
+        if(tr&&ADEST&&AC&&(MU.buf||SFX.length)){
+          const g=AC.createGain();g.gain.value=1;g.connect(ADEST);
+          MU.xg=null;
+          v.addEventListener('play',()=>{
+            const t0=AC.currentTime+0.05,sp=cutSpans();
+            if(MU.buf){
+              const mg=AC.createGain();mg.gain.value=MU.vol;mg.connect(g);MU.xg=mg;
+              const src=AC.createBufferSource();src.buffer=MU.buf;src.loop=true;src.connect(mg);src.start(t0);AUD.xs.push(src);
+            }
+            SFX.forEach(b=>{const src=AC.createBufferSource();src.buffer=b.buf;const sg=AC.createGain();sg.gain.value=b.g;sg.connect(g);src.connect(sg);src.start(t0+shiftT(b.s,sp));AUD.xs.push(src)});
+          },{once:true});
+        }
+      }catch(_){}
+      return tr;
+    };
+    const xsPrev=xaStop;
+    xaStop=function(){AUD.xs.forEach(s=>{try{s.stop()}catch(e){}});AUD.xs=[];MU.xg=null;return xsPrev.apply(this,arguments)};
+  }
+
+  /* --- источники в описание: подпись нужна для CC BY --- */
+  {
+    const HD=['Источники','Credits','Աղբյուրներ'],RE=/\n*(?:Источники|Credits|Աղբյուրներ):\n[\s\S]*$/;
+    let last='';
+    const list=()=>{const a=[];VE.ov.forEach(o=>{if(o._cr)a.push(o._cr)});if(MU.buf&&MU.cr)a.push(MU.cr);SFX.forEach(b=>{if(b.cr)a.push(b.cr)});return[...new Set(a)]};
+    setInterval(()=>{
+      const l=list(),sig=JSON.stringify(l);if(sig===last)return;last=sig;
+      const base=String(capTxt||'').replace(RE,'').replace(/\s+$/,'');
+      const nt=l.length?base+(base?'\n\n':'')+l3(HD[0],HD[1],HD[2])+':\n'+l.map(x=>'• '+x).join('\n'):base;
+      if(nt!==capTxt){capSync({value:nt});const d=fe('dnCap');if(d)d.value=nt}
+    },900);
+  }
   setDub(false);setStep(1);
 })();
 (function init(){audioPlayback();
