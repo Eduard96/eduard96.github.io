@@ -498,6 +498,26 @@ body.recording #flow,body.editing #flow,body.viewing #flow{display:none!importan
 #fshare{display:flex;gap:6px;flex-wrap:wrap;width:100%}
 #fshare .btn{flex:1;min-width:110px;font-size:13px}
 #fUpL{cursor:pointer}
+
+body.flowon #mbL,body.flowon #mbR,body.flowon #inst,body.flowon .dmenu,body.flowon .subhead,body.flowon .studio,body.flowon #cloud,body.flowon #btnTr,body.flowon #btnTts,body.flowon #add,body.flowon #srt,body.flowon .donate,body.flowon .grid>.col+.col .card:nth-child(n+2){display:none!important}
+body.flowon header{justify-content:center}
+body[data-step="2"] .grid>.col+.col{display:block!important}
+
+.rside{position:absolute;right:max(10px,2.5cqw);top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:12px}
+.rside .rb,.rside .selw .camsel,.rside #camFlip,.rside #mirr,.rside #zi,.rside #zo,.rside #lgb{width:50px;height:50px;min-height:50px;min-width:50px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);background:rgba(0,0,0,.45);color:#fff;backdrop-filter:blur(6px);display:grid;place-items:center;font-size:22px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.rside .selw{position:relative;width:50px;margin:0}
+.rside #camBtn{font-size:0!important}.rside #camBtn::before{content:"📷";font-size:22px}
+.rside #camBtn::after,.rside #mirr::after{display:none}
+.rside #mirr{font-size:0!important}.rside #mirr::before{content:"⇋";font-size:24px}
+.rside #mirr.active,.rside #mirr.on{background:rgba(124,58,237,.85)}
+.rside .cammenu{min-width:210px;left:auto!important;right:calc(100% + 10px)!important;top:0!important;bottom:auto!important}
+.rside #zv{color:#fff;font-size:13px;font-weight:800;text-shadow:0 1px 4px #000}
+.rside #lgb{font-size:14px}
+.rside #zr{display:none}
+body:not([data-step="1"]) .rside,body.flowon .camrow.xtra{display:none!important}
+body[data-step="1"] #langs{display:none!important}
+#flow #langs{display:flex!important;gap:6px;flex:none;margin:0}
+#flow #langs .chip{min-height:34px;padding:0 10px}#flow #langs kbd{display:none}
 </style>
 </head>
 <body>
@@ -537,7 +557,7 @@ body.recording #flow,body.editing #flow,body.viewing #flow{display:none!importan
   <div class="banner" id="banner"></div>
 <div id="flow"><div id="fp">
  <div class="fp" data-p="1"><label class="btn primary" for="fUp" id="fUpL"></label><input type="file" id="fUp" accept="video/*" hidden><span class="fh" id="fh1"></span></div>
- <div class="fp" data-p="2"><button class="chip active" id="fTr0"></button><button class="chip" id="fTr1"></button><button class="btn sm" id="fRe"></button><button class="btn sm" id="fEd"></button><span class="fh" id="fh2"></span></div>
+ <div class="fp" data-p="2"><span class="fh" id="fhT" style="flex:none;min-width:0"></span><button class="chip active" id="fTr0" data-tl=""></button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button><button class="btn sm" id="fRe"></button><button class="btn sm" id="fEd"></button><span class="fh" id="fh2"></span></div>
  <div class="fp" data-p="3"><span class="fh" id="fh3"></span></div>
  <div class="fp" data-p="4"><div id="fshare"></div><span class="fh" id="fh4"></span></div>
 </div>
@@ -3683,12 +3703,12 @@ async function trOpen(id){
 /* ===== FLOW: мастер «Видео → Текст → Стиль → Поделиться» ===== */
 (function flow(){
   const en=(typeof ui!=='undefined'&&ui==='en');
-  const T=en?{up:'⬆ Upload video',h1:'…or tap the red button to record. Subtitles are written live.',tr0:'No translation',tr1:'🌐 Translate',re:'↻ Re-transcribe',ed:'✎ Edit timing',h2:'Check the text. Tap the video to play it.',h3:'Pick style, colour, font and motion. Tap the video to preview.',h4:'Write a caption below, export, then pick a network.',nx:['Next →','Next →','Next →','🎬 Export'],nw:'↺ New',tabs:['Video','Text','Style','Share'],ask:'Start over? The current video stays in Projects.',imp:'Video loaded. Recognising speech…',big:'File is over 500 MB.'}
-  :{up:'⬆ Загрузить видео',h1:'…или нажмите красную кнопку и снимайте. Субтитры пишутся сами.',tr0:'Без перевода',tr1:'🌐 Перевести',re:'↻ Распознать заново',ed:'✎ Править тайминг',h2:'Проверьте текст. Нажмите на видео, чтобы посмотреть.',h3:'Стиль, цвет, шрифт и движение. Нажмите на видео для просмотра.',h4:'Напишите описание ниже, экспортируйте и выберите соцсеть.',nx:['Далее →','Далее →','Далее →','🎬 Экспорт'],nw:'↺ Заново',tabs:['Видео','Текст','Стиль','Поделиться'],ask:'Начать заново? Текущее видео останется в проектах.',imp:'Видео загружено. Распознаю речь…',big:'Файл больше 500 МБ.'};
+  const T=en?{up:'⬆ Upload video',h1:'…or tap the red button to record. Subtitles are written live.',tr0:'No translation',trl:'Translate:',re:'↻ Re-transcribe',ed:'✎ Edit timing',h2:'Check the text. Tap the video to play it.',h3:'Pick style, colour, font and motion. Tap the video to preview.',h4:'Write a caption below, export, then pick a network.',nx:['Next →','Next →','Next →','🎬 Export'],nw:'↺ New',trErr:'Translation failed (offline or daily limit).',wait:'Please wait: processing…',tabs:['Video','Text','Style','Share'],ask:'Start over? The current video stays in Projects.',imp:'Video loaded. Recognising speech…',big:'File is over 500 MB.'}
+  :{up:'⬆ Загрузить видео',h1:'…или нажмите красную кнопку и снимайте. Субтитры пишутся сами.',tr0:'Без перевода',trl:'Перевод:',re:'↻ Распознать заново',ed:'✎ Править тайминг',h2:'Проверьте текст. Нажмите на видео, чтобы посмотреть.',h3:'Стиль, цвет, шрифт и движение. Нажмите на видео для просмотра.',h4:'Напишите описание ниже, экспортируйте и выберите соцсеть.',nx:['Далее →','Далее →','Далее →','🎬 Экспорт'],nw:'↺ Заново',trErr:'Не удалось перевести (нет сети или дневной лимит).',wait:'Подождите: идёт обработка…',tabs:['Видео','Текст','Стиль','Поделиться'],ask:'Начать заново? Текущее видео останется в проектах.',imp:'Видео загружено. Распознаю речь…',big:'Файл больше 500 МБ.'};
   const $$=q=>document.querySelector(q);
   document.body.classList.add('flowon');
   $$('#cap').closest('.card').classList.add('fcard');
-  $$('#fUpL').textContent=T.up;$$('#fh1').textContent=T.h1;$$('#fTr0').textContent=T.tr0;$$('#fTr1').textContent=T.tr1;
+  $$('#fUpL').textContent=T.up;$$('#fh1').textContent=T.h1;$$('#fTr0').textContent=T.tr0;$$('#fhT').textContent=T.trl;
   $$('#fRe').textContent=T.re;$$('#fEd').textContent=T.ed;$$('#fh2').textContent=T.h2;$$('#fh3').textContent=T.h3;$$('#fh4').textContent=T.h4;$$('#fNew').textContent=T.nw;
   const tabs=$$('#ftabs');
   [1,2,3,4].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.title=T.tabs[n-1];b.onclick=()=>setStep(n);tabs.appendChild(b)});
@@ -3708,20 +3728,35 @@ async function trOpen(id){
     if(n===4)shareBtns();
     window.scrollTo({top:0,behavior:'smooth'});
   }
-  $$('#fNext').onclick=()=>{if(step===1&&!hasVideo){$$('#fUp').click();return}
+  $$('#fNext').onclick=()=>{if(passing||busyT){toast(T.wait,3000);return}if(step===1&&!hasVideo){$$('#fUp').click();return}
     if(step<4)setStep(step+1);else if(!$$('#exp').disabled)$$('#exp').click()};
-  $$('#fNew').onclick=()=>{if(hasVideo&&!confirm(T.ask))return;if(hasVideo)closeProject();setStep(1)};
+  $$('#fNew').onclick=()=>{if(hasVideo&&!confirm(T.ask))return;if(hasVideo)closeProject();orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0));setStep(1)};
   $$('#fEd').onclick=()=>$$('#ed').click();
-  $$('#fRe').onclick=()=>transcribe(false);
-  /* перевод: отдаём то же видео в студию перевода/озвучки */
-  function toStudio(){
-    if(!recBlob)return;
-    const f=(recBlob instanceof File)?recBlob:new File([recBlob],'video.'+((recBlob.type||'').includes('mp4')?'mp4':'webm'),{type:recBlob.type||'video/webm'});
-    const dt=new DataTransfer();dt.items.add(f);const inp=$$('#trFile');inp.files=dt.files;
-    inp.dispatchEvent(new Event('change'));$$('#btnTr').click();
+  $$('#fRe').onclick=()=>{orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0));transcribe(false)};
+  /* перевод субтитров прямо в мастере (бесплатный сервис MyMemory, без ключа) */
+  const tchips=[...document.querySelectorAll('#flow [data-tl]')];let orig=null,busyT=false;
+  const lc=x=>String(x||'ru').split('-')[0].toLowerCase();
+  async function mm(q,from,to){
+    const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair='+from+'|'+to);
+    const j=await r.json();const x=j&&j.responseData&&j.responseData.translatedText;
+    if(!x||(j.responseStatus&&+j.responseStatus!==200))throw new Error('tr');return x}
+  async function translateTo(code,chip){
+    if(busyT||passing||!phrases.some(p=>p.t))return;
+    if(!orig)orig=phrases.map(p=>[p,p.t,p.raw]);
+    tchips.forEach(c=>c.classList.toggle('active',c===chip));
+    busyT=true;const h=$$('#fh2'),h0=h.textContent;let n=0;
+    try{
+      for(const [p,t0,r0] of orig){
+        if(!code){p.t=t0;p.raw=r0}
+        else if(lc(p.l||lang)!==code){p.t=await mm(t0,lc(p.l||lang),code);p.raw=p.t}
+        else{p.t=t0;p.raw=r0}
+        buildPhrase(p);h.textContent=(++n)+' / '+orig.length;
+      }
+      save();renderAll();
+    }catch(e){toast(T.trErr,7000);save();renderAll()}
+    busyT=false;h.textContent=h0;
   }
-  $$('#fTr0').onclick=()=>{$$('#fTr0').classList.add('active');$$('#fTr1').classList.remove('active')};
-  $$('#fTr1').onclick=()=>{$$('#fTr1').classList.add('active');$$('#fTr0').classList.remove('active');toStudio()};
+  tchips.forEach(c=>c.onclick=()=>translateTo(c.dataset.tl,c));
   /* загрузка видео прямо в основной конвейер */
   $$('#fUp').onchange=e=>{
     const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
@@ -3736,7 +3771,7 @@ async function trOpen(id){
     v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
     updateButtons();renderAll();
     try{saveCurrent()}catch(_){}
-    setStep(2);toast(T.imp,5000);
+    orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0));setStep(2);toast(T.imp,5000);
     setTimeout(()=>transcribe(true),700);
   };
   /* после съёмки сразу идём к тексту; если видео закрыли — возвращаемся к камере */
@@ -3747,6 +3782,23 @@ async function trOpen(id){
     had=hasVideo;
     if(step===4)document.querySelectorAll('#fshare .btn').forEach((b,i)=>{const o=document.querySelectorAll('#menuL .mi.sh')[i];if(o)b.disabled=o.disabled});
   },500);
+
+  /* камера: управление справа на самом кадре, у большого пальца */
+  (function(){
+    const st=$$('#stage'),rs=document.createElement('div');rs.className='rside';
+    const lg=document.createElement('button');lg.id='lgb';lg.type='button';
+    const chips=()=>[...document.querySelectorAll('#langs .chip')];
+    const cur=()=>{const c=chips(),i=c.findIndex(x=>x.classList.contains('active'));return[c,i<0?0:i]};
+    const paint=()=>{const[c,i]=cur();lg.textContent=c[i]?c[i].dataset.l.toUpperCase():'RU'};
+    lg.onclick=()=>{const[c,i]=cur();if(c.length){c[(i+1)%c.length].click();setTimeout(paint,50)}};
+    ['#camBtn','#camFlip','#mirr','#zi','#zv','#zo'].forEach(q=>{const e=$$(q);if(!e)return;rs.appendChild(q==='#camBtn'?e.closest('.selw'):e)});
+    rs.appendChild(lg);
+    rs.addEventListener('click',e=>e.stopPropagation());
+    st.appendChild(rs);paint();
+    document.addEventListener('click',()=>setTimeout(paint,80),true);
+    /* выбор языка речи уходит на шаг «Текст» */
+    const l=$$('#langs'),p2=$$('#flow .fp[data-p="2"]');if(l&&p2)p2.insertBefore(l,p2.firstChild);
+  })();
   setStep(1);
 })();
 (function init(){audioPlayback();
