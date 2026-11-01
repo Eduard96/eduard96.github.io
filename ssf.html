@@ -584,6 +584,9 @@ body.recording #flow,body.recording #fsteps,body.editing #flow,body.editing #fst
 
 body.recording .player.recfull .stage{width:min(100%,calc((100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))*var(--ar)));border-radius:22px}
 body.recording .player.recfull .cpanel{display:none}
+
+#dStyleTxt{margin-top:8px;width:100%;min-height:40px;font-size:13px}
+#dStyles .chip{padding:7px 14px}
 </style>
 </head>
 <body>
@@ -1164,6 +1167,12 @@ function span(p){const c=p.c&&p.c.length?p.c:null;return c?[Math.min(...c.map(x=
 const VE={cuts:[],splits:[],tr:{},sel:null,selJ:null,hook:null},TR_H=88,XT={last:-1,k:null,t0:0,snap:null};
 const vdur=()=>(isFinite(v.duration)&&v.duration>0)?v.duration:(dur||0);
 const VIC={v:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 5v14M16 5v14M3 10h5M16 10h5M3 14h5M16 14h5"/></svg>',a:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 9v6"/></svg>'};
+function vJoins(){
+  const D=vdur(),cs=cutSpans(),out=[];
+  cs.forEach(q=>{if(q[0]>=.05&&q[1]<=D-.05)out.push({key:Math.round(q[1]*100),a:q[0],b:q[1],gap:true})});
+  VE.splits.forEach(t=>{if(t>.05&&t<D-.05&&!cs.some(q=>t>=q[0]-.02&&t<=q[1]+.02))out.push({key:Math.round(t*100),a:t,b:t,gap:false})});
+  return out;
+}
 function renderVTracks(){
   const D=vdur();if(!hasVideo||!D)return;
   const cs=cutSpans(),inCut=t=>cs.some(q=>t>=q[0]&&t<q[1]);
@@ -1177,10 +1186,9 @@ function renderVTracks(){
       VE.sel={a,b};VE.selJ=null;renderTL();VE.hook&&VE.hook()};
     tlin.appendChild(e);
   }
-  cs.forEach(q=>{
-    if(q[0]<.05||q[1]>D-.05)return;
-    const key=Math.round(q[1]*100),k=VE.tr[key]||'',j=document.createElement('div');
-    j.className='vjn'+(VE.selJ===key?' on':'');j.style.left=((q[0]+q[1])/2*PX)+'px';
+  vJoins().forEach(q=>{
+    const key=q.key,k=VE.tr[key]||'',j=document.createElement('div');
+    j.className='vjn'+(VE.selJ===key?' on':'');j.style.left=((q.a+q.b)/2*PX)+'px';
     j.innerHTML=ico(k?'check':'plus');if(k)j.classList.add('set');
     j.onclick=ev=>{ev.stopPropagation();VE.selJ=key;VE.sel=null;VE.pick&&VE.pick(key)};
     tlin.appendChild(j);
@@ -1242,8 +1250,8 @@ function trRender(c,W,H,nf,o,k,p){
 }
 const PV={snap:null,cv:null,run:0};
 function pvSnap(t){
-  for(const q of cutSpans()){const d=q[0]-t;
-    if(d>0&&d<.25&&trKey(VE.tr[Math.round(q[1]*100)])){
+  for(const q of vJoins()){const d=q.a-t;
+    if(d>0&&d<.25&&trKey(VE.tr[q.key])){
       const w=Math.min(480,stage.clientWidth||240),h=Math.max(2,Math.round(w*(v.videoHeight||16)/(v.videoWidth||9)));
       if(!PV.snap)PV.snap=document.createElement('canvas');
       if(PV.snap.width!==w||PV.snap.height!==h){PV.snap.width=w;PV.snap.height=h}
@@ -2419,7 +2427,7 @@ stage.addEventListener('click',()=>{
 function setEdit(on){
   const pl=$('#player');
   if(on&&!(hasVideo&&!recording&&!exporting&&!passing))return;
-  pl.classList.toggle('edit',on);document.body.classList.toggle('editing',on);if(on)buildDock();document.body.style.overflow=on?'hidden':'';if(!on){selSet.clear();selUI()}
+  pl.classList.toggle('edit',on);document.body.classList.toggle('editing',on);if(on){$('#dkbody').dataset.tab='vd';buildDock();const ta=document.querySelector('#dktabs .on');ta&&ta.scrollIntoView&&ta.scrollIntoView({inline:'center',block:'nearest'})}document.body.style.overflow=on?'hidden':'';if(!on){selSet.clear();selUI()}
   $('#ed').textContent=t(on?'edC':'edT');
   if(on){renderTL();tl.scrollLeft=Math.max(0,v.currentTime*PX-tl.clientWidth*0.3)}
 }
@@ -2443,6 +2451,7 @@ function tick(){
   if(hasVideo&&!v.paused&&!v.ended){
     const t=v.currentTime;
     pvSnap(t);for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];pvTr(s[1]);break}}
+    {const lt=PV.lt;PV.lt=t;if(lt!=null&&t>lt&&t-lt<.3)for(const j of vJoins()){if(!j.gap&&lt<j.a&&t>=j.a)pvTr(j.b)}}
   }
   if(exporting&&xctx){drawExportFrame();xaSync()}
   stage.classList.toggle('recx',!!recording);
@@ -2549,6 +2558,7 @@ function drawExportFrame(){
   const tcur=v.currentTime;
   if(tcur<XT.last-.5){XT.k=null;XT.last=-1}
   if(XT.last>=0&&tcur-XT.last>.3){const q=cutSpans().find(z=>Math.abs(tcur-z[1])<.4),k=q&&trKey(VE.tr[Math.round(q[1]*100)]);if(k){XT.k=k;XT.t0=tcur}else XT.k=null}
+  if(XT.last>=0&&XT.last<tcur&&tcur-XT.last<.3){for(const j of vJoins()){if(!j.gap&&XT.last<j.a&&tcur>=j.a){const k=trKey(VE.tr[j.key]);if(k){XT.k=k;XT.t0=tcur}}}}
   XT.last=tcur;
   const tp=XT.k?(tcur-XT.t0)/.5:2;
   if(tp<1&&XT.snap)trRender(xctx,W,H,raw,XT.snap,XT.k,tp);else vid();
@@ -3163,6 +3173,14 @@ function vAfter(){save();renderTL();buildDock()}
 function vSplit(){const t=v.currentTime,D=vdur(),E=(typeof ui!=='undefined'&&ui==='en');
   if(!hasVideo||t<.3||t>D-.3){toast(E?'Move the playhead inside the video first':'Поставьте маркер времени внутрь видео',3500);return}
   if(VE.splits.some(q=>Math.abs(q-t)<.25))return;VE.splits.push(t);VE.splits.sort((a,b)=>a-b);vAfter()}
+function vAddTr(){
+  const E=(typeof ui!=='undefined'&&ui==='en'),t=v.currentTime,D=vdur();
+  if(VE.selJ!=null){trPick(VE.selJ);return}
+  const near=vJoins().filter(j=>Math.abs(j.a-t)<.6||(j.gap&&t>=j.a&&t<=j.b)).sort((p,q)=>Math.abs(p.a-t)-Math.abs(q.a-t))[0];
+  if(near){trPick(near.key);return}
+  if(!hasVideo||t<.3||t>D-.3){toast(E?'Move the playhead to where the transition should be':'Поставьте маркер времени туда, где нужен переход',4000);return}
+  VE.splits.push(t);VE.splits.sort((p,q)=>p-q);save();renderTL();trPick(Math.round(t*100));
+}
 function vDel(){const E=(typeof ui!=='undefined'&&ui==='en');
   if(!VE.sel){toast(E?'Tap a clip in the video track first':'Сначала нажмите на кусок в дорожке видео',3500);return}
   VE.cuts.push([VE.sel.a,VE.sel.b]);VE.sel=null;vAfter()}
@@ -3205,16 +3223,18 @@ function trApply(k){
 VE.pick=trPick;
 function vdRow(row){
   const E=(typeof ui!=='undefined'&&ui==='en'),x=(r,e)=>E?e:r;
-  const mk=(ic,txt,fn)=>{const b=document.createElement('button');b.className='chip ichip';b.innerHTML=ico(ic)+'<span>'+txt+'</span>';b.onclick=fn;row.appendChild(b)};
+  const mk=(ic,txt,fn,hl)=>{const b=document.createElement('button');b.className='chip ichip'+(hl?' active':'');b.innerHTML=ico(ic)+'<span>'+txt+'</span>';b.onclick=fn;row.appendChild(b)};
+  mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
   mk('scissors',x('Разрезать','Split'),vSplit);
   mk('trash',x('Удалить кусок','Delete clip'),vDel);
   mk('undo',x('Вернуть всё','Restore all'),()=>{VE.cuts=[];VE.sel=null;vAfter()});
+  const hn=document.createElement('span');hn.className='dksv';hn.textContent=x('Переход ставится на стыке: на разрезе или между вырезанными кусками','A transition sits on a join: a split or between removed clips');row.appendChild(hn);
 }
 function auRow(row){const E=(typeof ui!=='undefined'&&ui==='en'),b=document.createElement('div');b.className='dkaud';
   b.innerHTML=VIC.a+'<span>'+(E?'Audio track editing':'Правка звуковой дорожки')+'</span><em>'+(E?'soon':'скоро')+'</em>';row.appendChild(b)}
 VE.hook=()=>{$('#dkbody').dataset.tab='vd';buildDock()};
 (function(){const E=(typeof ui!=='undefined'&&ui==='en');
-  $('#tabVd').textContent=E?'Video':'Видео';
+  $('#tabVd').textContent=E?'Video':'Видео';{const tb=$('#dktabs');tb.insertBefore($('#tabVd'),tb.firstChild)}
   $('#tabAu').innerHTML=VIC.a+'<span>'+(E?'Audio':'Звук')+'</span><em>'+(E?'soon':'скоро')+'</em>'})();
 function buildDock(){
   const body=$('#dkbody');if(!body)return;
@@ -3448,15 +3468,20 @@ function ttsPick(j){
   for(const p of ps){const d=p.inlineData||p.inline_data;if(d&&d.data)return{data:d.data,mime:d.mimeType||d.mime_type||''}}
   const e=new Error((c&&c.finishReason)?('Gemini: '+c.finishReason):'Gemini: empty audio');e.empty=true;throw e;
 }
-async function gTts(body){try{return await gCall(GTTS,body)}catch(e){if(e&&(e.status===404||e.status===400)&&!e.noKey)return await gCall(GTTS2,body);throw e}}
+async function gTts(body){try{return await gCall(GTTS,body)}catch(e){if(e&&!e.noKey&&(e.status===404||/not found|not supported|unsupported/i.test(e.message||'')))return await gCall(GTTS2,body);throw e}}
 async function ttsOne(text,voice,style){
+  const st=String(style||'').trim(),how=st?('in a '+st+' voice'):'clearly and naturally';
+  const prompts=[
+    'Say '+how+': '+text,
+    'Read the following transcript aloud '+how+', word for word. Output audio only, do not answer or comment. Transcript: '+text,
+    'Text to speech. Speak exactly these words '+how+', and never reply with text: "'+text+'"'];
   let last;
-  for(let a=0;a<2;a++){
+  for(const pr of prompts){
     try{
-      const j=await gTts({contents:[{parts:[{text:style?('Say '+style+': '+text):text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}});
+      const j=await gTts({contents:[{parts:[{text:pr}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}});
       const p=ttsPick(j);
       return trimSil(parseAudio(b64Bytes(p.data),p.mime));
-    }catch(e){last=e;if(!e.empty)throw e}
+    }catch(e){last=e;if(e.noKey)throw e;if(!(e.empty||/generate text|only be used for TTS|text, but/i.test(e.message||'')))throw e}
   }
   throw last;
 }
@@ -3928,7 +3953,7 @@ async function trOpen(id){
   $$('#flow').innerHTML=`<div id="fbody">
  <div class="fp" data-p="1"><div class="seg2"><button class="on" id="m1R">${x('Запись','Record')}</button><button id="m1U">${ico('upload')}${x('Загрузить видео','Upload video')}</button></div><input type="file" id="fUp" accept="video/*" hidden><div class="recw"><button id="fRec" aria-label="Record"><span></span></button><div class="fh">${x('Нажмите, чтобы снимать — субтитры появляются сразу','Tap to record — subtitles appear live')}</div></div></div>
  <div class="fp" data-p="2"><div class="rowt" id="stHost"></div><div class="sec">${x('Язык речи','Spoken language')}</div><div id="langHost"></div><div class="sec">${x('Перевод','Translate to')}</div><div class="chiprow"><button class="chip active" data-tl="">${x('Нет','None')}</button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button></div><div class="sec">${x('Текст','Transcript')}</div><div id="listHost"></div></div>
- <div class="fp" data-p="3"><div class="seg2"><button class="on" id="dNo">${x('Без озвучки','No dub')}</button><button id="dYes">${ico('mic')}${x('Озвучить','Dub')}</button></div><div id="dCtl" style="display:none"><div class="sec">${x('Голос','Voice')}</div><div class="vsel"><select id="dVoice"></select></div><div class="sec balrow"><span>${x('Оригинал','Original')}</span><span>${x('Озвучка','Dub')}</span></div><input type="range" id="dBal" min="0" max="100" value="70"><input id="dKey" type="password" autocomplete="off" placeholder="Gemini API key (AIza…)" class="sel"><div class="dbox" id="dBox" style="display:none"><span id="fh3"></span><button class="nb sm" id="dRetry">${x('Повторить','Retry')}</button></div><details id="dDet"><summary>${x('Тайминг голоса','Voice timing')}</summary><div id="faudio"></div></details></div></div>
+ <div class="fp" data-p="3"><div class="seg2"><button class="on" id="dNo">${x('Без озвучки','No dub')}</button><button id="dYes">${ico('mic')}${x('Озвучить','Dub')}</button></div><div id="dCtl" style="display:none"><div class="sec">${x('Голос','Voice')}</div><div class="vsel"><select id="dVoice"></select></div><div class="sec">${x('Стиль голоса','Voice style')}</div><div class="chiprow" id="dStyles"></div><input id="dStyleTxt" class="sel" placeholder="${x('Свой стиль, например: как диктор новостей','Custom style, e.g. like a news anchor')}"><div class="sec balrow"><span>${x('Оригинал','Original')}</span><span>${x('Озвучка','Dub')}</span></div><input type="range" id="dBal" min="0" max="100" value="70"><input id="dKey" type="password" autocomplete="off" placeholder="Gemini API key (AIza…)" class="sel"><div class="dbox" id="dBox" style="display:none"><span id="fh3"></span><button class="nb sm" id="dRetry">${x('Повторить','Retry')}</button></div><details id="dDet"><summary>${x('Тайминг голоса','Voice timing')}</summary><div id="faudio"></div></details></div></div>
  <div class="fp" data-p="4" id="styleHost"></div>
  <div class="fp" data-p="5"><div class="sec">${x('Описание','Caption')}</div><div id="capHost"></div><div class="sec">${x('Поделиться','Share to')}</div><div id="fshare"></div></div>
 </div>
@@ -3999,7 +4024,11 @@ async function trOpen(id){
   VOICES.forEach(q=>{const o=document.createElement('option');o.value=q[0];o.textContent=q[0]+' · '+q[1];dv.appendChild(o)});
   try{dv.value=localStorage.getItem('substudio-fvoice')||'Kore'}catch(_){}
   dv.onchange=()=>{try{localStorage.setItem('substudio-fvoice',dv.value)}catch(_){}};
-  const vsig=()=>JSON.stringify(phrases.filter(p=>p.t&&!p.cut).map(p=>[p.s,p.t]))+dv.value;
+  const SD=[['warm','Тёплый','Warm'],['confident','Уверенный','Confident'],['cheerful','Весёлый','Cheerful'],['calm','Спокойный','Calm'],['serious','Серьёзный','Serious'],['excited','Взволнованный','Excited'],['energetic','Энергичный','Energetic'],['friendly','Дружелюбный','Friendly'],['whispering','Шёпот','Whisper'],['dramatic','Драматичный','Dramatic']];
+  const dsel=new Set();
+  SD.forEach(([k,ru,en])=>{const b=document.createElement('button');b.className='chip';b.textContent=x(ru,en);b.onclick=()=>{dsel.has(k)?dsel.delete(k):dsel.add(k);b.classList.toggle('active',dsel.has(k))};$$('#dStyles').appendChild(b)});
+  const dStyle=()=>[...SD.map(q=>q[0]).filter(k=>dsel.has(k)),$$('#dStyleTxt').value.trim()].filter(Boolean).join(', ');
+  const vsig=()=>JSON.stringify(phrases.filter(p=>p.t&&!p.cut).map(p=>[p.s,p.t]))+dv.value+'|'+dStyle();
   const dKeyShow=()=>{$$('#dKey').style.display=gKey()?'none':''};
   const dst=(txt,kind)=>{const b=$$('#dBox');b.style.display=txt?'flex':'none';$$('#fh3').textContent=txt||'';b.className='dbox'+(kind?' '+kind:'');$$('#dRetry').style.display=kind==='err'?'':'none'};
   function vpStop(){VO.srcs.forEach(q=>{try{q.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
@@ -4041,7 +4070,7 @@ async function trOpen(id){
       audioGraph();
       for(let i=0;i<list.length;i++){
         const p=list[i];prog(x('Озвучка (TTS)','Voice generation (TTS)'),i/list.length*100);dst(x('Озвучиваю ','Voicing ')+(i+1)+' / '+list.length);
-        const a=await ttsOne(p.t,dv.value,'');
+        const a=await ttsOne(p.t,dv.value,dStyle());
         const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
         const nx=list[i+1],slot=Math.max(.6,(nx?nx.s:(totalT()||p.e))-p.s);
         out.push({s:p.s,buf,rate:Math.min(1.4,Math.max(1,buf.duration/slot))});
