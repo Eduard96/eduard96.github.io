@@ -3177,7 +3177,7 @@ $('#pclear').onclick=async()=>{
 $('#shCopy').onclick=()=>{if(capCopy())toast(t('capCopied'),4000)};
 
 /* ---------- Gemini: ключ и вызовы API ---------- */
-const GKEY='substudio-gkey',GTXT='gemini-3.8-flash',GTTS='gemini-3.8-flash-tts',GBASE='https://generativelanguage.googleapis.com/v1beta/';
+const GKEY='substudio-gkey',GTXT='gemini-3.8-flash',GTTS='gemini-2.5-flash-tts',GTTS2='gemini-2.5-flash-preview-tts',GBASE='https://generativelanguage.googleapis.com/v1beta/';
 const gKey=()=>{try{return(localStorage.getItem(GKEY)||'').trim()}catch(e){return''}};
 const gbox=$('#gbox');
 function openGem(){closeMenus();$('#gkey').value=gKey();$('#gst').textContent='';gbox.classList.add('show')}
@@ -3247,16 +3247,12 @@ function ttsPick(j){
   for(const p of ps){const d=p.inlineData||p.inline_data;if(d&&d.data)return{data:d.data,mime:d.mimeType||d.mime_type||''}}
   const e=new Error((c&&c.finishReason)?('Gemini: '+c.finishReason):'Gemini: empty audio');e.empty=true;throw e;
 }
+async function gTts(body){try{return await gCall(GTTS,body)}catch(e){if(e&&(e.status===404||e.status===400)&&!e.noKey)return await gCall(GTTS2,body);throw e}}
 async function ttsOne(text,voice,style){
   let last;
   for(let a=0;a<2;a++){
     try{
-      let j;
-      try{j=await gCall(GTTS,{contents:[{role:'user',parts:[style?{text,speech_metadata:{style}}:{text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{voice}}}})}
-      catch(e){
-        if(e.status!==400||e.noKey)throw e;
-        j=await gCall(GTTS,{contents:[{parts:[{text:style?('Say '+style+': '+text):text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}});
-      }
+      const j=await gTts({contents:[{parts:[{text:style?('Say '+style+': '+text):text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}});
       const p=ttsPick(j);
       return trimSil(parseAudio(b64Bytes(p.data),p.mime));
     }catch(e){last=e;if(!e.empty)throw e}
