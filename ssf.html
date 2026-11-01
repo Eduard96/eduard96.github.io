@@ -587,6 +587,69 @@ body.recording .player.recfull .cpanel{display:none}
 
 #dStyleTxt{margin-top:8px;width:100%;min-height:40px;font-size:13px}
 #dStyles .chip{padding:7px 14px}
+/* ===== окно ключей API ===== */
+#gbox .box{width:min(100%,560px);text-align:left;max-height:92dvh;overflow:auto;touch-action:pan-y;padding:16px}
+#gbox .gh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+#gbox .gh h3{margin:0}
+#gbox .gint{margin:0 0 12px;font-size:13px;line-height:1.5}
+.apc{border:1px solid var(--line);border-radius:14px;background:var(--chip);margin-bottom:8px;overflow:hidden}
+.apc>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer}
+.apc>summary::-webkit-details-marker{display:none}
+.apc[open]>summary{border-bottom:1px solid var(--line)}
+.apd{width:10px;height:10px;border-radius:50%;background:#6b6a85;flex:none}
+.apd.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.apn{font-weight:800;font-size:15px;white-space:nowrap}
+.apk{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}
+.apk b{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(124,58,237,.18);color:var(--acc);white-space:nowrap}
+.apmv{display:flex;gap:4px;flex:none}
+.apmv button{width:28px;height:28px;border-radius:8px;background:var(--card);border:1px solid var(--line);font-size:11px;color:var(--mute)}
+.apb{padding:12px;display:grid;gap:8px;font-size:13px}
+.apb p{margin:0;line-height:1.45}
+.apb .apfr{color:var(--ok);font-weight:600}
+.apb .aph{color:var(--mute)}
+.apg{text-decoration:none;display:flex;align-items:center;justify-content:center;min-height:40px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0;font-weight:700;border-radius:12px;padding:0 12px;text-align:center}
+.apkr{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.apkr input{flex:1;min-width:0;min-height:42px;font-size:14px;border-width:1px}
+.aps{min-width:18px;text-align:center;font-weight:800}
+.aps.ok{color:var(--ok)}.aps.bad{color:var(--danger)}.aps.unk{color:#f59e0b}
+.apx{width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;flex:none;color:var(--mute)}
+.apadd{background:var(--card);color:var(--ink);border:1px solid var(--line);justify-self:start}
+/* ===== слои поверх видео ===== */
+#ovL{position:absolute;inset:0;pointer-events:none;overflow:hidden;display:none}
+.ovi{position:absolute;display:none;transform:translate(-50%,-50%);touch-action:none;will-change:transform,opacity;user-select:none;-webkit-user-select:none}
+.ovi .ovm{width:100%;height:100%;object-fit:fill;display:block;border-radius:inherit;pointer-events:none;background:transparent}
+.player.edit .ovi{pointer-events:auto;cursor:move}
+.player.edit .ovi.sel{outline:2px solid #fff;outline-offset:1px;box-shadow:0 0 0 4px rgba(124,58,237,.55)}
+.ovi .ovh{display:none;position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#fff;border:3px solid #7c3aed;box-shadow:0 2px 8px rgba(0,0,0,.55);touch-action:none}
+.ovi .ovh::before{content:"";position:absolute;inset:-10px}
+.player.edit .ovi.sel .ovh{display:block}
+.ovh.tl{left:0;top:0}.ovh.tr{left:100%;top:0}.ovh.bl{left:0;top:100%}.ovh.br{left:100%;top:100%}
+.ovb{position:absolute;height:34px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;padding:0 16px;overflow:hidden;border:2px solid transparent;cursor:grab;touch-action:none;white-space:nowrap;box-sizing:border-box;z-index:3;user-select:none;-webkit-user-select:none}
+.ovb.i{background-size:cover;background-position:center}
+.ovb.sel{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.ovb svg{width:14px;height:14px;flex:none}
+.ovb .h{position:absolute;top:0;bottom:0;width:12px;background:rgba(255,255,255,.38);cursor:ew-resize}
+.ovb .h.l{left:0;border-radius:7px 0 0 7px}.ovb .h.r{right:0;border-radius:0 7px 7px 0}
+.dkg{flex:none;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.dkg>.dkl{font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;gap:6px;white-space:nowrap}
+.dkg .dkn{display:flex;align-items:center;gap:6px}
+.dkg .chip{min-height:38px;padding:0 12px}
+.dkg .dkfont{width:112px}
+.dkhint{white-space:nowrap;max-width:none}
+/* ===== переходы: окно выбора в стиле сайта ===== */
+.trbox{background:linear-gradient(165deg,#241a52,#15122e 55%);border:1px solid rgba(124,58,237,.45);box-shadow:0 -14px 50px rgba(20,10,60,.6)}
+.trh b{font-size:17px;background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.trcats{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch}
+.trcats button{flex:none;padding:6px 12px;border-radius:99px;background:#1d1946;color:#c4c0ec;font-size:12px;font-weight:700;border:1.5px solid transparent;white-space:nowrap}
+.trcats button.on{border-color:#8b5cf6;color:#fff;background:linear-gradient(135deg,rgba(124,58,237,.6),rgba(236,72,153,.5))}
+.trdur{display:flex;align-items:center;gap:10px;padding:2px 2px 10px;color:#c4c0ec;font-size:12px;font-weight:700}
+.trdur input{flex:1;min-width:0;accent-color:#8b5cf6}
+.trdur b{min-width:52px;text-align:right;color:#fff;font-variant-numeric:tabular-nums}
+.trbox>*{flex:none}
+.trbox>.trgrid{flex:1 1 auto;min-height:0;align-content:start;grid-auto-rows:max-content}
+.trt{position:relative;min-height:0}
+.trt canvas{border:1px solid rgba(255,255,255,.08);aspect-ratio:120/74}
+.trt.on{border-color:#8b5cf6;background:#2a2260;box-shadow:0 0 0 2px rgba(139,92,246,.7),0 0 18px rgba(124,58,237,.5)}
 </style>
 </head>
 <body>
@@ -756,7 +819,7 @@ body.recording .player.recfull .cpanel{display:none}
 <div class="ovl" id="kbox"><div class="box"><h3 data-i="kTitle"></h3><div class="hint" style="text-align:left;margin:0 0 12px;font-size:13px;line-height:1.5" data-ih="kText"></div><input id="kkey" type="password" autocomplete="off" placeholder="gsk_…" class="sel" style="min-height:44px;font-size:14px"><button class="btn primary" id="ksave" style="width:100%;margin-top:10px" data-i="kSave"></button></div></div>
 <div class="ovl" id="nbox"><div class="box"><h3 data-i="nTitle"></h3><input id="nname" class="sel" type="text" autocomplete="off" spellcheck="false"><div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="ncancel" data-i="eCancel"></button><button class="btn primary" id="nok" data-i="eSave"></button></div></div></div>
 <div class="studio" id="trs">
- <div class="stbar"><button class="btn sm" id="trBack" data-i="back"></button><b data-i="trBtn"></b><span class="sp"></span><button class="btn sm" id="trKey" aria-label="Gemini API key">🔑</button></div>
+ <div class="stbar"><button class="btn sm" id="trBack" data-i="back"></button><b data-i="trBtn"></b><span class="sp"></span><button class="btn sm" id="trKey" aria-label="API keys">🔑</button></div>
  <div class="stbody">
   <div class="card">
    <video id="trVid" playsinline preload="metadata" style="width:100%;max-height:42dvh;background:#000;border-radius:12px"></video>
@@ -789,7 +852,7 @@ body.recording .player.recfull .cpanel{display:none}
  </div>
 </div>
 <div class="studio" id="tts">
- <div class="stbar"><button class="btn sm" id="ttsBack" data-i="back"></button><b data-i="ttsBtn"></b><span class="sp"></span><button class="btn sm" id="ttsKey" aria-label="Gemini API key">🔑</button></div>
+ <div class="stbar"><button class="btn sm" id="ttsBack" data-i="back"></button><b data-i="ttsBtn"></b><span class="sp"></span><button class="btn sm" id="ttsKey" aria-label="API keys">🔑</button></div>
  <div class="stbody">
   <div class="card">
    <textarea id="ttsIn" class="sel" rows="8" style="min-height:170px;padding:10px;font-weight:500;line-height:1.4;resize:vertical;width:100%"></textarea>
@@ -808,13 +871,12 @@ body.recording .player.recfull .cpanel{display:none}
   </div>
  </div>
 </div>
-<div class="ovl" id="gbox"><div class="box" style="text-align:left;max-height:90dvh;overflow:auto;touch-action:pan-y">
- <h3 data-i="gemTitle"></h3>
- <div class="hint" style="margin:0 0 12px;font-size:13px;line-height:1.55" data-ih="gemInfo"></div>
- <input id="gkey" type="password" autocomplete="off" placeholder="AIza…" class="sel" style="min-height:44px;font-size:14px">
+<div class="ovl" id="gbox"><div class="box">
+ <div class="gh"><h3 id="gTitle"></h3><button class="trx" id="gclose" type="button" aria-label="Close"></button></div>
+ <div class="hint gint" id="gIntro"></div>
+ <div id="gbody"></div>
  <div class="hint" id="gst"></div>
- <button class="btn primary" id="gsave" style="width:100%;margin-top:10px" data-i="gemSave"></button>
- <div class="actions" style="grid-template-columns:1fr 1fr"><button class="btn" id="grem" data-i="gemRemove"></button><button class="btn" id="gclose" data-i="iClose"></button></div>
+ <button class="btn primary" id="gsave" type="button" style="width:100%;margin-top:10px"></button>
 </div></div>
 <div class="ovl" id="gtx"><div class="box" style="text-align:left"><h3 data-i="trEdit"></h3>
  <textarea id="gtxA" class="sel" rows="4" style="min-height:110px;padding:10px;font-weight:500;line-height:1.35;resize:vertical"></textarea>
@@ -1164,7 +1226,8 @@ function download(blob,name){const a=document.createElement('a');a.href=URL.crea
 function fillR(el){const mn=parseFloat(el.min)||0,mx=parseFloat(el.max)||100,p=mx>mn?(el.value-mn)/(mx-mn)*100:0;el.style.setProperty('--p',Math.max(0,Math.min(100,p))+'%')}
 const allC=()=>phrases.flatMap(p=>p.c||[]);
 function span(p){const c=p.c&&p.c.length?p.c:null;return c?[Math.min(...c.map(x=>x.s)),Math.max(...c.map(x=>x.e))]:[p.s,p.e]}
-const VE={cuts:[],splits:[],tr:{},sel:null,selJ:null,hook:null},TR_H=88,XT={last:-1,k:null,t0:0,snap:null};
+const VE={cuts:[],splits:[],tr:{},trd:{},trDef:.5,ov:[],osel:null,sel:null,selJ:null,hook:null,pick:null},XT={last:-1,k:null,t0:0,snap:null,d:.5};
+let TR_H=88;
 const vdur=()=>(isFinite(v.duration)&&v.duration>0)?v.duration:(dur||0);
 const VIC={v:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 5v14M16 5v14M3 10h5M16 10h5M3 14h5M16 14h5"/></svg>',a:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 9v6"/></svg>'};
 function vJoins(){
@@ -1203,20 +1266,33 @@ function renderVTracks(){
 }
 const ICP={"chevL": "<path d=\"M15 5l-7 7 7 7\"/>", "arrowR": "<path d=\"M5 12h14M13 6l6 6-6 6\"/>", "rotCcw": "<path d=\"M3 12a9 9 0 1 0 3-6.7M3 4v5h5\"/>", "refresh": "<path d=\"M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5\"/>", "mic": "<path d=\"M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3\"/>", "clap": "<path d=\"M4 9h16v11H4zM4 9l2.5-4.5 4 1L8 10M11.5 5.5l4 1L13 10M16.5 6.5l3-.5L20 9\"/>", "scissors": "<circle cx=\"6\" cy=\"6\" r=\"3\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/><path d=\"M8.6 8.6L20 20M8.6 15.4L20 4\"/>", "trash": "<path d=\"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3\"/>", "undo": "<path d=\"M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3\"/>", "camera": "<path d=\"M4 8h3l2-3h6l2 3h3v11H4z\"/><circle cx=\"12\" cy=\"13\" r=\"3.5\"/>", "flip": "<path d=\"M4 9a8 8 0 0 1 14-3M20 4v4h-4M20 15a8 8 0 0 1-14 3M4 20v-4h4\"/>", "mirror": "<path d=\"M12 3v18M8 7L3 12l5 5zM16 7l5 5-5 5z\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "check": "<path d=\"M5 13l4 4L19 7\"/>", "close": "<path d=\"M6 6l12 12M18 6L6 18\"/>", "upload": "<path d=\"M12 16V4M7 9l5-5 5 5M4 20h16\"/>", "play": "<path d=\"M7 4.5l12 7.5-12 7.5z\" fill=\"currentColor\"/>", "pause": "<path d=\"M7 5h3.5v14H7zM13.5 5H17v14h-3.5z\" fill=\"currentColor\" stroke=\"none\"/>", "expand": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>"};
 const ico=n=>'<svg class="ic2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+(ICP[n]||'')+'</svg>';
+Object.assign(ICP,{
+"layers":"<rect x=\"3\" y=\"6\" width=\"13\" height=\"11\" rx=\"2.5\"/><rect x=\"8\" y=\"9\" width=\"13\" height=\"11\" rx=\"2.5\"/>",
+"photo":"<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"3\"/><circle cx=\"9\" cy=\"10\" r=\"1.6\"/><path d=\"M4 18l5-5 4 4 3-3 4 4\"/>",
+"fit":"<rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M3 8V4h4M21 8V4h-4M3 16v4h4M21 16v4h-4\"/>",
+"up":"<path d=\"M12 19V5M6 11l6-6 6 6\"/>",
+"down":"<path d=\"M12 5v14M6 13l6 6 6-6\"/>",
+"copy":"<rect x=\"8\" y=\"8\" width=\"12\" height=\"12\" rx=\"2\"/><path d=\"M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2\"/>"
+});
 const trKey=k=>({dip:'dipb',zoom:'zIn'}[k]||k||'');
-const TRS=[['fade','Наплыв','Crossfade'],['dipb','Через чёрный','Dip to black'],['dipw','Через белый','Dip to white'],['flash','Вспышка','Flash'],
-['slL','Сдвиг влево','Slide left'],['slR','Сдвиг вправо','Slide right'],['slU','Сдвиг вверх','Slide up'],['slD','Сдвиг вниз','Slide down'],
-['puL','Толчок влево','Push left'],['puR','Толчок вправо','Push right'],['puU','Толчок вверх','Push up'],['puD','Толчок вниз','Push down'],
-['coL','Наезд справа','Cover from right'],['coR','Наезд слева','Cover from left'],['coU','Наезд снизу','Cover from bottom'],['coD','Наезд сверху','Cover from top'],
-['wiL','Шторка влево','Wipe left'],['wiR','Шторка вправо','Wipe right'],['wiU','Шторка вверх','Wipe up'],['wiD','Шторка вниз','Wipe down'],
-['cirO','Круг: открытие','Circle open'],['cirC','Круг: закрытие','Circle close'],['clk','Часы','Clock'],['dia','Ромб','Diamond'],
-['blH','Жалюзи гориз.','Blinds horizontal'],['blV','Жалюзи верт.','Blinds vertical'],['drH','Двери гориз.','Doors horizontal'],['drV','Двери верт.','Doors vertical'],
-['zIn','Зум вперёд','Zoom in'],['zOut','Зум назад','Zoom out'],['spin','Вращение','Spin'],['flip','Переворот','Flip'],
-['pix','Пиксели','Pixelate'],['gl','Глитч','Glitch'],['blur','Размытие','Blur']];
+const TRS=[['fade','Наплыв','Crossfade','fade'],['dipb','Через чёрный','Dip to black','fade'],['dipw','Через белый','Dip to white','fade'],['flash','Вспышка','Flash','fade'],['blur','Размытие','Blur','fade'],
+['brW','Бренд-шторка','Brand wipe','brand'],['curt','Занавес','Curtain','brand'],['ring','Кольцо','Ring','brand'],['glow','Свечение','Glow','brand'],['vor','Вихрь','Vortex','brand'],
+['slL','Сдвиг влево','Slide left','slide'],['slR','Сдвиг вправо','Slide right','slide'],['slU','Сдвиг вверх','Slide up','slide'],['slD','Сдвиг вниз','Slide down','slide'],
+['puL','Толчок влево','Push left','slide'],['puR','Толчок вправо','Push right','slide'],['puU','Толчок вверх','Push up','slide'],['puD','Толчок вниз','Push down','slide'],
+['coL','Наезд справа','Cover from right','slide'],['coR','Наезд слева','Cover from left','slide'],['coU','Наезд снизу','Cover from bottom','slide'],['coD','Наезд сверху','Cover from top','slide'],
+['whip','Рывок','Whip','slide'],['strp','Полосы','Stripes','slide'],['slc','Срезы','Slices','slide'],
+['wiL','Шторка влево','Wipe left','shape'],['wiR','Шторка вправо','Wipe right','shape'],['wiU','Шторка вверх','Wipe up','shape'],['wiD','Шторка вниз','Wipe down','shape'],
+['cirO','Круг: открытие','Circle open','shape'],['cirC','Круг: закрытие','Circle close','shape'],['clk','Часы','Clock','shape'],['dia','Ромб','Diamond','shape'],['star','Звезда','Star','shape'],['chk','Шашки','Checker','shape'],['wave','Волна','Wave','shape'],
+['blH','Жалюзи гориз.','Blinds horizontal','shape'],['blV','Жалюзи верт.','Blinds vertical','shape'],['drH','Двери гориз.','Doors horizontal','shape'],['drV','Двери верт.','Doors vertical','shape'],
+['zIn','Зум вперёд','Zoom in','motion'],['zOut','Зум назад','Zoom out','motion'],['spin','Вращение','Spin','motion'],['flip','Переворот','Flip','motion'],
+['pix','Пиксели','Pixelate','fx'],['gl','Глитч','Glitch','fx']];
+const TRCATS=[['all','Все','All'],['brand','✦ Бренд','✦ Brand'],['fade','Затухание','Fade'],['slide','Сдвиги','Slides'],['shape','Фигуры','Shapes'],['motion','Движение','Motion'],['fx','Эффекты','FX']];
+const trDurFor=key=>{const d=VE.trd[key];return Math.max(.15,Math.min(2,d==null?VE.trDef:d))};
 function trRender(c,W,H,nf,o,k,p){
   const e=p*p*(3-2*p),I=[1,0,0,1,0,0];
   const nw=m=>{m=m||I;c.save();c.setTransform(m[0],m[1],m[2],m[3],m[4],m[5]);nf();c.restore()};
   const od=(x,y)=>c.drawImage(o,x,y,W,H);
+  const BG=(x0,y0,x1,y1)=>{const g=c.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'#7c3aed');g.addColorStop(1,'#ec4899');return g};
   const cl=(fn,draw)=>{c.save();c.beginPath();fn();c.clip();draw();c.restore()};
   c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;
   switch(k){
@@ -1244,6 +1320,38 @@ function trRender(c,W,H,nf,o,k,p){
     case'pix':{nw();const b=4+e*36,w=Math.max(1,Math.ceil(W/b)),h=Math.max(1,Math.ceil(H/b));const t=trRender.t||(trRender.t=document.createElement('canvas'));t.width=w;t.height=h;t.getContext('2d').drawImage(o,0,0,w,h);c.globalAlpha=1-e;c.imageSmoothingEnabled=false;c.drawImage(t,0,0,W,H);c.imageSmoothingEnabled=true;break}
     case'gl':{nw();const n=14,q=H/n,r0=o.height/H;c.globalAlpha=1-e;for(let i=0;i<n;i++){const r=Math.sin(i*12.9898+Math.floor(p*14)*78.233)*43758.5453,f=r-Math.floor(r);c.drawImage(o,0,i*q*r0,o.width,q*r0,(f-.5)*W*.35*(1-e),i*q,W,q)}break}
     case'blur':{nw();c.globalAlpha=1-e;try{c.filter='blur('+(e*16)+'px)'}catch(_){}od(0,0);try{c.filter='none'}catch(_){}break}
+
+    case'brW':{const sk=H*.35,bw=W*.16,X=e*(W+sk+bw)-bw-sk;od(0,0);
+      cl(()=>{c.moveTo(0,0);c.lineTo(X+sk,0);c.lineTo(X,H);c.lineTo(0,H);c.closePath()},nw);
+      c.fillStyle=BG(X,0,X+bw+sk,0);c.globalAlpha=.96;c.beginPath();c.moveTo(X+sk,0);c.lineTo(X+sk+bw,0);c.lineTo(X+bw,H);c.lineTo(X,H);c.closePath();c.fill();break}
+    case'curt':{const a=Math.min(1,p*2),b=Math.max(0,p*2-1),ea=a*a*(3-2*a),eb=b*b*(3-2*b);
+      if(p<.5)od(0,0);else nw();
+      const x0=eb*W,x1=ea*W;
+      if(x1>x0+.5){c.fillStyle=BG(0,0,W,H*.35);c.fillRect(x0,0,x1-x0,H);c.fillStyle='rgba(255,255,255,.4)';c.fillRect(p<.5?x1-W*.012:x0,0,W*.012,H)}
+      break}
+    case'ring':{const R=e*Math.hypot(W,H)/2;od(0,0);cl(()=>c.arc(W/2,H/2,R,0,7),nw);
+      c.globalAlpha=Math.sin(Math.PI*Math.min(1,p*1.04))*.95;c.strokeStyle=BG(0,0,W,H);c.lineWidth=Math.max(2,W*.035);c.beginPath();c.arc(W/2,H/2,R,0,7);c.stroke();break}
+    case'glow':{nw();c.globalAlpha=1-e;od(0,0);c.globalAlpha=1;
+      const a=Math.sin(Math.PI*p),R=Math.hypot(W,H)*.6,g2=c.createRadialGradient(W/2,H/2,0,W/2,H/2,R);
+      g2.addColorStop(0,'rgba(255,255,255,'+(.95*a)+')');g2.addColorStop(.35,'rgba(236,72,153,'+(.7*a)+')');g2.addColorStop(.7,'rgba(124,58,237,'+(.45*a)+')');g2.addColorStop(1,'rgba(124,58,237,0)');
+      c.fillStyle=g2;c.fillRect(0,0,W,H);break}
+    case'vor':{od(0,0);const r=-(1-e)*1.1,q=1.35-.35*e,co=Math.cos(r)*q,si=Math.sin(r)*q;
+      c.globalAlpha=Math.min(1,e*1.6);nw([co,si,-si,co,W/2-(co*W/2-si*H/2),H/2-(si*W/2+co*H/2)]);break}
+    case'whip':{const sp=Math.sin(Math.PI*e)*W*.2;nw([1,0,0,1,(1-e)*W,0]);
+      for(let i=3;i>=0;i--){c.globalAlpha=i?.22:1;od(-e*W+i*sp/3,0)}break}
+    case'strp':{const n=8,q=H/n;od(0,0);
+      for(let i=0;i<n;i++){const u=Math.max(0,Math.min(1,(p*1.5-i*.07)/.6)),eu=u*u*(3-2*u);if(eu<=0)continue;
+        cl(()=>c.rect(0,i*q-.5,W,q+1),()=>nw([1,0,0,1,(i%2?1:-1)*(1-eu)*W,0]))}break}
+    case'slc':{const n=6,q=W/n;nw();
+      for(let i=0;i<n;i++){const u=Math.max(0,Math.min(1,(p*1.4-i*.06)/.7)),eu=u*u*(3-2*u);
+        cl(()=>c.rect(i*q-.5,0,q+1,H),()=>od(0,(i%2?1:-1)*eu*H*1.05))}break}
+    case'wave':{const amp=W*.06,X=e*(W+amp*2)-amp;od(0,0);
+      cl(()=>{c.moveTo(0,0);for(let k2=0;k2<=24;k2++){const y=k2*H/24;c.lineTo(X+amp*Math.sin(y/H*Math.PI*5+p*8),y)}c.lineTo(0,H);c.closePath()},nw);break}
+    case'star':{const R=e*Math.hypot(W,H)*1.15,r2=R*.55,rot=p*2;od(0,0);
+      cl(()=>{for(let i=0;i<10;i++){const a=rot+i*Math.PI/5-Math.PI/2,rr=i%2?r2:R,X=W/2+Math.cos(a)*rr,Y=H/2+Math.sin(a)*rr;i?c.lineTo(X,Y):c.moveTo(X,Y)}c.closePath()},nw);break}
+    case'chk':{const cols=6,sz=W/cols,rows=Math.ceil(H/sz);od(0,0);
+      cl(()=>{for(let r=0;r<rows;r++)for(let q2=0;q2<cols;q2++){const d=(r+q2)/(rows+cols-2),u=Math.max(0,Math.min(1,(p*1.5-d*.5)/.5)),sc=u*u*(3-2*u);
+        if(sc<=0)continue;const w2=sz*sc+.6,cx=(q2+.5)*sz,cy=(r+.5)*sz;c.rect(cx-w2/2,cy-w2/2,w2,w2)}},nw);break}
     default:nw();c.globalAlpha=1-e;od(0,0);
   }
   c.globalAlpha=1;c.setTransform(1,0,0,1,0,0);
@@ -1262,8 +1370,8 @@ function pvTr(te){
   const k=trKey(VE.tr[Math.round(te*100)]);if(!k||!PV.snap)return;
   let cv2=PV.cv;if(!cv2){cv2=PV.cv=document.createElement('canvas');cv2.id='pvtr';stage.appendChild(cv2)}
   const sn=PV.snap,w=sn.width,h=sn.height;cv2.width=w;cv2.height=h;cv2.style.display='block';
-  const c=cv2.getContext('2d'),t0=performance.now(),id=++PV.run;
-  const step=()=>{if(id!==PV.run)return;const p=(performance.now()-t0)/500;
+  const c=cv2.getContext('2d'),t0=performance.now(),id=++PV.run,du=trDurFor(Math.round(te*100))*1000;
+  const step=()=>{if(id!==PV.run)return;const p=(performance.now()-t0)/du;
     if(p>=1){cv2.style.display='none';return}
     trRender(c,w,h,()=>c.drawImage(v,0,0,w,h),sn,k,p);requestAnimationFrame(step)};
   step();
@@ -1422,10 +1530,312 @@ function setAnim(k,quiet){
 }
 
 /* ---------- облачное распознавание (Groq Whisper) ---------- */
+/* ================= API-провайдеры: несколько ключей и автоматическое переключение =================
+   Если у одного ключа или сервиса закончился лимит, запрос тихо уходит следующему.
+   Порядок, включение и ключи хранятся в этом браузере (localStorage). */
+const LX=(ru,en)=>ui==='en'?en:ru;
+const GKEY='substudio-gkey',GBASE='https://generativelanguage.googleapis.com/v1beta/',GTTS='gemini-2.5-flash-tts',GTTS2='gemini-2.5-flash-preview-tts',GTXTS=['gemini-3.8-flash','gemini-2.5-flash','gemini-2.5-flash-lite'],GTXT=GTXTS[0];
+const AIST='substudio-ai',AIORD=['gemini','groq','cerebras','openrouter','mistral','deepgram','eleven'],AICD=new Map(),AIL={};
+const AIS={o:AIORD.slice(),p:{}};
+try{const s=JSON.parse(localStorage.getItem(AIST)||'null');if(s&&typeof s==='object'){
+  if(Array.isArray(s.o))AIS.o=[...s.o.filter(i=>AIORD.includes(i)),...AIORD.filter(i=>!s.o.includes(i))];
+  if(s.p&&typeof s.p==='object')AIS.p=s.p}}catch(e){}
+function aiLegacy(id){try{if(id==='gemini')return(localStorage.getItem(GKEY)||'').trim();if(id==='groq')return(localStorage.getItem('substudio-key')||'').trim()}catch(e){}return''}
+function aiKeys(id){const st=(AIS.p[id]&&AIS.p[id].keys)||[];return[...new Set([aiLegacy(id),...st].map(s=>String(s||'').trim()).filter(Boolean))]}
+const aiOn=id=>!(AIS.p[id]&&AIS.p[id].on===false);
+function aiProvs(kind){return AIS.o.filter(id=>AIP[id]&&AIP[id].k.includes(kind)&&aiOn(id)&&aiKeys(id).length).map(id=>AIP[id])}
+const aiHas=kind=>aiProvs(kind).length>0;
+const aiAny=()=>AIORD.some(id=>aiKeys(id).length>0);
+const gKey=()=>aiKeys('gemini')[0]||'';
+function aiSave(){
+  try{localStorage.setItem(AIST,JSON.stringify(AIS))}catch(e){}
+  try{
+    const g=aiKeys('gemini')[0]||'',q=aiKeys('groq')[0]||'';
+    g?localStorage.setItem(GKEY,g):localStorage.removeItem(GKEY);
+    q?localStorage.setItem('substudio-key',q):localStorage.removeItem('substudio-key');
+  }catch(e){}
+}
+function aiSetKeys(id,keys){
+  const ks=[...new Set(keys.map(s=>String(s||'').trim()).filter(Boolean))];
+  AIS.p[id]=Object.assign(AIS.p[id]||{},{keys:ks});
+  /* «старые» места хранения (Gemini, Groq) обновляются тоже, иначе удалённый ключ вернулся бы оттуда */
+  try{if(id==='gemini')ks[0]?localStorage.setItem(GKEY,ks[0]):localStorage.removeItem(GKEY);if(id==='groq')ks[0]?localStorage.setItem('substudio-key',ks[0]):localStorage.removeItem('substudio-key')}catch(e){}
+  aiSave();
+}
+function aiAddKey(id,k){aiSetKeys(id,[...aiKeys(id),k])}
+/* какой это сбой: лимит, неверный ключ, сеть, сервер или что-то другое */
+function aiClass(e){
+  const s=e&&e.status,m=(e&&e.message)||'';
+  if(e&&e.net)return'net';
+  if(s===429||s===402||/quota|rate.?limit|exhaust|too many requests|insufficient|credit/i.test(m))return'quota';
+  if(s===401||s===403||/api key not valid|invalid api key|incorrect api key|unauthorized|permission denied/i.test(m))return'auth';
+  if(s>=500)return'srv';
+  return'other';
+}
+const aiCoolKey=(id,k,m)=>id+'|'+k+'|'+(m||'');
+const aiCool=(id,k,m)=>{const u=AICD.get(aiCoolKey(id,k,m));return u&&u>Date.now()?u:0};
+function aiBench(id,k,m,e){
+  const c=aiClass(e),msg=(e&&e.message)||'';let ms=0;
+  if(c==='quota'){const q=/retry in ([\d.]+)\s*s/i.exec(msg);ms=q?Math.ceil(+q[1]*1000)+500:60000;if(/per.?day|daily|PerDay/i.test(msg))ms=30*60000}
+  else if(c==='auth')ms=10*60000;
+  else if(c==='net')ms=6000;
+  else if(c==='srv')ms=15000;
+  if(ms)AICD.set(aiCoolKey(id,k,m),Date.now()+ms);
+  return ms;
+}
+function aiUsed(kind,p){
+  const prev=AIL[kind];AIL[kind]=p.id;
+  if(prev&&prev!==p.id&&AIP[prev])toast(LX('«'+AIP[prev].n+'» недоступен или без лимита — работает «'+p.n+'».','“'+AIP[prev].n+'” is unavailable or out of quota — using “'+p.n+'”.'),3800);
+}
+async function aiTry(kind,fn){
+  for(let pass=0;pass<2;pass++){
+    const ps=aiProvs(kind);
+    if(!ps.length){const e=new Error(t('gemNeed'));e.noKey=true;try{openGem()}catch(x){}throw e}
+    let last=null,minWait=1e9;
+    for(const p of ps){
+      for(const k of aiKeys(p.id)){
+        const cu=aiCool(p.id,k,'');
+        if(cu){minWait=Math.min(minWait,cu-Date.now());continue}
+        try{const r=await fn(p,k);aiUsed(kind,p);return r}
+        catch(e){
+          last=e;if(e&&e.name==='AbortError')throw e;
+          const ms=aiBench(p.id,k,'',e);if(ms)minWait=Math.min(minWait,ms);
+        }
+      }
+    }
+    /* все ключи на паузе, но ждать недолго: подождём самую короткую и попробуем ещё раз */
+    if(pass===0&&minWait>0&&minWait<=20000){await sleep(Math.max(600,minWait));continue}
+    const cls=last?aiClass(last):'quota';
+    const er=new Error(cls==='auth'
+      ?LX('Ключи API не подошли. Откройте 🔑 и проверьте ключи.','API keys were rejected. Open 🔑 and check the keys.')
+      :cls==='net'?t('gemNet')
+      :(cls==='other'&&last&&last.message)?last.message
+      :LX('Лимиты всех подключённых API сейчас исчерпаны. Подождите немного или добавьте ещё один ключ (🔑).','All connected APIs are out of quota right now. Wait a little or add another key (🔑).'));
+    er.allFailed=true;er.cls=cls;er.last=last;throw er;
+  }
+}
+/* ---- Gemini ---- */
+async function gReq(k,model,body){
+  let r,j=null;
+  try{r=await fetch(GBASE+'models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body:JSON.stringify(body)})}
+  catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+  try{j=await r.json()}catch(e){}
+  if(r.ok)return j;
+  const er=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));er.status=r.status;throw er;
+}
+async function gemTextKey(k,prompt,o){
+  let last;
+  for(const m of GTXTS){
+    if(aiCool('gemini',k,m))continue;
+    try{
+      const body={contents:[{parts:[{text:prompt}]}]};
+      if(o&&o.schema)body.generationConfig={responseMimeType:'application/json',responseSchema:o.schema};
+      return gText(await gReq(k,m,body));
+    }catch(e){last=e;const c=aiClass(e);if(c==='quota'||c==='srv'||e.status===404){aiBench('gemini',k,m,e);continue}throw e}
+  }
+  throw last||new Error('Gemini: no model');
+}
+const SCHEMA_SEG={type:'ARRAY',items:{type:'OBJECT',properties:{start:{type:'STRING'},end:{type:'STRING'},text:{type:'STRING'}},required:['start','end','text']}};
+const SCHEMA_TRN={type:'ARRAY',items:{type:'OBJECT',properties:{i:{type:'INTEGER'},text:{type:'STRING'}},required:['i','text']}};
+async function gemStt(k,blob){
+  let wb=blob;
+  if(!/wav/i.test(blob.type||'')){const a=await extractAudio(blob);wb=wavBlob(a.f,a.sr)}
+  const b64=await blobB64(wb);let last;
+  for(const m of GTXTS){
+    if(aiCool('gemini',k,m))continue;
+    try{
+      const j=await gReq(k,m,{contents:[{parts:[{inlineData:{mimeType:'audio/wav',data:b64}},{text:'Transcribe all speech in this audio verbatim, in the language it is spoken (do not translate). Split it into short segments, each one sentence or phrase of about 2 to 8 seconds. For every segment give the start and end time in MM:SS format (decimals allowed), counted from the start of this audio. Return a JSON array. If there is no speech, return an empty array.'}]}],generationConfig:{responseMimeType:'application/json',responseSchema:SCHEMA_SEG}});
+      return parseJsonArr(gText(j)).map(q=>{
+        const x=String(q&&q.text||'').replace(/\s+/g,' ').trim(),s0=parseTs(q&&q.start),e0=parseTs(q&&q.end);
+        return x&&isFinite(s0)?{start:s0,end:isFinite(e0)&&e0>s0?e0:s0+Math.max(1,x.length*0.06),text:x}:null;
+      }).filter(Boolean);
+    }catch(e){last=e;const c=aiClass(e);if(c==='quota'||c==='srv'||e.status===404){aiBench('gemini',k,m,e);continue}throw e}
+  }
+  throw last||new Error('Gemini: no model');
+}
+async function gemTtsKey(k,text,voice,style){
+  const st=String(style||'').trim(),how=st?('in a '+st+' voice'):'clearly and naturally';
+  const prompts=[
+    'Say '+how+': '+text,
+    'Read the following transcript aloud '+how+', word for word. Output audio only, do not answer or comment. Transcript: '+text,
+    'Text to speech. Speak exactly these words '+how+', and never reply with text: "'+text+'"'];
+  let last;
+  for(const pr of prompts){
+    const body={contents:[{parts:[{text:pr}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}};
+    try{
+      let j;
+      try{j=await gReq(k,GTTS,body)}
+      catch(e){if(e&&(e.status===404||/not found|not supported|unsupported/i.test(e.message||'')))j=await gReq(k,GTTS2,body);else throw e}
+      const p=ttsPick(j);
+      return trimSil(parseAudio(b64Bytes(p.data),p.mime));
+    }catch(e){last=e;if(!(e.empty||/generate text|only be used for TTS|text, but/i.test(e.message||'')))throw e}
+  }
+  throw last;
+}
+/* ---- сервисы, совместимые с OpenAI (Groq, Cerebras, OpenRouter, Mistral) ---- */
+async function oaiPost(url,key,body){
+  let r,j=null;
+  try{r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},body:JSON.stringify(body)})}
+  catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+  try{j=await r.json()}catch(e){}
+  if(!r.ok){
+    const m=j&&((j.error&&(j.error.message||j.error))||j.message||j.detail);
+    const er=new Error(typeof m==='string'?m:(m?JSON.stringify(m):'HTTP '+r.status));er.status=r.status;throw er;
+  }
+  return j;
+}
+function oaiText(id,base,models){
+  return async(k,prompt)=>{
+    let last;const list=await (typeof models==='function'?models(k):models);
+    for(const m of list){
+      if(aiCool(id,k,m))continue;
+      try{
+        const j=await oaiPost(base+'/chat/completions',k,{model:m,messages:[{role:'user',content:prompt}],temperature:0.2});
+        const s=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+        if(s)return String(s);
+        const er=new Error('empty answer');er.status=502;throw er;
+      }catch(e){
+        last=e;const c=aiClass(e);
+        if(c==='quota'||c==='srv'||e.status===404||(e.status===400&&/model|decommission/i.test(e.message||''))){aiBench(id,k,m,e)||AICD.set(aiCoolKey(id,k,m),Date.now()+300000);continue}
+        throw e;
+      }
+    }
+    throw last||new Error('no model');
+  };
+}
+/* OpenRouter: список бесплатных моделей меняется, поэтому берём его у сервиса */
+async function orModels(k){
+  if(orModels.c&&orModels.c.length)return orModels.c;
+  const def=['meta-llama/llama-3.3-70b-instruct:free','openai/gpt-oss-120b:free','google/gemma-3-27b-it:free'];
+  try{
+    const r=await fetch('https://openrouter.ai/api/v1/models',{headers:{Authorization:'Bearer '+k}});const j=await r.json();
+    const pref=[/llama-3\.3/,/gpt-oss/,/gemma/,/qwen/,/mistral/,/deepseek/],rk=s=>{const i=pref.findIndex(p=>p.test(s));return i<0?99:i};
+    const ids=((j&&j.data)||[]).map(m=>m.id).filter(s=>/:free$/.test(s)&&!/vision|embed|image|audio|guard/i.test(s)).sort((a,b)=>rk(a)-rk(b));
+    orModels.c=ids.length?ids.slice(0,5):def;
+  }catch(e){orModels.c=def}
+  return orModels.c;
+}
+/* ---- Groq: речь в текст ---- */
+async function groqStt(k,blob,o){
+  let last;
+  for(const m of ['whisper-large-v3','whisper-large-v3-turbo']){
+    if(aiCool('groq',k,m))continue;
+    try{
+      const fd=new FormData(),ext=/wav/i.test(blob.type)?'wav':/mp4|m4a|aac/i.test(blob.type)?'m4a':'webm';
+      fd.append('file',blob,'a.'+ext);fd.append('model',m);if(o&&o.lang)fd.append('language',o.lang);fd.append('response_format','verbose_json');fd.append('temperature','0');
+      let r,j=null;
+      try{r=await fetch(getEndpoint(),{method:'POST',headers:{Authorization:'Bearer '+k},body:fd})}catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+      try{j=await r.json()}catch(e){}
+      if(!r.ok){const er=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));er.status=r.status;throw er}
+      const segs=(j.segments&&j.segments.length)?j.segments:[{start:0,end:(o&&o.dur)||0,text:j.text||'',no_speech_prob:0}];
+      return segs.map(g=>({start:g.start,end:g.end,text:String(g.text||'').replace(/\s+/g,' ').trim(),ns:g.no_speech_prob})).filter(g=>g.text);
+    }catch(e){last=e;const c=aiClass(e);if(c==='quota'||c==='srv'||e.status===404){aiBench('groq',k,m,e);continue}throw e}
+  }
+  throw last||new Error('Groq: no model');
+}
+/* ---- Deepgram: речь в текст ---- */
+async function dgStt(k,blob,o){
+  let r,j=null;
+  const url='https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&utterances=true&'+((o&&o.lang)?'language='+o.lang:'detect_language=true');
+  try{r=await fetch(url,{method:'POST',headers:{Authorization:'Token '+k,'Content-Type':blob.type||'audio/wav'},body:blob})}catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+  try{j=await r.json()}catch(e){}
+  if(!r.ok){const er=new Error((j&&(j.err_msg||j.message))||('HTTP '+r.status));er.status=r.status;throw er}
+  const u=j&&j.results&&j.results.utterances;
+  if(u&&u.length)return u.map(q=>({start:q.start,end:q.end,text:String(q.transcript||'').trim()})).filter(q=>q.text);
+  const tx=j&&j.results&&j.results.channels&&j.results.channels[0]&&j.results.channels[0].alternatives&&j.results.channels[0].alternatives[0]&&j.results.channels[0].alternatives[0].transcript;
+  return tx?[{start:0,end:(o&&o.dur)||Math.max(1,tx.length*0.06),text:String(tx).trim()}]:[];
+}
+/* ---- ElevenLabs: озвучка ---- */
+const EL_FEM=new Set(['Zephyr','Kore','Leda','Aoede','Callirrhoe','Autonoe','Despina','Erinome','Laomedeia','Achernar','Gacrux','Pulcherrima','Vindemiatrix','Sulafat']);
+async function elVoice(k,gv){
+  const fem=EL_FEM.has(gv),want=fem?'female':'male',def=fem?'21m00Tcm4TlvDq8ikWAM':'pNInz6obpgDQGcFmaJgB';
+  elVoice.c=elVoice.c||{};
+  if(elVoice.c[k+want])return elVoice.c[k+want];
+  let id=def;
+  try{
+    const r=await fetch('https://api.elevenlabs.io/v1/voices',{headers:{'xi-api-key':k}});
+    if(r.ok){const j=await r.json(),vs=(j.voices||[]).filter(v2=>v2.category==='premade');
+      const m=vs.find(v2=>v2.labels&&v2.labels.gender===want)||vs[0];if(m)id=m.voice_id}
+  }catch(e){}
+  return elVoice.c[k+want]=id;
+}
+function decodeMono(ab,sr){
+  const O=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new O(1,1,sr);
+  return new Promise((res,rej)=>{const r=oc.decodeAudioData(ab,res,rej);if(r&&r.then)r.then(res,rej)}).then(buf=>{
+    const n=buf.length,ch=buf.numberOfChannels,f=new Float32Array(n);
+    for(let c=0;c<ch;c++){const d=buf.getChannelData(c);for(let i=0;i<n;i++)f[i]+=d[i]/ch}
+    return{f,sr:buf.sampleRate};
+  });
+}
+async function elTts(k,text,gvoice){
+  const vid=await elVoice(k,gvoice),arm=/[԰-֏]/.test(text);
+  const call=async model=>{
+    let r,j=null;
+    try{r=await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+vid+'?output_format=mp3_44100_128',{method:'POST',headers:{'xi-api-key':k,'Content-Type':'application/json',Accept:'audio/mpeg'},body:JSON.stringify({text,model_id:model})})}
+    catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+    if(!r.ok){try{j=await r.json()}catch(e){}const d=j&&j.detail;const er=new Error((d&&(d.message||d.status))||(typeof d==='string'?d:'')||('HTTP '+r.status));er.status=r.status;throw er}
+    return r.arrayBuffer();
+  };
+  let ab;
+  if(arm){try{ab=await call('eleven_v3')}catch(e){if(e.status===429||e.status===401||e.net)throw e;ab=await call('eleven_multilingual_v2')}}
+  else ab=await call('eleven_multilingual_v2');
+  return trimSil(await decodeMono(ab,24000));
+}
+/* ---- проверка ключа лёгким запросом ---- */
+async function aiPing(url,hdr){try{const r=await fetch(url,{headers:hdr});return r.ok?'ok':(r.status===401||r.status===403||r.status===400)?'bad':'unk'}catch(e){return'unk'}}
+const OAIP=(id,base,models)=>({text:oaiText(id,base,models)});
+const AIP={
+  gemini:{id:'gemini',n:'Google Gemini',k:['text','stt','tts'],ph:'AIza…',url:'https://aistudio.google.com/apikey',
+    text:(k,pr,o)=>gemTextKey(k,pr,o),stt:(k,b)=>gemStt(k,b),tts:(k,tx,v2,st)=>gemTtsKey(k,tx,v2,st),
+    chk:k=>aiPing(GBASE+'models?pageSize=1',{'x-goog-api-key':k})},
+  groq:{id:'groq',n:'Groq',k:['text','stt'],ph:'gsk_…',url:'https://console.groq.com/keys',
+    text:oaiText('groq','https://api.groq.com/openai/v1',['llama-3.3-70b-versatile','llama-3.1-8b-instant']),stt:(k,b,o)=>groqStt(k,b,o),
+    chk:k=>aiPing('https://api.groq.com/openai/v1/models',{Authorization:'Bearer '+k})},
+  cerebras:{id:'cerebras',n:'Cerebras',k:['text'],ph:'csk-…',url:'https://cloud.cerebras.ai/',
+    text:oaiText('cerebras','https://api.cerebras.ai/v1',['gpt-oss-120b','llama3.1-8b','qwen-3-32b']),
+    chk:k=>aiPing('https://api.cerebras.ai/v1/models',{Authorization:'Bearer '+k})},
+  openrouter:{id:'openrouter',n:'OpenRouter',k:['text'],ph:'sk-or-…',url:'https://openrouter.ai/keys',
+    text:oaiText('openrouter','https://openrouter.ai/api/v1',orModels),
+    chk:k=>aiPing('https://openrouter.ai/api/v1/auth/key',{Authorization:'Bearer '+k})},
+  mistral:{id:'mistral',n:'Mistral AI',k:['text'],ph:'',url:'https://console.mistral.ai/api-keys',
+    text:oaiText('mistral','https://api.mistral.ai/v1',['mistral-small-latest','open-mistral-nemo']),
+    chk:k=>aiPing('https://api.mistral.ai/v1/models',{Authorization:'Bearer '+k})},
+  deepgram:{id:'deepgram',n:'Deepgram',k:['stt'],ph:'',url:'https://console.deepgram.com/signup',
+    stt:(k,b,o)=>dgStt(k,b,o),
+    chk:k=>aiPing('https://api.deepgram.com/v1/projects',{Authorization:'Token '+k})},
+  eleven:{id:'eleven',n:'ElevenLabs',k:['tts'],ph:'sk_…',url:'https://elevenlabs.io/app/settings/api-keys',
+    tts:(k,tx,v2)=>elTts(k,tx,v2),
+    chk:k=>aiPing('https://api.elevenlabs.io/v1/models',{'xi-api-key':k})}
+};
+/* описания для окна ключей */
+const AIINFO={
+  gemini:{ru:'Универсальный: распознавание речи, перевод и озвучка (30 голосов). Можно добавить несколько ключей, например с разных Google-аккаунтов: когда лимит одного закончится, возьмётся следующий.',en:'All-rounder: speech recognition, translation and voice-over (30 voices). You can add several keys, for example from different Google accounts: when one runs out, the next one is used.',
+    fr:'Бесплатно, карта не нужна. Размер лимита зависит от модели и меняется, актуальные цифры видны в AI Studio.',fe:'Free, no card needed. The limit depends on the model and changes; current numbers are shown in AI Studio.'},
+  groq:{ru:'Очень быстрый. Распознавание речи (Whisper) прямо во время записи на телефоне и перевод текста (Llama).',en:'Very fast. Speech recognition (Whisper) while recording on a phone, and text translation (Llama).',
+    fr:'Бесплатно, карта не нужна. Примерно: Whisper до 20 запросов в минуту и 2000 в день; Llama 3.3 70B около 30 в минуту и 1000 в день.',fe:'Free, no card. Roughly: Whisper up to 20 requests/min and 2,000/day; Llama 3.3 70B about 30/min and 1,000/day.'},
+  cerebras:{ru:'Перевод текста на очень высокой скорости (gpt-oss, Llama).',en:'Very fast text translation (gpt-oss, Llama).',
+    fr:'Бесплатно, карта не нужна. Примерно 1 млн токенов в день, до 30 запросов в минуту.',fe:'Free, no card. About 1M tokens per day, up to 30 requests/min.'},
+  openrouter:{ru:'Один ключ открывает десятки бесплатных моделей (с пометкой :free). Хороший запасной вариант для перевода.',en:'One key opens dozens of free models (marked :free). A good backup for translation.',
+    fr:'Бесплатно, карта не нужна. Примерно 20 запросов в минуту и 50 в день (1000 после пополнения на $10).',fe:'Free, no card. About 20 requests/min and 50/day (1,000 after a $10 top-up).'},
+  mistral:{ru:'Перевод текста (Mistral Small). Хорошо знает европейские языки.',en:'Text translation (Mistral Small). Strong with European languages.',
+    fr:'Бесплатный тариф Experiment: нужна проверка номера телефона, карта не нужна. Лимиты видны в личном кабинете.',fe:'Free “Experiment” plan: phone verification, no card. Limits are shown in your console.'},
+  deepgram:{ru:'Запасной вариант распознавания речи (Nova-2) с таймкодами.',en:'Backup speech recognition (Nova-2) with timestamps.',
+    fr:'При регистрации дают бесплатный стартовый кредит (около $200), карта не нужна.',fe:'A free starter credit (about $200) on sign-up, no card needed.'},
+  eleven:{ru:'Запасной вариант озвучки: очень естественные голоса. Русский и армянский (модель v3) поддерживаются.',en:'Backup voice-over with very natural voices. Russian and Armenian (v3 model) are supported.',
+    fr:'Бесплатно: 10 000 символов в месяц (около 10 минут речи). Для коммерческого использования нужен платный тариф.',fe:'Free: 10,000 characters per month (about 10 minutes of speech). Commercial use needs a paid plan.'}
+};
+/* то, что раньше делали вызовы Gemini, теперь идёт через цепочку провайдеров */
+const aiText=(prompt,schema)=>aiTry('text',(p,k)=>p.text(k,prompt+(p.id==='gemini'?'':'\nReturn only valid JSON, with no markdown fences and no comments.'),p.id==='gemini'&&schema?{schema}:null));
+const aiStt=(blob,o)=>aiTry('stt',(p,k)=>p.stt(k,blob,o||{}));
+async function ttsOne(text,voice,style){return aiTry('tts',(p,k)=>p.tts(k,text,voice,style))}
+async function aiTranslate(part,L){
+  const prompt='Translate the "text" field of every item in this JSON array into '+L[1]+'. The result is a voice-over for a video: use natural spoken language and keep the spoken length close to the original. Return a JSON array with one object per item: {"i": the same id, "text": the translation}.\nInput:\n'+JSON.stringify(part.map(x=>({i:x.id,text:x.src})));
+  return parseJsonArr(await aiText(prompt,SCHEMA_TRN));
+}
 const CHUNK=7;
 const cl={on:false,rec:null,timer:null,pend:0,astream:null,bad:false};
 const DEF_EP='https://api.groq.com/openai/v1/audio/transcriptions';
-const getKey=()=>{try{return(localStorage.getItem('substudio-key')||'').trim()}catch(e){return''}};
+const getKey=()=>aiKeys('groq')[0]||(aiProvs('stt').length?aiKeys(aiProvs('stt')[0].id)[0]:'');
 const getEndpoint=()=>{try{return localStorage.getItem('substudio-endpoint')||DEF_EP}catch(e){return DEF_EP}};
 function cloudStart(){
   cl.on=true;cl.pend=0;cl.bad=false;
@@ -1449,31 +1859,28 @@ async function cloudSend(blob,ts,te,lg){
   if(blob.size<1500)return;
   cl.pend++;setSt(t('cloudSend'),'ok');
   try{
-    const fd=new FormData();
-    fd.append('file',blob,'chunk.webm');fd.append('model','whisper-large-v3');
-    fd.append('language',lg);fd.append('response_format','verbose_json');fd.append('temperature','0');
-    const res=await fetch(getEndpoint(),{method:'POST',headers:{Authorization:'Bearer '+getKey()},body:fd});
-    if(res.status===401){cl.bad=true;toast(t('keyBad'),8000);setSt(t('keyBadSt'),'err')}
-    else if(res.status===429){setSt(t('cloudLim'),'err')}
-    else if(!res.ok){setSt(t('cloudErr',res.status),'err')}
-    else{
-      const j=await res.json();let n=0;
-      const segs=(j.segments&&j.segments.length)?j.segments:[{start:0,end:te-ts,text:j.text||'',no_speech_prob:0}];
-      for(const g of segs){
-        const t=(g.text||'').replace(/\s+/g,' ').trim();
-        if(t.length<2||(g.no_speech_prob!==undefined&&g.no_speech_prob>0.7))continue;
-        phrases.push({s:ts+g.start,e:ts+Math.max(g.end,g.start+0.4),l:lg,t,cut:false});n++;
-      }
-      if(n){setSt(t('cloudOk'),'ok');banner('');save();renderList();updateButtons()}
-      else setSt(t('cloudWait'),'ok');
+    const segs=await aiStt(blob,{lang:lg,dur:te-ts});let n=0;
+    for(const g of segs){
+      const tx=String(g.text||'').replace(/\s+/g,' ').trim();
+      if(tx.length<2||(g.ns!==undefined&&g.ns>0.7))continue;
+      const s0=+g.start||0,e0=+g.end||0;
+      phrases.push({s:ts+s0,e:ts+Math.max(e0,s0+0.4),l:lg,t:tx,cut:false});n++;
     }
-  }catch(e){setSt(t('cloudNet'),'err')}
+    if(n){setSt(t('cloudOk'),'ok');banner('');save();renderList();updateButtons()}
+    else setSt(t('cloudWait'),'ok');
+  }catch(e){
+    if(e&&e.noKey){cl.bad=true}
+    else if(e&&e.cls==='auth'){cl.bad=true;toast(t('keyBad'),8000);setSt(t('keyBadSt'),'err')}
+    else if(e&&e.cls==='quota')setSt(t('cloudLim'),'err');
+    else if(e&&e.cls==='net')setSt(t('cloudNet'),'err');
+    else setSt(t('cloudErr',(e&&e.last&&e.last.status)||'?'),'err');
+  }
   cl.pend--;
   if(!recording&&cl.pend===0&&!cl.on){buildAll();const ok=phrases.some(p=>p.t);setSt(ok?t('doneSt'):t('nothing'),ok?'ok':'err')}
 }
 function keyStat(){$('#keyst').textContent=getKey()?t('keyOk'):''}
-$('#key').value=getKey();
-$('#keysave').onclick=()=>{const k=$('#key').value.trim();try{localStorage.setItem('substudio-key',k)}catch(e){}$('#keyst').textContent=k?t('keyOk'):t('keyOff');toast(k?t('toastKeyOk'):t('toastKeyOff'),2500)};
+$('#key').value=aiKeys('groq')[0]||'';
+$('#keysave').onclick=()=>{const k=$('#key').value.trim();aiSetKeys('groq',[k,...aiKeys('groq').slice(1)]);$('#keyst').textContent=k?t('keyOk'):t('keyOff');toast(k?t('toastKeyOk'):t('toastKeyOff'),2500)};
 
 /* ---------- камера: выбор, зеркало, зум ---------- */
 let camId='',mirror=false,zoom=1,hwZoom=false,zmin=1,zmax=4,zstep=0.1;
@@ -2070,7 +2477,7 @@ function renderTL(){
   tlin.innerHTML='';blkEl.clear();{const ac=allC();[...selSet].forEach(x=>{if(!ac.includes(x))selSet.delete(x)})}
   const ruler=document.createElement('div');ruler.id='ruler';ruler.addEventListener('pointerdown',startScrub);tlin.appendChild(ruler);
   for(let i=0;i<=total;i+=5){const t=document.createElement('div');t.className='tick';t.style.left=i*PX+'px';t.textContent=fmt(i);ruler.appendChild(t)}
-  const ends=[],lane=new Map();
+  TR_H=88+ovTrackH();const ends=[],lane=new Map();
   allC().slice().sort((a,b)=>a.s-b.s).forEach(c=>{
     let k=ends.findIndex(e=>e<=c.s+0.01);if(k<0){k=ends.length;ends.push(0)}
     ends[k]=Math.max(c.e,c.s+12/PX);lane.set(c,k);
@@ -2084,7 +2491,7 @@ function renderTL(){
     const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
     b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);blkEl.set(c,b);
   });
-  renderVTracks();
+  renderVTracks();renderOvTracks();
   ph=document.createElement('div');ph.className='ph';const gr=document.createElement('div');gr.className='gr';gr.addEventListener('pointerdown',startScrub);ph.appendChild(gr);tlin.appendChild(ph);
   selUI();
   updatePlayhead(false);
@@ -2427,7 +2834,7 @@ stage.addEventListener('click',()=>{
 function setEdit(on){
   const pl=$('#player');
   if(on&&!(hasVideo&&!recording&&!exporting&&!passing))return;
-  pl.classList.toggle('edit',on);document.body.classList.toggle('editing',on);if(on){$('#dkbody').dataset.tab='vd';buildDock();const ta=document.querySelector('#dktabs .on');ta&&ta.scrollIntoView&&ta.scrollIntoView({inline:'center',block:'nearest'})}document.body.style.overflow=on?'hidden':'';if(!on){selSet.clear();selUI()}
+  pl.classList.toggle('edit',on);document.body.classList.toggle('editing',on);if(on){$('#dkbody').dataset.tab='vd';buildDock();const ta=document.querySelector('#dktabs .on');ta&&ta.scrollIntoView&&ta.scrollIntoView({inline:'center',block:'nearest'})}document.body.style.overflow=on?'hidden':'';if(!on){selSet.clear();selUI();VE.osel=null}
   $('#ed').textContent=t(on?'edC':'edT');
   if(on){renderTL();tl.scrollLeft=Math.max(0,v.currentTime*PX-tl.clientWidth*0.3)}
 }
@@ -2453,7 +2860,8 @@ function tick(){
     pvSnap(t);for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];pvTr(s[1]);break}}
     {const lt=PV.lt;PV.lt=t;if(lt!=null&&t>lt&&t-lt<.3)for(const j of vJoins()){if(!j.gap&&lt<j.a&&t>=j.a)pvTr(j.b)}}
   }
-  if(exporting&&xctx){drawExportFrame();xaSync()}
+  ovSync();
+  if(exporting&&xctx){drawExportFrame();xaSync();ovAudioSync()}
   stage.classList.toggle('recx',!!recording);
   if(!!recording!==recFullOn)setRecFull(!!recording);
   if(recording&&!hasVideo&&v.paused&&v.srcObject)v.play().catch(()=>{});
@@ -2553,14 +2961,15 @@ function drawExportFrame(){
   const W=cv.width,H=cv.height;
   /* если в записи остались чёрные полосы, копируем только настоящую картинку (формат рилса) */
   const dc=vcrop;
-  const raw=()=>{if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);else xctx.drawImage(v,0,0,W,H)};
+  const raw0=()=>{if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);else xctx.drawImage(v,0,0,W,H)};
+  const raw=()=>{raw0();ovPaint(xctx,W,H,v.currentTime)};
   const vid=()=>{xctx.setTransform(1,0,0,1,0,0);xctx.globalAlpha=1;raw()};
   const tcur=v.currentTime;
   if(tcur<XT.last-.5){XT.k=null;XT.last=-1}
-  if(XT.last>=0&&tcur-XT.last>.3){const q=cutSpans().find(z=>Math.abs(tcur-z[1])<.4),k=q&&trKey(VE.tr[Math.round(q[1]*100)]);if(k){XT.k=k;XT.t0=tcur}else XT.k=null}
-  if(XT.last>=0&&XT.last<tcur&&tcur-XT.last<.3){for(const j of vJoins()){if(!j.gap&&XT.last<j.a&&tcur>=j.a){const k=trKey(VE.tr[j.key]);if(k){XT.k=k;XT.t0=tcur}}}}
+  if(XT.last>=0&&tcur-XT.last>.3){const q=cutSpans().find(z=>Math.abs(tcur-z[1])<.4),k=q&&trKey(VE.tr[Math.round(q[1]*100)]);if(k){XT.k=k;XT.t0=tcur;XT.d=trDurFor(Math.round(q[1]*100))}else XT.k=null}
+  if(XT.last>=0&&XT.last<tcur&&tcur-XT.last<.3){for(const j of vJoins()){if(!j.gap&&XT.last<j.a&&tcur>=j.a){const k=trKey(VE.tr[j.key]);if(k){XT.k=k;XT.t0=tcur;XT.d=trDurFor(j.key)}}}}
   XT.last=tcur;
-  const tp=XT.k?(tcur-XT.t0)/.5:2;
+  const tp=XT.k?(tcur-XT.t0)/Math.max(.1,XT.d||.5):2;
   if(tp<1&&XT.snap)trRender(xctx,W,H,raw,XT.snap,XT.k,tp);else vid();
   xctx.setTransform(1,0,0,1,0,0);xctx.globalAlpha=1;
   const c=chunkAt(v.currentTime);
@@ -2812,6 +3221,7 @@ async function exportVideo(target){
   v.muted=false;v.volume=1;
   const cs=cv.captureStream(30),out=[],expDur=Math.max(0.5,(totalT()||dur)-cutSpans().reduce((a,s)=>a+s[1]-s[0],0));
   const at=await xaTrack();if(at)cs.addTrack(at);
+  await ovAudioPrep();
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
   try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
@@ -2819,7 +3229,7 @@ async function exportVideo(target){
   const finalize=()=>{
     if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
     try{if(ASRC)ASRC.connect(AC.destination)}catch(e){}
-    xaStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
+    xaStop();ovAudioStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
     if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});(isMp4&&isIOSdev()?Promise.resolve(bl):fixDur(bl,isMp4,expDur)).then(b=>{if(target)stashExport(b,fn,target);else{xdiag(bl,expDur,out.length);download(b,fn)}},()=>{if(target)stashExport(bl,fn,target);else download(bl,fn)})}
     updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
@@ -2851,6 +3261,7 @@ async function exportVideo(target){
   },300);
   $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+  await ovPrepExport();
   try{await v.play()}catch(e){}
   rc.xs=performance.now();r2.start(isIOSdev()?undefined:1000);
 }
@@ -2871,7 +3282,7 @@ let capTxt='';try{capTxt=localStorage.getItem('substudio-cap')||''}catch(e){}
 function capSync(src){capTxt=src.value;['#cap','#shCap'].forEach(q=>{const e=$(q);if(e&&e!==src)e.value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}markDirty()}
 function capCopy(){const c=capTxt.trim();if(!c)return false;try{navigator.clipboard.writeText(c).catch(()=>{})}catch(e){}return true}
 ['#cap','#shCap'].forEach(q=>{const e=$(q);e.value=capTxt;e.oninput=ev=>capSync(ev.target)});
-const expSig=()=>JSON.stringify([phrases.map(p=>[p.s,p.e,p.t,p.cut,(p.c||[]).map(c=>[c.s,c.e,c.t])]),style,anim,custom,url]);
+const expSig=()=>JSON.stringify([phrases.map(p=>[p.s,p.e,p.t,p.cut,(p.c||[]).map(c=>[c.s,c.e,c.t])]),style,anim,custom,url,VE.cuts,VE.splits,VE.tr,VE.trd,ovSig()]);
 function stashExport(b,fn,target){shareCache={sig:expSig(),blob:b,fn};showShare(target)}
 function showShare(target){
   shareTarget=target;const n=SH[target][0];
@@ -2977,23 +3388,23 @@ Object.assign(I18.hy,{capLbl:'Նկարագրություն տեսանյութի 
 Object.assign(I18.en,{capLbl:'Description for the post',capCopyBtn:'Copy text',prjLbl:'📁 Projects',prjTitle:'Projects',prjEmpty:'Your projects will appear here: every recording is saved automatically together with its text and settings.',prjDelQ:'Delete "{0}" from this device? The video and its text will be erased for good.',prjClearQ:'Delete ALL projects? Every saved video and text will be erased for good.',prjFail:'Saving the project on this device failed (storage may be full).',prjBusy:'Finish the current recording or export first.',prjSub:'{0} phrases'});
 Object.assign(I18.ru,{capLbl:'Описание для поста',capCopyBtn:'Скопировать текст',prjLbl:'📁 Проекты',prjTitle:'Проекты',prjEmpty:'Здесь появятся ваши проекты: каждая запись сохраняется автоматически вместе с текстом и настройками.',prjDelQ:'Удалить «{0}» с этого устройства? Видео и текст исчезнут навсегда.',prjClearQ:'Удалить ВСЕ проекты? Все сохранённые видео и тексты исчезнут навсегда.',prjFail:'Сохранение проекта на устройстве сорвалось (возможно, память заполнена).',prjBusy:'Сначала завершите текущую запись или экспорт.',prjSub:'фраз: {0}'});
 Object.assign(I18.hy,{capLbl:'Նկարագրություն հրապարակման համար',capCopyBtn:'Պատճենել տեքստը',prjLbl:'📁 Նախագծեր',prjTitle:'Նախագծեր',prjEmpty:'Այստեղ կհայտնվեն ձեր նախագծերը․ ամեն ձայնագրություն պահվում է ավտոմատ՝ տեքստի և կարգավորումների հետ։',prjDelQ:'Ջնջե՞լ «{0}»-ը այս սարքից։ Տեսանյութը և տեքստը կվերանան ընդմիշտ։',prjClearQ:'Ջնջե՞լ ԲՈԼՈՐ նախագծերը։ Բոլոր պահված տեսանյութերն ու տեքստերը կվերանան ընդմիշտ։',prjFail:'Նախագիծը սարքում պահելը խափանվեց (հնարավոր է՝ հիշողությունը լցված է)։',prjBusy:'Նախ ավարտեք ընթացիկ ձայնագրությունը կամ արտահանումը։',prjSub:'արտահայտություն՝ {0}'});
-Object.assign(I18.en,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Gemini API Key',back:'← Back',gemTitle:'🔑 Gemini API key',
+Object.assign(I18.en,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 API keys',back:'← Back',gemTitle:'🔑 Gemini API key',
 gemInfo:'The Gemini key powers <b>Translate studio</b> (speech recognition, translation, voice-over) and <b>TTS Studio</b>. One key works for all Gemini models, including <code>gemini-3.8-flash-tts</code>.<br><b>How to get it:</b><br>1) Open <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> and sign in with your Google account.<br>2) Tap <b>Create API key</b> (or <b>Get API key</b>).<br>3) Choose or create a project, copy the key and paste it below.<br>The key stays in this browser and requests go straight from your device to Google. Google’s own quotas and pricing apply.',
-gemSave:'Save and check',gemRemove:'Remove key',gemEmpty:'Paste the key first.',gemCheck:'Checking…',gemOk:'Key accepted ✓',gemBad:'Google rejected this key. Check that it was copied in full.',gemNet:'Connection to Google was interrupted.',gemRemoved:'Key removed.',gemNeed:'Add your Gemini API key first.',
+gemSave:'Save and check',gemRemove:'Remove key',gemEmpty:'Paste the key first.',gemCheck:'Checking…',gemOk:'Key accepted ✓',gemBad:'Google rejected this key. Check that it was copied in full.',gemNet:'Connection to Google was interrupted.',gemRemoved:'Key removed.',gemNeed:'Add an API key first (🔑).',
 trPick:'🎞 Choose video',trHint:'Choose a video to begin.',trLang:'Translate to',trVoice:'Voice',trStyle:'Style',trStylePh:'optional, e.g. calm and warm',trOrig:'Original sound',trS1:'1. Transcribe',trS2:'2. Translate',trS3:'3. Voice-over',trLeg1:'Original text',trLeg2:'Translation',trLeg3:'Voice-over',trSplit:'✂ Split',trNL:'◀ 0.1s',trNR:'0.1s ▶',trBurn:'Burn translated subtitles into the video',trCancel:'Stop',
 trTlHint:'Tap a text block to edit it. Drag a voice block to move it; its edges trim it. Select a block, then use the buttons below.',
 trDecoding:'Reading the audio…',trTranscribing:'Recognizing speech {0}/{1}…',trTranslating:'Translating {0}/{1}…',trVoicing:'Voice-over {0}/{1}…',trDone:'Done ✓',trNoSpeech:'No speech found in this video.',trNeedVid:'Choose a video first.',trNeedText:'Transcribe the video first.',trNeedTr:'Translate the text first.',trFailN:'{0} phrases failed. Press Voice-over again to retry them.',trDecodeFail:'This browser could not read the audio of this file. Try an MP4 or WebM video.',trTooBig:'This file is too large for in-browser processing (limit 500 MB).',trEdit:'Edit text',trNoClip:'Select a voice block first.',trSplitFail:'Place the red line inside a voice block first.',stCloseQ:'A task is still running. Close and stop it?',trExpNeed:'Create the voice-over first.',
 ttsPh:'Type or paste the text to be spoken',ttsCnt:'{0} characters',ttsGen:'▶ Generate voice',ttsSample:'▶ Sample',ttsMp3:'⬇ MP3',ttsWav:'⬇ WAV',ttsEmpty:'Type some text first.',ttsMp3Fail:'The MP3 encoder could not load, so a WAV file was saved instead.',ttsWorking:'Generating {0}/{1}…',ttsRes:'Voice ready: {0}',ttsEnc:'Encoding MP3…'});
-Object.assign(I18.ru,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Gemini API Key',back:'← Назад',gemTitle:'🔑 Ключ Gemini API',
+Object.assign(I18.ru,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Ключи API',back:'← Назад',gemTitle:'🔑 Ключ Gemini API',
 gemInfo:'Ключ Gemini питает <b>Translate studio</b> (распознавание речи, перевод, озвучка) и <b>TTS Studio</b>. Один ключ работает для всех моделей Gemini, включая <code>gemini-3.8-flash-tts</code>.<br><b>Как получить:</b><br>1) Откройте <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> и войдите в аккаунт Google.<br>2) Нажмите <b>Create API key</b> (или <b>Get API key</b>).<br>3) Выберите или создайте проект, скопируйте ключ и вставьте его ниже.<br>Ключ хранится только в этом браузере, запросы уходят с вашего устройства прямо в Google. Действуют квоты и тарифы самого Google.',
-gemSave:'Сохранить и проверить',gemRemove:'Удалить ключ',gemEmpty:'Сначала вставьте ключ.',gemCheck:'Проверяю…',gemOk:'Ключ принят ✓',gemBad:'Google отклонил этот ключ. Проверьте, что он скопирован полностью.',gemNet:'Связь с Google прервалась.',gemRemoved:'Ключ удалён.',gemNeed:'Сначала добавьте ключ Gemini API.',
+gemSave:'Сохранить и проверить',gemRemove:'Удалить ключ',gemEmpty:'Сначала вставьте ключ.',gemCheck:'Проверяю…',gemOk:'Ключ принят ✓',gemBad:'Google отклонил этот ключ. Проверьте, что он скопирован полностью.',gemNet:'Связь с Google прервалась.',gemRemoved:'Ключ удалён.',gemNeed:'Сначала добавьте ключ API (🔑).',
 trPick:'🎞 Выбрать видео',trHint:'Выберите видео, чтобы начать.',trLang:'Перевести на',trVoice:'Голос',trStyle:'Стиль',trStylePh:'по желанию, например: спокойно и тепло',trOrig:'Исходный звук',trS1:'1. Распознать',trS2:'2. Перевести',trS3:'3. Озвучить',trLeg1:'Исходный текст',trLeg2:'Перевод',trLeg3:'Озвучка',trSplit:'✂ Разрезать',trNL:'◀ 0,1 с',trNR:'0,1 с ▶',trBurn:'Вшить переведённые субтитры в видео',trCancel:'Остановить',
 trTlHint:'Нажмите на текстовый блок, чтобы изменить текст. Тяните блок озвучки, чтобы сдвинуть его; края обрезают. Выберите блок и используйте кнопки ниже.',
 trDecoding:'Читаю звук…',trTranscribing:'Распознаю речь {0}/{1}…',trTranslating:'Перевожу {0}/{1}…',trVoicing:'Озвучиваю {0}/{1}…',trDone:'Готово ✓',trNoSpeech:'Речь в этом видео отсутствует.',trNeedVid:'Сначала выберите видео.',trNeedText:'Сначала распознайте текст.',trNeedTr:'Сначала переведите текст.',trFailN:'Сбой при озвучке фраз: {0}. Нажмите «Озвучить» ещё раз, чтобы повторить их.',trDecodeFail:'Чтение звука из этого файла сорвалось. Попробуйте видео MP4 или WebM.',trTooBig:'Файл слишком большой для обработки в браузере (лимит 500 МБ).',trEdit:'Изменить текст',trNoClip:'Сначала выберите блок озвучки.',trSplitFail:'Поставьте красную линию внутрь блока озвучки.',stCloseQ:'Задача ещё выполняется. Закрыть и остановить её?',trExpNeed:'Сначала создайте озвучку.',
 ttsPh:'Введите или вставьте текст для озвучки',ttsCnt:'Символов: {0}',ttsGen:'▶ Озвучить',ttsSample:'▶ Образец',ttsMp3:'⬇ MP3',ttsWav:'⬇ WAV',ttsEmpty:'Сначала введите текст.',ttsMp3Fail:'Кодировщик MP3 остался недоступен, поэтому сохранён файл WAV.',ttsWorking:'Озвучиваю {0}/{1}…',ttsRes:'Озвучка готова: {0}',ttsEnc:'Кодирую MP3…'});
-Object.assign(I18.hy,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 Gemini API Key',back:'← Հետ',gemTitle:'🔑 Gemini API բանալի',
+Object.assign(I18.hy,{trBtn:'Translate studio',ttsBtn:'TTS Studio',gemLbl:'🔑 API բանալիներ',back:'← Հետ',gemTitle:'🔑 Gemini API բանալի',
 gemInfo:'Gemini-ի բանալին անհրաժեշտ է <b>Translate studio</b>-ի (խոսքի ճանաչում, թարգմանություն, ձայնագրում) և <b>TTS Studio</b>-ի համար։ Մեկ բանալին աշխատում է Gemini-ի բոլոր մոդելների հետ, ներառյալ <code>gemini-3.8-flash-tts</code>։<br><b>Ինչպես ստանալ.</b><br>1) Բացեք <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> և մուտք գործեք Google հաշվով։<br>2) Սեղմեք <b>Create API key</b> (կամ <b>Get API key</b>)։<br>3) Ընտրեք կամ ստեղծեք նախագիծ, պատճենեք բանալին և տեղադրեք ներքևում։<br>Բանալին պահվում է միայն այս դիտարկիչում, հարցումները գնում են ձեր սարքից ուղիղ Google։ Գործում են Google-ի սահմանաչափերն ու սակագները։',
-gemSave:'Պահել և ստուգել',gemRemove:'Ջնջել բանալին',gemEmpty:'Նախ տեղադրեք բանալին։',gemCheck:'Ստուգում եմ…',gemOk:'Բանալին ընդունվեց ✓',gemBad:'Google-ը մերժեց այս բանալին։ Ստուգեք՝ արդյոք լրիվ է պատճենված։',gemNet:'Կապը Google-ի հետ ընդհատվեց։',gemRemoved:'Բանալին ջնջվեց։',gemNeed:'Նախ ավելացրեք Gemini API բանալին։',
+gemSave:'Պահել և ստուգել',gemRemove:'Ջնջել բանալին',gemEmpty:'Նախ տեղադրեք բանալին։',gemCheck:'Ստուգում եմ…',gemOk:'Բանալին ընդունվեց ✓',gemBad:'Google-ը մերժեց այս բանալին։ Ստուգեք՝ արդյոք լրիվ է պատճենված։',gemNet:'Կապը Google-ի հետ ընդհատվեց։',gemRemoved:'Բանալին ջնջվեց։',gemNeed:'Նախ ավելացրեք API բանալի (🔑)։',
 trPick:'🎞 Ընտրել տեսանյութ',trHint:'Սկսելու համար ընտրեք տեսանյութ։',trLang:'Թարգմանել՝',trVoice:'Ձայն',trStyle:'Ոճ',trStylePh:'ըստ ցանկության, օր․ հանգիստ և ջերմ',trOrig:'Բնօրինակ ձայն',trS1:'1. Ճանաչել',trS2:'2. Թարգմանել',trS3:'3. Ձայնագրել',trLeg1:'Բնօրինակ տեքստ',trLeg2:'Թարգմանություն',trLeg3:'Ձայնագրություն',trSplit:'✂ Կտրել',trNL:'◀ 0.1 վ',trNR:'0.1 վ ▶',trBurn:'Ներդնել թարգմանված ենթագրերը տեսանյութի մեջ',trCancel:'Կանգնեցնել',
 trTlHint:'Սեղմեք տեքստային բլոկին՝ փոխելու համար։ Քաշեք ձայնային բլոկը՝ տեղափոխելու, ծայրերը՝ կտրելու համար։ Ընտրեք բլոկ և օգտվեք ներքևի կոճակներից։',
 trDecoding:'Կարդում եմ ձայնը…',trTranscribing:'Խոսքի ճանաչում {0}/{1}…',trTranslating:'Թարգմանում եմ {0}/{1}…',trVoicing:'Ձայնագրում {0}/{1}…',trDone:'Պատրաստ է ✓',trNoSpeech:'Այս տեսանյութում խոսք չի գտնվել։',trNeedVid:'Նախ ընտրեք տեսանյութ։',trNeedText:'Նախ ճանաչեք տեքստը։',trNeedTr:'Նախ թարգմանեք տեքստը։',trFailN:'{0} արտահայտություն չհաջողվեց։ Սեղմեք «Ձայնագրել» նորից՝ կրկնելու համար։',trDecodeFail:'Այս դիտարկիչը չկարողացավ կարդալ ֆայլի ձայնը։ Փորձեք MP4 կամ WebM։',trTooBig:'Ֆայլը շատ մեծ է դիտարկիչում մշակելու համար (սահման՝ 500 ՄԲ)։',trEdit:'Փոխել տեքստը',trNoClip:'Նախ ընտրեք ձայնային բլոկ։',trSplitFail:'Կարմիր գիծը դրեք ձայնային բլոկի վրա։',stCloseQ:'Առաջադրանքը դեռ ընթանում է։ Փակե՞լ և կանգնեցնել։',trExpNeed:'Նախ ստեղծեք ձայնագրությունը։',
@@ -3038,7 +3449,7 @@ function openKey(){kbox.classList.add('show');setTimeout(()=>{try{$('#kkey').foc
 $('#ksave').onclick=()=>{
   const k=$('#kkey').value.trim();
   if(!k){$('#kkey').focus();return}
-  try{localStorage.setItem('substudio-key',k)}catch(e){}
+  aiSetKeys('groq',[k,...aiKeys('groq').slice(1)]);
   $('#key').value=k;keyStat();toast(t('toastKeyOk'),2500);
   kbox.classList.remove('show');startRec();
 };
@@ -3188,47 +3599,437 @@ function vSetTr(k){const E=(typeof ui!=='undefined'&&ui==='en'),D=vdur();
   const keys=VE.selJ!=null?[VE.selJ]:cutSpans().filter(q=>q[0]>=.05&&q[1]<=D-.05).map(q=>Math.round(q[1]*100));
   if(!keys.length){toast(E?'Delete a clip first: a transition sits on the join':'Сначала удалите кусок: переход ставится на стык',4000);return}
   keys.forEach(q=>{if(k)VE.tr[q]=k;else delete VE.tr[q]});vAfter()}
-function trThumb(c,k){
-  const w=c.width,h=c.height,g=c.getContext('2d'),o=document.createElement('canvas');o.width=w;o.height=h;
-  const q=o.getContext('2d'),paint=(x,c1,c2,t)=>{const gr=x.createLinearGradient(0,0,w,h);gr.addColorStop(0,c1);gr.addColorStop(1,c2);x.fillStyle=gr;x.fillRect(0,0,w,h);x.fillStyle='rgba(255,255,255,.9)';x.font='800 '+Math.round(h*.55)+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(t,w/2,h/2)};
-  paint(q,'#2563eb','#0ea5a4','A');
-  trRender(g,w,h,()=>paint(g,'#f59e0b','#ec4899','B'),o,k,.5);
+/* ---------- анимированные переходы: окно выбора ---------- */
+const TRTH={w:0,a:null,b:null};
+function trThumbImgs(w,h){
+  if(TRTH.w===w&&TRTH.h===h)return TRTH;
+  const mk=(c1,c2,txt)=>{
+    const cn=document.createElement('canvas');cn.width=w;cn.height=h;const g=cn.getContext('2d'),gr=g.createLinearGradient(0,0,w,h);
+    gr.addColorStop(0,c1);gr.addColorStop(1,c2);g.fillStyle=gr;g.fillRect(0,0,w,h);
+    g.strokeStyle='rgba(255,255,255,.92)';g.lineWidth=h*.09;g.beginPath();g.arc(w/2,h/2,h*.24,0,7);g.stroke();
+    g.fillStyle='rgba(255,255,255,.96)';g.beginPath();g.arc(w/2,h/2,h*.09,0,7);g.fill();
+    g.font='800 '+Math.round(h*.2)+'px sans-serif';g.textAlign='left';g.textBaseline='top';g.fillText(txt,w*.08,h*.08);
+    return cn;
+  };
+  TRTH.w=w;TRTH.h=h;TRTH.a=mk('#3b1c8c','#2563eb','A');TRTH.b=mk('#ec4899','#f59e0b','B');
+  return TRTH;
 }
+function trAnim(cn,k,p){
+  const g=cn.getContext('2d'),w=cn.width,h=cn.height,im=trThumbImgs(w,h);
+  trRender(g,w,h,()=>g.drawImage(im.b,0,0),im.a,k,p);
+}
+function trLoop(){
+  const m=$('#trpick');
+  if(!m||!m.classList.contains('show')){trLoop.on=false;return}
+  const now=performance.now()/1000;
+  if(now-(trLoop.l||0)>=.033){
+    trLoop.l=now;const p=Math.min(1,(now%2.4)/1.5);
+    m.querySelectorAll('.trt').forEach(b=>{if(b.style.display!=='none')trAnim(b.firstChild,b.dataset.k,p)});
+  }
+  requestAnimationFrame(trLoop);
+}
+function trKeys(m){return m._all?vJoins().map(j=>j.key):[m._key]}
 function trPick(key){
-  const E=(typeof ui!=='undefined'&&ui==='en');let m=$('#trpick');
+  const E=ui==='en';let m=$('#trpick');
   if(!m){
     m=document.createElement('div');m.id='trpick';
-    m.innerHTML='<div class="trbox"><div class="trh"><b></b><button class="trx" aria-label="Close"></button></div><div class="trgrid"></div><div class="trft"><button class="nb sm" id="trNone"></button><button class="nb sm" id="trAll"></button></div></div>';
+    m.innerHTML='<div class="trbox"><div class="trh"><b></b><button class="trx" aria-label="Close"></button></div><div class="trcats"></div><div class="trdur"><span id="trDl"></span><input type="range" id="trDur" min="0.15" max="1.5" step="0.05"><b id="trDv"></b></div><div class="trgrid"></div><div class="trft"><button class="nb sm" id="trNone"></button><button class="nb sm" id="trAll"></button></div></div>';
     document.body.appendChild(m);
     m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')});
     const x=m.querySelector('.trx');x.innerHTML=ico('close');x.onclick=()=>m.classList.remove('show');
-    const g=m.querySelector('.trgrid');
-    TRS.forEach(([k,ru,en])=>{
-      const b=document.createElement('button');b.className='trt';b.dataset.k=k;
-      const c=document.createElement('canvas');c.width=96;c.height=60;trThumb(c,k);
-      const l=document.createElement('span');l.textContent=E?en:ru;b.append(c,l);b.onclick=()=>trApply(k);g.appendChild(b)});
+    const cats=m.querySelector('.trcats'),g=m.querySelector('.trgrid');
+    TRCATS.forEach(([c,ru,en],i)=>{
+      const b=document.createElement('button');b.dataset.c=c;b.className=i?'':'on';b.textContent=ui==='en'?en:ru;
+      b.onclick=()=>{cats.querySelectorAll('button').forEach(z=>z.classList.toggle('on',z===b));g.querySelectorAll('.trt').forEach(t2=>{t2.style.display=(c==='all'||t2.dataset.c===c)?'':'none'});g.scrollTop=0};
+      cats.appendChild(b);
+    });
+    TRS.forEach(([k,ru,en,cat])=>{
+      const b=document.createElement('button');b.className='trt';b.dataset.k=k;b.dataset.c=cat;
+      const c=document.createElement('canvas');c.width=120;c.height=74;trAnim(c,k,.5);
+      const l=document.createElement('span');l.dataset.ru=ru;l.dataset.en=en;
+      b.append(c,l);b.onclick=()=>trApply(k);g.appendChild(b);
+    });
+    const dur=m.querySelector('#trDur');
+    dur.oninput=()=>{const d=+dur.value;m.querySelector('#trDv').textContent=d.toFixed(2)+(ui==='en'?' s':' с');trKeys(m).forEach(q=>{VE.trd[q]=d});if(m._all)VE.trDef=d};
+    dur.onchange=()=>{save()};
     $('#trNone').onclick=()=>trApply('');
     $('#trAll').onclick=()=>{m._all=!m._all;$('#trAll').classList.toggle('on',m._all)};
   }
-  m._key=key;m.querySelector('b').textContent=E?'Transition':'Переход';
+  m._key=key;m._all=false;$('#trAll').classList.remove('on');
+  m.querySelector('b').textContent=E?'Transition':'Переход';
+  m.querySelectorAll('.trt span').forEach(l=>{l.textContent=E?l.dataset.en:l.dataset.ru});
+  m.querySelectorAll('.trcats button').forEach(b=>{const c=TRCATS.find(z=>z[0]===b.dataset.c);b.textContent=E?c[2]:c[1]});
+  m.querySelector('#trDl').textContent=E?'Duration':'Длительность';
   $('#trNone').textContent=E?'No transition':'Без перехода';$('#trAll').textContent=E?'Apply to all joins':'Ко всем стыкам';
+  const dur=m.querySelector('#trDur'),d0=trDurFor(key);dur.value=d0;m.querySelector('#trDv').textContent=d0.toFixed(2)+(E?' s':' с');
   const cur=trKey(VE.tr[key]);m.querySelectorAll('.trt').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));
   m.classList.add('show');
+  if(!trLoop.on){trLoop.on=true;requestAnimationFrame(trLoop)}
 }
 function trApply(k){
-  const m=$('#trpick'),D=vdur();
-  const keys=m._all?cutSpans().filter(q=>q[0]>=.05&&q[1]<=D-.05).map(q=>Math.round(q[1]*100)):[m._key];
-  keys.forEach(q=>{if(k)VE.tr[q]=k;else delete VE.tr[q]});m.classList.remove('show');vAfter();
+  const m=$('#trpick');
+  trKeys(m).forEach(q=>{if(k)VE.tr[q]=k;else delete VE.tr[q]});m.classList.remove('show');vAfter();
 }
 VE.pick=trPick;
+
+/* ========== слои поверх видео: видео и фото ==========
+   Каждый слой живёт на времени основного видео: s — начало, d — длительность.
+   x, y — центр слоя (доли кадра), w — ширина слоя (доля ширины кадра), ar — пропорции файла. */
+const OVA=[['none','Нет','None'],['fade','Плавно','Fade'],['pop','Всплытие','Pop'],['slL','Слева','From left'],['slR','Справа','From right'],['slU','Сверху','From top'],['slD','Снизу','From bottom'],['zoom','Зум','Zoom'],['spin','Вращение','Spin']];
+const OV_TOP=88,OV_LH=38;
+let ovId=1,OVL=null;
+const OV_REST={a:1,dx:0,dy:0,s:1,r:0};
+const clampN=(a,lo,hi)=>Math.max(lo,Math.min(hi,a));
+const ovById=id=>VE.ov.find(o=>o.id===id);
+const ovSel=()=>VE.osel!=null?ovById(VE.osel):null;
+function frameAR(){const w=stage.clientWidth,h=stage.clientHeight;return(w&&h)?w/h:9/16}
+function ovTrackH(){return VE.ov.length?(ovLanes().n*OV_LH+6):0}
+function ovLanes(){
+  const ends=[],map=new Map();
+  VE.ov.slice().sort((a,b)=>a.s-b.s).forEach(o=>{
+    let k=ends.findIndex(e=>e<=o.s+.01);if(k<0){k=ends.length;ends.push(0)}
+    ends[k]=o.s+Math.max(o.d,14/PX);map.set(o,k);
+  });
+  return{map,n:ends.length};
+}
+function ovAnimP(kind,p){
+  p=clampN(p,0,1);const e=p*p*(3-2*p),c1=1.70158,c3=c1+1,bk=1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2);
+  switch(kind){
+    case'fade':return{a:e,dx:0,dy:0,s:1,r:0};
+    case'pop':return{a:Math.min(1,p*2.5),dx:0,dy:0,s:.5+.5*bk,r:0};
+    case'slL':return{a:Math.min(1,p*3),dx:-(1-e)*.7,dy:0,s:1,r:0};
+    case'slR':return{a:Math.min(1,p*3),dx:(1-e)*.7,dy:0,s:1,r:0};
+    case'slU':return{a:Math.min(1,p*3),dx:0,dy:-(1-e)*.7,s:1,r:0};
+    case'slD':return{a:Math.min(1,p*3),dx:0,dy:(1-e)*.7,s:1,r:0};
+    case'zoom':return{a:e,dx:0,dy:0,s:.2+.8*e,r:0};
+    case'spin':return{a:e,dx:0,dy:0,s:.3+.7*e,r:-(1-e)*180};
+  }
+  return{a:1,dx:0,dy:0,s:1,r:0};
+}
+function ovState(o,t){
+  const lt=t-o.s,ad=Math.max(.05,Math.min(o.ad||.45,o.d/2)),rem=o.d-lt;
+  const A=(o.inA&&o.inA!=='none'&&lt<ad)?ovAnimP(o.inA,lt/ad):{a:1,dx:0,dy:0,s:1,r:0};
+  if(o.outA&&o.outA!=='none'&&rem<ad){const B=ovAnimP(o.outA,rem/ad);return{a:A.a*B.a,dx:A.dx+B.dx,dy:A.dy+B.dy,s:A.s*B.s,r:A.r+B.r}}
+  return A;
+}
+function ovLayerEl(){
+  if(!OVL){OVL=document.createElement('div');OVL.id='ovL';stage.insertBefore(OVL,$('#badge'))}
+  return OVL;
+}
+function ovMake(o){
+  if(o._box)return;
+  const box=document.createElement('div');box.className='ovi';box.dataset.id=o.id;
+  let m;
+  if(o.kind==='v'){m=document.createElement('video');m.playsInline=true;m.setAttribute('playsinline','');m.preload='auto'}
+  else{m=document.createElement('img');m.alt='';m.draggable=false}
+  m.className='ovm';m.src=o._url;box.appendChild(m);
+  ['tl','tr','bl','br'].forEach(c=>{const h=document.createElement('i');h.className='ovh '+c;h.dataset.h=c;box.appendChild(h)});
+  o._box=box;o._el=m;ovBind(box,o);ovLayerEl().appendChild(box);
+}
+function ovDrop(o){
+  try{if(o._el&&o._el.pause)o._el.pause()}catch(e){}
+  if(o._box)o._box.remove();
+  if(o._url){try{URL.revokeObjectURL(o._url)}catch(e){}}
+  o._box=o._el=null;
+}
+function ovReset(){VE.ov.forEach(ovDrop);VE.ov=[];VE.osel=null}
+function ovLoad(arr){
+  ovReset();
+  (arr||[]).forEach(r=>{
+    if(!r||!r.blob)return;
+    const o=Object.assign({inA:'fade',outA:'fade',ad:.45,rad:0,vol:1,op:1,mo:0,md:0},r);
+    o._url=URL.createObjectURL(o.blob);ovId=Math.max(ovId,(+o.id||0)+1);VE.ov.push(o);ovMake(o);
+  });
+}
+const ovSnap=o=>({id:o.id,kind:o.kind,name:o.name,blob:o.blob,s:o.s,d:o.d,mo:o.mo,md:o.md,x:o.x,y:o.y,w:o.w,ar:o.ar,op:o.op,vol:o.vol,inA:o.inA,outA:o.outA,ad:o.ad,rad:o.rad});
+const ovSig=()=>VE.ov.map(o=>[o.id,o.s,o.d,o.mo,o.x,o.y,o.w,o.op,o.vol,o.inA,o.outA,o.rad]);
+function ovReorderDom(){VE.ov.forEach(o=>{if(o._box)ovLayerEl().appendChild(o._box)})}
+/* каждый кадр: показать слои, которые сейчас активны, и синхронизировать их видео с основным */
+function ovSync(){
+  if(!OVL)return;
+  const on=hasVideo&&!recording&&VE.ov.length>0;
+  if(OVL.style.display!==(on?'block':'none'))OVL.style.display=on?'block':'none';
+  if(!on)return;
+  const t=v.currentTime,playing=!v.paused&&!v.ended,ed=$('#player').classList.contains('edit');
+  const sw=stage.clientWidth;
+  for(const o of VE.ov){
+    const b=o._box;if(!b)continue;
+    const vis=t>=o.s-.0001&&t<o.s+o.d;
+    if(!vis){if(b.style.display!=='none')b.style.display='none';if(o.kind==='v'&&o._el&&!o._el.paused)o._el.pause();continue}
+    const st=(ed&&!playing)?OV_REST:ovState(o,t),bw=o.w*sw,bh=bw/o.ar,s=b.style;
+    s.display='block';s.left=((o.x+st.dx)*100)+'%';s.top=((o.y+st.dy)*100)+'%';s.width=(o.w*100)+'%';s.aspectRatio=String(o.ar);
+    s.opacity=String(o.op*st.a);s.transform='translate(-50%,-50%) rotate('+st.r+'deg) scale('+st.s+')';
+    s.borderRadius=(o.rad*Math.min(bw,bh))+'px';
+    b.classList.toggle('sel',ed&&VE.osel===o.id);
+    if(o.kind==='v'){
+      const el=o._el,lt=Math.max(0,t-o.s+o.mo);
+      try{el.volume=clampN(o.vol,0,1)}catch(e){}
+      el.muted=exporting||o.vol<=0||!!o._mute;
+      if(playing){
+        if(el.paused)el.play().catch(()=>{o._mute=true});
+        if(Math.abs(el.currentTime-lt)>.35)try{el.currentTime=lt}catch(e){}
+      }else{
+        if(!el.paused)el.pause();
+        if(Math.abs(el.currentTime-lt)>.04)try{el.currentTime=lt}catch(e){}
+      }
+    }
+  }
+}
+/* рисование слоёв на холсте экспорта (c уже может быть повёрнут/сдвинут переходом) */
+function ovPaint(c,W,H,t){
+  const base=c.globalAlpha;
+  for(const o of VE.ov){
+    if(!(t>=o.s-.0001&&t<o.s+o.d))continue;
+    const el=o._el;if(!el)continue;
+    if(o.kind==='v'&&el.readyState<2)continue;
+    if(o.kind==='i'&&!(el.complete&&el.naturalWidth))continue;
+    const st=ovState(o,t),al=o.op*st.a;if(al<=.002)continue;
+    const w=o.w*W,h=w/o.ar;
+    c.save();c.globalAlpha=base*al;c.translate((o.x+st.dx)*W,(o.y+st.dy)*H);
+    if(st.r)c.rotate(st.r*Math.PI/180);if(st.s!==1)c.scale(st.s,st.s);
+    if(o.rad>.002){rrect(c,-w/2,-h/2,w,h,o.rad*Math.min(w,h));c.clip()}
+    try{c.drawImage(el,-w/2,-h/2,w,h)}catch(e){}
+    c.restore();
+  }
+}
+/* звук слоёв-видео при экспорте: декодируем и подмешиваем так же, как основной звук */
+const OVS=new Map();
+async function ovAudioPrep(){
+  for(const o of VE.ov){
+    o._abuf=null;if(o.kind!=='v'||o.vol<=0)continue;
+    try{o._abuf=await decodeBuf(await o.blob.arrayBuffer())}catch(e){o._abuf=null}
+  }
+}
+function ovAudioSync(){
+  if(!AC||!xaMix)return;
+  const t=v.currentTime,playing=!v.paused&&!v.ended;
+  for(const o of VE.ov){
+    if(o.kind!=='v'||!o._abuf)continue;
+    const act=playing&&t>=o.s&&t<o.s+o.d,lt=t-o.s+o.mo;let S=OVS.get(o.id);
+    if(S){
+      if(act&&Math.abs(S.lt+(AC.currentTime-S.ctx)-lt)<.25)continue;
+      try{S.src.stop();S.src.disconnect()}catch(e){}OVS.delete(o.id);
+    }
+    if(!act||lt>=o._abuf.duration-.02)continue;
+    const src=AC.createBufferSource(),g=AC.createGain();src.buffer=o._abuf;g.gain.value=clampN(o.vol,0,1);src.connect(g);g.connect(xaMix);src.start(0,Math.max(0,lt));
+    OVS.set(o.id,{src,lt,ctx:AC.currentTime});
+  }
+}
+function ovAudioStop(){OVS.forEach(S=>{try{S.src.stop();S.src.disconnect()}catch(e){}});OVS.clear();VE.ov.forEach(o=>{o._abuf=null;if(o.kind==='v'&&o._el)try{o._el.pause()}catch(e){}})}
+async function ovPrepExport(){
+  if(!VE.ov.length)return;
+  for(const o of VE.ov){
+    if(o.kind!=='v'||!o._el)continue;
+    const el=o._el;el.muted=true;try{el.pause();el.currentTime=Math.max(0,o.mo)}catch(e){}
+  }
+  await sleep(250);
+}
+/* ---- добавление файлов ---- */
+function ovMeasure(o){
+  return new Promise(res=>{
+    if(o.kind==='i'){const im=new Image();im.onload=()=>{o.ar=(im.naturalWidth||1)/(im.naturalHeight||1);res(true)};im.onerror=()=>res(false);im.src=o._url;return}
+    const vv=document.createElement('video');vv.preload='metadata';vv.muted=true;vv.playsInline=true;let done=false;
+    const fin=ok=>{if(done)return;done=true;res(ok)};
+    vv.onloadedmetadata=()=>{
+      if(!vv.videoWidth){fin(false);return}
+      o.ar=vv.videoWidth/vv.videoHeight;
+      if(isFinite(vv.duration)&&vv.duration>0){o.md=vv.duration;fin(true);return}
+      vv.onseeked=vv.ontimeupdate=()=>{if(isFinite(vv.duration)&&vv.duration>0){o.md=vv.duration;fin(true)}};
+      try{vv.currentTime=1e7}catch(e){o.md=10;fin(true)}
+    };
+    vv.onerror=()=>fin(false);vv.src=o._url;setTimeout(()=>fin(false),9000);
+  });
+}
+async function ovAdd(file){
+  if(!hasVideo){toast(LX('Сначала нужно основное видео.','The main video comes first.'),3500);return null}
+  const kind=/^image\//.test(file.type)?'i':/^video\//.test(file.type)?'v':null;
+  if(!kind){toast(LX('Нужен файл видео или фото.','A video or photo file is needed.'),4000);return null}
+  if(file.size>300*1048576){toast(LX('Файл больше 300 МБ.','The file is over 300 MB.'),5000);return null}
+  const D=vdur(),FA=frameAR();
+  const o={id:ovId++,kind,name:file.name||'',blob:file,s:0,d:3,mo:0,md:0,x:.5,y:.5,w:.5,ar:1,op:1,vol:1,inA:'fade',outA:'fade',ad:.45,rad:0};
+  o._url=URL.createObjectURL(file);
+  if(!(await ovMeasure(o))){try{URL.revokeObjectURL(o._url)}catch(e){}toast(LX('Не удалось открыть этот файл.','Could not open this file.'),5000);return null}
+  let s=Math.max(0,v.currentTime);
+  if(kind==='i'){
+    o.d=Math.min(3,D);
+    o.w=Math.min(1,o.ar/FA);                  /* фото целиком вписано в кадр */
+  }else{
+    o.d=Math.max(.5,Math.min(o.md||5,Math.max(.5,D-s)));
+    o.w=Math.min(.6,.28*o.ar/FA);               /* видео поверх: компактное окно в правом верхнем углу */
+    const h=o.w*FA/o.ar;o.x=clampN(1-.04-o.w/2,o.w/2,1);o.y=clampN(.04+h/2,h/2,1);o.rad=.06;
+  }
+  if(s+o.d>D)s=Math.max(0,D-o.d);
+  o.s=s;
+  VE.ov.push(o);ovMake(o);VE.osel=o.id;markDirty();renderTL();buildDock();
+  return o;
+}
+function ovPick(kind){
+  if(!hasVideo)return;
+  const inp=document.createElement('input');inp.type='file';inp.accept=kind==='v'?'video/*':'image/*';inp.multiple=kind==='i';
+  inp.onchange=async()=>{
+    const fs=[...inp.files];let t0=null;
+    for(const f of fs){
+      if(t0!=null)v.currentTime=Math.min(t0,Math.max(0,vdur()-.5));
+      const o=await ovAdd(f);if(!o)continue;t0=o.s+o.d;
+    }
+    const o=ovSel();if(o){try{v.currentTime=o.s+.01}catch(e){}}
+  };
+  inp.click();
+}
+function ovSelect(id,seek){
+  VE.osel=id;
+  document.querySelectorAll('.ovb').forEach(b=>b.classList.toggle('sel',+b.dataset.id===id));
+  const o=ovById(id);
+  if(o&&seek){const t=v.currentTime;if(!(t>=o.s&&t<o.s+o.d)){try{v.currentTime=o.s+.01}catch(e){}}}
+  buildDock();
+}
+function ovRemove(o){
+  VE.ov=VE.ov.filter(z=>z!==o);ovDrop(o);if(VE.osel===o.id)VE.osel=null;
+  markDirty();renderTL();buildDock();
+}
+function ovDuplicate(o){
+  const D=vdur(),c=Object.assign({},ovSnap(o),{id:ovId++});
+  c._url=URL.createObjectURL(c.blob);c.s=Math.min(o.s+o.d,Math.max(0,D-o.d));c.x=clampN(o.x+.05,0,1);c.y=clampN(o.y+.05,0,1);
+  VE.ov.push(c);ovMake(c);VE.osel=c.id;markDirty();renderTL();buildDock();
+}
+function ovMoveZ(o,dir){
+  const i=VE.ov.indexOf(o),j=i+dir;if(j<0||j>=VE.ov.length)return;
+  VE.ov.splice(i,1);VE.ov.splice(j,0,o);ovReorderDom();markDirty();
+}
+/* пробный показ появления / исчезновения слоя */
+function ovPreview(o,which){
+  const a=Math.max(.2,o.ad||.45);
+  const from=which==='in'?Math.max(0,o.s-.3):Math.max(o.s,o.s+o.d-a-.4),to=which==='in'?o.s+a+.5:o.s+o.d+.3;
+  try{v.currentTime=from;v.play().catch(()=>{})}catch(e){return}
+  clearInterval(ovPreview.t);
+  ovPreview.t=setInterval(()=>{if(v.paused||v.currentTime>=to||v.currentTime<from-.5){clearInterval(ovPreview.t);try{v.pause()}catch(e){}}},60);
+}
+/* ---- жесты на сцене: двигать, тянуть за угол, щипок двумя пальцами ---- */
+function ovBind(box,o){
+  const ptr=new Map();let mode=null,s0=null;
+  box.addEventListener('click',e=>e.stopPropagation());
+  box.addEventListener('pointerdown',e=>{
+    if(!$('#player').classList.contains('edit'))return;
+    e.stopPropagation();e.preventDefault();
+    if(VE.osel!==o.id)ovSelect(o.id,false);
+    try{box.setPointerCapture(e.pointerId)}catch(x){}
+    ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const r=stage.getBoundingClientRect();
+    if(ptr.size===2){const [p1,p2]=[...ptr.values()];mode='pz';s0={d:Math.hypot(p1.x-p2.x,p1.y-p2.y)||1,w:o.w}}
+    else if(e.target.dataset&&e.target.dataset.h){mode='rs';s0={cx:r.left+o.x*r.width,cy:r.top+o.y*r.height}}
+    else{mode='mv';s0={sx:e.clientX,sy:e.clientY,x:o.x,y:o.y}}
+  });
+  box.addEventListener('pointermove',e=>{
+    if(!ptr.has(e.pointerId)||!mode)return;
+    ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const r=stage.getBoundingClientRect();
+    if(mode==='mv'){o.x=clampN(s0.x+(e.clientX-s0.sx)/r.width,-.3,1.3);o.y=clampN(s0.y+(e.clientY-s0.sy)/r.height,-.3,1.3)}
+    else if(mode==='rs'){const dist=Math.hypot(e.clientX-s0.cx,e.clientY-s0.cy);o.w=clampN(2*dist/Math.sqrt(1+1/(o.ar*o.ar))/r.width,.05,3)}
+    else if(mode==='pz'&&ptr.size>=2){const [p1,p2]=[...ptr.values()];o.w=clampN(s0.w*Math.hypot(p1.x-p2.x,p1.y-p2.y)/s0.d,.05,3)}
+    if(ovUi.o===o)ovUiSync();
+  });
+  const end=e=>{
+    if(!ptr.has(e.pointerId))return;
+    ptr.delete(e.pointerId);
+    if(ptr.size===1){const q=[...ptr.values()][0];mode='mv';s0={sx:q.x,sy:q.y,x:o.x,y:o.y}}
+    else if(!ptr.size){mode=null;markDirty()}
+  };
+  box.addEventListener('pointerup',end);box.addEventListener('pointercancel',end);
+}
+/* ---- дорожка слоёв на таймлайне ---- */
+function renderOvTracks(){
+  if(!VE.ov.length)return;
+  const {map}=ovLanes(),E=ui==='en';
+  VE.ov.forEach(o=>{
+    const b=document.createElement('div');b.className='ovb '+o.kind+(VE.osel===o.id?' sel':'');b.dataset.id=o.id;
+    b.style.left=(o.s*PX)+'px';b.style.width=Math.max(16,o.d*PX-2)+'px';b.style.top=(OV_TOP+map.get(o)*OV_LH)+'px';
+    if(o.kind==='i')b.style.backgroundImage='linear-gradient(rgba(25,12,60,.45),rgba(25,12,60,.45)),url("'+o._url+'")';
+    b.innerHTML=ico(o.kind==='v'?'layers':'photo')+'<span>'+o.d.toFixed(1)+(E?' s':' с')+'</span><i class="h l"></i><i class="h r"></i>';
+    ovBlockDrag(b,o);tlin.appendChild(b);
+  });
+}
+function ovBlockDrag(b,o){
+  b.addEventListener('pointerdown',e=>{
+    e.stopPropagation();
+    const h=e.target.classList.contains('h')?(e.target.classList.contains('l')?'l':'r'):'m';
+    try{b.setPointerCapture(e.pointerId)}catch(x){}
+    const x0=e.clientX,s0=o.s,d0=o.d,mo0=o.mo,D=vdur();let moved=false;
+    if(VE.osel!==o.id)ovSelect(o.id,true);
+    const paint=()=>{b.style.left=(o.s*PX)+'px';b.style.width=Math.max(16,o.d*PX-2)+'px';const sp=b.querySelector('span');if(sp)sp.textContent=o.d.toFixed(1)+(ui==='en'?' s':' с')};
+    b.onpointermove=ev=>{
+      const dx=(ev.clientX-x0)/PX;if(Math.abs(ev.clientX-x0)>3)moved=true;if(!moved)return;
+      if(h==='m')o.s=clampN(s0+dx,0,Math.max(0,D-o.d));
+      else if(h==='r'){let d=clampN(d0+dx,.3,Math.max(.3,D-o.s));if(o.kind==='v')d=Math.min(d,Math.max(.3,o.md-o.mo));o.d=d}
+      else{
+        let dl=clampN(dx,-s0,d0-.3);
+        if(o.kind==='v'){dl=clampN(dl,-mo0,Math.max(0,o.md-mo0-.3));o.mo=mo0+dl}
+        o.s=s0+dl;o.d=d0-dl;
+      }
+      paint();
+    };
+    b.onpointerup=b.onpointercancel=()=>{b.onpointermove=b.onpointerup=b.onpointercancel=null;if(moved){markDirty();renderTL();buildDock()}};
+  });
+}
+/* ---- нижняя панель: настройки выбранного слоя ---- */
+const ovUi={o:null,size:null,sv:null};
+function ovUiSync(){if(ovUi.size){ovUi.size.value=ovUi.o.w;ovUi.sv.textContent=Math.round(ovUi.o.w*100)+'%'}}
+function dkg(label,node,extra){
+  const g=document.createElement('div');g.className='dkg';const l=document.createElement('span');l.className='dkl';l.textContent=label;if(extra)l.appendChild(extra);g.append(l,node);return g;
+}
+function dkRange(min,max,step,val,on,ch){
+  const r=document.createElement('input');r.type='range';r.className='dksz';r.min=min;r.max=max;r.step=step;r.value=val;r.oninput=()=>on(+r.value);if(ch)r.onchange=ch;return r;
+}
+function ovInspector(row,o,mk){
+  const E=ui==='en',x=(r,e)=>E?e:r;
+  mk('check',x('Готово','Done'),()=>{VE.osel=null;renderTL();buildDock()},true);
+  const sv=document.createElement('b');sv.className='dksv';sv.textContent=Math.round(o.w*100)+'%';
+  const sr=dkRange(.05,2,.01,o.w,val=>{o.w=val;sv.textContent=Math.round(val*100)+'%';markDirty()});
+  ovUi.o=o;ovUi.size=sr;ovUi.sv=sv;row.appendChild(dkg(x('Размер','Size'),sr,sv));
+  const FA=frameAR(),fit=document.createElement('div');fit.className='dkn';
+  const fb=(ic,tx,fn)=>{const b=document.createElement('button');b.className='chip ichip';b.innerHTML=ico(ic)+'<span>'+tx+'</span>';b.onclick=()=>{fn();ovUiSync();markDirty()};fit.appendChild(b)};
+  fb('fit',x('Вписать','Fit'),()=>{o.w=Math.min(1,o.ar/FA);o.x=o.y=.5});
+  fb('expand',x('Во весь','Fill'),()=>{o.w=Math.max(1,o.ar/FA);o.x=o.y=.5});
+  row.appendChild(dkg(x('Кадр','Frame'),fit));
+  const ov2=document.createElement('b');ov2.className='dksv';ov2.textContent=Math.round(o.op*100)+'%';
+  row.appendChild(dkg(x('Прозрачность','Opacity'),dkRange(.1,1,.01,o.op,val=>{o.op=val;ov2.textContent=Math.round(val*100)+'%';markDirty()}),ov2));
+  /* длительность */
+  const dn=document.createElement('div');dn.className='dkn';
+  const dm=document.createElement('b');dm.className='dksv';const dmT=()=>{dm.textContent=o.d.toFixed(1)+x(' с',' s')};dmT();
+  const stp=dl=>{const D=vdur();let nd=clampN(o.d+dl,.3,Math.max(.3,D-o.s));if(o.kind==='v')nd=Math.min(nd,Math.max(.3,o.md-o.mo));o.d=nd;dmT();markDirty();renderTL()};
+  const bm=document.createElement('button'),bp=document.createElement('button');bm.className=bp.className='chip';bm.textContent='−';bp.textContent='＋';bm.onclick=()=>stp(-.5);bp.onclick=()=>stp(.5);
+  dn.append(bm,dm,bp);row.appendChild(dkg(x('Длительность','Duration'),dn));
+  /* появление / исчезновение */
+  const sel=(cur,fn)=>{const s=document.createElement('select');s.className='sel dkfont';OVA.forEach(([k,ru,en])=>{const op=document.createElement('option');op.value=k;op.textContent=E?en:ru;s.appendChild(op)});s.value=cur||'none';s.onchange=()=>{fn(s.value);markDirty()};return s};
+  row.appendChild(dkg(x('Появление','In'),sel(o.inA,k=>{o.inA=k;ovPreview(o,'in')})));
+  row.appendChild(dkg(x('Исчезновение','Out'),sel(o.outA,k=>{o.outA=k;ovPreview(o,'out')})));
+  const rv=document.createElement('b');rv.className='dksv';rv.textContent=Math.round(o.rad*200)+'%';
+  row.appendChild(dkg(x('Скругление','Corners'),dkRange(0,.5,.01,o.rad,val=>{o.rad=val;rv.textContent=Math.round(val*200)+'%';markDirty()}),rv));
+  if(o.kind==='v'){
+    const vv=document.createElement('b');vv.className='dksv';vv.textContent=Math.round(o.vol*100)+'%';
+    row.appendChild(dkg(x('Звук слоя','Layer sound'),dkRange(0,1,.01,o.vol,val=>{o.vol=val;o._mute=false;vv.textContent=Math.round(val*100)+'%';markDirty()}),vv));
+  }
+  const zb=document.createElement('div');zb.className='dkn';
+  const zk=(ic,fn,lab)=>{const b=document.createElement('button');b.className='chip ichip';b.setAttribute('aria-label',lab);b.innerHTML=ico(ic);b.onclick=fn;zb.appendChild(b)};
+  zk('up',()=>ovMoveZ(o,1),x('Вперёд','Forward'));zk('down',()=>ovMoveZ(o,-1),x('Назад','Back'));
+  row.appendChild(dkg(x('Слой','Layer'),zb));
+  const ab=document.createElement('div');ab.className='dkn';
+  const ak=(ic,fn,lab,red)=>{const b=document.createElement('button');b.className='chip ichip';b.setAttribute('aria-label',lab);b.innerHTML=ico(ic);if(red)b.style.color='var(--danger)';b.onclick=fn;ab.appendChild(b)};
+  ak('copy',()=>ovDuplicate(o),x('Дублировать','Duplicate'));ak('trash',()=>ovRemove(o),x('Удалить','Delete'),true);
+  row.appendChild(dkg(x('Действия','Actions'),ab));
+}
 function vdRow(row){
-  const E=(typeof ui!=='undefined'&&ui==='en'),x=(r,e)=>E?e:r;
+  const E=ui==='en',x=(r,e)=>E?e:r;
   const mk=(ic,txt,fn,hl)=>{const b=document.createElement('button');b.className='chip ichip'+(hl?' active':'');b.innerHTML=ico(ic)+'<span>'+txt+'</span>';b.onclick=fn;row.appendChild(b)};
+  const o=ovSel();
+  if(o){ovInspector(row,o,mk);return}
+  ovUi.o=null;ovUi.size=null;
   mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
+  mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
+  mk('photo',x('Фото','Photo'),()=>ovPick('i'));
   mk('scissors',x('Разрезать','Split'),vSplit);
   mk('trash',x('Удалить кусок','Delete clip'),vDel);
   mk('undo',x('Вернуть всё','Restore all'),()=>{VE.cuts=[];VE.sel=null;vAfter()});
-  const hn=document.createElement('span');hn.className='dksv';hn.textContent=x('Переход ставится на стыке: на разрезе или между вырезанными кусками','A transition sits on a join: a split or between removed clips');row.appendChild(hn);
+  const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Переход ставится на стыке. Видео и фото ложатся поверх: их можно двигать, менять размер и время.','A transition sits on a join. Videos and photos go on top: move them, resize them, change their timing.');row.appendChild(hn);
 }
 function auRow(row){const E=(typeof ui!=='undefined'&&ui==='en'),b=document.createElement('div');b.className='dkaud';
   b.innerHTML=VIC.a+'<span>'+(E?'Audio track editing':'Правка звуковой дорожки')+'</span><em>'+(E?'soon':'скоро')+'</em>';row.appendChild(b)}
@@ -3295,8 +4096,8 @@ async function doSave(){
   if(!curId)curId='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   if(!projName)projName=defName();
   const id=curId,d=recDur||totalT()||dur;
-  const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size};
-  const data={id,name:projName,blob:recBlob,vedit:{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr)},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d};
+  const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size+VE.ov.reduce((a,o)=>a+(o.blob?o.blob.size:0),0)};
+  const data={id,name:projName,blob:recBlob,vedit:{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d};
   dirty=false;
   try{
     await dbPut(meta,data);doSave.failed=false;
@@ -3318,7 +4119,7 @@ function closeProject(){
   try{v.pause()}catch(e){}
   if(url){URL.revokeObjectURL(url);url=null}
   v.removeAttribute('src');v.srcObject=null;
-  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.sel=null;VE.selJ=null;curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';
+  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';
   applyView();renderAll();updateButtons();setSt(t('stIdle'));
   initCam();
 }
@@ -3340,7 +4141,7 @@ async function openProject(id){
     if(!p.c.length&&p.t)buildPhrase(p);
     return p;
   });
-  map={};{const q=d.vedit||{};VE.cuts=(q.cuts||[]).map(c=>c.slice());VE.splits=(q.splits||[]).slice();VE.tr=Object.assign({},q.tr||{});VE.sel=null;VE.selJ=null}
+  map={};{const q=d.vedit||{};VE.cuts=(q.cuts||[]).map(c=>c.slice());VE.splits=(q.splits||[]).slice();VE.tr=Object.assign({},q.tr||{});VE.trd=Object.assign({},q.trd||{});VE.trDef=q.trDef||.5;VE.sel=null;VE.selJ=null;ovLoad(q.ov)}
   langLog=(d.langLog&&d.langLog.length)?d.langLog:[{t:0,l:lang}];
   Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1},d.custom||{});
   setStyle(d.style||'classic',true);setAnim(d.anim||'fade',true);
@@ -3397,35 +4198,93 @@ $('#pclear').onclick=async()=>{
 };
 $('#shCopy').onclick=()=>{if(capCopy())toast(t('capCopied'),4000)};
 
-/* ---------- Gemini: ключ и вызовы API ---------- */
-const GKEY='substudio-gkey',GTXT='gemini-3.8-flash',GTTS='gemini-2.5-flash-tts',GTTS2='gemini-2.5-flash-preview-tts',GBASE='https://generativelanguage.googleapis.com/v1beta/';
-const gKey=()=>{try{return(localStorage.getItem(GKEY)||'').trim()}catch(e){return''}};
+/* ---------- Окно ключей API (Gemini и другие провайдеры) ---------- */
 const gbox=$('#gbox');
-function openGem(){closeMenus();$('#gkey').value=gKey();$('#gst').textContent='';gbox.classList.add('show')}
+const AICAP={text:['Перевод текста','Text translation'],stt:['Речь → текст','Speech → text'],tts:['Озвучка','Voice-over']};
+function openGem(){closeMenus();aiRenderKeys();$('#gst').textContent='';gbox.classList.add('show')}
 $('#mGem').onclick=openGem;$('#trKey').onclick=openGem;$('#ttsKey').onclick=openGem;
+$('#gclose').innerHTML=ico('close');
 $('#gclose').onclick=()=>gbox.classList.remove('show');
 gbox.addEventListener('click',e=>{if(e.target===gbox)gbox.classList.remove('show')});
-$('#gsave').onclick=async()=>{
-  const k=$('#gkey').value.trim(),st=$('#gst');
-  if(!k){st.textContent=t('gemEmpty');return}
-  try{localStorage.setItem(GKEY,k)}catch(e){}
-  st.style.color='';st.textContent=t('gemCheck');
-  try{const r=await fetch(GBASE+'models?pageSize=1',{headers:{'x-goog-api-key':k}});st.textContent=r.ok?t('gemOk'):t('gemBad');st.style.color=r.ok?'var(--ok)':'var(--danger)'}
-  catch(e){st.textContent=t('gemNet');st.style.color='var(--danger)'}
-};
-$('#grem').onclick=()=>{try{localStorage.removeItem(GKEY)}catch(e){}$('#gkey').value='';$('#gst').style.color='';$('#gst').textContent=t('gemRemoved')};
-async function gCall(model,body){
-  const k=gKey();if(!k){openGem();const e=new Error(t('gemNeed'));e.noKey=true;throw e}
-  for(let i=0;;i++){
-    let r,j=null;
-    try{r=await fetch(GBASE+'models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body:JSON.stringify(body)})}
-    catch(e){if(i<2){await sleep(1500*(i+1));continue}throw new Error(t('gemNet'))}
-    try{j=await r.json()}catch(e){}
-    if(r.ok)return j;
-    if((r.status===429||r.status===503)&&i<3){await sleep(2500*(i+1));continue}
-    const er=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));er.status=r.status;throw er;
-  }
+function aiKeyRow(id,val){
+  const r=document.createElement('div');r.className='apkr';
+  const i=document.createElement('input');i.type='password';i.autocomplete='off';i.spellcheck=false;i.className='sel';i.placeholder=AIP[id].ph||LX('Вставьте ключ','Paste the key');i.value=val||'';
+  const s=document.createElement('span');s.className='aps';
+  const x=document.createElement('button');x.type='button';x.className='apx';x.setAttribute('aria-label','Remove');x.innerHTML=ico('close');
+  x.onclick=()=>{const box=r.parentNode;if(box.children.length>1)r.remove();else{i.value='';s.textContent=''}};
+  r.append(i,s,x);return r;
 }
+function aiCard(id){
+  const p=AIP[id],inf=AIINFO[id],keys=aiKeys(id);
+  const d=document.createElement('details');d.className='apc';d.dataset.id=id;
+  if(id==='gemini'&&!aiAny())d.open=true;
+  const s=document.createElement('summary');
+  const dot=document.createElement('i');dot.className='apd'+(keys.length&&aiOn(id)?' on':'');
+  const nm=document.createElement('span');nm.className='apn';nm.textContent=p.n;
+  const cp=document.createElement('span');cp.className='apk';
+  p.k.forEach(c=>{const b=document.createElement('b');b.textContent=LX(AICAP[c][0],AICAP[c][1]);cp.appendChild(b)});
+  const mv=document.createElement('span');mv.className='apmv';
+  ['▲','▼'].forEach((ch,i)=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label',i?'Down':'Up');
+    b.onclick=ev=>{ev.preventDefault();ev.stopPropagation();aiMove(d,i?1:-1)};mv.appendChild(b)});
+  s.append(dot,nm,cp,mv);d.appendChild(s);
+  const bd=document.createElement('div');bd.className='apb';
+  const p1=document.createElement('p');p1.textContent=LX(inf.ru,inf.en);
+  const p2=document.createElement('p');p2.className='apfr';p2.textContent='🎁 '+LX(inf.fr,inf.fe);
+  const p3=document.createElement('p');p3.className='aph';p3.textContent=LX('Как получить: откройте ссылку, войдите, создайте API-ключ (кнопка вроде Create API key), скопируйте его и вставьте ниже.','How to get it: open the link, sign in, create an API key (a button like Create API key), copy it and paste it below.');
+  const a=document.createElement('a');a.className='btn sm apg';a.href=p.url;a.target='_blank';a.rel='noopener';a.textContent=LX('Получить ключ →','Get a key →')+' '+p.url.replace(/^https?:\/\//,'').replace(/\/$/,'').split('/')[0];
+  const kb=document.createElement('div');kb.className='apkeys';
+  (keys.length?keys:['']).forEach(k=>kb.appendChild(aiKeyRow(id,k)));
+  const add=document.createElement('button');add.type='button';add.className='nb sm apadd';add.textContent=LX('＋ ещё ключ (запасной)','＋ another key (backup)');
+  add.onclick=()=>kb.appendChild(aiKeyRow(id,''));
+  const lb=document.createElement('label');lb.className='chk';
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='apon';cb.checked=aiOn(id);
+  const sp=document.createElement('span');sp.textContent=LX('Использовать этот сервис','Use this service');lb.append(cb,sp);
+  bd.append(p1,p2,p3,a,kb,add,lb);d.appendChild(bd);
+  return d;
+}
+function aiRenderKeys(){
+  $('#gTitle').textContent=LX('🔑 Ключи API','🔑 API keys');
+  $('#gIntro').textContent=LX('Добавьте один или несколько ключей. Когда лимит сервиса закончится, программа сама, без ошибки, возьмёт следующий ключ или сервис. Порядок меняется стрелками ▲▼. Ключи хранятся только в этом браузере.','Add one or more keys. When a service runs out of quota, the app switches to the next key or service by itself, with no error. Change the order with ▲▼. Keys stay in this browser only.');
+  $('#gsave').textContent=LX('Сохранить и проверить','Save and check');
+  const body=$('#gbody');body.textContent='';
+  AIS.o.forEach(id=>{if(AIP[id])body.appendChild(aiCard(id))});
+}
+function aiMove(card,dir){
+  const box=card.parentNode;
+  if(dir<0&&card.previousElementSibling)box.insertBefore(card,card.previousElementSibling);
+  else if(dir>0&&card.nextElementSibling)box.insertBefore(card.nextElementSibling,card);
+  AIS.o=[...box.children].map(c=>c.dataset.id);aiSave();
+}
+function aiCollect(){
+  const cards=[...$('#gbody').children];
+  AIS.o=cards.map(c=>c.dataset.id);
+  cards.forEach(c=>{
+    const id=c.dataset.id,ks=[...c.querySelectorAll('.apkr input')].map(i=>i.value.trim()).filter(Boolean);
+    AIS.p[id]=Object.assign(AIS.p[id]||{},{on:c.querySelector('.apon').checked});
+    aiSetKeys(id,ks);
+    c.querySelector('.apd').className='apd'+(aiKeys(id).length&&aiOn(id)?' on':'');
+  });
+  aiSave();AICD.clear();
+}
+$('#gsave').onclick=async()=>{
+  const btn=$('#gsave'),st=$('#gst');
+  aiCollect();btn.disabled=true;
+  const rows=[...gbox.querySelectorAll('.apkr')].filter(r=>r.querySelector('input').value.trim());
+  let ok=0,bad=0,unk=0;
+  for(const r of rows){
+    const id=r.closest('.apc').dataset.id,s=r.querySelector('.aps');
+    s.className='aps';s.textContent='…';st.textContent=LX('Проверяю ключи…','Checking keys…');
+    let res='unk';try{res=await AIP[id].chk(r.querySelector('input').value.trim())}catch(e){}
+    s.className='aps '+res;s.textContent=res==='ok'?'✓':res==='bad'?'✗':'?';
+    if(res==='ok')ok++;else if(res==='bad')bad++;else unk++;
+    await sleep(250);
+  }
+  btn.disabled=false;
+  st.style.color=bad?'var(--danger)':'var(--ok)';
+  st.textContent=!rows.length?LX('Сохранено.','Saved.')
+    :LX('Сохранено. Принято ключей: '+ok+' из '+rows.length+(bad?'. Не подошли: '+bad+' (проверьте, что ключ скопирован полностью)':'')+(unk?'. Не удалось проверить: '+unk+' (возможно, нет связи; ключ сохранён)':''),
+        'Saved. Keys accepted: '+ok+' of '+rows.length+(bad?'. Rejected: '+bad+' (check that the key was copied in full)':'')+(unk?'. Could not verify: '+unk+' (maybe no connection; the key is saved)':''));
+};
 function gText(j){const c=j&&j.candidates&&j.candidates[0],ps=(c&&c.content&&c.content.parts)||[];return ps.map(p=>p.text||'').join('')}
 function parseJsonArr(s){
   s=String(s||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
@@ -3468,23 +4327,6 @@ function ttsPick(j){
   for(const p of ps){const d=p.inlineData||p.inline_data;if(d&&d.data)return{data:d.data,mime:d.mimeType||d.mime_type||''}}
   const e=new Error((c&&c.finishReason)?('Gemini: '+c.finishReason):'Gemini: empty audio');e.empty=true;throw e;
 }
-async function gTts(body){try{return await gCall(GTTS,body)}catch(e){if(e&&!e.noKey&&(e.status===404||/not found|not supported|unsupported/i.test(e.message||'')))return await gCall(GTTS2,body);throw e}}
-async function ttsOne(text,voice,style){
-  const st=String(style||'').trim(),how=st?('in a '+st+' voice'):'clearly and naturally';
-  const prompts=[
-    'Say '+how+': '+text,
-    'Read the following transcript aloud '+how+', word for word. Output audio only, do not answer or comment. Transcript: '+text,
-    'Text to speech. Speak exactly these words '+how+', and never reply with text: "'+text+'"'];
-  let last;
-  for(const pr of prompts){
-    try{
-      const j=await gTts({contents:[{parts:[{text:pr}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}});
-      const p=ttsPick(j);
-      return trimSil(parseAudio(b64Bytes(p.data),p.mime));
-    }catch(e){last=e;if(e.noKey)throw e;if(!(e.empty||/generate text|only be used for TTS|text, but/i.test(e.message||'')))throw e}
-  }
-  throw last;
-}
 const VOICES=[['Zephyr','Bright'],['Puck','Upbeat'],['Charon','Informative'],['Kore','Firm'],['Fenrir','Excitable'],['Leda','Youthful'],['Orus','Firm'],['Aoede','Breezy'],['Callirrhoe','Easy-going'],['Autonoe','Bright'],['Enceladus','Breathy'],['Iapetus','Clear'],['Umbriel','Easy-going'],['Algieba','Smooth'],['Despina','Smooth'],['Erinome','Clear'],['Algenib','Gravelly'],['Rasalgethi','Informative'],['Laomedeia','Upbeat'],['Achernar','Soft'],['Alnilam','Firm'],['Schedar','Even'],['Gacrux','Mature'],['Pulcherrima','Forward'],['Achird','Friendly'],['Zubenelgenubi','Casual'],['Vindemiatrix','Gentle'],['Sadachbia','Lively'],['Sadaltager','Knowledgeable'],['Sulafat','Warm']];
 function fillVoices(sel,key,def){
   VOICES.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=x[0]+' · '+x[1];sel.appendChild(o)});
@@ -3509,7 +4351,7 @@ function openStudio(id){
   $('#'+id).classList.add('show');studioOpen=true;document.body.style.overflow='hidden';
   if(id==='trs')renderTR();
   if(!stRaf)stRaf=requestAnimationFrame(stLoop);
-  if(!gKey())setTimeout(openGem,200);
+  if(!aiAny())setTimeout(openGem,200);
 }
 function closeStudio(id){
   const busy=id==='trs'?TR.run:TS.run;
@@ -3543,7 +4385,7 @@ $('#ttsStop').onclick=()=>{TS.cancel=true};
 $('#ttsGen').onclick=async()=>{
   const text=$('#ttsIn').value.trim();
   if(!text){toast(t('ttsEmpty'));return}
-  if(!gKey()){openGem();return}
+  if(!aiHas('tts')){openGem();return}
   if(TS.run)return;TS.cancel=false;ttsBusy(true);
   try{
     const parts=splitText(text,1200),outs=[],voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim();
@@ -3561,7 +4403,7 @@ $('#ttsGen').onclick=async()=>{
   finally{ttsBusy(false)}
 };
 $('#ttsSample').onclick=async()=>{
-  if(!gKey()){openGem();return}
+  if(!aiHas('tts')){openGem();return}
   const voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim(),key=voice+'|'+style;
   ttsBusy(true);
   try{
@@ -3737,10 +4579,9 @@ function parseTs(x){
   if(m)return(m[1]?+m[1]*3600:0)+(+m[2])*60+parseFloat(m[3].replace(',','.'));
   const f=parseFloat(q.replace(',','.'));return isFinite(f)?f:NaN;
 }
-const SCHEMA_SEG={type:'ARRAY',items:{type:'OBJECT',properties:{start:{type:'STRING'},end:{type:'STRING'},text:{type:'STRING'}},required:['start','end','text']}};
 $('#trS1').onclick=async()=>{
   if(!TR.file){toast(t('trNeedVid'));return}
-  if(!gKey()){openGem();return}
+  if(!aiHas('stt')){openGem();return}
   if(TR.run)return;trBusy(true);
   try{
     trSt(t('trDecoding'),0);
@@ -3749,13 +4590,11 @@ $('#trS1').onclick=async()=>{
       trSt(t('trTranscribing',i+1,n),i/n);
       const part=a.f.subarray(i*CH,Math.min(a.f.length,(i+1)*CH));let mx=0;for(let k=0;k<part.length;k+=50)mx=Math.max(mx,Math.abs(part[k]));
       if(mx<0.003)continue;
-      const b64=await blobB64(wavBlob(part,a.sr));
-      const j=await gCall(GTXT,{contents:[{parts:[{inlineData:{mimeType:'audio/wav',data:b64}},{text:'Transcribe all speech in this audio verbatim, in the language it is spoken (do not translate). Split it into short segments, each one sentence or phrase of about 2 to 8 seconds. For every segment give the start and end time in MM:SS format (decimals allowed), counted from the start of this audio. Return a JSON array. If there is no speech, return an empty array.'}]}],generationConfig:{responseMimeType:'application/json',responseSchema:SCHEMA_SEG}});
       const off=i*120;
-      parseJsonArr(gText(j)).forEach(q=>{
+      (await aiStt(wavBlob(part,a.sr),{dur:part.length/a.sr})).forEach(q=>{
         const x=String(q&&q.text||'').replace(/\s+/g,' ').trim();if(!x)return;
-        let s0=parseTs(q.start),e0=parseTs(q.end);if(!isFinite(s0))return;
-        s0=off+s0;e0=isFinite(e0)?off+e0:s0+Math.max(1,x.length*0.06);if(e0<=s0)e0=s0+Math.max(1,x.length*0.06);
+        let s0=+q.start,e0=+q.end;if(!isFinite(s0))return;
+        s0=off+s0;e0=(isFinite(e0)&&e0>0)?off+e0:s0+Math.max(1,x.length*0.06);if(e0<=s0)e0=s0+Math.max(1,x.length*0.06);
         segs.push({id:0,s:Math.min(s0,total),e:Math.min(e0,total+1),src:x,tr:'',ver:1});
       });
     }
@@ -3768,15 +4607,14 @@ $('#trS1').onclick=async()=>{
 };
 $('#trS2').onclick=async()=>{
   if(TR.run)return;if(!TR.segs.length){toast(t('trNeedText'));return}
-  if(!gKey()){openGem();return}
+  if(!aiHas('text')){openGem();return}
   const L=TLANGS.find(x=>x[0]===$('#trLangSel').value)||TLANGS[0];trBusy(true);
   try{
     const B=40,nb=Math.ceil(TR.segs.length/B);
     for(let b=0;b<nb&&!TR.cancel;b++){
       trSt(t('trTranslating',b+1,nb),b/nb);
       const part=TR.segs.slice(b*B,(b+1)*B);
-      const j=await gCall(GTXT,{contents:[{parts:[{text:'Translate the "text" field of every item in this JSON array into '+L[1]+'. The result is a voice-over for a video: use natural spoken language and keep the spoken length close to the original. Return a JSON array with one object per item: {"i": the same id, "text": the translation}.\nInput:\n'+JSON.stringify(part.map(x=>({i:x.id,text:x.src})))}]}],generationConfig:{responseMimeType:'application/json',responseSchema:{type:'ARRAY',items:{type:'OBJECT',properties:{i:{type:'INTEGER'},text:{type:'STRING'}},required:['i','text']}}}});
-      const m=new Map();parseJsonArr(gText(j)).forEach(q=>{if(q&&q.i!=null)m.set(Number(q.i),String(q.text||'').trim())});
+      const m=new Map();(await aiTranslate(part,L)).forEach(q=>{if(q&&q.i!=null)m.set(Number(q.i),String(q.text||'').trim())});
       part.forEach(x=>{const y=m.get(x.id);if(y&&y!==x.tr){x.tr=y;x.ver++}});
       renderTR();
     }
@@ -3786,7 +4624,7 @@ $('#trS2').onclick=async()=>{
 };
 $('#trS3').onclick=async()=>{
   if(TR.run)return;if(!TR.segs.some(x=>x.tr)){toast(t('trNeedTr'));return}
-  if(!gKey()){openGem();return}
+  if(!aiHas('tts')){openGem();return}
   const voice=$('#trVoice').value,style=$('#trStyleIn').value.trim();
   const need=TR.segs.filter(x=>x.tr&&(!TR.clips.some(c=>c.sid===x.id)||TR.clips.some(c=>c.sid===x.id&&(c.ver!==x.ver||c.voice!==voice||c.style!==style))));
   if(!need.length){trSt(t('trDone'));return}
@@ -3800,7 +4638,7 @@ $('#trS3').onclick=async()=>{
         TR.clips=TR.clips.filter(c=>c.sid!==sg.id);
         TR.clips.push({id:TR.nid++,sid:sg.id,ver:sg.ver,voice,style,f:a.f,sr:a.sr,off:0,len:a.f.length/a.sr,start:sg.s,label:sg.tr,fresh:true});
         renderTR();
-      }catch(e){if(e.noKey||[400,401,403,404].includes(e.status))fatal=e;else fail++}
+      }catch(e){if(e.noKey||e.allFailed||[400,401,403,404].includes(e.status))fatal=e;else fail++}
       done++;trSt(t('trVoicing',Math.min(done,total),total),done/total);
     }
   };
@@ -4004,13 +4842,23 @@ async function trOpen(id){
     const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair='+from+'|'+to);
     const j=await r.json();const t=j&&j.responseData&&j.responseData.translatedText;
     if(!t||(j.responseStatus&&+j.responseStatus!==200))throw new Error('tr');return t}
+  async function trLine(q,from,to){
+    try{return await mm(q,from,to)}
+    catch(e0){
+      if(!aiHas('text'))throw e0;
+      const nm={hy:'Armenian',ru:'Russian',en:'English'};
+      const out=await aiTry('text',(p,k)=>p.text(k,'Translate from '+(nm[from]||from)+' to '+(nm[to]||to)+'. Reply with the translation only, no quotes, no comments:\n'+q,null));
+      const r=String(out||'').trim().replace(/^["«“]+|["»”]+$/g,'');
+      if(!r)throw e0;return r;
+    }
+  }
   async function translateTo(code,chip){
     if(busyT||passing||!phrases.some(p=>p.t))return;
     if(!orig)orig=phrases.map(p=>[p,p.t,p.raw]);
     tchips.forEach(c=>c.classList.toggle('active',c===chip));busyT=true;let n=0;prog(x('Перевод','Translating'),0);
     try{
       for(const [p,t0,r0] of orig){
-        if(!code||lc(p.l||lang)===code){p.t=t0;p.raw=r0}else{p.t=await mm(t0,lc(p.l||lang),code);p.raw=p.t}
+        if(!code||lc(p.l||lang)===code){p.t=t0;p.raw=r0}else{p.t=await trLine(t0,lc(p.l||lang),code);p.raw=p.t}
         buildPhrase(p);prog(x('Перевод','Translating'),(++n)/orig.length*100);
       }
       save();renderAll();
@@ -4029,7 +4877,7 @@ async function trOpen(id){
   SD.forEach(([k,ru,en])=>{const b=document.createElement('button');b.className='chip';b.textContent=x(ru,en);b.onclick=()=>{dsel.has(k)?dsel.delete(k):dsel.add(k);b.classList.toggle('active',dsel.has(k))};$$('#dStyles').appendChild(b)});
   const dStyle=()=>[...SD.map(q=>q[0]).filter(k=>dsel.has(k)),$$('#dStyleTxt').value.trim()].filter(Boolean).join(', ');
   const vsig=()=>JSON.stringify(phrases.filter(p=>p.t&&!p.cut).map(p=>[p.s,p.t]))+dv.value+'|'+dStyle();
-  const dKeyShow=()=>{$$('#dKey').style.display=gKey()?'none':''};
+  const dKeyShow=()=>{$$('#dKey').style.display=aiHas('tts')?'none':''};
   const dst=(txt,kind)=>{const b=$$('#dBox');b.style.display=txt?'flex':'none';$$('#fh3').textContent=txt||'';b.className='dbox'+(kind?' '+kind:'');$$('#dRetry').style.display=kind==='err'?'':'none'};
   function vpStop(){VO.srcs.forEach(q=>{try{q.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
   function vpStart(){
@@ -4063,7 +4911,7 @@ async function trOpen(id){
   $$('#dDet').addEventListener('toggle',renderAudio);
   async function genDub(){
     if(VO.busy||passing||!phrases.some(p=>p.t))return;
-    if(!gKey()){const k=$$('#dKey').value.trim();if(!k){toast(x('Сначала вставьте ключ Gemini.','Paste a Gemini API key first.'),5000);return}try{localStorage.setItem(GKEY,k)}catch(_){}}
+    if(!aiHas('tts')){const k=$$('#dKey').value.trim();if(!k){toast(x('Сначала вставьте ключ Gemini или добавьте другой сервис озвучки (🔑 в шапке).','Paste a Gemini key first, or add another voice service (🔑 in the header).'),6000);return}aiAddKey('gemini',k)}
     VO.busy=true;$$('#fAct').disabled=true;vpStop();
     const list=phrases.filter(p=>p.t&&!p.cut).sort((p,q)=>p.s-q.s),out=[];
     try{
@@ -4104,7 +4952,7 @@ async function trOpen(id){
     try{stopCanvas()}catch(_){}
     if(stream){stream.getTracks().forEach(q=>q.stop());stream=null}
     crop=null;vcrop=null;if(url){try{URL.revokeObjectURL(url)}catch(_){}}
-    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;
+    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;
     recBlob=f;url=URL.createObjectURL(f);
     v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
     updateButtons();renderAll();try{saveCurrent()}catch(_){}
@@ -4146,7 +4994,7 @@ async function trOpen(id){
     const b1=document.createElement('button');b1.className='icon-btn';b1.innerHTML=ic('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>');b1.onclick=()=>$$('#mPrj').click();
     const b2=document.createElement('button');b2.className='icon-btn';b2.innerHTML=ic('<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>');
     const m=document.createElement('div');m.style.cssText='display:none;position:absolute;right:14px;top:58px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;gap:6px;flex-direction:column';
-    [[x('Ключ Gemini (озвучка)','Gemini key (voice)'),'#mGem'],[x('Ключ Groq (речь на телефоне)','Groq key (phone speech)'),'#mKey']].forEach(([l,q])=>{const t=document.createElement('button');t.className='nb';t.textContent=l;t.onclick=()=>{m.style.display='none';$$(q).click()};m.appendChild(t)});
+    [[x('Ключи API (Gemini, Groq и др.)','API keys (Gemini, Groq and more)'),'#mGem']].forEach(([l,q])=>{const t=document.createElement('button');t.className='nb';t.textContent=l;t.onclick=()=>{m.style.display='none';$$(q).click()};m.appendChild(t)});
     b2.onclick=e=>{e.stopPropagation();m.style.display=m.style.display==='flex'?'none':'flex'};
     document.addEventListener('click',()=>{m.style.display='none'});
     g.append(b1,b2);hd.appendChild(g);B.appendChild(m);
