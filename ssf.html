@@ -557,6 +557,12 @@ body.recording #flow,body.recording #fsteps,body.editing #flow,body.editing #fst
 .dktabs{overflow-x:auto}.dktabs button{flex:1 0 auto;white-space:nowrap;padding:0 14px}
 #tabAu{display:inline-flex;align-items:center;justify-content:center;gap:6px;opacity:.75}
 .dkaud{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--line);color:var(--mute);font-size:13px}
+
+#fprog{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translate(-50%,-160%);opacity:0;pointer-events:none;z-index:95;width:min(92vw,520px);padding:12px 14px;border-radius:16px;background:rgba(23,20,51,.96);border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.5);transition:transform .25s,opacity .25s;backdrop-filter:blur(10px)}
+#fprog.show{transform:translate(-50%,0);opacity:1}
+#fprog .pgt{display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:#fff;margin-bottom:8px}
+#fprog .pgb{height:6px;border-radius:6px;background:#2b2756;overflow:hidden}
+#fprog .pgb i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#8b5cf6,#ec4899);transition:width .3s}
 </style>
 </head>
 <body>
@@ -3841,6 +3847,19 @@ async function trOpen(id){
     $$('#fbody').scrollTop=0;
   }
   sb.forEach(b=>b.onclick=()=>setStep(+b.dataset.n));
+  /* баннер процесса: название + полоса + проценты */
+  const pg=document.createElement('div');pg.id='fprog';pg.innerHTML='<div class="pgt"><span id="pgn"></span><b id="pgp"></b></div><div class="pgb"><i id="pgi"></i></div>';B.appendChild(pg);
+  let pgMan=null;
+  function paintProg(){
+    let n=null,p=0;
+    if(pgMan){n=pgMan.name;p=pgMan.pct}
+    else if(passing){n=x('Распознавание речи','Recognising speech');const d=vdur();p=d?v.currentTime/d*100:0}
+    if(n==null){pg.classList.remove('show');return}
+    p=Math.max(0,Math.min(100,p));
+    pg.classList.add('show');$$('#pgn').textContent=n;$$('#pgp').textContent=Math.round(p)+'%';$$('#pgi').style.width=p+'%';
+  }
+  const prog=(name,pct)=>{pgMan={name,pct};paintProg()},progEnd=()=>{pgMan=null;paintProg()};
+  setInterval(paintProg,250);
   const resetTr=()=>{orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0))};
   /* перевод субтитров (MyMemory, без ключа) */
   const tchips=[...document.querySelectorAll('#flow [data-tl]')];let orig=null,busyT=false;
@@ -3852,15 +3871,15 @@ async function trOpen(id){
   async function translateTo(code,chip){
     if(busyT||passing||!phrases.some(p=>p.t))return;
     if(!orig)orig=phrases.map(p=>[p,p.t,p.raw]);
-    tchips.forEach(c=>c.classList.toggle('active',c===chip));busyT=true;let n=0;
+    tchips.forEach(c=>c.classList.toggle('active',c===chip));busyT=true;let n=0;prog(x('Перевод','Translating'),0);
     try{
       for(const [p,t0,r0] of orig){
         if(!code||lc(p.l||lang)===code){p.t=t0;p.raw=r0}else{p.t=await mm(t0,lc(p.l||lang),code);p.raw=p.t}
-        buildPhrase(p);toast((++n)+' / '+orig.length,900);
+        buildPhrase(p);prog(x('Перевод','Translating'),(++n)/orig.length*100);
       }
       save();renderAll();
     }catch(e){toast(x('Не удалось перевести (нет сети или дневной лимит).','Translation failed (offline or daily limit).'),7000);save();renderAll()}
-    busyT=false;
+    busyT=false;progEnd();
   }
   tchips.forEach(c=>c.onclick=()=>translateTo(c.dataset.tl,c));
   /* озвучка Gemini + микс в экспорт */
@@ -3910,7 +3929,7 @@ async function trOpen(id){
     try{
       audioGraph();
       for(let i=0;i<list.length;i++){
-        const p=list[i];dst(x('Озвучиваю ','Voicing ')+(i+1)+' / '+list.length);
+        const p=list[i];prog(x('Озвучка (TTS)','Voice generation (TTS)'),i/list.length*100);dst(x('Озвучиваю ','Voicing ')+(i+1)+' / '+list.length);
         const a=await ttsOne(p.t,dv.value,'');
         const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
         const nx=list[i+1],slot=Math.max(.6,(nx?nx.s:(totalT()||p.e))-p.s);
@@ -3918,7 +3937,7 @@ async function trOpen(id){
       }
       VO.bufs=out;VO.sig=vsig();shareCache=null;dst(x('Голос готов. Нажмите play на видео.','Voice ready. Press play on the video.'),'ok');
     }catch(e){dst((e&&e.message)||x('Не удалось создать голос','Voice generation failed'),'err')}
-    VO.busy=false;$$('#fAct').disabled=false;dKeyShow();
+    VO.busy=false;progEnd();$$('#fAct').disabled=false;dKeyShow();
   }
   $$('#dRetry').onclick=genDub;
   const xaOrig=xaTrack;
