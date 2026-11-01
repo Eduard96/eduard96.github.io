@@ -544,6 +544,19 @@ body.recording #flow,body.recording #fsteps,body.editing #flow,body.editing #fst
 .nb{height:52px;border-radius:16px;background:#1d1946;border:1px solid var(--line);color:#fff;font-weight:700;padding:0 16px}
 .nb.sq{width:56px;padding:0;font-size:22px}.nb.sm{height:34px;padding:0 12px;font-size:13px}
 .nb.pri{flex:1;border:0;background:linear-gradient(90deg,#8b5cf6,#ec4899)}.nb.pri:disabled{opacity:.4}
+
+.vseg{position:absolute;top:8px;height:36px;border-radius:9px;background:linear-gradient(135deg,#0ea5a4,#2563eb);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;padding:0 8px 0 36px;overflow:hidden;border:2px solid transparent;cursor:pointer;box-sizing:border-box;white-space:nowrap}
+.vseg.sel{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.vseg.gap{background:repeating-linear-gradient(45deg,rgba(255,255,255,.1) 0 6px,transparent 6px 12px);border:1.5px dashed var(--line);padding:0}
+.vjn{position:absolute;top:12px;width:28px;height:28px;margin-left:-14px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-size:13px;font-weight:800;z-index:6;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.vjn.on{background:#8b5cf6;color:#fff}
+.atrack{position:absolute;top:50px;left:0;height:30px;border-radius:9px;border:1.5px dashed var(--line);opacity:.6;background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 3px,transparent 3px 9px)}
+.tlab{position:absolute;z-index:7;height:24px;display:flex;align-items:center;gap:5px;padding:0 8px 0 5px;border-radius:99px;background:rgba(10,8,30,.78);color:#fff;font-size:10px;font-weight:700;pointer-events:none}
+.tlab svg,#tabAu svg,.dkaud svg{width:15px;height:15px;flex:none}
+.tlab em,#tabAu em,.dkaud em{font-style:normal;background:#8b5cf6;color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:800}
+.dktabs{overflow-x:auto}.dktabs button{flex:1 0 auto;white-space:nowrap;padding:0 14px}
+#tabAu{display:inline-flex;align-items:center;justify-content:center;gap:6px;opacity:.75}
+.dkaud{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--line);color:var(--mute);font-size:13px}
 </style>
 </head>
 <body>
@@ -618,7 +631,7 @@ body.recording #flow,body.recording #fsteps,body.editing #flow,body.editing #fst
         <div class="edit-pane" id="ep">
           <div class="ephead"><span id="edh" data-i="edhint"></span></div>
           <div class="tl" id="tl"><div class="tlin" id="tlin"></div></div>
-          <div class="edock" id="edock"><div class="dkrow"><span id="selbar"><span id="selcnt"></span><button class="btn sm" id="selclr" aria-label="Clear selection">✕</button></span><span style="flex:1"></span><button class="btn sm" id="eadd" data-i="addHere"></button><button class="btn sm" id="edone" data-i="done"></button></div><div class="seg dktabs" id="dktabs"><button data-k="st" data-i="styleLbl"></button><button data-k="an" data-i="animLbl"></button><button data-k="lt" data-i="lettersLbl"></button></div><div id="dkbody"></div></div>
+          <div class="edock" id="edock"><div class="dkrow"><span id="selbar"><span id="selcnt"></span><button class="btn sm" id="selclr" aria-label="Clear selection">✕</button></span><span style="flex:1"></span><button class="btn sm" id="eadd" data-i="addHere"></button><button class="btn sm" id="edone" data-i="done"></button></div><div class="seg dktabs" id="dktabs"><button data-k="st" data-i="styleLbl"></button><button data-k="an" data-i="animLbl"></button><button data-k="lt" data-i="lettersLbl"></button><button data-k="vd" id="tabVd"></button><button data-k="au" id="tabAu"></button></div><div id="dkbody"></div></div>
         </div>
         </div>
       </div>
@@ -1121,8 +1134,41 @@ function download(blob,name){const a=document.createElement('a');a.href=URL.crea
 function fillR(el){const mn=parseFloat(el.min)||0,mx=parseFloat(el.max)||100,p=mx>mn?(el.value-mn)/(mx-mn)*100:0;el.style.setProperty('--p',Math.max(0,Math.min(100,p))+'%')}
 const allC=()=>phrases.flatMap(p=>p.c||[]);
 function span(p){const c=p.c&&p.c.length?p.c:null;return c?[Math.min(...c.map(x=>x.s)),Math.max(...c.map(x=>x.e))]:[p.s,p.e]}
+const VE={cuts:[],splits:[],tr:{},sel:null,selJ:null,hook:null},TR_H=88,XT={last:-1,k:null,t0:0,snap:null};
+const vdur=()=>(isFinite(v.duration)&&v.duration>0)?v.duration:(dur||0);
+const VIC={v:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 5v14M16 5v14M3 10h5M16 10h5M3 14h5M16 14h5"/></svg>',a:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 9v6"/></svg>'};
+function renderVTracks(){
+  const D=vdur();if(!hasVideo||!D)return;
+  const cs=cutSpans(),inCut=t=>cs.some(q=>t>=q[0]&&t<q[1]);
+  const pts=[0,...VE.splits.filter(q=>q>0&&q<D),D].sort((p,q)=>p-q);
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1],gap=inCut((a+b)/2),e=document.createElement('div');
+    e.className='vseg'+(gap?' gap':'')+((VE.sel&&Math.abs(VE.sel.a-a)<.001)?' sel':'');
+    e.style.left=a*PX+'px';e.style.width=Math.max(10,(b-a)*PX-2)+'px';e.textContent=gap?'':(b-a).toFixed(1)+'s';
+    e.onclick=ev=>{ev.stopPropagation();
+      if(gap){VE.cuts=VE.cuts.filter(c=>!(c[0]<b-.001&&c[1]>a+.001));VE.sel=null;save();renderTL();return}
+      VE.sel={a,b};VE.selJ=null;renderTL();VE.hook&&VE.hook()};
+    tlin.appendChild(e);
+  }
+  cs.forEach(q=>{
+    if(q[0]<.05||q[1]>D-.05)return;
+    const key=Math.round(q[1]*100),k=VE.tr[key]||'',j=document.createElement('div');
+    j.className='vjn'+(VE.selJ===key?' on':'');j.style.left=((q[0]+q[1])/2*PX)+'px';
+    j.textContent={'':'◇',fade:'◐',dip:'●',zoom:'⤢'}[k];
+    j.onclick=ev=>{ev.stopPropagation();VE.selJ=key;VE.sel=null;renderTL();VE.hook&&VE.hook()};
+    tlin.appendChild(j);
+  });
+  const at=document.createElement('div');at.className='atrack';at.style.width=D*PX+'px';tlin.appendChild(at);
+  const E=(typeof ui!=='undefined'&&ui==='en');
+  [['v',10,''],['a',51,'soon']].forEach(([k,top,tx])=>{
+    const l=document.createElement('div');l.className='tlab';l.style.top=top+'px';l.style.left=(tl.scrollLeft+6)+'px';
+    l.innerHTML=VIC[k]+(tx?'<em>'+(E?'soon':'скоро')+'</em>':'');tlin.appendChild(l);
+  });
+  if(!tl._ls){tl._ls=1;tl.addEventListener('scroll',()=>{document.querySelectorAll('.tlab').forEach(l=>l.style.left=(tl.scrollLeft+6)+'px')},{passive:true})}
+}
+function pvTr(te){const k=VE.tr[Math.round(te*100)];if(!k)return;v.style.transition='none';v.style.opacity='0';requestAnimationFrame(()=>requestAnimationFrame(()=>{v.style.transition='opacity .45s';v.style.opacity='1';setTimeout(()=>{v.style.transition=''},600)}))}
 function cutSpans(){
-  const a=phrases.filter(p=>p.cut).map(span).sort((x,y)=>x[0]-y[0]);
+  const a=phrases.filter(p=>p.cut).map(span).concat(VE.cuts.map(c=>[c[0],c[1]])).sort((x,y)=>x[0]-y[0]);
   const out=[];for(const s of a){const l=out[out.length-1];if(l&&s[0]<=l[1])l[1]=Math.max(l[1],s[1]);else out.push([s[0],s[1]])}
   return out;
 }
@@ -1928,15 +1974,16 @@ function renderTL(){
     let k=ends.findIndex(e=>e<=c.s+0.01);if(k<0){k=ends.length;ends.push(0)}
     ends[k]=Math.max(c.e,c.s+12/PX);lane.set(c,k);
   });
-  const nl=Math.max(2,ends.length),th=52+nl*48;
+  const nl=Math.max(2,ends.length),th=52+TR_H+nl*48;
   tlin.style.height=th+'px';tl.style.height=Math.min(Math.max(132,th),290)+'px';
   allC().forEach(c=>{
     const b=document.createElement('div');b.className='blk '+c.g.l+(c.g.cut?' cut':'');
-    b.textContent=c.t;b.style.top=(8+lane.get(c)*48)+'px';place(b,c);
+    b.textContent=c.t;b.style.top=(8+TR_H+lane.get(c)*48)+'px';place(b,c);
     const hl=document.createElement('div');hl.className='h l';hl.dataset.h='l';
     const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
     b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);blkEl.set(c,b);
   });
+  renderVTracks();
   ph=document.createElement('div');ph.className='ph';const gr=document.createElement('div');gr.className='gr';gr.addEventListener('pointerdown',startScrub);ph.appendChild(gr);tlin.appendChild(ph);
   selUI();
   updatePlayhead(false);
@@ -2302,7 +2349,7 @@ function tick(){
   requestAnimationFrame(tick);
   if(hasVideo&&!v.paused&&!v.ended){
     const t=v.currentTime;
-    for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];break}}
+    for(const s of cutSpans()){if(t>=s[0]&&t<s[1]){v.currentTime=s[1];pvTr(s[1]);break}}
   }
   if(exporting&&xctx){drawExportFrame();xaSync()}
   stage.classList.toggle('recx',!!recording);
@@ -2404,15 +2451,25 @@ function drawExportFrame(){
   const W=cv.width,H=cv.height;
   /* если в записи остались чёрные полосы, копируем только настоящую картинку (формат рилса) */
   const dc=vcrop;
-  const vid=()=>{
-    xctx.setTransform(1,0,0,1,0,0);xctx.globalAlpha=1;
+  const vid=(z)=>{
+    xctx.setTransform(z||1,0,0,z||1,z?W*(1-z)/2:0,z?H*(1-z)/2:0);xctx.globalAlpha=1;
     if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);
     else xctx.drawImage(v,0,0,W,H);
   };
-  vid();
+  const tcur=v.currentTime;
+  if(tcur<XT.last-.5){XT.k=null;XT.last=-1}
+  if(XT.last>=0&&tcur-XT.last>.3){const q=cutSpans().find(z=>Math.abs(tcur-z[1])<.4),k=q&&VE.tr[Math.round(q[1]*100)];if(k){XT.k=k;XT.t0=tcur}else XT.k=null}
+  XT.last=tcur;
+  const tp=XT.k?(tcur-XT.t0)/.45:2;
+  vid(XT.k==='zoom'&&tp<1?1+.18*(1-tp):0);xctx.setTransform(1,0,0,1,0,0);
+  if(tp<1){
+    if(XT.k==='fade'&&XT.snap){xctx.globalAlpha=1-tp;xctx.drawImage(XT.snap,0,0,W,H);xctx.globalAlpha=1}
+    else if(XT.k==='dip'){xctx.globalAlpha=1-tp;xctx.fillStyle='#000';xctx.fillRect(0,0,W,H);xctx.globalAlpha=1}
+  }
   const c=chunkAt(v.currentTime);
   /* сбой при рисовании субтитров не должен портить следующие кадры: сбрасываем состояние холста и рисуем кадр без них */
   if(c){try{drawSubOnCanvas(xctx,W,H,c.t,Math.max(0,v.currentTime-c.s),c.e-c.s)}catch(e){cv.width=W;vid()}}
+  if(tp>=1){if(!XT.snap)XT.snap=document.createElement('canvas');if(XT.snap.width!==W||XT.snap.height!==H){XT.snap.width=W;XT.snap.height=H}XT.snap.getContext('2d').drawImage(cv,0,0)}
   const total=totalT()||dur;
   if(total){const pc=Math.min(99,Math.round(v.currentTime/total*100));expBtn.textContent=t('exPct',pc);$('#xpct').textContent=pc+'%';$('#xbar').value=pc}
 }
@@ -3015,6 +3072,33 @@ $('#subTog').onclick=()=>{
 })();
 
 /* ---------- нижняя панель режима монтажа ---------- */
+function vAfter(){save();renderTL();buildDock()}
+function vSplit(){const t=v.currentTime,D=vdur(),E=(typeof ui!=='undefined'&&ui==='en');
+  if(!hasVideo||t<.3||t>D-.3){toast(E?'Move the playhead inside the video first':'Поставьте маркер времени внутрь видео',3500);return}
+  if(VE.splits.some(q=>Math.abs(q-t)<.25))return;VE.splits.push(t);VE.splits.sort((a,b)=>a-b);vAfter()}
+function vDel(){const E=(typeof ui!=='undefined'&&ui==='en');
+  if(!VE.sel){toast(E?'Tap a clip in the video track first':'Сначала нажмите на кусок в дорожке видео',3500);return}
+  VE.cuts.push([VE.sel.a,VE.sel.b]);VE.sel=null;vAfter()}
+function vSetTr(k){const E=(typeof ui!=='undefined'&&ui==='en'),D=vdur();
+  const keys=VE.selJ!=null?[VE.selJ]:cutSpans().filter(q=>q[0]>=.05&&q[1]<=D-.05).map(q=>Math.round(q[1]*100));
+  if(!keys.length){toast(E?'Delete a clip first: a transition sits on the join':'Сначала удалите кусок: переход ставится на стык',4000);return}
+  keys.forEach(q=>{if(k)VE.tr[q]=k;else delete VE.tr[q]});vAfter()}
+function vdRow(row){
+  const E=(typeof ui!=='undefined'&&ui==='en'),x=(r,e)=>E?e:r;
+  const mk=(txt,fn,on)=>{const b=document.createElement('button');b.className='chip'+(on?' active':'');b.textContent=txt;b.onclick=fn;row.appendChild(b)};
+  mk(x('✂ Разрезать','✂ Split'),vSplit);
+  mk(x('🗑 Удалить кусок','🗑 Delete clip'),vDel);
+  mk(x('↩ Вернуть всё','↩ Restore all'),()=>{VE.cuts=[];VE.sel=null;vAfter()});
+  const lab=document.createElement('span');lab.className='dksv';lab.textContent=x('Переход:','Transition:');row.appendChild(lab);
+  const cur=VE.selJ!=null?(VE.tr[VE.selJ]||''):null;
+  [['',x('Нет','None')],['fade',x('Наплыв','Fade')],['dip',x('Из чёрного','Dip')],['zoom',x('Зум','Zoom')]].forEach(([k,l])=>mk(l,()=>vSetTr(k),cur===k));
+}
+function auRow(row){const E=(typeof ui!=='undefined'&&ui==='en'),b=document.createElement('div');b.className='dkaud';
+  b.innerHTML=VIC.a+'<span>'+(E?'Audio track editing':'Правка звуковой дорожки')+'</span><em>'+(E?'soon':'скоро')+'</em>';row.appendChild(b)}
+VE.hook=()=>{$('#dkbody').dataset.tab='vd';buildDock()};
+(function(){const E=(typeof ui!=='undefined'&&ui==='en');
+  $('#tabVd').textContent=E?'Video':'Видео';
+  $('#tabAu').innerHTML=VIC.a+'<span>'+(E?'Audio':'Звук')+'</span><em>'+(E?'soon':'скоро')+'</em>'})();
 function buildDock(){
   const body=$('#dkbody');if(!body)return;
   const tab=body.dataset.tab||'st',old=body.firstChild,same=body.dataset.last===tab,sl=(same&&old)?old.scrollLeft:0;
@@ -3024,7 +3108,7 @@ function buildDock(){
     document.querySelectorAll('#styles .sty').forEach(b=>{const c=b.cloneNode(true);c.onclick=()=>b.click();row.appendChild(c)});
   }else if(tab==='an'){
     ANIM.forEach(a=>{const b=mkAnimChip(a);if(a.k===anim)b.classList.add('active');b.onclick=()=>setAnim(a.k);row.appendChild(b)});
-  }else{
+  }else if(tab==='vd'){vdRow(row)}else if(tab==='au'){auRow(row)}else{
     const ci=document.createElement('input');ci.type='color';ci.className='dkcol';ci.value=$('#lcol').value;
     ci.oninput=()=>{const o=$('#lcol');o.value=ci.value;o.oninput({target:o})};row.appendChild(ci);
     document.querySelectorAll('#sw button').forEach(s=>{const c=document.createElement('button');c.className='dksw';c.style.background=s.style.background;c.onclick=()=>{s.click();buildDock()};row.appendChild(c)});
@@ -3075,7 +3159,7 @@ async function doSave(){
   if(!projName)projName=defName();
   const id=curId,d=recDur||totalT()||dur;
   const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size};
-  const data={id,name:projName,blob:recBlob,phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d};
+  const data={id,name:projName,blob:recBlob,vedit:{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr)},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d};
   dirty=false;
   try{
     await dbPut(meta,data);doSave.failed=false;
@@ -3097,7 +3181,7 @@ function closeProject(){
   try{v.pause()}catch(e){}
   if(url){URL.revokeObjectURL(url);url=null}
   v.removeAttribute('src');v.srcObject=null;
-  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';
+  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.sel=null;VE.selJ=null;curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';
   applyView();renderAll();updateButtons();setSt(t('stIdle'));
   initCam();
 }
@@ -3119,7 +3203,7 @@ async function openProject(id){
     if(!p.c.length&&p.t)buildPhrase(p);
     return p;
   });
-  map={};
+  map={};{const q=d.vedit||{};VE.cuts=(q.cuts||[]).map(c=>c.slice());VE.splits=(q.splits||[]).slice();VE.tr=Object.assign({},q.tr||{});VE.sel=null;VE.selJ=null}
   langLog=(d.langLog&&d.langLog.length)?d.langLog:[{t:0,l:lang}];
   Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1},d.custom||{});
   setStyle(d.style||'classic',true);setAnim(d.anim||'fade',true);
@@ -3861,7 +3945,7 @@ async function trOpen(id){
     try{stopCanvas()}catch(_){}
     if(stream){stream.getTracks().forEach(q=>q.stop());stream=null}
     crop=null;vcrop=null;if(url){try{URL.revokeObjectURL(url)}catch(_){}}
-    phrases=[];map={};curId=null;projName='';shareCache=null;recDur=0;
+    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;
     recBlob=f;url=URL.createObjectURL(f);
     v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
     updateButtons();renderAll();try{saveCurrent()}catch(_){}
