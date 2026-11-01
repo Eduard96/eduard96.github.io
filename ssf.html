@@ -489,8 +489,8 @@ body.flowon .icon-btn{border-radius:12px;width:40px;height:40px}
 #fsteps .done i{background:#10b981}#fsteps .cur i{background:linear-gradient(90deg,#8b5cf6,#ec4899)}#fsteps .cur span{color:#fff;font-weight:700}
 body.flowon .grid{grid-template-columns:minmax(0,1fr)}
 body.flowon .card.stage-wrap{background:none;border:0;box-shadow:none;padding:0}
-body.flowon .stage{width:min(100%,calc(34dvh*var(--ar)));border-radius:28px;border:1px solid var(--line)}
-body[data-step="1"].flowon .stage{width:min(100%,calc(48dvh*var(--ar)))}
+body.flowon:not(.recording) .stage{width:min(100%,calc(34dvh*var(--ar)));border-radius:28px;border:1px solid var(--line)}
+body[data-step="1"].flowon:not(.recording) .stage{width:min(100%,calc(48dvh*var(--ar)))}
 body.flowon #camInfo{top:10px;bottom:auto}
 body.flowon:not(.recording) #rec{display:none!important}
 #fstash{display:none}
@@ -581,6 +581,9 @@ body.recording #flow,body.recording #fsteps,body.editing #flow,body.editing #fst
 .trt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 4px;border-radius:14px;background:#1d1946;border:1.5px solid transparent;color:#fff;font-size:11px;font-weight:600;text-align:center}
 .trt canvas{width:100%;height:auto;border-radius:8px}.trt.on{border-color:var(--acc);background:#2a2260}
 .trft{display:flex;gap:8px;margin-top:10px}.trft .nb{flex:1}.trft .nb.on{border-color:var(--acc);background:#2a2260}
+
+body.recording .player.recfull .stage{width:min(100%,calc((100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))*var(--ar)));border-radius:22px}
+body.recording .player.recfull .cpanel{display:none}
 </style>
 </head>
 <body>
