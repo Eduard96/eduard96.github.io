@@ -480,11 +480,6 @@ body.flowon .grid{grid-template-columns:minmax(0,1fr);max-width:760px;margin:0 a
 body.flowon .stage{width:min(100%,calc(74dvh*var(--ar)))}
 body.flowon .stage-wrap{padding:6px}
 body.flowon .donate,body.flowon .grid>.col+.col .card:last-child{display:none}
-body[data-step="1"] .subhead,body[data-step="1"] #subWrap,body[data-step="1"] .fcard,body[data-step="1"] .grid>.col+.col{display:none!important}
-body[data-step="2"] .subhead,body[data-step="2"] #subWrap,body[data-step="2"] #cap,body[data-step="2"] #cap+.hint,body[data-step="2"] #exp,body[data-step="2"] #srt{display:none!important}
-body[data-step="4"] .subhead,body[data-step="4"] .fcard,body[data-step="4"] .grid>.col+.col{display:none!important}
-body[data-step="4"] #subWrap{display:grid!important}
-body[data-step="5"] .subhead,body[data-step="5"] #subWrap,body[data-step="5"] .grid>.col+.col,body[data-step="5"] #st,body[data-step="5"] #pass,body[data-step="5"] #cloud,body[data-step="5"] #btnTr,body[data-step="5"] #btnTts,body[data-step="5"] #add{display:none!important}
 #flow{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 30px rgba(60,40,120,.15);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:none}
 body.flowon #flow{display:block}
 body.recording #flow,body.editing #flow,body.viewing #flow{display:none!important}
@@ -501,7 +496,6 @@ body.recording #flow,body.editing #flow,body.viewing #flow{display:none!importan
 
 body.flowon #mbL,body.flowon #mbR,body.flowon #inst,body.flowon .dmenu,body.flowon .subhead,body.flowon .studio,body.flowon #cloud,body.flowon #btnTr,body.flowon #btnTts,body.flowon #add,body.flowon #srt,body.flowon .donate,body.flowon .grid>.col+.col .card:nth-child(n+2){display:none!important}
 body.flowon header{justify-content:center}
-body[data-step="2"] .grid>.col+.col{display:block!important}
 
 .rside{position:absolute;right:max(10px,2.5cqw);top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:12px}
 .rside .rb,.rside .selw .camsel,.rside #camFlip,.rside #mirr,.rside #zi,.rside #zo,.rside #lgb{width:50px;height:50px;min-height:50px;min-width:50px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);background:rgba(0,0,0,.45);color:#fff;backdrop-filter:blur(6px);display:grid;place-items:center;font-size:22px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.4)}
@@ -515,12 +509,28 @@ body[data-step="2"] .grid>.col+.col{display:block!important}
 .rside #lgb{font-size:14px}
 .rside #zr{display:none}
 body:not([data-step="1"]) .rside,body.flowon .camrow.xtra{display:none!important}
-body[data-step="1"] #langs{display:none!important}
 #flow #langs{display:flex!important;gap:6px;flex:none;margin:0}
 #flow #langs .chip{min-height:34px;padding:0 10px}#flow #langs kbd{display:none}
 
-body[data-step="3"] .subhead,body[data-step="3"] #subWrap,body[data-step="3"] .fcard,body[data-step="3"] .grid>.col+.col{display:none!important}
 #flow .fp[data-p="3"] .chip{min-height:38px}
+
+body.flowon .app{padding-bottom:calc(250px + env(safe-area-inset-bottom))}
+body.flowon .stage{width:min(100%,calc(62dvh*var(--ar)))}
+body.flowon header{justify-content:space-between}
+body.flowon #ed{display:none!important}
+#fstash{display:none}
+#fsheet{display:none;max-width:760px;margin:0 auto 10px;max-height:34dvh;overflow:auto;-webkit-overflow-scrolling:touch}
+#fsheet .card{box-shadow:none;margin-bottom:8px}
+#fsheet .subwrap{display:grid!important}
+#fsheet #cap{width:100%}
+#fedit{display:none;gap:8px;max-width:760px;margin:0 auto 10px}
+#fedit .btn{flex:1;font-size:13px;padding:0 6px}
+#fedit .btn.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
+#faudio .arow{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px}
+#faudio .arow span{min-width:92px;color:var(--mute);font-weight:600}
+#faudio .arow input[type=range]{flex:1;accent-color:var(--acc)}
+#hkm{display:none;position:absolute;right:14px;top:58px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:8px;gap:6px;flex-direction:column}
+#hkm.show{display:flex}
 </style>
 </head>
 <body>
@@ -558,7 +568,7 @@ body[data-step="3"] .subhead,body[data-step="3"] #subWrap,body[data-step="3"] .f
   </header>
 
   <div class="banner" id="banner"></div>
-<div id="flow"><div id="fp">
+<div id="flow"><div id="fsheet"></div><div id="fedit"><button class="btn" id="eVid"></button><button class="btn" id="eTxt"></button><button class="btn" id="eAud"></button></div><div id="fp">
  <div class="fp" data-p="1"><label class="btn primary" for="fUp" id="fUpL"></label><input type="file" id="fUp" accept="video/*" hidden><span class="fh" id="fh1"></span></div>
  <div class="fp" data-p="2"><span class="fh" id="fhT" style="flex:none;min-width:0"></span><button class="chip active" id="fTr0" data-tl=""></button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button><button class="btn sm" id="fRe"></button><button class="btn sm" id="fEd"></button><span class="fh" id="fh2"></span></div>
  <div class="fp" data-p="3"><button class="chip active" id="dNo"></button><button class="chip" id="dYes"></button><div id="dCtl" style="display:none;width:100%;flex-wrap:wrap;gap:8px;align-items:center"><select class="sel" id="dVoice" style="flex:1;min-width:130px;min-height:38px;font-size:13px"></select><label class="fh" style="display:flex;gap:6px;align-items:center;min-width:150px"><span id="dVolL"></span><input type="range" id="dVol" min="0" max="100" value="30" style="flex:1;accent-color:var(--acc)"></label><input id="dKey" type="password" autocomplete="off" placeholder="Gemini API key (AIza…)" class="sel" style="flex:1 1 100%;min-height:38px;font-size:13px"><button class="btn primary sm" id="dGen"></button></div><span class="fh" id="fh3"></span></div>
@@ -3707,8 +3717,8 @@ async function trOpen(id){
 /* ===== FLOW: мастер «Видео → Текст → Стиль → Поделиться» ===== */
 (function flow(){
   const en=(typeof ui!=='undefined'&&ui==='en');
-  const T=en?{up:'⬆ Upload video',h1:'…or tap the red button to record. Subtitles are written live.',tr0:'No translation',trl:'Translate:',re:'↻ Re-transcribe',ed:'✎ Edit timing',h2:'Check the text. Tap the video to play it.',h3:'Dub the (translated) text with an AI voice, mixed into the video.',h4:'Pick style, colour, font and motion. Tap the video to preview.',h5:'Write a caption below, export, then pick a network.',dNo:'No dub',dYes:'🎙 Dub',dGen:'Generate voice',dVol:'Original',dKey:'Needs a free Gemini key (aistudio.google.com).',dNeed:'Generate the voice first, or choose “No dub”.',dWork:'Voicing',dDone:'Voice ready. Press play to hear it.',dErr:'Voice generation failed.',dKeyNeed:'Paste a Gemini API key first.',nx:['Next →','Next →','Next →','Next →','🎬 Export'],nw:'↺ New',trErr:'Translation failed (offline or daily limit).',wait:'Please wait: processing…',tabs:['Video','Text','Dub','Style','Share'],ask:'Start over? The current video stays in Projects.',imp:'Video loaded. Recognising speech…',big:'File is over 500 MB.'}
-  :{up:'⬆ Загрузить видео',h1:'…или нажмите красную кнопку и снимайте. Субтитры пишутся сами.',tr0:'Без перевода',trl:'Перевод:',re:'↻ Распознать заново',ed:'✎ Править тайминг',h2:'Проверьте текст. Нажмите на видео, чтобы посмотреть.',h3:'Озвучьте (переведённый) текст голосом ИИ, он смешается с видео.',h4:'Стиль, цвет, шрифт и движение. Нажмите на видео для просмотра.',h5:'Напишите описание ниже, экспортируйте и выберите соцсеть.',dNo:'Без озвучки',dYes:'🎙 Озвучить',dGen:'Создать голос',dVol:'Оригинал',dKey:'Нужен бесплатный ключ Gemini (aistudio.google.com).',dNeed:'Сначала создайте голос или выберите «Без озвучки».',dWork:'Озвучиваю',dDone:'Голос готов. Нажмите «play», чтобы послушать.',dErr:'Не удалось создать голос.',dKeyNeed:'Сначала вставьте ключ Gemini.',nx:['Далее →','Далее →','Далее →','Далее →','🎬 Экспорт'],nw:'↺ Заново',trErr:'Не удалось перевести (нет сети или дневной лимит).',wait:'Подождите: идёт обработка…',tabs:['Видео','Текст','Озвучка','Стиль','Поделиться'],ask:'Начать заново? Текущее видео останется в проектах.',imp:'Видео загружено. Распознаю речь…',big:'Файл больше 500 МБ.'};
+  const T=en?{up:'⬆ Upload video',h1:'…or tap the red button to record. Subtitles are written live.',tr0:'No translation',trl:'Translate:',re:'↻ Re-transcribe',ed:'✎ Edit timing',h2:'Check the text. Tap the video to play it.',h3:'Dub the (translated) text with an AI voice, mixed into the video.',h4:'Pick style, colour, font and motion. Tap the video to preview.',h5:'Write a caption below, export, then pick a network.',dNo:'No dub',dYes:'🎙 Dub',dGen:'Generate voice',dVol:'Original',dKey:'Needs a free Gemini key (aistudio.google.com).',dNeed:'Generate the voice first, or choose “No dub”.',dWork:'Voicing',dDone:'Voice ready. Press play to hear it.',dErr:'Voice generation failed.',dKeyNeed:'Paste a Gemini API key first.',nx:['Next →','Next →','Next →','Next →','🎬 Export'],nw:'↺ New',trErr:'Translation failed (offline or daily limit).',wait:'Please wait: processing…',prj:'Projects',key:'API keys',eVid:'🎞 Video',eTxt:'📝 Text',eAud:'🔊 Audio',aOrig:'Original',aVoice:'Voice',aNone:'No voice yet: create it in step 3.',kG:'Gemini key (translate/voice)',kQ:'Groq key (phone speech)',tabs:['Video','Text','Dub','Style','Share'],ask:'Start over? The current video stays in Projects.',imp:'Video loaded. Recognising speech…',big:'File is over 500 MB.'}
+  :{up:'⬆ Загрузить видео',h1:'…или нажмите красную кнопку и снимайте. Субтитры пишутся сами.',tr0:'Без перевода',trl:'Перевод:',re:'↻ Распознать заново',ed:'✎ Править тайминг',h2:'Проверьте текст. Нажмите на видео, чтобы посмотреть.',h3:'Озвучьте (переведённый) текст голосом ИИ, он смешается с видео.',h4:'Стиль, цвет, шрифт и движение. Нажмите на видео для просмотра.',h5:'Напишите описание ниже, экспортируйте и выберите соцсеть.',dNo:'Без озвучки',dYes:'🎙 Озвучить',dGen:'Создать голос',dVol:'Оригинал',dKey:'Нужен бесплатный ключ Gemini (aistudio.google.com).',dNeed:'Сначала создайте голос или выберите «Без озвучки».',dWork:'Озвучиваю',dDone:'Голос готов. Нажмите «play», чтобы послушать.',dErr:'Не удалось создать голос.',dKeyNeed:'Сначала вставьте ключ Gemini.',nx:['Далее →','Далее →','Далее →','Далее →','🎬 Экспорт'],nw:'↺ Заново',trErr:'Не удалось перевести (нет сети или дневной лимит).',wait:'Подождите: идёт обработка…',prj:'Проекты',key:'API-ключи',eVid:'🎞 Видео',eTxt:'📝 Текст',eAud:'🔊 Звук',aOrig:'Оригинал',aVoice:'Голос',aNone:'Голоса пока нет: создайте его на шаге 3.',kG:'Ключ Gemini (озвучка)',kQ:'Ключ Groq (речь на телефоне)',tabs:['Видео','Текст','Озвучка','Стиль','Поделиться'],ask:'Начать заново? Текущее видео останется в проектах.',imp:'Видео загружено. Распознаю речь…',big:'Файл больше 500 МБ.'};
   const $$=q=>document.querySelector(q);
   document.body.classList.add('flowon');
   $$('#cap').closest('.card').classList.add('fcard');
@@ -3729,7 +3739,7 @@ async function trOpen(id){
     document.querySelectorAll('#flow .fp').forEach(p=>p.style.display=(+p.dataset.p===n)?'flex':'none');
     [...tabs.children].forEach((b,i)=>{b.className=(i+1===n)?'on':(i+1<n?'done':'')});
     $$('#fNext').textContent=T.nx[n-1];
-    if(n===5)shareBtns();
+    if(n===5)shareBtns();mode=null;fillSheet();
     window.scrollTo({top:0,behavior:'smooth'});
   }
   $$('#fNext').onclick=()=>{if(passing||busyT||VO.busy){toast(T.wait,3000);return}if(step===3&&VO.on&&(!VO.bufs||VO.sig!==vsig())){toast(T.dNeed,5000);return}if(step===1&&!hasVideo){$$('#fUp').click();return}
@@ -3782,14 +3792,14 @@ async function trOpen(id){
   let had=false;
   setInterval(()=>{
     if(hasVideo&&!had&&!recording&&!passing&&step===1)setStep(2);
-    if(!hasVideo&&step>1)setStep(1);
+    if(!hasVideo&&step>1)setStep(1);$$('#fedit').style.display=hasVideo?'flex':'none';
     had=hasVideo;
     if(step===5)document.querySelectorAll('#fshare .btn').forEach((b,i)=>{const o=document.querySelectorAll('#menuL .mi.sh')[i];if(o)b.disabled=o.disabled});
   },500);
 
 
   /* озвучка переведённого текста голосом Gemini и микс в видео */
-  const VO={on:false,bufs:null,sig:'',busy:false,vol:.3,srcs:[]};
+  const VO={on:false,bufs:null,sig:'',busy:false,vol:.3,gain:1,srcs:[]};
   const dv=$$('#dVoice');
   VOICES.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=x[0]+' · '+x[1];dv.appendChild(o)});
   try{dv.value=localStorage.getItem('substudio-fvoice')||'Kore'}catch(_){}
@@ -3800,10 +3810,10 @@ async function trOpen(id){
   function vpStart(){
     vpStop();
     if(!VO.on||!VO.bufs||!VO.bufs.length||exporting||passing||VO.sig!==vsig()||!AC)return;
-    const now=AC.currentTime,t0=v.currentTime;v.volume=VO.vol;
+    const now=AC.currentTime,t0=v.currentTime;v.volume=VO.vol;const gn=AC.createGain();gn.gain.value=VO.gain;gn.connect(AC.destination);
     VO.bufs.forEach(b=>{
       const d=b.buf.duration/b.rate;if(b.s+d<=t0)return;
-      const src=AC.createBufferSource();src.buffer=b.buf;src.playbackRate.value=b.rate;src.connect(AC.destination);
+      const src=AC.createBufferSource();src.buffer=b.buf;src.playbackRate.value=b.rate;src.connect(gn);
       if(b.s>=t0)src.start(now+(b.s-t0));else src.start(now,(t0-b.s)*b.rate);
       VO.srcs.push(src)});
   }
@@ -3841,7 +3851,7 @@ async function trOpen(id){
     try{
       if(VO.on&&VO.bufs&&VO.bufs.length&&VO.sig===vsig()&&tr&&ADEST&&xaMix){
         xaMix.gain.value=VO.vol;
-        const dg=AC.createGain();dg.connect(ADEST);
+        const dg=AC.createGain();dg.gain.value=VO.gain;dg.connect(ADEST);
         v.addEventListener('play',()=>{
           const t0=AC.currentTime+0.05,sp=cutSpans();
           VO.bufs.forEach(b=>{const src=AC.createBufferSource();src.buffer=b.buf;src.playbackRate.value=b.rate;src.connect(dg);src.start(t0+shiftT(b.s,sp));VO.srcs.push(src)});
@@ -3851,6 +3861,48 @@ async function trOpen(id){
     return tr;
   };
   setDub(false);
+
+  /* нижняя панель: видео — это всё, что на странице; остальное открывается из панели */
+  let mode=null;
+  const sheet=$$('#fsheet'),stash=document.createElement('div');stash.id='fstash';document.body.appendChild(stash);
+  const capHint=$$('#cap').nextElementSibling,listCard=$$('#list').closest('.card');
+  const faudio=document.createElement('div');faudio.id='faudio';
+  [$$('.fcard'),$$('#subWrap'),$$('.subhead'),$$('.grid>.col+.col')].forEach(n=>n&&stash.appendChild(n));
+  stash.appendChild(listCard);
+  function fillSheet(){
+    const by=m=>m==='text'?[listCard]:m==='audio'?[faudio]:step===2?[$$('#st'),$$('#pass')]:step===4?[$$('#subWrap')]:step===5?[$$('#cap'),capHint]:[];
+    [...sheet.children].forEach(c=>stash.appendChild(c));
+    const nodes=by(mode);nodes.forEach(n=>sheet.appendChild(n));
+    sheet.style.display=nodes.length?'block':'none';
+    $$('#eTxt').classList.toggle('on',mode==='text');$$('#eAud').classList.toggle('on',mode==='audio');
+  }
+  function renderAudio(){
+    faudio.textContent='';
+    const row=(l,val,fn)=>{const r=document.createElement('div');r.className='arow';const sp=document.createElement('span');sp.textContent=l;const i=document.createElement('input');i.type='range';i.min=0;i.max=100;i.value=Math.round(val*100);i.oninput=()=>fn(i.value/100);r.append(sp,i);faudio.appendChild(r)};
+    row(T.aOrig,VO.vol,x=>{VO.vol=x;$$('#dVol').value=x*100;if(!v.paused)vpStart()});
+    row(T.aVoice,VO.gain,x=>{VO.gain=x;if(!v.paused)vpStart()});
+    if(!VO.bufs||!VO.bufs.length){const h=document.createElement('div');h.className='fh';h.textContent=T.aNone;faudio.appendChild(h);return}
+    VO.bufs.forEach(b=>{
+      const r=document.createElement('div');r.className='arow';const sp=document.createElement('span');
+      const upd=()=>{sp.textContent=fmt(b.s)};upd();
+      const mk=(tx,d)=>{const x=document.createElement('button');x.className='btn sm';x.textContent=tx;x.onclick=()=>{b.s=Math.max(0,b.s+d);upd();if(!v.paused)vpStart()};return x};
+      r.append(sp,mk('−0.1',-.1),mk('+0.1',.1));faudio.appendChild(r)});
+  }
+  $$('#eVid').textContent=T.eVid;$$('#eTxt').textContent=T.eTxt;$$('#eAud').textContent=T.eAud;
+  $$('#eVid').onclick=()=>$$('#ed').click();
+  $$('#eTxt').onclick=()=>{mode=mode==='text'?null:'text';fillSheet()};
+  $$('#eAud').onclick=()=>{mode=mode==='audio'?null:'audio';if(mode)renderAudio();fillSheet()};
+  /* шапка: проекты и ключи */
+  (function(){
+    const hd=document.querySelector('header'),g=document.createElement('div');g.style.cssText='display:flex;gap:8px';
+    const b1=document.createElement('button');b1.className='icon-btn';b1.textContent='📁';b1.title=T.prj;b1.onclick=()=>$$('#mPrj').click();
+    const b2=document.createElement('button');b2.className='icon-btn';b2.textContent='🔑';b2.title=T.key;
+    const m=document.createElement('div');m.id='hkm';
+    [[T.kG,'#mGem'],[T.kQ,'#mKey']].forEach(([l,q])=>{const x=document.createElement('button');x.className='btn';x.textContent=l;x.onclick=()=>{m.classList.remove('show');$$(q).click()};m.appendChild(x)});
+    b2.onclick=e=>{e.stopPropagation();m.classList.toggle('show')};
+    document.addEventListener('click',()=>m.classList.remove('show'));
+    g.append(b1,b2);hd.appendChild(g);document.body.appendChild(m);
+  })();
   /* камера: управление справа на самом кадре, у большого пальца */
   (function(){
     const st=$$('#stage'),rs=document.createElement('div');rs.className='rside';
@@ -3867,7 +3919,7 @@ async function trOpen(id){
     /* выбор языка речи уходит на шаг «Текст» */
     const l=$$('#langs'),p2=$$('#flow .fp[data-p="2"]');if(l&&p2)p2.insertBefore(l,p2.firstChild);
   })();
-  setStep(1);
+  fillSheet();setStep(1);
 })();
 (function init(){audioPlayback();
   applyLang();
