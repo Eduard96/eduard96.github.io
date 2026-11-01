@@ -474,63 +474,76 @@ body.viewing{overflow:hidden}
 .stpl .pb.pp{width:54px;min-height:54px;border-radius:18px;font-size:22px;border:0;background:linear-gradient(145deg,#8b5cf6,#5b34c9);box-shadow:0 6px 18px rgba(124,58,237,.5)}
 .stpl .ptm{font-size:15px;color:#d8d4f5;white-space:nowrap}
 
-/* ===== FLOW: пошаговый режим ===== */
-body.flowon .app{padding-bottom:calc(200px + env(safe-area-inset-bottom))}
-body.flowon .grid{grid-template-columns:minmax(0,1fr);max-width:760px;margin:0 auto}
-body.flowon .stage{width:min(100%,calc(74dvh*var(--ar)))}
-body.flowon .stage-wrap{padding:6px}
-body.flowon .donate,body.flowon .grid>.col+.col .card:last-child{display:none}
-#flow{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 30px rgba(60,40,120,.15);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:none}
-body.flowon #flow{display:block}
-body.recording #flow,body.editing #flow,body.viewing #flow{display:none!important}
-#flow .fp{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;max-width:760px;margin-left:auto;margin-right:auto}
-#flow .fh{font-size:12px;color:var(--mute);flex:1;min-width:140px}
-#fnav{display:flex;gap:8px;align-items:center;max-width:760px;margin:0 auto}
-#ftabs{display:flex;gap:6px;flex:1;justify-content:center}
-#ftabs button{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);font-weight:800;font-size:13px;color:var(--mute)}
-#ftabs button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff}
-#ftabs button.done{border-color:var(--ok);color:var(--ok)}
-#fshare{display:flex;gap:6px;flex-wrap:wrap;width:100%}
-#fshare .btn{flex:1;min-width:110px;font-size:13px}
-#fUpL{cursor:pointer}
-
-body.flowon #mbL,body.flowon #mbR,body.flowon #inst,body.flowon .dmenu,body.flowon .subhead,body.flowon .studio,body.flowon #cloud,body.flowon #btnTr,body.flowon #btnTts,body.flowon #add,body.flowon #srt,body.flowon .donate,body.flowon .grid>.col+.col .card:nth-child(n+2){display:none!important}
-body.flowon header{justify-content:center}
-
-.rside{position:absolute;right:max(10px,2.5cqw);top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:12px}
-.rside .rb,.rside .selw .camsel,.rside #camFlip,.rside #mirr,.rside #zi,.rside #zo,.rside #lgb{width:50px;height:50px;min-height:50px;min-width:50px;padding:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.7);background:rgba(0,0,0,.45);color:#fff;backdrop-filter:blur(6px);display:grid;place-items:center;font-size:22px;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.4)}
-.rside .selw{position:relative;width:50px;margin:0}
-.rside #camBtn{font-size:0!important}.rside #camBtn::before{content:"📷";font-size:22px}
-.rside #camBtn::after,.rside #mirr::after{display:none}
-.rside #mirr{font-size:0!important}.rside #mirr::before{content:"⇋";font-size:24px}
-.rside #mirr.active,.rside #mirr.on{background:rgba(124,58,237,.85)}
-.rside .cammenu{min-width:210px;left:auto!important;right:calc(100% + 10px)!important;top:0!important;bottom:auto!important}
-.rside #zv{color:#fff;font-size:13px;font-weight:800;text-shadow:0 1px 4px #000}
-.rside #lgb{font-size:14px}
-.rside #zr{display:none}
-body:not([data-step="1"]) .rside,body.flowon .camrow.xtra{display:none!important}
-#flow #langs{display:flex!important;gap:6px;flex:none;margin:0}
-#flow #langs .chip{min-height:34px;padding:0 10px}#flow #langs kbd{display:none}
-
-#flow .fp[data-p="3"] .chip{min-height:38px}
-
-body.flowon .app{padding-bottom:calc(250px + env(safe-area-inset-bottom))}
-body.flowon .stage{width:min(100%,calc(62dvh*var(--ar)))}
-body.flowon header{justify-content:space-between}
-body.flowon #ed{display:none!important}
+/* ===== Subtitle Studio: редизайн ===== */
+body.flowon{--bg:#0b0919;--card:#171433;--ink:#f4f2ff;--mute:#8f8bb5;--line:#2b2756;--chip:#1d1946;--acc:#8b5cf6;--acc2:#ec4899;--shadow:none;color-scheme:dark;
+ background:radial-gradient(700px 420px at 15% -5%,rgba(124,58,237,.35),transparent 60%),radial-gradient(600px 400px at 100% 10%,rgba(236,72,153,.18),transparent 60%),#0b0919}
+body.flowon .app{max-width:560px;padding-bottom:0}
+body.flowon #mbL,body.flowon #mbR,body.flowon #inst,body.flowon .dmenu,body.flowon .studio,body.flowon .donate,body.flowon #ed,body.flowon #spd{display:none!important}
+body.flowon header{justify-content:space-between;padding:6px 2px 10px}
+body.flowon .logo i{position:relative}body.flowon .logo i::after{content:"";width:12px;height:12px;border-radius:50%;background:#fff;display:block}
+body.flowon .icon-btn{border-radius:12px;width:40px;height:40px}
+#fsteps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 2px 12px}
+#fsteps button{display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:center}
+#fsteps i{display:block;height:4px;border-radius:4px;background:#2b2756}
+#fsteps span{font-size:11px;color:var(--mute)}
+#fsteps .done i{background:#10b981}#fsteps .cur i{background:linear-gradient(90deg,#8b5cf6,#ec4899)}#fsteps .cur span{color:#fff;font-weight:700}
+body.flowon .grid{grid-template-columns:minmax(0,1fr)}
+body.flowon .card.stage-wrap{background:none;border:0;box-shadow:none;padding:0}
+body.flowon .stage{width:min(100%,calc(34dvh*var(--ar)));border-radius:28px;border:1px solid var(--line)}
+body[data-step="1"].flowon .stage{width:min(100%,calc(48dvh*var(--ar)))}
+body.flowon #camInfo{top:10px;bottom:auto}
+body.flowon:not(.recording) #rec{display:none!important}
 #fstash{display:none}
-#fsheet{display:none;max-width:760px;margin:0 auto 10px;max-height:34dvh;overflow:auto;-webkit-overflow-scrolling:touch}
-#fsheet .card{box-shadow:none;margin-bottom:8px}
-#fsheet .subwrap{display:grid!important}
-#fsheet #cap{width:100%}
-#fedit{display:none;gap:8px;max-width:760px;margin:0 auto 10px}
-#fedit .btn{flex:1;font-size:13px;padding:0 6px}
-#fedit .btn.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
-#faudio .arow{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px}
-#faudio .arow span{min-width:92px;color:var(--mute);font-weight:600}
-#faudio .arow input[type=range]{flex:1;accent-color:var(--acc)}
-#hkm{display:none;position:absolute;right:14px;top:58px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:8px;gap:6px;flex-direction:column}
-#hkm.show{display:flex}
+.vedit{position:absolute;top:10px;right:10px;z-index:4;width:38px;height:38px;border-radius:12px;background:rgba(0,0,0,.55);color:#fff;display:none;place-items:center;font-size:18px;backdrop-filter:blur(6px)}
+.rside{position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 5px;border-radius:22px;background:rgba(18,14,44,.82);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08)}
+.rside button,.rside .camsel{width:38px;height:38px;min-height:38px;min-width:38px;padding:0;border:0;border-radius:50%;background:transparent;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:700}
+.rside #zb{background:#8b5cf6;font-size:12px}.rside #lgb{font-size:12px}
+.rside .selw{position:relative;width:38px;margin:0}
+.rside #camBtn{font-size:0!important}.rside #camBtn::before{content:"📷";font-size:19px}
+.rside #mirr{font-size:0!important}.rside #mirr::before{content:"⇋";font-size:21px}.rside #mirr.active{background:rgba(139,92,246,.6)}
+.rside .cammenu{min-width:210px;left:auto!important;right:calc(100% + 10px)!important;top:0!important;bottom:auto!important}
+body:not([data-step="1"]) .rside,body.flowon .camrow.xtra{display:none!important}
+#flow{position:fixed;left:0;right:0;bottom:0;z-index:25;max-width:560px;margin:0 auto;background:#15122e;border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom)}
+body.recording #flow,body.recording #fsteps,body.editing #flow,body.editing #fsteps,body.viewing #flow,body.viewing #fsteps{display:none!important}
+#fbody{padding:14px 16px 4px;overflow:auto;max-height:40dvh;-webkit-overflow-scrolling:touch}
+#flow .fp{display:none}
+.sec{font-size:11px;letter-spacing:.12em;color:var(--mute);text-transform:uppercase;margin:14px 0 8px;font-weight:700}
+.sec.balrow{display:flex;justify-content:space-between}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#0e0c24;border-radius:14px}
+.seg2 button{padding:12px;border-radius:11px;font-weight:600;color:var(--mute);border:1.5px solid transparent}
+.seg2 .on{background:#1d1946;border-color:var(--acc);color:#fff}
+.recw{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 0 8px}
+#fRec{width:78px;height:78px;border-radius:50%;border:4px solid #fff;display:grid;place-items:center;padding:0}
+#fRec span{width:60px;height:60px;border-radius:50%;background:#ef4444}
+#fRec:active span{transform:scale(.9)}
+.fh{font-size:13px;color:var(--mute);text-align:center}
+.rowt{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#flow #st{margin:0;padding:6px 12px;border-radius:99px;background:#1d1946;color:var(--mute);font-size:13px;font-weight:600}
+#flow #st.ok{background:rgba(16,185,129,.15);color:#34d399}#flow #st.err{background:rgba(239,68,68,.15);color:#f87171}
+#langHost .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:#0e0c24;border-radius:14px}
+#langHost .chip{border:1.5px solid transparent;background:transparent;border-radius:11px;min-height:40px}#langHost .chip.active{background:#1d1946;border-color:var(--acc);color:#fff}#langHost kbd{display:none}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap}
+.chiprow .chip{border-radius:99px;padding:8px 18px;background:#1d1946;border:1.5px solid transparent;color:#c4c0ec}.chiprow .chip.active{border-color:var(--acc);color:#fff}
+#listHost .plist{max-height:none}
+.vsel{background:#1d1946;border-radius:16px;padding:4px 12px}
+#dVoice{width:100%;background:transparent;border:0;color:#fff;font-size:15px;font-weight:600;min-height:46px}#dVoice option{color:#000}
+#dBal{width:100%;accent-color:var(--acc)}
+#dKey{margin-top:10px;width:100%;min-height:40px;font-size:13px}
+.dbox{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding:12px;border-radius:14px;background:#1d1946;font-size:14px}
+.dbox.err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#fca5a5}.dbox.ok{color:#34d399}
+#flow details{margin-top:12px;color:var(--mute);font-size:13px}
+#faudio .arow{display:flex;align-items:center;gap:8px;padding:5px 0}#faudio .arow span{flex:1}
+#styleHost .subwrap{display:grid!important;gap:6px}
+#styleHost .card{background:none;border:0;box-shadow:none;padding:0}
+#cap{width:100%;min-height:96px;border:1.5px solid var(--acc);background:#0e0c24;color:#fff;border-radius:14px}
+#capHost .hint{display:none}
+#fshare{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-bottom:6px}
+#fshare .btn{flex-direction:column;height:92px;border-radius:16px;background:#1d1946;border:0;font-size:13px;gap:6px;color:#fff;display:flex;align-items:center;justify-content:center}
+#fshare .ic{width:36px;height:36px}
+#fnav{display:flex;gap:10px;padding:12px 16px 14px}
+.nb{height:52px;border-radius:16px;background:#1d1946;border:1px solid var(--line);color:#fff;font-weight:700;padding:0 16px}
+.nb.sq{width:56px;padding:0;font-size:22px}.nb.sm{height:34px;padding:0 12px;font-size:13px}
+.nb.pri{flex:1;border:0;background:linear-gradient(90deg,#8b5cf6,#ec4899)}.nb.pri:disabled{opacity:.4}
 </style>
 </head>
 <body>
@@ -568,17 +581,11 @@ body.flowon #ed{display:none!important}
   </header>
 
   <div class="banner" id="banner"></div>
-<div id="flow"><div id="fsheet"></div><div id="fedit"><button class="btn" id="eVid"></button><button class="btn" id="eTxt"></button><button class="btn" id="eAud"></button></div><div id="fp">
- <div class="fp" data-p="1"><label class="btn primary" for="fUp" id="fUpL"></label><input type="file" id="fUp" accept="video/*" hidden><span class="fh" id="fh1"></span></div>
- <div class="fp" data-p="2"><span class="fh" id="fhT" style="flex:none;min-width:0"></span><button class="chip active" id="fTr0" data-tl=""></button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button><button class="btn sm" id="fRe"></button><button class="btn sm" id="fEd"></button><span class="fh" id="fh2"></span></div>
- <div class="fp" data-p="3"><button class="chip active" id="dNo"></button><button class="chip" id="dYes"></button><div id="dCtl" style="display:none;width:100%;flex-wrap:wrap;gap:8px;align-items:center"><select class="sel" id="dVoice" style="flex:1;min-width:130px;min-height:38px;font-size:13px"></select><label class="fh" style="display:flex;gap:6px;align-items:center;min-width:150px"><span id="dVolL"></span><input type="range" id="dVol" min="0" max="100" value="30" style="flex:1;accent-color:var(--acc)"></label><input id="dKey" type="password" autocomplete="off" placeholder="Gemini API key (AIza…)" class="sel" style="flex:1 1 100%;min-height:38px;font-size:13px"><button class="btn primary sm" id="dGen"></button></div><span class="fh" id="fh3"></span></div>
- <div class="fp" data-p="4"><span class="fh" id="fh4"></span></div>
- <div class="fp" data-p="5"><div id="fshare"></div><span class="fh" id="fh5"></span></div>
-</div>
-<div id="fnav"><button class="btn sm" id="fNew"></button><div id="ftabs"></div><button class="btn primary" id="fNext"></button></div></div>
+<div id="flow"></div>
 
 
-  <div class="grid">
+  <div id="fsteps"></div>
+<div class="grid">
     <div class="col">
       <div class="card stage-wrap">
         <div class="player" id="player">
@@ -3714,105 +3721,84 @@ async function trOpen(id){
 
 /* ---------- старт ---------- */
 
-/* ===== FLOW: мастер «Видео → Текст → Стиль → Поделиться» ===== */
+/* ===== Subtitle Studio: мастер из 5 шагов ===== */
 (function flow(){
-  const en=(typeof ui!=='undefined'&&ui==='en');
-  const T=en?{up:'⬆ Upload video',h1:'…or tap the red button to record. Subtitles are written live.',tr0:'No translation',trl:'Translate:',re:'↻ Re-transcribe',ed:'✎ Edit timing',h2:'Check the text. Tap the video to play it.',h3:'Dub the (translated) text with an AI voice, mixed into the video.',h4:'Pick style, colour, font and motion. Tap the video to preview.',h5:'Write a caption below, export, then pick a network.',dNo:'No dub',dYes:'🎙 Dub',dGen:'Generate voice',dVol:'Original',dKey:'Needs a free Gemini key (aistudio.google.com).',dNeed:'Generate the voice first, or choose “No dub”.',dWork:'Voicing',dDone:'Voice ready. Press play to hear it.',dErr:'Voice generation failed.',dKeyNeed:'Paste a Gemini API key first.',nx:['Next →','Next →','Next →','Next →','🎬 Export'],nw:'↺ New',trErr:'Translation failed (offline or daily limit).',wait:'Please wait: processing…',prj:'Projects',key:'API keys',eVid:'🎞 Video',eTxt:'📝 Text',eAud:'🔊 Audio',aOrig:'Original',aVoice:'Voice',aNone:'No voice yet: create it in step 3.',kG:'Gemini key (translate/voice)',kQ:'Groq key (phone speech)',tabs:['Video','Text','Dub','Style','Share'],ask:'Start over? The current video stays in Projects.',imp:'Video loaded. Recognising speech…',big:'File is over 500 MB.'}
-  :{up:'⬆ Загрузить видео',h1:'…или нажмите красную кнопку и снимайте. Субтитры пишутся сами.',tr0:'Без перевода',trl:'Перевод:',re:'↻ Распознать заново',ed:'✎ Править тайминг',h2:'Проверьте текст. Нажмите на видео, чтобы посмотреть.',h3:'Озвучьте (переведённый) текст голосом ИИ, он смешается с видео.',h4:'Стиль, цвет, шрифт и движение. Нажмите на видео для просмотра.',h5:'Напишите описание ниже, экспортируйте и выберите соцсеть.',dNo:'Без озвучки',dYes:'🎙 Озвучить',dGen:'Создать голос',dVol:'Оригинал',dKey:'Нужен бесплатный ключ Gemini (aistudio.google.com).',dNeed:'Сначала создайте голос или выберите «Без озвучки».',dWork:'Озвучиваю',dDone:'Голос готов. Нажмите «play», чтобы послушать.',dErr:'Не удалось создать голос.',dKeyNeed:'Сначала вставьте ключ Gemini.',nx:['Далее →','Далее →','Далее →','Далее →','🎬 Экспорт'],nw:'↺ Заново',trErr:'Не удалось перевести (нет сети или дневной лимит).',wait:'Подождите: идёт обработка…',prj:'Проекты',key:'API-ключи',eVid:'🎞 Видео',eTxt:'📝 Текст',eAud:'🔊 Звук',aOrig:'Оригинал',aVoice:'Голос',aNone:'Голоса пока нет: создайте его на шаге 3.',kG:'Ключ Gemini (озвучка)',kQ:'Ключ Groq (речь на телефоне)',tabs:['Видео','Текст','Озвучка','Стиль','Поделиться'],ask:'Начать заново? Текущее видео останется в проектах.',imp:'Видео загружено. Распознаю речь…',big:'Файл больше 500 МБ.'};
-  const $$=q=>document.querySelector(q);
-  document.body.classList.add('flowon');
-  $$('#cap').closest('.card').classList.add('fcard');
-  $$('#fUpL').textContent=T.up;$$('#fh1').textContent=T.h1;$$('#fTr0').textContent=T.tr0;$$('#fhT').textContent=T.trl;
-  $$('#fRe').textContent=T.re;$$('#fEd').textContent=T.ed;$$('#fh2').textContent=T.h2;$$('#fh3').textContent=T.h3;$$('#fh4').textContent=T.h4;$$('#fh5').textContent=T.h5;$$('#dNo').textContent=T.dNo;$$('#dYes').textContent=T.dYes;$$('#dGen').textContent=T.dGen;$$('#dVolL').textContent=T.dVol;$$('#fNew').textContent=T.nw;
-  const tabs=$$('#ftabs');
-  [1,2,3,4,5].forEach(n=>{const b=document.createElement('button');b.textContent=n;b.title=T.tabs[n-1];b.onclick=()=>setStep(n);tabs.appendChild(b)});
-  let step=1;
+  const E=(typeof ui!=='undefined'&&ui==='en'),x=(r,e)=>E?e:r,$$=q=>document.querySelector(q),B=document.body;
+  B.classList.add('flowon');
+  const lgo=document.querySelector('.logo');if(lgo)lgo.innerHTML='<i></i>Subtitle Studio';
+  const ST=[x('Видео','Video'),x('Текст','Text'),x('Озвучка','Dub'),x('Стиль','Style'),x('Экспорт','Export')];
+  $$('#fsteps').innerHTML=ST.map((l,i)=>'<button data-n="'+(i+1)+'"><i></i><span>'+l+'</span></button>').join('');
+  $$('#flow').innerHTML=`<div id="fbody">
+ <div class="fp" data-p="1"><div class="seg2"><button class="on" id="m1R">${x('Запись','Record')}</button><button id="m1U">${x('Загрузить видео','Upload video')}</button></div><input type="file" id="fUp" accept="video/*" hidden><div class="recw"><button id="fRec" aria-label="Record"><span></span></button><div class="fh">${x('Нажмите, чтобы снимать — субтитры появляются сразу','Tap to record — subtitles appear live')}</div></div></div>
+ <div class="fp" data-p="2"><div class="rowt" id="stHost"></div><div class="sec">${x('Язык речи','Spoken language')}</div><div id="langHost"></div><div class="sec">${x('Перевод','Translate to')}</div><div class="chiprow"><button class="chip active" data-tl="">${x('Нет','None')}</button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button></div><div class="sec">${x('Текст','Transcript')}</div><div id="listHost"></div></div>
+ <div class="fp" data-p="3"><div class="seg2"><button class="on" id="dNo">${x('Без озвучки','No dub')}</button><button id="dYes">${x('🎙 Озвучить','🎙 Dub')}</button></div><div id="dCtl" style="display:none"><div class="sec">${x('Голос','Voice')}</div><div class="vsel"><select id="dVoice"></select></div><div class="sec balrow"><span>${x('Оригинал','Original')}</span><span>${x('Озвучка','Dub')}</span></div><input type="range" id="dBal" min="0" max="100" value="70"><input id="dKey" type="password" autocomplete="off" placeholder="Gemini API key (AIza…)" class="sel"><div class="dbox" id="dBox" style="display:none"><span id="fh3"></span><button class="nb sm" id="dRetry">${x('Повторить','Retry')}</button></div><details id="dDet"><summary>${x('Тайминг голоса','Voice timing')}</summary><div id="faudio"></div></details></div></div>
+ <div class="fp" data-p="4" id="styleHost"></div>
+ <div class="fp" data-p="5"><div class="sec">${x('Описание','Caption')}</div><div id="capHost"></div><div class="sec">${x('Поделиться','Share to')}</div><div id="fshare"></div></div>
+</div>
+<div id="fnav"><button class="nb sq" id="fBack"></button><button class="nb" id="fAct"></button><button class="nb pri" id="fNext"></button></div>`;
+  /* существующие блоки приложения переезжают в панели шагов, остальное прячется */
+  const capCard=$$('#cap').closest('.card'),listCard=$$('#list').closest('.card'),capHint=$$('#cap').nextElementSibling;
+  const stash=document.createElement('div');stash.id='fstash';B.appendChild(stash);
+  $$('#stHost').append($$('#st'),$$('#pass'));$$('#langHost').appendChild($$('#langs'));$$('#listHost').appendChild($$('#list'));
+  $$('#styleHost').appendChild($$('#subWrap'));$$('#capHost').append($$('#cap'),capHint);
+  [capCard,listCard,$$('.subhead'),$$('.grid>.col+.col')].forEach(n=>n&&stash.appendChild(n));
+  let step=1,mode=0;
+  const panels=[...document.querySelectorAll('#flow .fp')],sb=[...document.querySelectorAll('#fsteps button')];
   function shareBtns(){
     const box=$$('#fshare');box.textContent='';
-    document.querySelectorAll('#menuL .mi.sh').forEach(o=>{
-      const b=document.createElement('button');b.className='btn';b.innerHTML=o.innerHTML;b.disabled=o.disabled;
-      b.onclick=()=>{closeMenus();o.click()};box.appendChild(b)});
+    document.querySelectorAll('#menuL .mi.sh').forEach(o=>{const b=document.createElement('button');b.className='btn';b.innerHTML=o.innerHTML;b.disabled=o.disabled;b.onclick=()=>{closeMenus();o.click()};box.appendChild(b)});
   }
   function setStep(n){
-    if(n>1&&!hasVideo){n=1}
-    step=n;document.body.dataset.step=n;
-    document.querySelectorAll('#flow .fp').forEach(p=>p.style.display=(+p.dataset.p===n)?'flex':'none');
-    [...tabs.children].forEach((b,i)=>{b.className=(i+1===n)?'on':(i+1<n?'done':'')});
-    $$('#fNext').textContent=T.nx[n-1];
-    if(n===5)shareBtns();mode=null;fillSheet();
-    window.scrollTo({top:0,behavior:'smooth'});
+    if(n>1&&!hasVideo)n=1;
+    step=n;B.dataset.step=n;
+    panels.forEach(p=>p.style.display=(+p.dataset.p===n)?'block':'none');
+    sb.forEach((b,i)=>b.className=(i+1===n)?'cur':(i+1<n?'done':''));
+    $$('#fBack').textContent=n===1?'↺':'‹';
+    const a=$$('#fAct');a.style.display=(n===2||(n===3&&VO.on))?'':'none';
+    a.textContent=n===2?x('↻ Заново','↻ Re-transcribe'):x('Создать голос','Generate voice');
+    $$('#fNext').textContent=n===5?x('🎬 Экспорт видео','🎬 Export video'):x('Далее →','Next →');
+    if(n===5)shareBtns();
+    $$('#fbody').scrollTop=0;
   }
-  $$('#fNext').onclick=()=>{if(passing||busyT||VO.busy){toast(T.wait,3000);return}if(step===3&&VO.on&&(!VO.bufs||VO.sig!==vsig())){toast(T.dNeed,5000);return}if(step===1&&!hasVideo){$$('#fUp').click();return}
-    if(step<5)setStep(step+1);else if(!$$('#exp').disabled)$$('#exp').click()};
-  $$('#fNew').onclick=()=>{if(hasVideo&&!confirm(T.ask))return;if(hasVideo)closeProject();VO.bufs=null;setDub(false);orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0));setStep(1)};
-  $$('#fEd').onclick=()=>$$('#ed').click();
-  $$('#fRe').onclick=()=>{orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0));transcribe(false)};
-  /* перевод субтитров прямо в мастере (бесплатный сервис MyMemory, без ключа) */
+  sb.forEach(b=>b.onclick=()=>setStep(+b.dataset.n));
+  const resetTr=()=>{orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0))};
+  /* перевод субтитров (MyMemory, без ключа) */
   const tchips=[...document.querySelectorAll('#flow [data-tl]')];let orig=null,busyT=false;
-  const lc=x=>String(x||'ru').split('-')[0].toLowerCase();
+  const lc=q=>String(q||'ru').split('-')[0].toLowerCase();
   async function mm(q,from,to){
     const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(q)+'&langpair='+from+'|'+to);
-    const j=await r.json();const x=j&&j.responseData&&j.responseData.translatedText;
-    if(!x||(j.responseStatus&&+j.responseStatus!==200))throw new Error('tr');return x}
+    const j=await r.json();const t=j&&j.responseData&&j.responseData.translatedText;
+    if(!t||(j.responseStatus&&+j.responseStatus!==200))throw new Error('tr');return t}
   async function translateTo(code,chip){
     if(busyT||passing||!phrases.some(p=>p.t))return;
     if(!orig)orig=phrases.map(p=>[p,p.t,p.raw]);
-    tchips.forEach(c=>c.classList.toggle('active',c===chip));
-    busyT=true;const h=$$('#fh2'),h0=h.textContent;let n=0;
+    tchips.forEach(c=>c.classList.toggle('active',c===chip));busyT=true;let n=0;
     try{
       for(const [p,t0,r0] of orig){
-        if(!code){p.t=t0;p.raw=r0}
-        else if(lc(p.l||lang)!==code){p.t=await mm(t0,lc(p.l||lang),code);p.raw=p.t}
-        else{p.t=t0;p.raw=r0}
-        buildPhrase(p);h.textContent=(++n)+' / '+orig.length;
+        if(!code||lc(p.l||lang)===code){p.t=t0;p.raw=r0}else{p.t=await mm(t0,lc(p.l||lang),code);p.raw=p.t}
+        buildPhrase(p);toast((++n)+' / '+orig.length,900);
       }
       save();renderAll();
-    }catch(e){toast(T.trErr,7000);save();renderAll()}
-    busyT=false;h.textContent=h0;
+    }catch(e){toast(x('Не удалось перевести (нет сети или дневной лимит).','Translation failed (offline or daily limit).'),7000);save();renderAll()}
+    busyT=false;
   }
   tchips.forEach(c=>c.onclick=()=>translateTo(c.dataset.tl,c));
-  /* загрузка видео прямо в основной конвейер */
-  $$('#fUp').onchange=e=>{
-    const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
-    if(recording||exporting||passing)return;
-    if(f.size>500*1048576){toast(T.big,6000);return}
-    try{stopCanvas()}catch(_){}
-    if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
-    crop=null;vcrop=null;
-    if(url){try{URL.revokeObjectURL(url)}catch(_){}}
-    phrases=[];map={};curId=null;projName='';shareCache=null;recDur=0;
-    recBlob=f;url=URL.createObjectURL(f);
-    v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
-    updateButtons();renderAll();
-    try{saveCurrent()}catch(_){}
-    VO.bufs=null;setDub(false);orig=null;tchips.forEach((c,i)=>c.classList.toggle('active',i===0));setStep(2);toast(T.imp,5000);
-    setTimeout(()=>transcribe(true),700);
-  };
-  /* после съёмки сразу идём к тексту; если видео закрыли — возвращаемся к камере */
-  let had=false;
-  setInterval(()=>{
-    if(hasVideo&&!had&&!recording&&!passing&&step===1)setStep(2);
-    if(!hasVideo&&step>1)setStep(1);$$('#fedit').style.display=hasVideo?'flex':'none';
-    had=hasVideo;
-    if(step===5)document.querySelectorAll('#fshare .btn').forEach((b,i)=>{const o=document.querySelectorAll('#menuL .mi.sh')[i];if(o)b.disabled=o.disabled});
-  },500);
-
-
-  /* озвучка переведённого текста голосом Gemini и микс в видео */
+  /* озвучка Gemini + микс в экспорт */
   const VO={on:false,bufs:null,sig:'',busy:false,vol:.3,gain:1,srcs:[]};
   const dv=$$('#dVoice');
-  VOICES.forEach(x=>{const o=document.createElement('option');o.value=x[0];o.textContent=x[0]+' · '+x[1];dv.appendChild(o)});
+  VOICES.forEach(q=>{const o=document.createElement('option');o.value=q[0];o.textContent=q[0]+' · '+q[1];dv.appendChild(o)});
   try{dv.value=localStorage.getItem('substudio-fvoice')||'Kore'}catch(_){}
   dv.onchange=()=>{try{localStorage.setItem('substudio-fvoice',dv.value)}catch(_){}};
   const vsig=()=>JSON.stringify(phrases.filter(p=>p.t&&!p.cut).map(p=>[p.s,p.t]))+dv.value;
   const dKeyShow=()=>{$$('#dKey').style.display=gKey()?'none':''};
-  function vpStop(){VO.srcs.forEach(x=>{try{x.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
+  const dst=(txt,kind)=>{const b=$$('#dBox');b.style.display=txt?'flex':'none';$$('#fh3').textContent=txt||'';b.className='dbox'+(kind?' '+kind:'');$$('#dRetry').style.display=kind==='err'?'':'none'};
+  function vpStop(){VO.srcs.forEach(q=>{try{q.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
   function vpStart(){
     vpStop();
     if(!VO.on||!VO.bufs||!VO.bufs.length||exporting||passing||VO.sig!==vsig()||!AC)return;
     const now=AC.currentTime,t0=v.currentTime;v.volume=VO.vol;const gn=AC.createGain();gn.gain.value=VO.gain;gn.connect(AC.destination);
     VO.bufs.forEach(b=>{
-      const d=b.buf.duration/b.rate;if(b.s+d<=t0)return;
+      if(b.s+b.buf.duration/b.rate<=t0)return;
       const src=AC.createBufferSource();src.buffer=b.buf;src.playbackRate.value=b.rate;src.connect(gn);
       if(b.s>=t0)src.start(now+(b.s-t0));else src.start(now,(t0-b.s)*b.rate);
       VO.srcs.push(src)});
@@ -3820,38 +3806,47 @@ async function trOpen(id){
   v.addEventListener('play',vpStart);v.addEventListener('pause',vpStop);v.addEventListener('ended',vpStop);
   v.addEventListener('seeked',()=>{if(!v.paused)vpStart()});
   function setDub(on){
-    VO.on=on;$$('#dNo').classList.toggle('active',!on);$$('#dYes').classList.toggle('active',on);
-    $$('#dCtl').style.display=on?'flex':'none';dKeyShow();vpStop();shareCache=null;
+    VO.on=on;$$('#dNo').classList.toggle('on',!on);$$('#dYes').classList.toggle('on',on);
+    $$('#dCtl').style.display=on?'block':'none';dKeyShow();vpStop();shareCache=null;
+    if(step===3)$$('#fAct').style.display=on?'':'none';
   }
   $$('#dNo').onclick=()=>setDub(false);
-  $$('#dYes').onclick=()=>{if(!hasVideo)return;if(!phrases.some(p=>p.t)){toast(T.dNeed,4000);return}setDub(true)};
-  $$('#dVol').oninput=e=>{VO.vol=+e.target.value/100;};
-  $$('#dGen').onclick=async()=>{
+  $$('#dYes').onclick=()=>{if(!hasVideo)return;if(!phrases.some(p=>p.t)){toast(x('Сначала нужен текст (шаг 2).','Text is needed first (step 2).'),4000);return}setDub(true)};
+  $$('#dBal').oninput=e=>{VO.vol=(100-(+e.target.value))/100;if(!v.paused)vpStart()};
+  function renderAudio(){
+    const a=$$('#faudio');a.textContent='';
+    if(!VO.bufs||!VO.bufs.length){a.innerHTML='<div class="fh">'+x('Голоса пока нет.','No voice yet.')+'</div>';return}
+    VO.bufs.forEach(b=>{
+      const r=document.createElement('div');r.className='arow';const sp=document.createElement('span');const upd=()=>{sp.textContent=fmt(b.s)};upd();
+      const mk=(tx,d)=>{const q=document.createElement('button');q.className='nb sm';q.textContent=tx;q.onclick=()=>{b.s=Math.max(0,b.s+d);upd();if(!v.paused)vpStart()};return q};
+      r.append(sp,mk('−0.1',-.1),mk('+0.1',.1));a.appendChild(r)});
+  }
+  $$('#dDet').addEventListener('toggle',renderAudio);
+  async function genDub(){
     if(VO.busy||passing||!phrases.some(p=>p.t))return;
-    if(!gKey()){const k=$$('#dKey').value.trim();if(!k){toast(T.dKeyNeed,5000);return}try{localStorage.setItem(GKEY,k)}catch(_){}}
-    VO.busy=true;const h=$$('#fh3'),btn=$$('#dGen');btn.disabled=true;vpStop();
-    const list=phrases.filter(p=>p.t&&!p.cut).sort((a,b)=>a.s-b.s),out=[];
+    if(!gKey()){const k=$$('#dKey').value.trim();if(!k){toast(x('Сначала вставьте ключ Gemini.','Paste a Gemini API key first.'),5000);return}try{localStorage.setItem(GKEY,k)}catch(_){}}
+    VO.busy=true;$$('#fAct').disabled=true;vpStop();
+    const list=phrases.filter(p=>p.t&&!p.cut).sort((p,q)=>p.s-q.s),out=[];
     try{
       audioGraph();
       for(let i=0;i<list.length;i++){
-        const p=list[i];h.textContent=T.dWork+' '+(i+1)+' / '+list.length;
+        const p=list[i];dst(x('Озвучиваю ','Voicing ')+(i+1)+' / '+list.length);
         const a=await ttsOne(p.t,dv.value,'');
         const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
         const nx=list[i+1],slot=Math.max(.6,(nx?nx.s:(totalT()||p.e))-p.s);
         out.push({s:p.s,buf,rate:Math.min(1.4,Math.max(1,buf.duration/slot))});
       }
-      VO.bufs=out;VO.sig=vsig();shareCache=null;h.textContent=T.dDone;
-    }catch(e){toast((e&&e.message)||T.dErr,8000);h.textContent=T.dErr}
-    VO.busy=false;btn.disabled=false;dKeyShow();
-  };
-  /* в экспорт: голос идёт в ту же звуковую дорожку, оригинал приглушается */
+      VO.bufs=out;VO.sig=vsig();shareCache=null;dst(x('Голос готов. Нажмите play на видео.','Voice ready. Press play on the video.'),'ok');
+    }catch(e){dst((e&&e.message)||x('Не удалось создать голос','Voice generation failed'),'err')}
+    VO.busy=false;$$('#fAct').disabled=false;dKeyShow();
+  }
+  $$('#dRetry').onclick=genDub;
   const xaOrig=xaTrack;
   xaTrack=async function(){
     const tr=await xaOrig();
     try{
       if(VO.on&&VO.bufs&&VO.bufs.length&&VO.sig===vsig()&&tr&&ADEST&&xaMix){
-        xaMix.gain.value=VO.vol;
-        const dg=AC.createGain();dg.gain.value=VO.gain;dg.connect(ADEST);
+        xaMix.gain.value=VO.vol;const dg=AC.createGain();dg.gain.value=VO.gain;dg.connect(ADEST);
         v.addEventListener('play',()=>{
           const t0=AC.currentTime+0.05,sp=cutSpans();
           VO.bufs.forEach(b=>{const src=AC.createBufferSource();src.buffer=b.buf;src.playbackRate.value=b.rate;src.connect(dg);src.start(t0+shiftT(b.s,sp));VO.srcs.push(src)});
@@ -3860,66 +3855,75 @@ async function trOpen(id){
     }catch(_){}
     return tr;
   };
-  setDub(false);
-
-  /* нижняя панель: видео — это всё, что на странице; остальное открывается из панели */
-  let mode=null;
-  const sheet=$$('#fsheet'),stash=document.createElement('div');stash.id='fstash';document.body.appendChild(stash);
-  const capHint=$$('#cap').nextElementSibling,listCard=$$('#list').closest('.card');
-  const faudio=document.createElement('div');faudio.id='faudio';
-  [$$('.fcard'),$$('#subWrap'),$$('.subhead'),$$('.grid>.col+.col')].forEach(n=>n&&stash.appendChild(n));
-  stash.appendChild(listCard);
-  function fillSheet(){
-    const by=m=>m==='text'?[listCard]:m==='audio'?[faudio]:step===2?[$$('#st'),$$('#pass')]:step===4?[$$('#subWrap')]:step===5?[$$('#cap'),capHint]:[];
-    [...sheet.children].forEach(c=>stash.appendChild(c));
-    const nodes=by(mode);nodes.forEach(n=>sheet.appendChild(n));
-    sheet.style.display=nodes.length?'block':'none';
-    $$('#eTxt').classList.toggle('on',mode==='text');$$('#eAud').classList.toggle('on',mode==='audio');
-  }
-  function renderAudio(){
-    faudio.textContent='';
-    const row=(l,val,fn)=>{const r=document.createElement('div');r.className='arow';const sp=document.createElement('span');sp.textContent=l;const i=document.createElement('input');i.type='range';i.min=0;i.max=100;i.value=Math.round(val*100);i.oninput=()=>fn(i.value/100);r.append(sp,i);faudio.appendChild(r)};
-    row(T.aOrig,VO.vol,x=>{VO.vol=x;$$('#dVol').value=x*100;if(!v.paused)vpStart()});
-    row(T.aVoice,VO.gain,x=>{VO.gain=x;if(!v.paused)vpStart()});
-    if(!VO.bufs||!VO.bufs.length){const h=document.createElement('div');h.className='fh';h.textContent=T.aNone;faudio.appendChild(h);return}
-    VO.bufs.forEach(b=>{
-      const r=document.createElement('div');r.className='arow';const sp=document.createElement('span');
-      const upd=()=>{sp.textContent=fmt(b.s)};upd();
-      const mk=(tx,d)=>{const x=document.createElement('button');x.className='btn sm';x.textContent=tx;x.onclick=()=>{b.s=Math.max(0,b.s+d);upd();if(!v.paused)vpStart()};return x};
-      r.append(sp,mk('−0.1',-.1),mk('+0.1',.1));faudio.appendChild(r)});
-  }
-  $$('#eVid').textContent=T.eVid;$$('#eTxt').textContent=T.eTxt;$$('#eAud').textContent=T.eAud;
-  $$('#eVid').onclick=()=>$$('#ed').click();
-  $$('#eTxt').onclick=()=>{mode=mode==='text'?null:'text';fillSheet()};
-  $$('#eAud').onclick=()=>{mode=mode==='audio'?null:'audio';if(mode)renderAudio();fillSheet()};
-  /* шапка: проекты и ключи */
-  (function(){
-    const hd=document.querySelector('header'),g=document.createElement('div');g.style.cssText='display:flex;gap:8px';
-    const b1=document.createElement('button');b1.className='icon-btn';b1.textContent='📁';b1.title=T.prj;b1.onclick=()=>$$('#mPrj').click();
-    const b2=document.createElement('button');b2.className='icon-btn';b2.textContent='🔑';b2.title=T.key;
-    const m=document.createElement('div');m.id='hkm';
-    [[T.kG,'#mGem'],[T.kQ,'#mKey']].forEach(([l,q])=>{const x=document.createElement('button');x.className='btn';x.textContent=l;x.onclick=()=>{m.classList.remove('show');$$(q).click()};m.appendChild(x)});
-    b2.onclick=e=>{e.stopPropagation();m.classList.toggle('show')};
-    document.addEventListener('click',()=>m.classList.remove('show'));
-    g.append(b1,b2);hd.appendChild(g);document.body.appendChild(m);
-  })();
-  /* камера: управление справа на самом кадре, у большого пальца */
+  /* загрузка видео в основной конвейер */
+  $$('#m1U').onclick=()=>$$('#fUp').click();
+  $$('#fRec').onclick=()=>$$('#rec').click();
+  $$('#fUp').onchange=e=>{
+    const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+    if(recording||exporting||passing)return;
+    if(f.size>500*1048576){toast(x('Файл больше 500 МБ.','File is over 500 MB.'),6000);return}
+    try{stopCanvas()}catch(_){}
+    if(stream){stream.getTracks().forEach(q=>q.stop());stream=null}
+    crop=null;vcrop=null;if(url){try{URL.revokeObjectURL(url)}catch(_){}}
+    phrases=[];map={};curId=null;projName='';shareCache=null;recDur=0;
+    recBlob=f;url=URL.createObjectURL(f);
+    v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
+    updateButtons();renderAll();try{saveCurrent()}catch(_){}
+    VO.bufs=null;setDub(false);dst('');resetTr();setStep(2);
+    toast(x('Видео загружено. Распознаю речь…','Video loaded. Recognising speech…'),5000);
+    setTimeout(()=>transcribe(true),700);
+  };
+  /* навигация */
+  $$('#fBack').onclick=()=>{
+    if(step>1){setStep(step-1);return}
+    if(hasVideo&&!confirm(x('Начать заново? Видео останется в проектах.','Start over? The video stays in Projects.')))return;
+    if(hasVideo)closeProject();VO.bufs=null;setDub(false);dst('');resetTr();setStep(1);
+  };
+  $$('#fAct').onclick=()=>{if(step===2){resetTr();transcribe(false)}else if(step===3)genDub()};
+  $$('#fNext').onclick=()=>{
+    if(passing||busyT||VO.busy){toast(x('Подождите: идёт обработка…','Please wait: processing…'),3000);return}
+    if(step===3&&VO.on&&(!VO.bufs||VO.sig!==vsig())){toast(x('Сначала создайте голос или выберите «Без озвучки».','Generate the voice first, or choose “No dub”.'),5000);return}
+    if(step<5)setStep(step+1);else if(!$$('#exp').disabled)$$('#exp').click();
+  };
+  /* камера: управление справа на кадре; правка видео — на кадре сверху */
   (function(){
     const st=$$('#stage'),rs=document.createElement('div');rs.className='rside';
     const lg=document.createElement('button');lg.id='lgb';lg.type='button';
+    const zb=document.createElement('button');zb.id='zb';zb.type='button';
     const chips=()=>[...document.querySelectorAll('#langs .chip')];
-    const cur=()=>{const c=chips(),i=c.findIndex(x=>x.classList.contains('active'));return[c,i<0?0:i]};
-    const paint=()=>{const[c,i]=cur();lg.textContent=c[i]?c[i].dataset.l.toUpperCase():'RU'};
+    const cur=()=>{const c=chips(),i=c.findIndex(q=>q.classList.contains('active'));return[c,i<0?0:i]};
+    const paint=()=>{const[c,i]=cur();lg.textContent=c[i]?c[i].dataset.l.toUpperCase():'RU';zb.textContent=$$('#zv').textContent.replace('.0','')};
     lg.onclick=()=>{const[c,i]=cur();if(c.length){c[(i+1)%c.length].click();setTimeout(paint,50)}};
-    ['#camBtn','#camFlip','#mirr','#zi','#zv','#zo'].forEach(q=>{const e=$$(q);if(!e)return;rs.appendChild(q==='#camBtn'?e.closest('.selw'):e)});
-    rs.appendChild(lg);
-    rs.addEventListener('click',e=>e.stopPropagation());
-    st.appendChild(rs);paint();
+    zb.onclick=()=>{const z=typeof zoom==='number'?zoom:1,n=[1,1.5,2,3].find(p=>p>z+.05)||1;setZoom(n);setTimeout(paint,50)};
+    [$$('#camBtn').closest('.selw'),$$('#camFlip'),$$('#mirr')].forEach(e=>rs.appendChild(e));
+    rs.append(zb,lg);rs.addEventListener('click',q=>q.stopPropagation());st.appendChild(rs);paint();
     document.addEventListener('click',()=>setTimeout(paint,80),true);
-    /* выбор языка речи уходит на шаг «Текст» */
-    const l=$$('#langs'),p2=$$('#flow .fp[data-p="2"]');if(l&&p2)p2.insertBefore(l,p2.firstChild);
+    const ve=document.createElement('button');ve.className='vedit';ve.id='vEd';ve.textContent='✂';ve.onclick=q=>{q.stopPropagation();$$('#ed').click()};st.appendChild(ve);
   })();
-  fillSheet();setStep(1);
+  /* шапка: проекты и ключи */
+  (function(){
+    const hd=document.querySelector('header'),g=document.createElement('div');g.style.cssText='display:flex;gap:8px';
+    const ic=p=>'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+    const b1=document.createElement('button');b1.className='icon-btn';b1.innerHTML=ic('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>');b1.onclick=()=>$$('#mPrj').click();
+    const b2=document.createElement('button');b2.className='icon-btn';b2.innerHTML=ic('<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/>');
+    const m=document.createElement('div');m.style.cssText='display:none;position:absolute;right:14px;top:58px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;gap:6px;flex-direction:column';
+    [[x('Ключ Gemini (озвучка)','Gemini key (voice)'),'#mGem'],[x('Ключ Groq (речь на телефоне)','Groq key (phone speech)'),'#mKey']].forEach(([l,q])=>{const t=document.createElement('button');t.className='nb';t.textContent=l;t.onclick=()=>{m.style.display='none';$$(q).click()};m.appendChild(t)});
+    b2.onclick=e=>{e.stopPropagation();m.style.display=m.style.display==='flex'?'none':'flex'};
+    document.addEventListener('click',()=>{m.style.display='none'});
+    g.append(b1,b2);hd.appendChild(g);B.appendChild(m);
+  })();
+  /* фоновая синхронизация */
+  let had=false;
+  setInterval(()=>{
+    const hv=hasVideo;
+    if(hv&&!had&&!recording&&!passing&&step===1)setStep(2);
+    if(!hv&&step>1)setStep(1);
+    had=hv;
+    $$('#fNext').disabled=(step===1&&!hv);
+    $$('#vEd').style.display=(hv&&!recording&&!exporting)?'grid':'none';
+    if(step===5)document.querySelectorAll('#fshare .btn').forEach((b,i)=>{const o=document.querySelectorAll('#menuL .mi.sh')[i];if(o)b.disabled=o.disabled});
+  },500);
+  setDub(false);setStep(1);
 })();
 (function init(){audioPlayback();
   applyLang();
