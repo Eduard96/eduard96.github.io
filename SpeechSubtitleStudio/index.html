@@ -5047,11 +5047,8 @@ const isAnd=/Android/i.test(navigator.userAgent);
   const L3=(r,e,h)=>ui==='ru'?r:ui==='hy'?(h||e):e;
   const q=new URLSearchParams(location.search);
   const mobile=isIOS||isAnd||q.get('inst')==='1';
-  const flag=()=>{try{return localStorage.getItem('substudio-installed')==='1'}catch(e){return false}};
-  const setFlag=()=>{try{localStorage.setItem('substudio-installed','1')}catch(e){}};
-  if(isStandalone())setFlag();
   /* в окне установленного приложения верхняя кнопка не нужна */
-  if(!mobile||isStandalone()||flag())return;
+  if(!mobile||isStandalone())return;
   /* без установки пользоваться нельзя: окно посередине экрана, закрыть его нельзя */
   const bar=document.createElement('div');bar.id='instgate';bar.setAttribute('role','alertdialog');bar.setAttribute('aria-modal','true');
   bar.innerHTML='<div class="ig-box"><div class="ig-logo"></div><h2></h2><p></p><button type="button" class="nb pri ig-btn"></button><div class="ig-how"></div></div>';
@@ -5070,7 +5067,7 @@ const isAnd=/Android/i.test(navigator.userAgent);
     how.style.display='';btn.style.display='none';
   };
   document.body.appendChild(bar);
-  window.addEventListener('appinstalled',()=>{setFlag();bar.remove()});
+  window.addEventListener('appinstalled',()=>{bar.remove()});
 })();
 
 /* ---------- первый запуск установленного приложения: анимация, девиз, подключение ключей ---------- */
