@@ -3466,7 +3466,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -4771,6 +4771,40 @@ const SH={
 let shareCache=null,shareTarget=null;
 let capTxt='';try{capTxt=localStorage.getItem('substudio-cap')||''}catch(e){}
 function capSync(src){capTxt=src.value;['#cap','#shCap'].forEach(q=>{const e=$(q);if(e&&e!==src)e.value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}markDirty()}
+
+/* ---------- подпись и хэштеги: 3 варианта от бесплатного ИИ, выбор нажатием ---------- */
+const SCHEMA_CAP={type:'ARRAY',items:{type:'OBJECT',properties:{t:{type:'STRING'},h:{type:'ARRAY',items:{type:'STRING'}}},required:['t','h']}};
+function capAiInit(){
+  const hint=document.querySelector('#cap').parentNode.querySelector('[data-i=capHint]');if(!hint||$('#capAi'))return;
+  const L3=(r,e,h)=>ui==='ru'?r:ui==='hy'?h:e;
+  const b=document.createElement('button');b.type='button';b.id='capAi';b.className='btn sm';b.style.cssText='margin-top:8px;width:100%';
+  const box=document.createElement('div');box.id='capOpts';box.style.cssText='display:grid;gap:8px;margin-top:8px';
+  hint.after(b,box);
+  const lab=()=>{b.textContent='✨ '+L3('Предложить текст и хэштеги','Suggest text and hashtags','Առաջարկել տեքստ և հեշթեգեր')};lab();
+  capAiInit.lab=lab;
+  let busy=false;
+  b.onclick=async()=>{
+    if(busy)return;
+    const txt=phrases.filter(p=>!p.cut&&p.t).map(p=>p.t).join(' ').trim().slice(0,3500);
+    if(!txt){toast(L3('Сначала нужен текст видео: распознайте речь.','The video text comes first: transcribe the speech.','Սկզբում պետք է տեսանյութի տեքստը՝ ճանաչեք խոսքը։'),4500);return}
+    busy=true;b.disabled=true;b.textContent=L3('Придумываю…','Writing…','Գրում եմ…');box.textContent='';
+    try{
+      const prompt='You write post captions for short vertical videos (Instagram Reels, TikTok, YouTube Shorts). Below is the transcript of the video. Write 3 different options. Each option: "t" is a caption of 1 to 2 short sentences that starts with a hook, in the SAME language as the transcript, no hashtags inside it; "h" is an array of 6 to 8 relevant hashtags (each starting with #, no spaces, a mix of broad and niche). Return a JSON array of 3 objects {"t": string, "h": [string]}.\n\nTranscript:\n'+txt;
+      const arr=parseJsonArr(await aiText(prompt,SCHEMA_CAP)).filter(o=>o&&typeof o.t==='string'&&o.t.trim()).slice(0,3);
+      if(!arr.length)throw new Error(L3('ИИ не вернул вариантов. Попробуйте ещё раз.','The AI returned no options. Try again.','ԱԻ-ն տարբերակներ չվերադարձրեց։ Փորձեք կրկին։'));
+      arr.forEach((o,i)=>{
+        const tags=(Array.isArray(o.h)?o.h:[]).map(x=>String(x).trim().replace(/\s+/g,'')).filter(Boolean).map(x=>x[0]==='#'?x:'#'+x).slice(0,8).join(' ');
+        const full=(o.t.trim()+(tags?'\n\n'+tags:''));
+        const c=document.createElement('button');c.type='button';c.className='nb';c.style.cssText='text-align:left;white-space:pre-wrap;line-height:1.35;padding:10px 12px;height:auto;font-weight:600';
+        c.textContent=full;
+        c.onclick=()=>{const ta=$('#cap');ta.value=full;capSync(ta);[...box.children].forEach(x=>x.classList.remove('pri'));c.classList.add('pri');toast(L3('Текст вставлен в описание.','Text added to the description.','Տեքստը տեղադրվեց նկարագրության մեջ։'),2500)};
+        box.appendChild(c);
+      });
+    }catch(e){toast((e&&e.message)||L3('Не получилось придумать текст.','Could not write the text.','Չհաջողվեց գրել տեքստը։'),7000)}
+    busy=false;b.disabled=false;lab();
+  };
+}
+capAiInit();
 function capCopy(){const c=capTxt.trim();if(!c)return false;try{navigator.clipboard.writeText(c).catch(()=>{})}catch(e){}return true}
 ['#cap','#shCap'].forEach(q=>{const e=$(q);e.value=capTxt;e.oninput=ev=>capSync(ev.target)});
 const expSig=()=>JSON.stringify([phrases.map(p=>[p.s,p.e,p.t,p.cut,(p.c||[]).map(c=>[c.s,c.e,c.t])]),style,anim,custom,url,SUBP.x,SUBP.y,subsOff,VE.cuts,VE.splits,VE.tr,VE.trd,ovSig()]);
@@ -4862,6 +4896,7 @@ function applyLang(){
   document.querySelectorAll('#uil button').forEach(b=>b.classList.toggle('on',b.dataset.u===ui));
   document.querySelectorAll('#styles .sty').forEach((b,i)=>{b.querySelector('.nm').textContent=SN[ui][i];b.querySelector('.pv span').textContent=t('subWord')});
   recTxt.textContent=t(recording?'stop':'rec');
+  if(capAiInit.lab)capAiInit.lab();
   document.querySelectorAll('#anims .anim').forEach((b,i)=>{b.querySelector('.nm').textContent=ANIM[i].n[ui]});
   $('#lfont').options[0].textContent=t('fontPreset');$('#cap').placeholder=t('capPh');$('#shCap').placeholder=t('capPh');studioLang();
   $('#pz').textContent=t(paused?'resume':'pause');
