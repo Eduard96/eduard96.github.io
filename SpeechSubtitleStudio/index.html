@@ -2778,7 +2778,7 @@ function stopCanvas(){clearInterval(rc.t);rc.on=false}
 /* ---------- фильтры камеры: живые эффекты, «только лицо / голова / глаза», счётчик лиц ---------- */
 const FX=(function(){
   const L=(en,ru,hy)=>ui==='ru'?ru:ui==='hy'?hy:en;
-  const FL=[{"n":"Original","k":0,"c":"all","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#556,#99a)"},{"n":"Only Face","k":0,"c":"face","d":0,"ta":0,"m":"face","g":"radial-gradient(circle at 50% 50%,#e8c4a8 0 38%,#000 40%)"},{"n":"Only Head","k":0,"c":"face","d":0,"ta":0,"m":"head","b":1,"g":"radial-gradient(ellipse 42% 50% at 50% 46%,#d9a88a 0 70%,#000 74%)"},{"n":"Only Eyes","k":0,"c":"face","d":0,"ta":0,"m":"eyes","g":"radial-gradient(ellipse 30% 14% at 50% 50%,#fff 0 60%,#000 64%)"},{"n":"Eyes+Mouth","k":0,"c":"face","d":0,"ta":0,"m":"eyesmouth","g":"radial-gradient(ellipse 26% 9% at 50% 38%,#fff 0 60%,transparent 66%),radial-gradient(ellipse 16% 8% at 50% 72%,#e66 0 60%,#000 66%)"},{"n":"Mono","k":1,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#222,#ddd)"},{"n":"Noir","k":2,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#fff)"},{"n":"Sepia","k":3,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#3b2a1a,#d9b58a)"},{"n":"Invert","k":4,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff6,#06f)"},{"n":"Warm","k":5,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a3c,#ffd27a)"},{"n":"Cool","k":6,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#2a6bff,#8fe3ff)"},{"n":"Vivid","k":7,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff2d75,#27e1c1)"},{"n":"Vintage","k":8,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#6d5a43,#d8c7a3)"},{"n":"Duotone","k":9,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#1a0050,#ff6699)"},{"n":"Thermal","k":10,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00004d,#c00080,#ffb300,#fff)"},{"n":"Night","k":11,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#031,#3f6)"},{"n":"Sketch","k":12,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#fff,#bbb)"},{"n":"Neon","k":13,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#19e6ff)"},{"n":"Emboss","k":14,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#888,#ccc)"},{"n":"Posterize","k":15,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#d33,#fc3,#3a6)"},{"n":"Cartoon","k":16,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffb347,#3b82f6)"},{"n":"Pixel","k":17,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#e44 25%,#4a4 0 50%,#46e 0 75%,#ee4 0)"},{"n":"Halftone","k":18,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#000 30%,#fff 32%)"},{"n":"Glitch","k":19,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#f0f,#0ff,#f0f)"},{"n":"Mirror","k":20,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#68f 50%,#f86 50%)"},{"n":"Kaleido","k":21,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f5a,#5af,#af5,#fa5,#f5a)"},{"n":"Fisheye","k":22,"c":"fun","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#456)"},{"n":"Swirl","k":23,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(from 90deg,#fff,#345,#fff)"},{"n":"Blur","k":24,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#9ab,#cde)"},{"n":"Hue Cycle","k":25,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,red,orange,yellow,green,cyan,blue,magenta)"},{"n":"Ripple","k":26,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#4af 0 6px,#8df 6px 12px)"},{"n":"Wave","k":27,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#46f 0 6px,#9bf 6px 12px)"},{"n":"Pulse","k":28,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#f5a 60%)"},{"n":"Shake","k":29,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(90deg,#fa0 0 8px,#531 8px 14px)"},{"n":"Rainbow Scan","k":30,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,red,yellow,lime,cyan,blue,magenta)"},{"n":"Strobe","k":31,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f0f,#ff0,#0ff,#f0f)"},{"n":"Heartbeat","k":32,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#ff6b6b,#4a0010)"},{"n":"VHS","k":33,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#445,#99a 40%,#f5a 42%,#445 44%)"},{"n":"Matrix","k":34,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#000,#0f4 90%)"},{"n":"Spin","k":35,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(from 0deg,#5af,#fa5,#5af)"},{"n":"Tunnel","k":36,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#000 0 5px,#8af 5px 10px)"},{"n":"Trails","k":37,"c":"fun","d":1,"ta":0.07,"m":"","g":"linear-gradient(90deg,#fff0,#fff8,#fff)"},{"n":"Motion Glow","k":38,"c":"fun","d":1,"ta":0.2,"m":"","g":"radial-gradient(circle at 70% 50%,#ff5,#f50 40%,#101 70%)"},{"n":"Echo","k":39,"c":"fun","d":1,"ta":0.1,"m":"","g":"linear-gradient(90deg,#f55,#5f5,#55f)"},{"n":"Disco","k":40,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f06 25%,#0cf 0 50%,#fc0 0 75%,#6f0 0)"},{"n":"Zoom Blur","k":41,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#678 90%)"},{"n":"Cyberpunk","k":42,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00e5ff,#ff2bd6)"},{"n":"Golden Hour","k":43,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a1f,#ffe08a)"},{"n":"Frost","k":44,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#bfe9ff,#fff)"},{"n":"Fire","k":45,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(0deg,#d10,#f90,#ff5)"},{"n":"Hologram","k":46,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#0ff4 0 2px,#024 2px 4px)"},{"n":"Game Boy","k":47,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#0f380f,#306230,#8bac0f,#9bbc0f)"},{"n":"Blueprint","k":48,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0d3380,#e6f0ff)"},{"n":"Pop Art","k":49,"c":"color","d":0,"ta":0,"m":"","g":"conic-gradient(#1a0d4d 25%,#e61a80 0 50%,#ffcc1a 0 75%,#80f2f2 0)"},{"n":"X-Ray","k":50,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0a2a44,#bfe8ff)"},{"n":"Chromatic","k":51,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#f00,#0f0,#00f)"},{"n":"Tilt Shift","k":52,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#99a,#ffd 45%,#ffd 55%,#99a)"},{"n":"Sunset","k":53,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#6a1b9a,#ff7043,#ffd54f)"},{"n":"Dream Glow","k":54,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#f9c 70%)"},{"n":"Pastel","k":55,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffd1dc,#cde7ff,#d6ffd1)"},{"n":"Film Grain","k":56,"c":"art","d":1,"ta":0,"m":"","g":"repeating-conic-gradient(#222 0 25%,#555 0 50%)"},{"n":"Lomo","k":57,"c":"color","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#ffa,#a30 90%)"},{"n":"Hex Mosaic","k":58,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f84,#4af,#8f4,#f84)"},{"n":"Underwater","k":59,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#7fe,#036)"},{"n":"Spotlight","k":60,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle at 40% 40%,#fff,#000 70%)"},{"n":"Rainbow Edge","k":61,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#000,#f0f,#0ff,#ff0,#000)"},{"n":"Stripes","k":62,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#f5a 0 8px,#5af 8px 16px,#fd5 16px 24px)"},{"n":"Dots Mono","k":63,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff 40%,#000 44%)"},{"n":"CMYK","k":64,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0ff,#f0f,#ff0)"},{"n":"Quad Mirror","k":65,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#68f 25%,#f86 0 50%,#68f 0 75%,#f86 0)"},{"n":"Flip Mirror","k":66,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#68f 50%,#f86 50%)"},{"n":"Stretch","k":67,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#345,#fff 50%,#345)"},{"n":"Neon Duo","k":68,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#e600a0,#00e6ff)"},{"n":"Ink Color","k":69,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#111,#fc6,#6cf)"},{"n":"Chrome","k":70,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#444,#fff,#789,#fff)"},{"n":"Blur BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgblur","s":1,"g":"linear-gradient(135deg,#556,#ccd 50%,#556)"},{"n":"Blur Strong","k":0,"c":"bg","d":0,"ta":0,"m":"bgblur2","s":1,"g":"radial-gradient(circle,#fff 25%,#99a 80%)"},{"n":"BG Color","k":0,"c":"bg","d":0,"ta":0,"m":"bgcolor","s":1,"g":"linear-gradient(135deg,#8b5cf6,#ec4899)"},{"n":"BG Image","k":0,"c":"bg","d":0,"ta":0,"m":"bgimg","s":1,"g":"linear-gradient(135deg,#0ea5e9,#22c55e,#f59e0b)"},{"n":"Dim BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgdim","s":1,"g":"radial-gradient(circle,#fff 20%,#000 75%)"},{"n":"B&W BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgmono","s":1,"g":"radial-gradient(circle,#f5a 25%,#888 70%)"}];
+  const FL=[{"n":"Original","k":0,"c":"all","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#556,#99a)"},{"n":"Only Face","k":0,"c":"face","d":0,"ta":0,"m":"face","g":"radial-gradient(circle at 50% 50%,#e8c4a8 0 38%,#000 40%)"},{"n":"Only Head","k":0,"c":"face","d":0,"ta":0,"m":"head","g":"radial-gradient(ellipse 42% 50% at 50% 46%,#d9a88a 0 70%,#000 74%)"},{"n":"Only Eyes","k":0,"c":"face","d":0,"ta":0,"m":"eyes","g":"radial-gradient(ellipse 30% 14% at 50% 50%,#fff 0 60%,#000 64%)"},{"n":"Eyes+Mouth","k":0,"c":"face","d":0,"ta":0,"m":"eyesmouth","g":"radial-gradient(ellipse 26% 9% at 50% 38%,#fff 0 60%,transparent 66%),radial-gradient(ellipse 16% 8% at 50% 72%,#e66 0 60%,#000 66%)"},{"n":"Mono","k":1,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#222,#ddd)"},{"n":"Noir","k":2,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#fff)"},{"n":"Sepia","k":3,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#3b2a1a,#d9b58a)"},{"n":"Invert","k":4,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff6,#06f)"},{"n":"Warm","k":5,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a3c,#ffd27a)"},{"n":"Cool","k":6,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#2a6bff,#8fe3ff)"},{"n":"Vivid","k":7,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff2d75,#27e1c1)"},{"n":"Vintage","k":8,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#6d5a43,#d8c7a3)"},{"n":"Duotone","k":9,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#1a0050,#ff6699)"},{"n":"Thermal","k":10,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00004d,#c00080,#ffb300,#fff)"},{"n":"Night","k":11,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#031,#3f6)"},{"n":"Sketch","k":12,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#fff,#bbb)"},{"n":"Neon","k":13,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#19e6ff)"},{"n":"Emboss","k":14,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#888,#ccc)"},{"n":"Posterize","k":15,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#d33,#fc3,#3a6)"},{"n":"Cartoon","k":16,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffb347,#3b82f6)"},{"n":"Pixel","k":17,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#e44 25%,#4a4 0 50%,#46e 0 75%,#ee4 0)"},{"n":"Halftone","k":18,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#000 30%,#fff 32%)"},{"n":"Glitch","k":19,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#f0f,#0ff,#f0f)"},{"n":"Mirror","k":20,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#68f 50%,#f86 50%)"},{"n":"Kaleido","k":21,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f5a,#5af,#af5,#fa5,#f5a)"},{"n":"Fisheye","k":22,"c":"fun","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#456)"},{"n":"Swirl","k":23,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(from 90deg,#fff,#345,#fff)"},{"n":"Blur","k":24,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#9ab,#cde)"},{"n":"Hue Cycle","k":25,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,red,orange,yellow,green,cyan,blue,magenta)"},{"n":"Ripple","k":26,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#4af 0 6px,#8df 6px 12px)"},{"n":"Wave","k":27,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#46f 0 6px,#9bf 6px 12px)"},{"n":"Pulse","k":28,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#f5a 60%)"},{"n":"Shake","k":29,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(90deg,#fa0 0 8px,#531 8px 14px)"},{"n":"Rainbow Scan","k":30,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,red,yellow,lime,cyan,blue,magenta)"},{"n":"Strobe","k":31,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f0f,#ff0,#0ff,#f0f)"},{"n":"Heartbeat","k":32,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#ff6b6b,#4a0010)"},{"n":"VHS","k":33,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#445,#99a 40%,#f5a 42%,#445 44%)"},{"n":"Matrix","k":34,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#000,#0f4 90%)"},{"n":"Spin","k":35,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(from 0deg,#5af,#fa5,#5af)"},{"n":"Tunnel","k":36,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#000 0 5px,#8af 5px 10px)"},{"n":"Trails","k":37,"c":"fun","d":1,"ta":0.07,"m":"","g":"linear-gradient(90deg,#fff0,#fff8,#fff)"},{"n":"Motion Glow","k":38,"c":"fun","d":1,"ta":0.2,"m":"","g":"radial-gradient(circle at 70% 50%,#ff5,#f50 40%,#101 70%)"},{"n":"Echo","k":39,"c":"fun","d":1,"ta":0.1,"m":"","g":"linear-gradient(90deg,#f55,#5f5,#55f)"},{"n":"Disco","k":40,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f06 25%,#0cf 0 50%,#fc0 0 75%,#6f0 0)"},{"n":"Zoom Blur","k":41,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#678 90%)"},{"n":"Cyberpunk","k":42,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00e5ff,#ff2bd6)"},{"n":"Golden Hour","k":43,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a1f,#ffe08a)"},{"n":"Frost","k":44,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#bfe9ff,#fff)"},{"n":"Fire","k":45,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(0deg,#d10,#f90,#ff5)"},{"n":"Hologram","k":46,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#0ff4 0 2px,#024 2px 4px)"},{"n":"Game Boy","k":47,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#0f380f,#306230,#8bac0f,#9bbc0f)"},{"n":"Blueprint","k":48,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0d3380,#e6f0ff)"},{"n":"Pop Art","k":49,"c":"color","d":0,"ta":0,"m":"","g":"conic-gradient(#1a0d4d 25%,#e61a80 0 50%,#ffcc1a 0 75%,#80f2f2 0)"},{"n":"X-Ray","k":50,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0a2a44,#bfe8ff)"},{"n":"Chromatic","k":51,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#f00,#0f0,#00f)"},{"n":"Tilt Shift","k":52,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#99a,#ffd 45%,#ffd 55%,#99a)"},{"n":"Sunset","k":53,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#6a1b9a,#ff7043,#ffd54f)"},{"n":"Dream Glow","k":54,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#f9c 70%)"},{"n":"Pastel","k":55,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffd1dc,#cde7ff,#d6ffd1)"},{"n":"Film Grain","k":56,"c":"art","d":1,"ta":0,"m":"","g":"repeating-conic-gradient(#222 0 25%,#555 0 50%)"},{"n":"Lomo","k":57,"c":"color","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#ffa,#a30 90%)"},{"n":"Hex Mosaic","k":58,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f84,#4af,#8f4,#f84)"},{"n":"Underwater","k":59,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#7fe,#036)"},{"n":"Spotlight","k":60,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle at 40% 40%,#fff,#000 70%)"},{"n":"Rainbow Edge","k":61,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#000,#f0f,#0ff,#ff0,#000)"},{"n":"Stripes","k":62,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#f5a 0 8px,#5af 8px 16px,#fd5 16px 24px)"},{"n":"Dots Mono","k":63,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff 40%,#000 44%)"},{"n":"CMYK","k":64,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0ff,#f0f,#ff0)"},{"n":"Quad Mirror","k":65,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#68f 25%,#f86 0 50%,#68f 0 75%,#f86 0)"},{"n":"Flip Mirror","k":66,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#68f 50%,#f86 50%)"},{"n":"Stretch","k":67,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#345,#fff 50%,#345)"},{"n":"Neon Duo","k":68,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#e600a0,#00e6ff)"},{"n":"Ink Color","k":69,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#111,#fc6,#6cf)"},{"n":"Chrome","k":70,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#444,#fff,#789,#fff)"},{"n":"Blur BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgblur","s":1,"g":"linear-gradient(135deg,#556,#ccd 50%,#556)"},{"n":"Blur Strong","k":0,"c":"bg","d":0,"ta":0,"m":"bgblur2","s":1,"g":"radial-gradient(circle,#fff 25%,#99a 80%)"},{"n":"BG Color","k":0,"c":"bg","d":0,"ta":0,"m":"bgcolor","s":1,"g":"linear-gradient(135deg,#8b5cf6,#ec4899)"},{"n":"BG Image","k":0,"c":"bg","d":0,"ta":0,"m":"bgimg","s":1,"g":"linear-gradient(135deg,#0ea5e9,#22c55e,#f59e0b)"},{"n":"Dim BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgdim","s":1,"g":"radial-gradient(circle,#fff 20%,#000 75%)"},{"n":"B&W BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgmono","s":1,"g":"radial-gradient(circle,#f5a 25%,#888 70%)"}];
   const FS=`
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
@@ -3000,7 +3000,7 @@ void main(){
   const ER=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246];
   const cv=document.getElementById('fxc'),cx=cv.getContext('2d'),glc=document.createElement('canvas'),
         tc=document.createElement('canvas'),tcx=tc.getContext('2d');
-  let segMix=.4,seg2=null,loadingSeg2=false,failedSeg2=false,seg2C=null,seg2X=null,seg2D=null,seg2Prev=null,seg2OK=false,sc2=0,recOff=false,fxl=null,recLog=false,baked=false,baking=false,bgFile=null,clk=null,pvKey='',lastTs=0,gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
+  let recOff=false,fxl=null,recLog=false,baked=false,baking=false,bgFile=null,clk=null,pvKey='',lastTs=0,gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
       trayOpen=false,capL=1920,costE=0,costN=0,tab='all',bg='#000000',lmk=null,loadingFace=false,failedFace=false,faces=[],tmr=0,lblT=0,
       seg=null,loadingSeg=false,failedSeg=false,segC=null,segX=null,segD=null,segOK=false,sc=0,segPrev=null,segInv=false,segDec=false,bgImg=null,tmpC={};
   try{bg=localStorage.getItem('substudio-fxbg')||bg}catch(e){}
@@ -3071,26 +3071,9 @@ void main(){
     let mx=0,my=0;idx.forEach(i=>{mx+=pts[i].x;my+=pts[i].y});mx/=idx.length;my/=idx.length;
     idx.forEach((i,n)=>{const x=(mx+(pts[i].x-mx)*sc)*w,y=(my+dy+(pts[i].y-my)*sc)*h;n?c.lineTo(x,y):c.moveTo(x,y)});c.closePath();
   }
-  /* голова с шеей: контур берётся из маски человека, а ниже подбородка идёт мягкий срез (на длину шеи) */
-  function drawHeadNeck(c,w,h,src){
-    const pl=tmp('hn',w,h),px=pl.getContext('2d'),rg=tmp('hr',w,h),rx=rg.getContext('2d');
-    px.globalCompositeOperation='source-over';px.clearRect(0,0,w,h);px.drawImage(src,0,0,w,h);
-    px.globalCompositeOperation='destination-in';px.drawImage(seg2OK&&seg2C?seg2C:segC,0,0,w,h);
-    rx.globalCompositeOperation='source-over';rx.clearRect(0,0,w,h);
-    faces.forEach(p=>{
-      let x0=1,x1=0,y0=1,y1=0;OVAL.forEach(i=>{const q=p[i];if(q.x<x0)x0=q.x;if(q.x>x1)x1=q.x;if(q.y<y0)y0=q.y;if(q.y>y1)y1=q.y});
-      const fw=x1-x0,fh=y1-y0,cx=(x0+x1)/2,cut=y1+fh*.34,fade=fh*.16;
-      const g=rx.createLinearGradient(0,0,0,cut*h),k=Math.max(0,Math.min(1,(cut-fade)/cut));
-      g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(k,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');
-      rx.fillStyle=g;rx.fillRect((cx-fw*1.3)*w,0,fw*2.6*w,cut*h);
-    });
-    px.globalCompositeOperation='destination-in';px.drawImage(rg,0,0,w,h);px.globalCompositeOperation='source-over';
-    c.drawImage(pl,0,0,w,h);
-  }
   function drawMask(c,w,h,kind,src){
     c.fillStyle=bg;c.fillRect(0,0,w,h);
     if(!faces.length)return;
-    if(kind==='head'&&((seg2OK&&seg2C)||(segOK&&segC))){drawHeadNeck(c,w,h,src);return}
     c.save();c.beginPath();
     faces.forEach(p=>{
       if(kind==='face')poly(c,p,OVAL,1,0,w,h);
@@ -3121,7 +3104,7 @@ void main(){
     const d=segD.data,pv=segPrev,n=w*h;
     for(let i=0;i<n;i++){
       let a=segInv?1-f32[i]:f32[i];a=(a-.35)/.3;a=a<0?0:a>1?1:a;a=a*a*(3-2*a);
-      a=pv[i]*segMix+a*(1-segMix);pv[i]=a;
+      a=pv[i]*.4+a*.6;pv[i]=a;
       const k=i*4;d[k]=d[k+1]=d[k+2]=255;d[k+3]=a*255;
     }
     segX.putImageData(segD,0,0);segOK=true;
@@ -3139,56 +3122,6 @@ void main(){
           c/=Math.max(1,cn);b/=Math.max(1,bn);if(Math.abs(c-b)>.25){segInv=c<b;segDec=true}
         }
         setMask(a,m.width,m.height);
-      });
-    }catch(e){}
-  }
-
-  /* ----- голова: мультиклассовая модель (волосы, кожа лица, кожа тела, одежда, прочее); одежда ниже подбородка убирается ----- */
-  const SEG2MODEL='https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite';
-  async function ensureSeg2(force){
-    if(seg2||loadingSeg2||(failedSeg2&&!force))return;loadingSeg2=true;failedSeg2=false;
-    try{
-      const CDN=(window.SS_MP_BASE)||'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-      const mod=await import(CDN+'/vision_bundle.mjs');
-      const fs=await mod.FilesetResolver.forVisionTasks(CDN+'/wasm');
-      for(const d of['GPU','CPU']){
-        try{seg2=await mod.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:window.SS_SEG2_MODEL||SEG2MODEL,delegate:d},runningMode:'VIDEO',outputCategoryMask:true,outputConfidenceMasks:false});break}
-        catch(e){if(d==='CPU')throw e}
-      }
-    }catch(e){failedSeg2=true;ensureSeg(true)}
-    loadingSeg2=false;
-  }
-  function setMask2(a,w,h){
-    if(!seg2C||seg2C.width!==w||seg2C.height!==h){seg2C=document.createElement('canvas');seg2C.width=w;seg2C.height=h;seg2X=seg2C.getContext('2d');seg2D=seg2X.createImageData(w,h);seg2Prev=new Float32Array(w*h)}
-    /* полосы вокруг лиц: одежда считается частью головы (шапка, капюшон) только выше подбородка */
-    const bands=faces.map(p=>{let x0=1,x1=0,y1=0;OVAL.forEach(i=>{const q=p[i];if(q.x<x0)x0=q.x;if(q.x>x1)x1=q.x;if(q.y>y1)y1=q.y});const fw=x1-x0,cx=(x0+x1)/2;return{a:cx-fw*1.3,b:cx+fw*1.3,y:y1}});
-    const n=w*h,t=new Float32Array(n);
-    for(let y=0;y<h;y++){
-      const ny=(y+.5)/h;
-      for(let x=0;x<w;x++){
-        const c=a[y*w+x];let on=c===1||c===2||c===3||c===5;
-        if(c===4){const nx=(x+.5)/w;on=bands.some(q=>nx>=q.a&&nx<=q.b&&ny<q.y)}
-        t[y*w+x]=on?1:0;
-      }
-    }
-    /* лёгкое размытие краёв 3x3, чтобы контур не был ступенчатым */
-    const o=new Float32Array(n);
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){let sm=0,k=0;for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=h)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=w)continue;sm+=t[yy*w+xx];k++}}o[y*w+x]=sm/k}
-    const d=seg2D.data,pv=seg2Prev;
-    for(let i=0;i<n;i++){
-      let v2=o[i];v2=(v2-.25)/.5;v2=v2<0?0:v2>1?1:v2;v2=v2*v2*(3-2*v2);
-      v2=pv[i]*segMix+v2*(1-segMix);pv[i]=v2;
-      const k=i*4;d[k]=d[k+1]=d[k+2]=255;d[k+3]=v2*255;
-    }
-    seg2X.putImageData(seg2D,0,0);seg2OK=true;
-  }
-  function seg2Detect(now,s,all){
-    if(!seg2){ensureSeg2();if(failedSeg2&&!seg)ensureSeg();return}
-    if(!all&&++sc2%2)return;
-    try{
-      seg2.segmentForVideo(s||v,now,res=>{
-        const m=res.categoryMask;if(!m)return;
-        setMask2(m.getAsUint8Array(),m.width,m.height);
       });
     }catch(e){}
   }
@@ -3284,7 +3217,6 @@ void main(){
     chips.forEach((b,j)=>b.classList.toggle('on',j===i));
     btn.classList.toggle('on',i>0);{const m=FL[i].m;tray.classList.toggle('mask',(!!m&&!FL[i].s)||m==='bgcolor');tray.classList.toggle('img',m==='bgimg')}
     if(FL[i].m){if(FL[i].s)ensureSeg(true);else ensureFace(true)}
-    if(FL[i].b)ensureSeg2(true);
     if(FL[i].m==='bgimg'&&!bgImg)pickBgImage();
     showLbl(FL[i].n);paintCount();render(true);
   }
@@ -3359,7 +3291,6 @@ void main(){
     }else clk=null;
     if((f.m&&!f.s)||(live&&(countOn||(trayOpen&&tab==='face'))))detect(now);
     if(f.s||(live&&trayOpen&&tab==='bg'))segDetect(now);
-    if(f.b){if(failedSeg2&&!seg2)segDetect(now);else seg2Detect(now)}
     paintCount();
     if(!act){setOn(false);return}
     if(recording&&recOff){setOn(false);return}
@@ -3379,8 +3310,7 @@ void main(){
     const waitM=async(isOn,start,fail)=>{start(true);for(let i=0;i<300&&!isOn()&&!fail();i++)await sleep(100);if(!isOn())throw new Error('model')};
     if(used.some(f=>f.m&&!f.s))await waitM(()=>!!lmk,ensureFace,()=>failedFace&&!loadingFace);
     if(used.some(f=>f.s))await waitM(()=>!!seg,ensureSeg,()=>failedSeg&&!loadingSeg);
-    if(used.some(f=>f.b))await waitM(()=>!!(seg2||seg),ensureSeg2,()=>failedSeg2&&failedSeg&&!loadingSeg&&!loadingSeg2);
-    baking=true;setOn(false);const tB0=performance.now();segMix=0;
+    baking=true;setOn(false);const tB0=performance.now();
     const bu=URL.createObjectURL(blob),bv=document.createElement('video');
     bv.muted=true;bv.playsInline=true;bv.preload='auto';bv.src=bu;
     /* на телефонах скрытый, но подключённый к странице ролик надёжнее выдаёт кадры */
@@ -3454,7 +3384,6 @@ void main(){
         const f=FL[idx(mt)];clk=mt;
         if(f.m&&!f.s)detect(tsn(),bv,true);
         if(f.s)segDetect(tsn(),bv,true);
-        if(f.b){if(seg2)seg2Detect(tsn(),bv,true);else segDetect(tsn(),bv,true)}
         if(!paint(bv,f,1e9)){ox.drawImage(bv,0,0,Wb,Hb)}else ox.drawImage(cv,0,0,Wb,Hb);
         push(mt);lastMT=mt;
       };
@@ -3533,7 +3462,7 @@ void main(){
       if(curCodec&&e&&typeof e==='object'&&!e.codec){try{e.codec=curCodec}catch(x){}}
       throw e;
     }finally{
-      clearInterval(wd);clk=null;baking=false;segMix=.4;
+      clearInterval(wd);clk=null;baking=false;
       try{bv.pause()}catch(e){}try{bv.remove()}catch(e){}bv.removeAttribute('src');try{bv.load()}catch(e){}URL.revokeObjectURL(bu);
       seed=true;pvKey='';
     }
@@ -3583,10 +3512,10 @@ void main(){
         fxl=st.log.map(e=>({t:e.t,i:e.i}));
         if(st.bg){bg=st.bg;col.value=bg}
         if(st.img){bgFile=st.img;const im=new Image();im.onload=()=>{bgImg=im;pvKey='';render(true)};im.src=URL.createObjectURL(st.img)}
-        fxl.forEach(e=>{const f=FL[e.i];if(f.m){if(f.s)ensureSeg(true);else ensureFace(true)}if(f.b)ensureSeg2(true)});
+        fxl.forEach(e=>{const f=FL[e.i];if(f.m){if(f.s)ensureSeg(true);else ensureFace(true)}});
       }else{fxl=null;setOn(false)}
     },
-    _dbg:{setMask,setMask2,state:()=>({segOK}),setFaces:f=>{faces=f},drawMask}
+    _dbg:{setMask,state:()=>({segOK})}
   };
 })();
 if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
