@@ -4866,7 +4866,8 @@ function vAppendPick(){
 }
 /* ---------- действия над выбранным куском: речь в текст, голос в файл ---------- */
 function vTranscribeSel(){
-  const q=VE.sel;if(!q)return;
+  const q=VE.sel;
+  if(!q){toast(LX('Сначала выберите видео: нажмите на нужный кусок видео на дорожке.','Select a video first: tap the clip you need in the video track.'),5000);return}
   if(typeof SR==='undefined'||!SR){toast(LX('Распознавание речи работает в Chrome.','Speech recognition works in Chrome.'),4000);return}
   try{v.currentTime=q.a+.01}catch(e){}
   transcribe(true,false,{a:q.a,b:q.b});
@@ -5535,6 +5536,7 @@ function vdRow(row){
   if(VE.tsel&&allC().includes(VE.tsel)){txInspector(row,VE.tsel,mk);return}
   if(VE.sel){sgInspector(row,VE.sel,mk);return}
   mk('plus',x('Добавить видео','Add video'),vAppendPick,true);
+  mk('mic',x('Распознать речь','Transcribe'),vTranscribeSel,true);
   if(trGaps().length)mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
   mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia(),true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
@@ -6561,7 +6563,14 @@ async function trOpen(id){
     if(hasVideo&&!confirm(x('Начать заново? Видео останется в проектах.','Start over? The video stays in Projects.')))return;
     if(hasVideo)closeProject();VO.bufs=null;setDub(false);dst('');resetTr();setStep(1);
   };
-  $$('#fAct').onclick=()=>{if(step===2){resetTr();transcribe(false)}else if(step===3)genDub()};
+  $$('#fAct').onclick=()=>{
+    if(step===2){
+      /* кусков несколько: распознаём только выбранный, а если ничего не выбрано, просим выбрать */
+      if(VE.sel){vTranscribeSel();return}
+      if(VE.splits.length||VE.cuts.length){toast(LX('В видео несколько кусков. Откройте монтаж (ножницы на кадре), нажмите на нужный кусок и выберите «Распознать речь».','The video has several clips. Open the editor (scissors on the frame), tap the clip you need and choose “Transcribe”.'),7000);return}
+      resetTr();transcribe(false)
+    }else if(step===3)genDub()
+  };
   $$('#fNext').onclick=()=>{
     if(passing||busyT||VO.busy){toast(x('Подождите: идёт обработка…','Please wait: processing…'),3000);return}
     if(step===3&&VO.on&&(!VO.bufs||VO.sig!==vsig())){toast(x('Сначала создайте голос или выберите «Без озвучки».','Generate the voice first, or choose “No dub”.'),5000);return}
