@@ -2794,6 +2794,56 @@ async function ttsOne(text,voice,style){
   if(t3Fail&&Date.now()-t3Told>6e5){t3Told=Date.now();toast(LX('ttsmp3 сейчас недоступен или лимит закончился — озвучка идёт через другой сервис.','ttsmp3 is unavailable or out of quota right now — using another voice service.'),3800)}
   return r;
 }
+
+/* ---- пакетная озвучка: несколько коротких фраз идут одним запросом (180-220 символов), затем аудио режется по паузам между фразами ---- */
+const TB_MIN=180,TB_MAX=220;
+const tbEnd=x=>{x=String(x==null?'':x).replace(/\s+/g,' ').trim();return /[.!?…։:;»”)]$/.test(x)?x:x+'.'};
+function tbGroups(texts){
+  const g=[];let cur=[],len=0;
+  texts.forEach((tx,i)=>{
+    const n=tbEnd(tx).length+1;
+    if(cur.length&&len+n>TB_MAX){g.push(cur);cur=[];len=0}
+    cur.push(i);len+=n;
+    if(len>=TB_MIN){g.push(cur);cur=[];len=0}
+  });
+  if(cur.length)g.push(cur);
+  return g;
+}
+/* делит одно аудио на n кусков по самым подходящим паузам; если уверенности нет, возвращает null */
+function tbSplit(a,texts){
+  const f=a.f,sr=a.sr,n=texts.length;if(n<2)return[a];
+  const fw=Math.max(1,Math.round(sr*.01)),nf=Math.floor(f.length/fw),e=new Float32Array(nf);let pk=0;
+  for(let i=0;i<nf;i++){let q=0;for(let k=i*fw;k<(i+1)*fw;k++)q+=f[k]*f[k];e[i]=Math.sqrt(q/fw);if(e[i]>pk)pk=e[i]}
+  const th=Math.max(.004,pk*.04);let a0=0,a1=nf-1;
+  while(a0<a1&&e[a0]<th)a0++;while(a1>a0&&e[a1]<th)a1--;
+  const gaps=[];let st=-1;
+  for(let i=a0;i<=a1;i++){if(e[i]<th){if(st<0)st=i}else if(st>=0){if(i-st>=10)gaps.push({c:(st+i)/2,l:i-st});st=-1}}
+  if(gaps.length<n-1)return null;
+  const lens=texts.map(x=>Math.max(1,String(x).length)),tot=lens.reduce((x,y)=>x+y,0),span=Math.max(1,a1-a0);
+  const cuts=[];let acc=0,lastC=-1;
+  for(let k=0;k<n-1;k++){
+    acc+=lens[k];const ex=a0+span*acc/tot;let best=null,bs=1e9;
+    for(const g of gaps){if(g.c<=lastC)continue;const sc=Math.abs(g.c-ex)/span*10-Math.min(g.l,60)/60;if(sc<bs){bs=sc;best=g}}
+    if(!best||Math.abs(best.c-ex)>span*.28)return null;
+    cuts.push(best.c);lastC=best.c;
+  }
+  const b=[a0,...cuts,a1+1],out=[];
+  for(let k=0;k<n;k++){
+    const share=(b[k+1]-b[k])/span,want=lens[k]/tot;
+    if(share<want*.4||share>want*2.2)return null;
+    out.push(trimSil({f:f.slice(Math.round(b[k]*fw),Math.min(f.length,Math.round(b[k+1]*fw))),sr}));
+  }
+  return out;
+}
+/* одна группа фраз: один запрос и нарезка; при сомнениях в резке каждая фраза озвучивается отдельно */
+async function ttsGroup(texts,voice,style){
+  if(texts.length<2)return[await ttsOne(texts[0],voice,style)];
+  const a=await ttsOne(texts.map(tbEnd).join('\n'),voice,style);
+  const parts=tbSplit(a,texts);
+  if(parts)return parts;
+  const out=[];for(const tx of texts)out.push(await ttsOne(tx,voice,style));
+  return out;
+}
 async function aiTranslate(part,L){
   const prompt='Translate the "text" field of every item in this JSON array into '+L[1]+'. The result is a voice-over for a video: use natural spoken language and keep the spoken length close to the original. Return a JSON array with one object per item: {"i": the same id, "text": the translation}.\nInput:\n'+JSON.stringify(part.map(x=>({i:x.id,text:x.src})));
   return parseJsonArr(await aiText(prompt,SCHEMA_TRN));
@@ -7152,17 +7202,20 @@ $('#trS3').onclick=async()=>{
   const need=TR.segs.filter(x=>x.tr&&(!TR.clips.some(c=>c.sid===x.id)||TR.clips.some(c=>c.sid===x.id&&(c.ver!==x.ver||c.voice!==voice||c.style!==style))));
   if(!need.length){trSt(t('trDone'));return}
   trBusy(true);ensureAC();
-  let i=0,done=0,fail=0,fatal=null;const total=need.length;trSt(t('trVoicing',0,total),0);
+  let gi=0,done=0,fail=0,fatal=null;const total=need.length,sGroups=tbGroups(need.map(q=>q.tr));trSt(t('trVoicing',0,total),0);
   const worker=async()=>{
     while(!TR.cancel&&!fatal){
-      const sg=need[i++];if(!sg)break;
+      const grp=sGroups[gi++];if(!grp)break;
       try{
-        const a=await ttsOne(sg.tr,voice,style);
-        TR.clips=TR.clips.filter(c=>c.sid!==sg.id);
-        TR.clips.push({id:TR.nid++,sid:sg.id,ver:sg.ver,voice,style,f:a.f,sr:a.sr,off:0,len:a.f.length/a.sr,start:sg.s,label:sg.tr,fresh:true});
+        const as=await ttsGroup(grp.map(q=>need[q].tr),voice,style);
+        grp.forEach((q,jj)=>{
+          const sg=need[q],a=as[jj];
+          TR.clips=TR.clips.filter(c=>c.sid!==sg.id);
+          TR.clips.push({id:TR.nid++,sid:sg.id,ver:sg.ver,voice,style,f:a.f,sr:a.sr,off:0,len:a.f.length/a.sr,start:sg.s,label:sg.tr,fresh:true});
+        });
         renderTR();
-      }catch(e){if(e.noKey||e.allFailed||[400,401,403,404].includes(e.status))fatal=e;else fail++}
-      done++;trSt(t('trVoicing',Math.min(done,total),total),done/total);
+      }catch(e){if(e.noKey||e.allFailed||[400,401,403,404].includes(e.status))fatal=e;else fail+=grp.length}
+      done+=grp.length;trSt(t('trVoicing',Math.min(done,total),total),done/total);
     }
   };
   await Promise.all([worker(),worker()]);
@@ -7624,15 +7677,20 @@ async function trOpen(id){
     const list=phrases.filter(p=>p.t&&!p.cut).sort((p,q)=>p.s-q.s),out=[];
     try{
       audioGraph();
-      for(let i=0;i<list.length;i++){
-        const p=list[i];prog(x('Озвучка (TTS)','Voice generation (TTS)'),i/list.length*100);dst(x('Озвучиваю ','Voicing ')+(i+1)+' / '+list.length);
-        const a=await ttsOne(dubText(p),dv.value,dStyle());
-        const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
-        const nx=list[i+1],slot=Math.max(.6,(nx?nx.s:(totalT()||p.e))-p.s);
-        /* скорость подгоняется под темп исходной речи: фраза звучит столько же, сколько говорил автор */
-        const target=Math.min(slot,Math.max(.5,p.e-p.s));let rate=Math.max(.85,Math.min(1.5,buf.duration/target));
-        if(buf.duration/rate>slot)rate=Math.min(1.7,buf.duration/slot);
-        out.push({s:p.s,buf,rate,g:1});
+      const dTexts=list.map(p=>dubText(p)),dGroups=tbGroups(dTexts);let dIx=0;
+      for(const grp of dGroups){
+        prog(x('Озвучка (TTS)','Voice generation (TTS)'),dIx/list.length*100);dst(x('Озвучиваю ','Voicing ')+(dIx+1)+' / '+list.length);
+        const as=await ttsGroup(grp.map(q=>dTexts[q]),dv.value,dStyle());
+        grp.forEach((i,jj)=>{
+          const p=list[i],a=as[jj];
+          const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
+          const nx=list[i+1],slot=Math.max(.6,(nx?nx.s:(totalT()||p.e))-p.s);
+          /* скорость подгоняется под темп исходной речи: фраза звучит столько же, сколько говорил автор */
+          const target=Math.min(slot,Math.max(.5,p.e-p.s));let rate=Math.max(.85,Math.min(1.5,buf.duration/target));
+          if(buf.duration/rate>slot)rate=Math.min(1.7,buf.duration/slot);
+          out.push({s:p.s,buf,rate,g:1});
+        });
+        dIx+=grp.length;
       }
       VO.bufs=out;VO.sig=vsig();shareCache=null;if(hasVideo)renderTL();markDirty();dst(x('Голос готов. Нажмите play на видео.','Voice ready. Press play on the video.'),'ok');
     }catch(e){dst((e&&e.message)||x('Не удалось создать голос','Voice generation failed'),'err')}
