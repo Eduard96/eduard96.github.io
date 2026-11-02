@@ -750,7 +750,7 @@ body.mdopen .toast.show{transform:translate(-50%,0)}
 /* ===== фильтры камеры ===== */
 .stage #fxc{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:none}
 .stage.fxon #fxc{display:block}
-.stage.fxon video{opacity:0}
+/* видео остаётся под холстом без скрытия: браузер не должен считать его невидимым и ставить на паузу */
 .stage.recx #fxc{object-fit:cover!important;width:100%!important;height:100%!important;left:0!important;top:0!important}
 .rside #fxb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rside #fxb.on{background:rgba(139,92,246,.6)}
@@ -795,6 +795,16 @@ body:not([data-step="1"]) #fxtray{display:none!important}
 .dsup.open .dsupb{display:block}
 .dsupb .dn-net{color:#c4c0ec;font-size:13px;margin-bottom:8px}
 .dsupb .dn-row code{font-size:12px;color:#e2dffa;background:rgba(255,255,255,.06)}
+
+/* ===== быстрые действия, края клипа ===== */
+.blk.tsel{box-shadow:0 0 0 2px #fff,0 4px 14px rgba(0,0,0,.45);z-index:4}
+.vseg .vh{position:absolute;top:0;bottom:0;width:18px;background:rgba(255,255,255,.6);z-index:2;touch-action:none;cursor:ew-resize}
+.vseg .vh::after{content:"";position:absolute;top:50%;left:50%;width:3px;height:16px;margin:-8px 0 0 -1.5px;border-radius:2px;background:rgba(0,0,0,.45)}
+.vseg .vh.l{left:0;border-radius:9px 0 0 9px}.vseg .vh.r{right:0;border-radius:0 9px 9px 0}
+.vseg.sel{z-index:3}
+
+#fxtray .fxpic{display:none;min-height:42px;padding:0 14px;border-radius:99px;background:rgba(255,255,255,.08);color:#f1efff;font-weight:700;font-size:14px;align-items:center}
+#fxtray.img .fxpic{display:flex}
 </style>
 </head>
 <body>
@@ -1391,16 +1401,17 @@ function renderVTracks(){
     const a=pts[i],b=pts[i+1],gap=inCut((a+b)/2),e=document.createElement('div');
     e.className='vseg'+(gap?' gap':'')+((VE.sel&&Math.abs(VE.sel.a-a)<.001)?' sel':'');
     e.style.left=a*PX+'px';e.style.width=Math.max(10,(b-a)*PX-2)+'px';e.textContent=gap?'':(b-a).toFixed(1)+'s';
+    if(!gap&&VE.sel&&Math.abs(VE.sel.a-a)<.001)['l','r'].forEach(sd=>{const h=document.createElement('div');h.className='vh '+sd;vTrimBind(h,e,a,b,sd);e.appendChild(h)});
     e.onclick=ev=>{ev.stopPropagation();
       if(gap){VE.cuts=VE.cuts.filter(c=>!(c[0]<b-.001&&c[1]>a+.001));VE.sel=null;save();renderTL();return}
-      VE.sel={a,b};VE.selJ=null;renderTL();VE.hook&&VE.hook()};
+      VE.sel={a,b};VE.selJ=null;VE.tsel=null;VE.osel=null;VE.vsel=null;renderTL();VE.hook&&VE.hook()};
     tlin.appendChild(e);
   }
-  vJoins().forEach(q=>{
+  vJoins().filter(q=>q.gap||VE.tr[q.key]).forEach(q=>{
     const key=q.key,k=VE.tr[key]||'',j=document.createElement('div');
     j.className='vjn'+(VE.selJ===key?' on':'');j.style.left=((q.a+q.b)/2*PX)+'px';
     j.innerHTML=ico(k?'check':'plus');if(k)j.classList.add('set');
-    j.onclick=ev=>{ev.stopPropagation();VE.selJ=key;VE.sel=null;VE.pick&&VE.pick(key)};
+    j.onclick=ev=>{ev.stopPropagation();VE.selJ=key;VE.sel=null;VE.tsel=null;VE.pick&&VE.pick(key)};
     tlin.appendChild(j);
   });
   const at=document.createElement('div');at.className='atrack';at.style.width=D*PX+'px';tlin.appendChild(at);
@@ -1413,7 +1424,7 @@ function renderVTracks(){
       ev.stopPropagation();try{e.setPointerCapture(ev.pointerId)}catch(x){}
       const x0=ev.clientX,s0=b.s;let moved=false;
       e.onpointermove=m=>{const dx=(m.clientX-x0)/PX;if(Math.abs(m.clientX-x0)>3)moved=true;if(moved){b.s=Math.max(0,s0+dx);e.style.left=(b.s*PX)+'px'}};
-      e.onpointerup=e.onpointercancel=()=>{e.onpointermove=e.onpointerup=e.onpointercancel=null;if(moved&&VE.voiceMoved)VE.voiceMoved();else if(!moved){VE.vsel=b;VE.osel=null;VE.sel=null;renderTL();buildDock()}};
+      e.onpointerup=e.onpointercancel=()=>{e.onpointermove=e.onpointerup=e.onpointercancel=null;if(moved&&VE.voiceMoved)VE.voiceMoved();else if(!moved){VE.vsel=b;VE.osel=null;VE.sel=null;VE.tsel=null;renderTL();buildDock()}};
     });
     tlin.appendChild(e);
   });
@@ -2333,7 +2344,7 @@ function stopCanvas(){clearInterval(rc.t);rc.on=false}
 /* ---------- фильтры камеры: живые эффекты, «только лицо / голова / глаза», счётчик лиц ---------- */
 const FX=(function(){
   const L=(en,ru,hy)=>ui==='ru'?ru:ui==='hy'?hy:en;
-  const FL=[{"n":"Original","k":0,"c":"all","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#556,#99a)"},{"n":"Only Face","k":0,"c":"face","d":0,"ta":0,"m":"face","g":"radial-gradient(circle at 50% 50%,#e8c4a8 0 38%,#000 40%)"},{"n":"Only Head","k":0,"c":"face","d":0,"ta":0,"m":"head","g":"radial-gradient(ellipse 42% 50% at 50% 46%,#d9a88a 0 70%,#000 74%)"},{"n":"Only Eyes","k":0,"c":"face","d":0,"ta":0,"m":"eyes","g":"radial-gradient(ellipse 30% 14% at 50% 50%,#fff 0 60%,#000 64%)"},{"n":"Eyes+Mouth","k":0,"c":"face","d":0,"ta":0,"m":"eyesmouth","g":"radial-gradient(ellipse 26% 9% at 50% 38%,#fff 0 60%,transparent 66%),radial-gradient(ellipse 16% 8% at 50% 72%,#e66 0 60%,#000 66%)"},{"n":"Mono","k":1,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#222,#ddd)"},{"n":"Noir","k":2,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#fff)"},{"n":"Sepia","k":3,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#3b2a1a,#d9b58a)"},{"n":"Invert","k":4,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff6,#06f)"},{"n":"Warm","k":5,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a3c,#ffd27a)"},{"n":"Cool","k":6,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#2a6bff,#8fe3ff)"},{"n":"Vivid","k":7,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff2d75,#27e1c1)"},{"n":"Vintage","k":8,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#6d5a43,#d8c7a3)"},{"n":"Duotone","k":9,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#1a0050,#ff6699)"},{"n":"Thermal","k":10,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00004d,#c00080,#ffb300,#fff)"},{"n":"Night","k":11,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#031,#3f6)"},{"n":"Sketch","k":12,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#fff,#bbb)"},{"n":"Neon","k":13,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#19e6ff)"},{"n":"Emboss","k":14,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#888,#ccc)"},{"n":"Posterize","k":15,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#d33,#fc3,#3a6)"},{"n":"Cartoon","k":16,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffb347,#3b82f6)"},{"n":"Pixel","k":17,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#e44 25%,#4a4 0 50%,#46e 0 75%,#ee4 0)"},{"n":"Halftone","k":18,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#000 30%,#fff 32%)"},{"n":"Glitch","k":19,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#f0f,#0ff,#f0f)"},{"n":"Mirror","k":20,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#68f 50%,#f86 50%)"},{"n":"Kaleido","k":21,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f5a,#5af,#af5,#fa5,#f5a)"},{"n":"Fisheye","k":22,"c":"fun","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#456)"},{"n":"Swirl","k":23,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(from 90deg,#fff,#345,#fff)"},{"n":"Blur","k":24,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#9ab,#cde)"},{"n":"Hue Cycle","k":25,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,red,orange,yellow,green,cyan,blue,magenta)"},{"n":"Ripple","k":26,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#4af 0 6px,#8df 6px 12px)"},{"n":"Wave","k":27,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#46f 0 6px,#9bf 6px 12px)"},{"n":"Pulse","k":28,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#f5a 60%)"},{"n":"Shake","k":29,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(90deg,#fa0 0 8px,#531 8px 14px)"},{"n":"Rainbow Scan","k":30,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,red,yellow,lime,cyan,blue,magenta)"},{"n":"Strobe","k":31,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f0f,#ff0,#0ff,#f0f)"},{"n":"Heartbeat","k":32,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#ff6b6b,#4a0010)"},{"n":"VHS","k":33,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#445,#99a 40%,#f5a 42%,#445 44%)"},{"n":"Matrix","k":34,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#000,#0f4 90%)"},{"n":"Spin","k":35,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(from 0deg,#5af,#fa5,#5af)"},{"n":"Tunnel","k":36,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#000 0 5px,#8af 5px 10px)"},{"n":"Trails","k":37,"c":"fun","d":1,"ta":0.07,"m":"","g":"linear-gradient(90deg,#fff0,#fff8,#fff)"},{"n":"Motion Glow","k":38,"c":"fun","d":1,"ta":0.2,"m":"","g":"radial-gradient(circle at 70% 50%,#ff5,#f50 40%,#101 70%)"},{"n":"Echo","k":39,"c":"fun","d":1,"ta":0.1,"m":"","g":"linear-gradient(90deg,#f55,#5f5,#55f)"},{"n":"Disco","k":40,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f06 25%,#0cf 0 50%,#fc0 0 75%,#6f0 0)"},{"n":"Zoom Blur","k":41,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#678 90%)"},{"n":"Cyberpunk","k":42,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00e5ff,#ff2bd6)"},{"n":"Golden Hour","k":43,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a1f,#ffe08a)"},{"n":"Frost","k":44,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#bfe9ff,#fff)"},{"n":"Fire","k":45,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(0deg,#d10,#f90,#ff5)"},{"n":"Hologram","k":46,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#0ff4 0 2px,#024 2px 4px)"},{"n":"Game Boy","k":47,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#0f380f,#306230,#8bac0f,#9bbc0f)"},{"n":"Blueprint","k":48,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0d3380,#e6f0ff)"},{"n":"Pop Art","k":49,"c":"color","d":0,"ta":0,"m":"","g":"conic-gradient(#1a0d4d 25%,#e61a80 0 50%,#ffcc1a 0 75%,#80f2f2 0)"},{"n":"X-Ray","k":50,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0a2a44,#bfe8ff)"},{"n":"Chromatic","k":51,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#f00,#0f0,#00f)"},{"n":"Tilt Shift","k":52,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#99a,#ffd 45%,#ffd 55%,#99a)"},{"n":"Sunset","k":53,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#6a1b9a,#ff7043,#ffd54f)"},{"n":"Dream Glow","k":54,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#f9c 70%)"},{"n":"Pastel","k":55,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffd1dc,#cde7ff,#d6ffd1)"},{"n":"Film Grain","k":56,"c":"art","d":1,"ta":0,"m":"","g":"repeating-conic-gradient(#222 0 25%,#555 0 50%)"},{"n":"Lomo","k":57,"c":"color","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#ffa,#a30 90%)"},{"n":"Hex Mosaic","k":58,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f84,#4af,#8f4,#f84)"},{"n":"Underwater","k":59,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#7fe,#036)"},{"n":"Spotlight","k":60,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle at 40% 40%,#fff,#000 70%)"},{"n":"Rainbow Edge","k":61,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#000,#f0f,#0ff,#ff0,#000)"},{"n":"Stripes","k":62,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#f5a 0 8px,#5af 8px 16px,#fd5 16px 24px)"},{"n":"Dots Mono","k":63,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff 40%,#000 44%)"},{"n":"CMYK","k":64,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0ff,#f0f,#ff0)"},{"n":"Quad Mirror","k":65,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#68f 25%,#f86 0 50%,#68f 0 75%,#f86 0)"},{"n":"Flip Mirror","k":66,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#68f 50%,#f86 50%)"},{"n":"Stretch","k":67,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#345,#fff 50%,#345)"},{"n":"Neon Duo","k":68,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#e600a0,#00e6ff)"},{"n":"Ink Color","k":69,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#111,#fc6,#6cf)"},{"n":"Chrome","k":70,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#444,#fff,#789,#fff)"}];
+  const FL=[{"n":"Original","k":0,"c":"all","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#556,#99a)"},{"n":"Only Face","k":0,"c":"face","d":0,"ta":0,"m":"face","g":"radial-gradient(circle at 50% 50%,#e8c4a8 0 38%,#000 40%)"},{"n":"Only Head","k":0,"c":"face","d":0,"ta":0,"m":"head","g":"radial-gradient(ellipse 42% 50% at 50% 46%,#d9a88a 0 70%,#000 74%)"},{"n":"Only Eyes","k":0,"c":"face","d":0,"ta":0,"m":"eyes","g":"radial-gradient(ellipse 30% 14% at 50% 50%,#fff 0 60%,#000 64%)"},{"n":"Eyes+Mouth","k":0,"c":"face","d":0,"ta":0,"m":"eyesmouth","g":"radial-gradient(ellipse 26% 9% at 50% 38%,#fff 0 60%,transparent 66%),radial-gradient(ellipse 16% 8% at 50% 72%,#e66 0 60%,#000 66%)"},{"n":"Mono","k":1,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#222,#ddd)"},{"n":"Noir","k":2,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#fff)"},{"n":"Sepia","k":3,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#3b2a1a,#d9b58a)"},{"n":"Invert","k":4,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff6,#06f)"},{"n":"Warm","k":5,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a3c,#ffd27a)"},{"n":"Cool","k":6,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#2a6bff,#8fe3ff)"},{"n":"Vivid","k":7,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff2d75,#27e1c1)"},{"n":"Vintage","k":8,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#6d5a43,#d8c7a3)"},{"n":"Duotone","k":9,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#1a0050,#ff6699)"},{"n":"Thermal","k":10,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00004d,#c00080,#ffb300,#fff)"},{"n":"Night","k":11,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#031,#3f6)"},{"n":"Sketch","k":12,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#fff,#bbb)"},{"n":"Neon","k":13,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(135deg,#000,#19e6ff)"},{"n":"Emboss","k":14,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#888,#ccc)"},{"n":"Posterize","k":15,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#d33,#fc3,#3a6)"},{"n":"Cartoon","k":16,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffb347,#3b82f6)"},{"n":"Pixel","k":17,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#e44 25%,#4a4 0 50%,#46e 0 75%,#ee4 0)"},{"n":"Halftone","k":18,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#000 30%,#fff 32%)"},{"n":"Glitch","k":19,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#f0f,#0ff,#f0f)"},{"n":"Mirror","k":20,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#68f 50%,#f86 50%)"},{"n":"Kaleido","k":21,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f5a,#5af,#af5,#fa5,#f5a)"},{"n":"Fisheye","k":22,"c":"fun","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#456)"},{"n":"Swirl","k":23,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(from 90deg,#fff,#345,#fff)"},{"n":"Blur","k":24,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#9ab,#cde)"},{"n":"Hue Cycle","k":25,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,red,orange,yellow,green,cyan,blue,magenta)"},{"n":"Ripple","k":26,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#4af 0 6px,#8df 6px 12px)"},{"n":"Wave","k":27,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#46f 0 6px,#9bf 6px 12px)"},{"n":"Pulse","k":28,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#f5a 60%)"},{"n":"Shake","k":29,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(90deg,#fa0 0 8px,#531 8px 14px)"},{"n":"Rainbow Scan","k":30,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,red,yellow,lime,cyan,blue,magenta)"},{"n":"Strobe","k":31,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f0f,#ff0,#0ff,#f0f)"},{"n":"Heartbeat","k":32,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#ff6b6b,#4a0010)"},{"n":"VHS","k":33,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#445,#99a 40%,#f5a 42%,#445 44%)"},{"n":"Matrix","k":34,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#000,#0f4 90%)"},{"n":"Spin","k":35,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(from 0deg,#5af,#fa5,#5af)"},{"n":"Tunnel","k":36,"c":"fun","d":1,"ta":0,"m":"","g":"repeating-radial-gradient(circle,#000 0 5px,#8af 5px 10px)"},{"n":"Trails","k":37,"c":"fun","d":1,"ta":0.07,"m":"","g":"linear-gradient(90deg,#fff0,#fff8,#fff)"},{"n":"Motion Glow","k":38,"c":"fun","d":1,"ta":0.2,"m":"","g":"radial-gradient(circle at 70% 50%,#ff5,#f50 40%,#101 70%)"},{"n":"Echo","k":39,"c":"fun","d":1,"ta":0.1,"m":"","g":"linear-gradient(90deg,#f55,#5f5,#55f)"},{"n":"Disco","k":40,"c":"fun","d":1,"ta":0,"m":"","g":"conic-gradient(#f06 25%,#0cf 0 50%,#fc0 0 75%,#6f0 0)"},{"n":"Zoom Blur","k":41,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle,#fff 10%,#678 90%)"},{"n":"Cyberpunk","k":42,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#00e5ff,#ff2bd6)"},{"n":"Golden Hour","k":43,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ff9a1f,#ffe08a)"},{"n":"Frost","k":44,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#bfe9ff,#fff)"},{"n":"Fire","k":45,"c":"color","d":1,"ta":0,"m":"","g":"linear-gradient(0deg,#d10,#f90,#ff5)"},{"n":"Hologram","k":46,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#0ff4 0 2px,#024 2px 4px)"},{"n":"Game Boy","k":47,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#0f380f,#306230,#8bac0f,#9bbc0f)"},{"n":"Blueprint","k":48,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0d3380,#e6f0ff)"},{"n":"Pop Art","k":49,"c":"color","d":0,"ta":0,"m":"","g":"conic-gradient(#1a0d4d 25%,#e61a80 0 50%,#ffcc1a 0 75%,#80f2f2 0)"},{"n":"X-Ray","k":50,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0a2a44,#bfe8ff)"},{"n":"Chromatic","k":51,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#f00,#0f0,#00f)"},{"n":"Tilt Shift","k":52,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#99a,#ffd 45%,#ffd 55%,#99a)"},{"n":"Sunset","k":53,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#6a1b9a,#ff7043,#ffd54f)"},{"n":"Dream Glow","k":54,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff,#f9c 70%)"},{"n":"Pastel","k":55,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#ffd1dc,#cde7ff,#d6ffd1)"},{"n":"Film Grain","k":56,"c":"art","d":1,"ta":0,"m":"","g":"repeating-conic-gradient(#222 0 25%,#555 0 50%)"},{"n":"Lomo","k":57,"c":"color","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#ffa,#a30 90%)"},{"n":"Hex Mosaic","k":58,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#f84,#4af,#8f4,#f84)"},{"n":"Underwater","k":59,"c":"fun","d":1,"ta":0,"m":"","g":"linear-gradient(180deg,#7fe,#036)"},{"n":"Spotlight","k":60,"c":"fun","d":1,"ta":0,"m":"","g":"radial-gradient(circle at 40% 40%,#fff,#000 70%)"},{"n":"Rainbow Edge","k":61,"c":"art","d":1,"ta":0,"m":"","g":"linear-gradient(90deg,#000,#f0f,#0ff,#ff0,#000)"},{"n":"Stripes","k":62,"c":"art","d":1,"ta":0,"m":"","g":"repeating-linear-gradient(0deg,#f5a 0 8px,#5af 8px 16px,#fd5 16px 24px)"},{"n":"Dots Mono","k":63,"c":"art","d":0,"ta":0,"m":"","g":"radial-gradient(circle,#fff 40%,#000 44%)"},{"n":"CMYK","k":64,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#0ff,#f0f,#ff0)"},{"n":"Quad Mirror","k":65,"c":"fun","d":0,"ta":0,"m":"","g":"conic-gradient(#68f 25%,#f86 0 50%,#68f 0 75%,#f86 0)"},{"n":"Flip Mirror","k":66,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(180deg,#68f 50%,#f86 50%)"},{"n":"Stretch","k":67,"c":"fun","d":0,"ta":0,"m":"","g":"linear-gradient(90deg,#345,#fff 50%,#345)"},{"n":"Neon Duo","k":68,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#e600a0,#00e6ff)"},{"n":"Ink Color","k":69,"c":"art","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#111,#fc6,#6cf)"},{"n":"Chrome","k":70,"c":"color","d":0,"ta":0,"m":"","g":"linear-gradient(135deg,#444,#fff,#789,#fff)"},{"n":"Blur BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgblur","s":1,"g":"linear-gradient(135deg,#556,#ccd 50%,#556)"},{"n":"Blur Strong","k":0,"c":"bg","d":0,"ta":0,"m":"bgblur2","s":1,"g":"radial-gradient(circle,#fff 25%,#99a 80%)"},{"n":"BG Color","k":0,"c":"bg","d":0,"ta":0,"m":"bgcolor","s":1,"g":"linear-gradient(135deg,#8b5cf6,#ec4899)"},{"n":"BG Image","k":0,"c":"bg","d":0,"ta":0,"m":"bgimg","s":1,"g":"linear-gradient(135deg,#0ea5e9,#22c55e,#f59e0b)"},{"n":"Dim BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgdim","s":1,"g":"radial-gradient(circle,#fff 20%,#000 75%)"},{"n":"B&W BG","k":0,"c":"bg","d":0,"ta":0,"m":"bgmono","s":1,"g":"radial-gradient(circle,#f5a 25%,#888 70%)"}];
   const FS=`
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
@@ -2556,7 +2567,8 @@ void main(){
   const cv=document.getElementById('fxc'),cx=cv.getContext('2d'),glc=document.createElement('canvas'),
         tc=document.createElement('canvas'),tcx=tc.getContext('2d');
   let gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
-      trayOpen=false,tab='all',bg='#000000',lmk=null,loadingFace=false,failedFace=false,faces=[],tmr=0,lblT=0;
+      trayOpen=false,capL=1920,costE=0,costN=0,tab='all',bg='#000000',lmk=null,loadingFace=false,failedFace=false,faces=[],tmr=0,lblT=0,
+      seg=null,loadingSeg=false,failedSeg=false,segC=null,segX=null,segD=null,segOK=false,sc=0,segPrev=null,segInv=false,segDec=false,bgImg=null,tmpC={};
   try{bg=localStorage.getItem('substudio-fxbg')||bg}catch(e){}
 
   /* ----- WebGL ----- */
@@ -2577,12 +2589,20 @@ void main(){
       ok=true;
     }
   }catch(e){ok=false}
-  const upV=()=>{try{gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,v);return true}catch(e){return false}};
+  /* камера может отдавать 4K: в шейдер отправляем уменьшенный кадр (быстрее и легче для видеокарты) */
+  let dcv=null,dcx=null;
+  function frameSrc(){
+    if(!W||W>=v.videoWidth)return v;
+    if(!dcv){dcv=document.createElement('canvas');dcx=dcv.getContext('2d',{alpha:false})}
+    if(dcv.width!==W||dcv.height!==H){dcv.width=W;dcv.height=H}
+    dcx.drawImage(v,0,0,W,H);return dcv;
+  }
+  const upV=()=>{try{gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,frameSrc());return true}catch(e){return false}};
   const upT=src=>{try{gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,tex2);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);gl.activeTexture(gl.TEXTURE0)}catch(e){}};
   const clock=()=>performance.now()/1000%1000;
   function size(){
     const w0=v.videoWidth,h0=v.videoHeight;if(!w0||!h0)return false;
-    const k=Math.min(1,1920/Math.max(w0,h0)),w=Math.round(w0*k),h=Math.round(h0*k);
+    const k=Math.min(1,capL/Math.max(w0,h0)),w=Math.round(w0*k),h=Math.round(h0*k);
     if(w!==W||h!==H){W=w;H=h;glc.width=cv.width=w;glc.height=cv.height=h;gl.viewport(0,0,w,h);gl.uniform2f(uP,1/w,1/h);
       tc.width=Math.max(2,Math.round(w/2));tc.height=Math.max(2,Math.round(h/2));seed=true}
     return true;
@@ -2628,6 +2648,83 @@ void main(){
     c.clip();c.drawImage(src,0,0,w,h);c.restore();
   }
 
+
+  /* ----- фон: MediaPipe Image Segmenter (человек / фон), грузится при первом выборе ----- */
+  const SEGMODEL='https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
+  async function ensureSeg(force){
+    if(seg||loadingSeg||(failedSeg&&!force))return;loadingSeg=true;failedSeg=false;paintCount();
+    try{
+      const CDN=(window.SS_MP_BASE)||'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+      const mod=await import(CDN+'/vision_bundle.mjs');
+      const fs=await mod.FilesetResolver.forVisionTasks(CDN+'/wasm');
+      for(const d of['GPU','CPU']){
+        try{seg=await mod.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:window.SS_SEG_MODEL||SEGMODEL,delegate:d},runningMode:'VIDEO',outputCategoryMask:false,outputConfidenceMasks:true});break}
+        catch(e){if(d==='CPU')throw e}
+      }
+    }catch(e){failedSeg=true;toast(L('The background model needs internet the first time.','Для модели фона один раз нужен интернет.','Ֆոնի մոդելի համար առաջին անգամ ինտերնետ է պետք։'),5000)}
+    loadingSeg=false;paintCount();
+  }
+  function setMask(f32,w,h){
+    if(!segC||segC.width!==w||segC.height!==h){segC=document.createElement('canvas');segC.width=w;segC.height=h;segX=segC.getContext('2d');segD=segX.createImageData(w,h);segPrev=new Float32Array(w*h)}
+    const d=segD.data,pv=segPrev,n=w*h;
+    for(let i=0;i<n;i++){
+      let a=segInv?1-f32[i]:f32[i];a=(a-.35)/.3;a=a<0?0:a>1?1:a;a=a*a*(3-2*a);
+      a=pv[i]*.4+a*.6;pv[i]=a;
+      const k=i*4;d[k]=d[k+1]=d[k+2]=255;d[k+3]=a*255;
+    }
+    segX.putImageData(segD,0,0);segOK=true;
+  }
+  function segDetect(now){
+    if(!seg){ensureSeg();return}
+    if(++sc%2)return;
+    try{
+      seg.segmentForVideo(v,now,res=>{
+        const ms=res.confidenceMasks||[];if(!ms.length)return;
+        const m=ms.length>1?ms[1]:ms[0],a=m.getAsFloat32Array();
+        if(ms.length===1&&!segDec){ /* один канал: по центру обычно человек; если маска «наоборот», переворачиваем один раз */
+          const w=m.width,h=m.height;let c=0,cn=0,b=0,bn=0;
+          for(let y=0;y<h;y+=4)for(let x=0;x<w;x+=4){const q=a[y*w+x];if(x>w*.3&&x<w*.7&&y>h*.3&&y<h*.7){c+=q;cn++}else if(x<w*.15||x>w*.85){b+=q;bn++}}
+          c/=Math.max(1,cn);b/=Math.max(1,bn);if(Math.abs(c-b)>.25){segInv=c<b;segDec=true}
+        }
+        setMask(a,m.width,m.height);
+      });
+    }catch(e){}
+  }
+  function tmp(key,w,h){
+    let c=tmpC[key];if(!c){c=tmpC[key]=document.createElement('canvas')}
+    if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+    return c;
+  }
+  function drawCover(c,im,w,h){
+    const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;if(!iw||!ih)return;
+    const k=Math.max(w/iw,h/ih),dw=iw*k,dh=ih*k;c.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh);
+  }
+  function drawSeg(c,w,h,kind,src,key){
+    if(!segOK){c.drawImage(src,0,0,w,h);return}
+    /* человек: кадр, обрезанный по маске */
+    const pl=tmp('p'+key,w,h),px=pl.getContext('2d');
+    px.globalCompositeOperation='source-over';px.clearRect(0,0,w,h);px.imageSmoothingEnabled=true;px.imageSmoothingQuality='high';
+    px.drawImage(src,0,0,w,h);px.globalCompositeOperation='destination-in';px.drawImage(segC,0,0,w,h);px.globalCompositeOperation='source-over';
+    /* фон */
+    c.save();c.globalCompositeOperation='source-over';c.globalAlpha=1;c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';
+    if(kind==='bgblur'||kind==='bgblur2'){
+      const dv=kind==='bgblur2'?28:14,sw=Math.max(8,Math.round(w/dv)),sh=Math.max(8,Math.round(h/dv));
+      const sm=tmp('b'+key,sw,sh),sx=sm.getContext('2d');sx.imageSmoothingEnabled=true;sx.drawImage(src,0,0,sw,sh);
+      const sm2=tmp('c'+key,Math.max(4,sw>>1),Math.max(4,sh>>1)),sx2=sm2.getContext('2d');sx2.imageSmoothingEnabled=true;sx2.drawImage(sm,0,0,sm2.width,sm2.height);
+      sx.drawImage(sm2,0,0,sw,sh);
+      c.drawImage(sm,0,0,w,h);
+    }else if(kind==='bgcolor'){c.fillStyle=bg;c.fillRect(0,0,w,h)}
+    else if(kind==='bgimg'){c.fillStyle='#111';c.fillRect(0,0,w,h);if(bgImg)drawCover(c,bgImg,w,h)}
+    else if(kind==='bgdim'){c.drawImage(src,0,0,w,h);c.fillStyle='rgba(0,0,0,.68)';c.fillRect(0,0,w,h)}
+    else if(kind==='bgmono'){c.drawImage(src,0,0,w,h);c.globalCompositeOperation='saturation';c.fillStyle='#808080';c.fillRect(0,0,w,h);c.globalCompositeOperation='source-over'}
+    c.drawImage(pl,0,0,w,h);
+    c.restore();
+  }
+  function pickBgImage(){
+    const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+    inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const im=new Image();im.onload=()=>{bgImg=im;render(true)};im.src=URL.createObjectURL(f)};
+    inp.click();
+  }
   /* ----- интерфейс: кнопка под выбором языка, нижняя шторка, счётчик ----- */
   const NS='http://www.w3.org/2000/svg';
   const btn=document.createElement('button');btn.type='button';btn.id='fxb';
@@ -2637,17 +2734,19 @@ void main(){
   const cnt=document.createElement('div');cnt.id='fxcnt';cnt.style.display='none';stg.appendChild(cnt);
   const lbl=document.createElement('div');lbl.id='fxlbl';stg.appendChild(lbl);
   const tray=document.createElement('div');tray.id='fxtray';tray.setAttribute('role','dialog');tray.setAttribute('aria-label',L('Filters','Фильтры','Ֆիլտրեր'));
-  const TABS=[['all',L('All','Все','Բոլորը')],['face',L('Face','Лицо','Դեմք')],['live',L('Live','Живые','Շարժուն')],['color',L('Color','Цвет','Գույն')],['art',L('Art','Арт','Արվեստ')],['fun',L('Fun','Забава','Զվարճ')]];
+  const TABS=[['all',L('All','Все','Բոլորը')],['face',L('Face','Лицо','Դեմք')],['bg',L('Background','Фон','Ֆոն')],['live',L('Live','Живые','Շարժուն')],['color',L('Color','Цвет','Գույն')],['art',L('Art','Арт','Արվեստ')],['fun',L('Fun','Забава','Զվարճ')]];
   tray.innerHTML='<div class="fxh"><div class="fxtabs"></div><button type="button" class="fxx" aria-label="'+L('Close','Закрыть','Փակել')+'">×</button></div>'+
     '<div class="fxlist"></div>'+
     '<div class="fxfoot"><button type="button" class="fxtog" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c2.4-.3 4.2 1.1 4.8 4"/></svg><span>'+L('Count faces','Считать лица','Հաշվել դեմքերը')+'</span></button>'+
-    '<label class="fxbg"><span>'+L('Background','Фон','Ֆոն')+'</span><input type="color" aria-label="'+L('Background color','Цвет фона','Ֆոնի գույն')+'"></label></div>';
+    '<label class="fxbg"><span>'+L('Background','Фон','Ֆոն')+'</span><input type="color" aria-label="'+L('Background color','Цвет фона','Ֆոնի գույն')+'"></label>'+
+    '<button type="button" class="fxpic">'+L('Choose image','Выбрать картинку','Ընտրել նկար')+'</button></div>';
   document.body.appendChild(tray);
-  const tabsEl=tray.querySelector('.fxtabs'),list=tray.querySelector('.fxlist'),tog=tray.querySelector('.fxtog'),col=tray.querySelector('input[type=color]');
+  const tabsEl=tray.querySelector('.fxtabs'),list=tray.querySelector('.fxlist'),tog=tray.querySelector('.fxtog'),col=tray.querySelector('input[type=color]'),pic=tray.querySelector('.fxpic');
+  pic.onclick=()=>pickBgImage();
   col.value=bg;
   col.oninput=()=>{bg=col.value;try{localStorage.setItem('substudio-fxbg',bg)}catch(e){}};
   TABS.forEach(([k,n])=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.dataset.k=k;if(k===tab)b.className='on';
-    b.onclick=()=>{tab=k;[...tabsEl.children].forEach(x=>x.classList.toggle('on',x===b));filterChips();list.scrollLeft=0;if(k==='face')ensureFace(true);thumbTick()};tabsEl.appendChild(b)});
+    b.onclick=()=>{tab=k;[...tabsEl.children].forEach(x=>x.classList.toggle('on',x===b));filterChips();list.scrollLeft=0;if(k==='face')ensureFace(true);if(k==='bg')ensureSeg(true);thumbTick()};tabsEl.appendChild(b)});
   const chips=FL.map((f,i)=>{
     const b=document.createElement('button');b.type='button';b.className='fxchip'+(i===0?' on':'');b.dataset.fx=i;
     const c=document.createElement('canvas');c.width=64;c.height=64;c.style.background=f.g;
@@ -2663,10 +2762,11 @@ void main(){
   document.addEventListener('pointerdown',e=>{if(trayOpen&&!tray.contains(e.target)&&!btn.contains(e.target))close()},true);
 
   function paintCount(){
-    const f=FL[cur],live=!!stream&&!hasVideo;
-    if(!live||!(f.m||countOn)){if(cnt.style.display!=='none')cnt.style.display='none';return}
+    const f=FL[cur],live=!!stream&&!hasVideo,faceOn=(f.m&&!f.s)||countOn;
+    if(!live||!(faceOn||(f.s&&(loadingSeg||failedSeg)))){if(cnt.style.display!=='none')cnt.style.display='none';return}
     let h;
-    if(loadingFace)h='<span>'+L('Loading face model…','Загрузка модели лица…','Մոդելը բեռնվում է…')+'</span>';
+    if(!faceOn)h='<span>'+(loadingSeg?L('Loading background model…','Загрузка модели фона…','Ֆոնի մոդելը բեռնվում է…'):L('Background model unavailable','Модель фона недоступна','Ֆոնի մոդելը հասանելի չէ'))+'</span>';
+    else if(loadingFace)h='<span>'+L('Loading face model…','Загрузка модели лица…','Մոդելը բեռնվում է…')+'</span>';
     else if(failedFace)h='<span>'+L('Face model unavailable','Модель лица недоступна','Մոդելը հասանելի չէ')+'</span>';
     else{const n=faces.length;
       h='<span>'+L('Faces','Лица','Դեմքեր')+' <b>'+n+'</b></span><span>'+L('Heads','Головы','Գլուխներ')+' <b>'+n+'</b></span><span>'+L('Eyes','Глаза','Աչքեր')+' <b>'+n*2+'</b></span>';
@@ -2680,8 +2780,9 @@ void main(){
     if(recording&&!rc.on){toast(L('Change the filter before recording starts.','Фильтр меняется до начала записи.','Ֆիլտրը փոխեք մինչև ձայնագրության սկիզբը։'));return}
     cur=i;seed=true;
     chips.forEach((b,j)=>b.classList.toggle('on',j===i));
-    btn.classList.toggle('on',i>0);tray.classList.toggle('mask',!!FL[i].m);
-    if(FL[i].m)ensureFace(true);
+    btn.classList.toggle('on',i>0);{const m=FL[i].m;tray.classList.toggle('mask',(!!m&&!FL[i].s)||m==='bgcolor');tray.classList.toggle('img',m==='bgimg')}
+    if(FL[i].m){if(FL[i].s)ensureSeg(true);else ensureFace(true)}
+    if(FL[i].m==='bgimg'&&!bgImg)pickBgImage();
     showLbl(FL[i].n);paintCount();render(true);
   }
   function open(){
@@ -2699,13 +2800,14 @@ void main(){
     if(!stream||hasVideo||v.readyState<2||!size())return;
     const th=84,tw=Math.max(40,Math.round(th*W/H)),lr=list.getBoundingClientRect();
     if(!upV())return;
-    upT(v);
+    upT(frameSrc());
     for(let i=0;i<chips.length;i++){
       const b=chips[i];if(b.style.display==='none')continue;
       const r=b.getBoundingClientRect();if(r.right<lr.left-10||r.left>lr.right+10)continue;
       const c=b._c,f=FL[i];
       if(c.width!==tw||c.height!==th){c.width=tw;c.height=th}
       const c2=c.getContext('2d');
+      if(f.s){if(segOK)drawSeg(c2,tw,th,f.m,v,'t');continue}
       if(f.m){if(lmk&&!failedFace)drawMask(c2,tw,th,f.m,v);continue}
       gl.viewport(0,0,tw,th);gl.uniform1f(uM,f.k);gl.uniform1f(uT,clock());gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
       c2.drawImage(glc,0,H-th,tw,th,0,0,tw,th);
@@ -2720,22 +2822,29 @@ void main(){
     if(a)cv.setAttribute('style',v.getAttribute('style')||'');
     stg.classList.toggle('fxon',a);
   }
+  /* слабое устройство: если кадр обрабатывается дольше ~45 мс, уменьшаем рабочее разрешение (минимум 640) */
+  function adapt(c){
+    costE=costE?costE*.7+c*.3:c;
+    if(++costN>8&&costE>45&&capL>640){capL=Math.max(640,Math.round(capL*.75/16)*16);costN=0;costE=0}
+  }
   function render(force){
     const now=performance.now();
     if(!force&&now-last<28)return;
     last=now;
     const live=!!stream&&!hasVideo&&v.readyState>=2&&v.videoWidth>0,f=FL[cur],act=ok&&live&&cur>0;
     if(!live){setOn(false);paintCount();return}
-    if(f.m||countOn||(trayOpen&&tab==='face'))detect(now);
+    if((f.m&&!f.s)||countOn||(trayOpen&&tab==='face'))detect(now);
+    if(f.s||(trayOpen&&tab==='bg'))segDetect(now);
     paintCount();
     if(!act){setOn(false);return}
     if(!size()){return}
-    if(f.m){drawMask(cx,W,H,f.m,v);setOn(true);return}
+    const tS=performance.now();
+    if(f.m){if(f.s)drawSeg(cx,W,H,f.m,v,'m');else drawMask(cx,W,H,f.m,v);setOn(true);adapt(performance.now()-tS);return}
     if(!upV())return;
     if(f.ta){tcx.globalAlpha=seed?1:f.ta;seed=false;tcx.drawImage(v,0,0,tc.width,tc.height);upT(tc)}
     gl.viewport(0,0,W,H);gl.uniform1f(uM,f.k);gl.uniform1f(uT,clock());gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
     cx.drawImage(glc,0,0);
-    setOn(true);
+    setOn(true);adapt(performance.now()-tS);
   }
   (function loop(){requestAnimationFrame(loop);render(false)})();
 
@@ -2744,9 +2853,53 @@ void main(){
     active:()=>ok&&cur>0,
     /* кадр для записи: свежий результат фильтра или null, если фильтра нет */
     frame(){if(performance.now()-last>40)render(true);return(on&&W)?cv:null},
-    pick,open,close
+    pick,open,close,
+    _dbg:{setMask,state:()=>({segOK})}
   };
 })();
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc}
+
+/* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
+const DN=(function(){
+  const BASE=window.SS_DN_BASE||'https://cdn.jsdelivr.net/npm/@sapphi-red/web-noise-suppressor@0.4.1/dist';
+  let on=true,ctx=null,mod=null,wasm=null,ready=null,failed=false,cur=null;
+  try{on=localStorage.getItem('substudio-dn')!=='0'}catch(e){}
+  async function init(){
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C||!window.AudioWorkletNode)throw new Error('no AudioWorklet');
+    ctx=new C({sampleRate:48000});
+    mod=await import(BASE+'/index.js');
+    wasm=await mod.loadRnnoise({url:BASE+'/rnnoise.wasm',simdUrl:BASE+'/rnnoise_simd.wasm'});
+    await ctx.audioWorklet.addModule(BASE+'/rnnoise/workletProcessor.js');
+  }
+  function warm(){if(on&&!failed&&!ready)ready=init().catch(e=>{failed=true})}
+  function stop(){
+    if(!cur)return;
+    try{cur.src.disconnect()}catch(e){}
+    try{cur.node.disconnect();if(cur.node.destroy)cur.node.destroy()}catch(e){}
+    try{cur.dst.stream.getTracks().forEach(x=>x.stop())}catch(e){}
+    cur=null;
+  }
+  /* берёт поток камеры и микрофона, возвращает поток с очищенным звуком; при любой неудаче отдаёт исходный */
+  async function wrap(ms){
+    stop();
+    if(!on||failed||!ms||!ms.getAudioTracks().length)return ms;
+    try{
+      warm();
+      const ok=await Promise.race([ready.then(()=>!failed),new Promise(r=>setTimeout(()=>r(false),2500))]);
+      if(!ok||!ctx)return ms;
+      if(ctx.state==='suspended')await ctx.resume();
+      const src=ctx.createMediaStreamSource(new MediaStream([ms.getAudioTracks()[0]])),
+            node=new mod.RnnoiseWorkletNode(ctx,{maxChannels:1,wasmBinary:wasm}),dst=ctx.createMediaStreamDestination();
+      try{node.channelCount=1;node.channelCountMode='explicit'}catch(e){}
+      src.connect(node);node.connect(dst);cur={src,node,dst};
+      return new MediaStream([...ms.getVideoTracks(),...dst.stream.getAudioTracks()]);
+    }catch(e){stop();return ms}
+  }
+  return{wrap,stop,warm,on:()=>on,set(x){on=!!x;try{localStorage.setItem('substudio-dn',on?'1':'0')}catch(e){}if(on)warm()}};
+})();
+setTimeout(()=>{try{DN.warm()}catch(e){}},2500);
+
 
 
 /* ---------- камера и запись ---------- */
@@ -2935,6 +3088,7 @@ async function _startRec(){
   pendingPass=later;
   const pmv=cloudMode?'cloud':(later?'later':'normal');
   let rs=stream;
+  try{rs=await DN.wrap(stream)}catch(e){rs=stream}
   if(pmv==='later')toast(t('laterMode'),6000);
   try{await detectCrop()}catch(e){crop=null;applyVLayout()}
   if(!isIOSdev()||crop||mirror||(!hwZoom&&zoom>1.001)||wantAR()||FX.active()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
@@ -2997,6 +3151,7 @@ function resumeRec(){
 $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if((hasVideo&&(dirty||!curId||doSave.failed))||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 async function finishRec(){
+  try{DN.stop()}catch(e){}
   stopCanvas();crop=null;vcrop=null;$('#camSel').disabled=false;buildCamMenu();
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
   audioPlayback();
@@ -3092,7 +3247,7 @@ function renderTL(){
   const maxE=Math.max(0,...allC().map(c=>c.e));
   const total=Math.max(dur,el,hasVideo?totalT():0,maxE)+2;
   tlin.style.width=Math.ceil(total*PX)+'px';
-  tlin.innerHTML='';blkEl.clear();{const ac=allC();[...selSet].forEach(x=>{if(!ac.includes(x))selSet.delete(x)})}
+  tlin.innerHTML='';blkEl.clear();{const ac=allC();[...selSet].forEach(x=>{if(!ac.includes(x))selSet.delete(x)});if(VE.tsel&&!ac.includes(VE.tsel))VE.tsel=null}
   const ruler=document.createElement('div');ruler.id='ruler';ruler.addEventListener('pointerdown',startScrub);tlin.appendChild(ruler);
   for(let i=0;i<=total;i+=5){const t=document.createElement('div');t.className='tick';t.style.left=i*PX+'px';t.textContent=fmt(i);ruler.appendChild(t)}
   TR_H=88+ovTrackH();const ends=[],lane=new Map();
@@ -3107,7 +3262,7 @@ function renderTL(){
     b.textContent=c.t;b.style.top=(8+TR_H+lane.get(c)*48)+'px';place(b,c);
     const hl=document.createElement('div');hl.className='h l';hl.dataset.h='l';
     const hr=document.createElement('div');hr.className='h r';hr.dataset.h='r';
-    b.append(hl,hr);attachDrag(b,c);tlin.appendChild(b);blkEl.set(c,b);
+    b.append(hl,hr);if(VE.tsel===c)b.classList.add('tsel');attachDrag(b,c);tlin.appendChild(b);blkEl.set(c,b);
   });
   renderVTracks();renderOvTracks();
   ph=document.createElement('div');ph.className='ph';const gr=document.createElement('div');gr.className='gr';gr.addEventListener('pointerdown',startScrub);ph.appendChild(gr);tlin.appendChild(ph);
@@ -3207,7 +3362,7 @@ function attachDrag(b,c){
       if(grab||(drag&&!grp&&!lp)){save();renderTL();return}
       if(lp||drag||ev.type!=='pointerup')return;
       if(grp){if(selSet.has(c))selSet.delete(c);else selSet.add(c);selUI();return}
-      if(mode==='m')openEd(c,false);
+      if(mode==='m'){if(VE.tsel===c)openEd(c,false);else VE.pickText(c)}
     };
     b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
   });
@@ -3222,8 +3377,12 @@ tlin.addEventListener('pointerdown',e=>{
     if(ev.clientX>tr.right-40)tl.scrollLeft+=14;
     else if(ev.clientX<tr.left+40)tl.scrollLeft-=14;
   };
+  /* тап по куску видео или стыку выбирает его (захват указателя иначе «съедал» клик); тяга по ним перематывает */
+  const tgt=e.target.closest('.vseg,.vjn'),x0=e.clientX;let moved=false;
   tlin.setPointerCapture(e.pointerId);sc(e);
-  const up=()=>{tlin.removeEventListener('pointermove',sc);tlin.removeEventListener('pointerup',up);tlin.removeEventListener('pointercancel',up)};
+  const trk=ev=>{if(Math.abs(ev.clientX-x0)>6)moved=true};
+  tlin.addEventListener('pointermove',trk);
+  const up=ev=>{tlin.removeEventListener('pointermove',sc);tlin.removeEventListener('pointermove',trk);tlin.removeEventListener('pointerup',up);tlin.removeEventListener('pointercancel',up);if(tgt&&!moved&&ev.type==='pointerup'&&tgt.isConnected)tgt.click()};
   tlin.addEventListener('pointermove',sc);tlin.addEventListener('pointerup',up);tlin.addEventListener('pointercancel',up);
 });
 
@@ -4007,7 +4166,10 @@ function openEd(c,isNew){
   ec=c;enew=!!isNew;etxt.value=isNew?'':c.t;
   $('#etitle').textContent=t(isNew?'eNew':'eTitle');
   $('#edel').style.display=isNew?'none':'';
-  ebox.style.display='flex';setTimeout(()=>etxt.focus(),50);
+  ebox.style.display='flex';
+  /* после касания блока палец ещё «кликает» по месту, где уже появилось окно: на 0,45 с окно не принимает касания */
+  ebox.style.pointerEvents='none';clearTimeout(openEd._t);openEd._t=setTimeout(()=>{ebox.style.pointerEvents=''},450);
+  setTimeout(()=>etxt.focus(),50);
 }
 function closeEd(){ebox.style.display='none';ec=null}
 function dropChunk(c){
@@ -4278,13 +4440,13 @@ function vAfter(){save();renderTL();buildDock()}
 function vSplit(){const t=v.currentTime,D=vdur(),E=(typeof ui!=='undefined'&&ui==='en');
   if(!hasVideo||t<.3||t>D-.3){toast(E?'Move the playhead inside the video first':'Поставьте маркер времени внутрь видео',3500);return}
   if(VE.splits.some(q=>Math.abs(q-t)<.25))return;VE.splits.push(t);VE.splits.sort((a,b)=>a-b);vAfter()}
+function trGaps(){return vJoins().filter(j=>j.gap)}
 function vAddTr(){
-  const E=(typeof ui!=='undefined'&&ui==='en'),t=v.currentTime,D=vdur();
-  if(VE.selJ!=null){trPick(VE.selJ);return}
-  const near=vJoins().filter(j=>Math.abs(j.a-t)<.6||(j.gap&&t>=j.a&&t<=j.b)).sort((p,q)=>Math.abs(p.a-t)-Math.abs(q.a-t))[0];
-  if(near){trPick(near.key);return}
-  if(!hasVideo||t<.3||t>D-.3){toast(E?'Move the playhead to where the transition should be':'Поставьте маркер времени туда, где нужен переход',4000);return}
-  VE.splits.push(t);VE.splits.sort((p,q)=>p-q);save();renderTL();trPick(Math.round(t*100));
+  const E=(typeof ui!=='undefined'&&ui==='en'),t=v.currentTime,g=trGaps();
+  if(!g.length){toast(E?'Delete a clip first: a transition sits on the cut':'Сначала удалите кусок: переход ставится на месте выреза',4000);return}
+  if(VE.selJ!=null&&g.some(j=>j.key===VE.selJ)){trPick(VE.selJ);return}
+  const near=g.slice().sort((p,q)=>Math.abs(p.a-t)-Math.abs(q.a-t))[0];
+  VE.selJ=near.key;trPick(near.key);
 }
 function vDel(){const E=(typeof ui!=='undefined'&&ui==='en');
   if(!VE.sel){toast(E?'Tap a clip in the video track first':'Сначала нажмите на кусок в дорожке видео',3500);return}
@@ -4293,6 +4455,50 @@ function vSetTr(k){const E=(typeof ui!=='undefined'&&ui==='en'),D=vdur();
   const keys=VE.selJ!=null?[VE.selJ]:cutSpans().filter(q=>q[0]>=.05&&q[1]<=D-.05).map(q=>Math.round(q[1]*100));
   if(!keys.length){toast(E?'Delete a clip first: a transition sits on the join':'Сначала удалите кусок: переход ставится на стык',4000);return}
   keys.forEach(q=>{if(k)VE.tr[q]=k;else delete VE.tr[q]});vAfter()}
+
+/* ---------- тянуть за край клипа: уменьшить (вырезается), вернуть обратно ---------- */
+const clampV=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
+function vTrim(a,b,side,x){
+  const D=vdur(),r=n=>Math.round(n*100),near=(p,q)=>Math.abs(p-q)<.03;
+  const subCut=(p,q)=>{VE.cuts=VE.cuts.flatMap(c=>{if(c[1]<=p||c[0]>=q)return[c];const o=[];if(c[0]<p)o.push([c[0],p]);if(c[1]>q)o.push([q,c[1]]);return o})};
+  const ensure=t=>{if(t>.05&&t<D-.05&&!VE.splits.some(z=>near(z,t))){VE.splits.push(t)}};
+  const moveSplit=(f,t)=>{VE.splits=VE.splits.filter(z=>!near(z,f));ensure(t)};
+  const rekey=(f,t)=>{const kf=r(f),kt=r(t);if(kf===kt)return;if(VE.tr[kf]!=null){VE.tr[kt]=VE.tr[kf];delete VE.tr[kf]}if(VE.trd[kf]!=null){VE.trd[kt]=VE.trd[kf];delete VE.trd[kf]}};
+  if(side==='l'){
+    if(x>a+.02){VE.cuts.push([a,x]);ensure(x);VE.sel={a:x,b}}
+    else if(x<a-.02){subCut(x,a);moveSplit(a,x);rekey(a,x);VE.sel={a:x,b}}
+  }else{
+    if(x<b-.02){VE.cuts.push([x,b]);ensure(x);VE.sel={a,b:x}}
+    else if(x>b+.02){subCut(b,x);moveSplit(b,x);rekey(b,x);VE.sel={a,b:x}}
+  }
+  VE.splits.sort((p,q)=>p-q);
+  const cs=cutSpans();VE.splits=VE.splits.filter(z=>!cs.some(q=>z>q[0]+.02&&z<q[1]-.02));
+  vAfter();
+}
+function vTrimBind(h,e,a,b,side){
+  h.addEventListener('click',ev=>ev.stopPropagation());
+  h.addEventListener('pointerdown',ev=>{
+    ev.preventDefault();ev.stopPropagation();
+    if(recording||exporting)return;
+    try{h.setPointerCapture(ev.pointerId)}catch(x){}
+    const D=vdur(),MIN=.3,cs=cutSpans(),x0=ev.clientX,sl0=tl.scrollLeft;
+    const gl=cs.find(q=>Math.abs(q[1]-a)<.03),gr=cs.find(q=>Math.abs(q[0]-b)<.03);
+    const lo=side==='l'?(gl?gl[0]:a):a+MIN,hi=side==='l'?b-MIN:(gr?gr[1]:b);
+    let x=side==='l'?a:b,moved=false;
+    const paint=()=>{if(side==='l'){e.style.left=x*PX+'px';e.style.width=Math.max(10,(b-x)*PX-2)+'px'}else e.style.width=Math.max(10,(x-a)*PX-2)+'px'};
+    const mv=m=>{
+      const d=(m.clientX-x0+tl.scrollLeft-sl0)/PX;if(Math.abs(m.clientX-x0)>2)moved=true;
+      x=clampV((side==='l'?a:b)+d,lo,hi);paint();
+      const r2=tl.getBoundingClientRect();if(m.clientX>r2.right-40)tl.scrollLeft+=10;else if(m.clientX<r2.left+40)tl.scrollLeft-=10;
+      try{v.currentTime=clampV(x,0,Math.max(0,D-.05))}catch(z){}
+    };
+    const up=()=>{
+      h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);
+      if(moved&&Math.abs(x-(side==='l'?a:b))>.04)vTrim(a,b,side,x);else renderTL();
+    };
+    h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  });
+}
 /* ---------- анимированные переходы: окно выбора ---------- */
 const TRTH={w:0,a:null,b:null};
 function trThumbImgs(w,h){
@@ -4435,7 +4641,7 @@ function ovLoad(arr){
     o._url=URL.createObjectURL(o.blob);ovId=Math.max(ovId,(+o.id||0)+1);VE.ov.push(o);ovMake(o);
   });
 }
-const ovSnap=o=>({ln:o.ln,main:!!o.main,id:o.id,kind:o.kind,name:o.name,blob:o.main?null:o.blob,s:o.s,d:o.d,mo:o.mo,md:o.md,x:o.x,y:o.y,w:o.w,ar:o.ar,op:o.op,vol:o.vol,inA:o.inA,outA:o.outA,ad:o.ad,rad:o.rad});
+const ovSnap=o=>({r:o.r||1,ln:o.ln,main:!!o.main,id:o.id,kind:o.kind,name:o.name,blob:o.main?null:o.blob,s:o.s,d:o.d,mo:o.mo,md:o.md,x:o.x,y:o.y,w:o.w,ar:o.ar,op:o.op,vol:o.vol,inA:o.inA,outA:o.outA,ad:o.ad,rad:o.rad});
 
 /* ---- история правок: отмена по одному шагу ---- */
 const H={u:[],cur:null,t:0,busy:false};
@@ -4485,7 +4691,7 @@ function ovFromSel(){
   const o={id:ovId++,kind:'v',main:true,name:'clip',blob:recBlob,s,d,mo:q.a,md:D,x:1-.04-w/2,y:.04+w/2,w,ar:FA,op:1,vol:1,inA:'fade',outA:'fade',ad:.45,rad:.06};
   o._url=URL.createObjectURL(recBlob);o.ln=ovMaxLane()+1;
   VE.cuts.push([q.a,q.b]);
-  VE.ov.push(o);ovMake(o);VE.sel=null;VE.osel=o.id;VE.vsel=null;markDirty();renderTL();buildDock();
+  VE.ov.push(o);ovMake(o);VE.sel=null;VE.osel=o.id;VE.vsel=null;VE.tsel=null;markDirty();renderTL();buildDock();
   try{v.currentTime=s+.01}catch(e){}
   toast(LX('Кусок вырезан из основного видео и стал слоем. Он стоит сразу после вырезанного места: передвиньте его куда нужно.','The clip was cut out of the main video and became a layer. It sits right after the removed spot: move it where you need.'),6000);
 }
@@ -4509,7 +4715,8 @@ function ovSync(){
     s.borderRadius=(o.rad*Math.min(bw,bh))+'px';
     b.classList.toggle('sel',ed&&VE.osel===o.id);
     if(o.kind==='v'){
-      const el=o._el,lt=Math.max(0,t-o.s+o.mo);
+      const el=o._el,rr=o.r||1,lt=Math.max(0,(t-o.s)*rr+o.mo);
+      if(el.playbackRate!==rr)try{el.playbackRate=rr}catch(e){}
       try{el.volume=clampN(o.vol,0,1)}catch(e){}
       el.muted=exporting||o.vol<=0||!!o._mute;
       if(playing){
@@ -4552,14 +4759,14 @@ function ovAudioSync(){
   const t=v.currentTime,playing=!v.paused&&!v.ended;
   for(const o of VE.ov){
     if(o.kind!=='v'||!o._abuf)continue;
-    const act=playing&&t>=o.s&&t<o.s+o.d,lt=t-o.s+o.mo;let S=OVS.get(o.id);
+    const rr=o.r||1,act=playing&&t>=o.s&&t<o.s+o.d,lt=(t-o.s)*rr+o.mo;let S=OVS.get(o.id);
     if(S){
-      if(act&&Math.abs(S.lt+(AC.currentTime-S.ctx)-lt)<.25)continue;
+      if(act&&S.rr===rr&&Math.abs(S.lt+(AC.currentTime-S.ctx)*rr-lt)<.25)continue;
       try{S.src.stop();S.src.disconnect()}catch(e){}OVS.delete(o.id);
     }
     if(!act||lt>=o._abuf.duration-.02)continue;
-    const src=AC.createBufferSource(),g=AC.createGain();src.buffer=o._abuf;g.gain.value=clampN(o.vol,0,1);src.connect(g);g.connect(xaMix);src.start(0,Math.max(0,lt));
-    OVS.set(o.id,{src,lt,ctx:AC.currentTime});
+    const src=AC.createBufferSource(),g=AC.createGain();src.buffer=o._abuf;src.playbackRate.value=rr;g.gain.value=clampN(o.vol,0,1);src.connect(g);g.connect(xaMix);src.start(0,Math.max(0,lt));
+    OVS.set(o.id,{src,lt,ctx:AC.currentTime,rr});
   }
 }
 function ovAudioStop(){OVS.forEach(S=>{try{S.src.stop();S.src.disconnect()}catch(e){}});OVS.clear();VE.ov.forEach(o=>{o._abuf=null;if(o.kind==='v'&&o._el)try{o._el.pause()}catch(e){}})}
@@ -4609,7 +4816,7 @@ async function ovAdd(file,opt){
   o.s=s;
   /* выбрано что-то на дорожке: новый слой идёт на новую линию, иначе в первую свободную */
   o.ln=(opt&&opt.lane!=null)?opt.lane:((ovSel()||VE.sel)?ovMaxLane()+1:ovFreeLane(o));
-  VE.ov.push(o);ovMake(o);VE.osel=o.id;markDirty();renderTL();buildDock();
+  VE.ov.push(o);ovMake(o);VE.osel=o.id;VE.tsel=null;markDirty();renderTL();buildDock();
   return o;
 }
 function ovPick(kind){
@@ -4626,7 +4833,7 @@ function ovPick(kind){
   inp.click();
 }
 function ovSelect(id,seek){
-  VE.osel=id;VE.vsel=null;
+  VE.osel=id;VE.vsel=null;VE.tsel=null;
   document.querySelectorAll('.ovb').forEach(b=>b.classList.toggle('sel',+b.dataset.id===id));
   const o=ovById(id);
   if(o&&seek){const t=v.currentTime;if(!(t>=o.s&&t<o.s+o.d)){try{v.currentTime=o.s+.01}catch(e){}}}
@@ -4730,11 +4937,13 @@ function dkRange(min,max,step,val,on,ch){
 }
 function ovInspector(row,o,mk){
   const E=ui==='en',x=(r,e)=>E?e:r;
-  mk('check',x('Готово','Done'),()=>{VE.osel=null;renderTL();buildDock()},true);
-  mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
-  mk('photo',x('Фото','Photo'),()=>ovPick('i'));
-  mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia());
+  if(o.kind==='v'){mk('slow',x('Медленнее','Slower'),()=>ovStepRate(o,-1),true);mk('fast',x('Быстрее','Faster'),()=>ovStepRate(o,1),true)}
+  mk('scissors',x('Разрезать','Split'),()=>ovSplit(o),true);
+  mk('copy',x('Копия','Duplicate'),()=>ovDuplicate(o),true);
+  mk('trash',x('Удалить','Delete'),()=>ovRemove(o),true);
+  mk('check',x('Готово','Done'),()=>{VE.osel=null;renderTL();buildDock()});
   mk('undo',x('Отменить','Undo'),hUndo);
+  if(o.kind==='v'){const sp=document.createElement('b');sp.className='dksv';sp.textContent=(o.r||1).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'×';row.appendChild(dkg(x('Скорость','Speed'),sp))}
   const sv=document.createElement('b');sv.className='dksv';sv.textContent=Math.round(o.w*100)+'%';
   const sr=dkRange(.05,2,.01,o.w,val=>{o.w=val;sv.textContent=Math.round(val*100)+'%';markDirty()});
   ovUi.o=o;ovUi.size=sr;ovUi.sv=sv;row.appendChild(dkg(x('Размер','Size'),sr,sv));
@@ -4748,7 +4957,7 @@ function ovInspector(row,o,mk){
   /* длительность */
   const dn=document.createElement('div');dn.className='dkn';
   const dm=document.createElement('b');dm.className='dksv';const dmT=()=>{dm.textContent=o.d.toFixed(1)+x(' с',' s')};dmT();
-  const stp=dl=>{const D=vdur();let nd=clampN(o.d+dl,.3,Math.max(.3,D-o.s));if(o.kind==='v')nd=Math.min(nd,Math.max(.3,o.md-o.mo));o.d=nd;dmT();markDirty();renderTL()};
+  const stp=dl=>{const D=vdur();let nd=clampN(o.d+dl,.3,Math.max(.3,D-o.s));if(o.kind==='v')nd=Math.min(nd,Math.max(.3,(o.md-o.mo)/(o.r||1)));o.d=nd;dmT();markDirty();renderTL()};
   const bm=document.createElement('button'),bp=document.createElement('button');bm.className=bp.className='chip';bm.textContent='−';bp.textContent='＋';bm.onclick=()=>stp(-.5);bp.onclick=()=>stp(.5);
   dn.append(bm,dm,bp);row.appendChild(dkg(x('Длительность','Duration'),dn));
   /* появление / исчезновение */
@@ -4772,7 +4981,12 @@ function ovInspector(row,o,mk){
 }
 function voiceInspector(row,b,mk){
   const E=ui==='en',x=(r,e)=>E?e:r;
-  mk('check',x('Готово','Done'),()=>{VE.vsel=null;renderTL();buildDock()},true);
+  const vr=d=>{b.rate=clampV(Math.round((b.rate+d)*100)/100,.6,2);markDirty();VE.voiceMoved();buildDock()};
+  mk('slow',x('Медленнее','Slower'),()=>vr(-.1),true);
+  mk('fast',x('Быстрее','Faster'),()=>vr(.1),true);
+  mk('copy',x('Копия','Duplicate'),()=>VE.voiceDup(b),true);
+  mk('trash',x('Удалить','Delete'),()=>VE.voiceDel(b),true);
+  mk('check',x('Готово','Done'),()=>{VE.vsel=null;renderTL();buildDock()});
   mk('undo',x('Отменить','Undo'),hUndo);
   const gv=document.createElement('b');gv.className='dksv';gv.textContent=Math.round((b.g==null?1:b.g)*100)+'%';
   row.appendChild(dkg(x('Громкость','Volume'),dkRange(0,2,.05,b.g==null?1:b.g,val=>{b.g=val;gv.textContent=Math.round(val*100)+'%';markDirty()},()=>VE.voiceMoved()),gv));
@@ -4788,6 +5002,79 @@ function voiceInspector(row,b,mk){
   ak('copy',()=>VE.voiceDup(b),x('Дублировать','Duplicate'));ak('trash',()=>VE.voiceDel(b),x('Удалить','Delete'),true);
   row.appendChild(dkg(x('Действия','Actions'),ab));
 }
+
+Object.assign(ICP,{
+"edit":"<path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"M13.5 6.5l4 4\"/>",
+"fast":"<path d=\"M4 6l7 6-7 6zM12 6l7 6-7 6z\"/>",
+"slow":"<path d=\"M20 6l-7 6 7 6zM12 6l-7 6 7 6z\"/>",
+"voice":"<path d=\"M4 10v4M8 6v12M12 9v6M16 4v16M20 9v6\"/>",
+"words":"<path d=\"M4 7h16M4 12h10M4 17h14\"/>"
+});
+/* ---------- быстрые действия: 3–4 самых нужных для выбранного элемента ---------- */
+VE.pickText=function(c){
+  VE.tsel=c;VE.sel=null;VE.selJ=null;VE.osel=null;VE.vsel=null;selSet.clear();
+  $('#dkbody').dataset.tab='vd';renderTL();buildDock();seek(c.s+.05);
+};
+function txSplit(c){
+  const E=ui==='en',t=v.currentTime;
+  if(!(t>c.s+.2&&t<c.e-.2)){toast(E?'Move the playhead inside the block first':'Поставьте маркер времени внутрь блока',3500);return}
+  const w=c.t.split(/\s+/).filter(Boolean);
+  if(w.length<2){toast(E?'A single word cannot be split':'Одно слово разделить нельзя',3000);return}
+  const k=Math.min(w.length-1,Math.max(1,Math.round(w.length*(t-c.s)/(c.e-c.s))));
+  const g=c.g,p2={s:t,e:c.e,l:g.l,t:w.slice(k).join(' '),cut:false};
+  c.t=w.slice(0,k).join(' ');c.e=t;g.t=g.c.map(x=>x.t).join(' ');g.raw=g.t;
+  phrases.push(p2);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p2);
+  save();renderAll();buildDock();
+}
+function txDup(c){
+  const g=c.g,d=c.e-c.s,p={s:c.e,e:c.e+d,l:g.l,t:c.t,cut:false};
+  phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);
+  VE.tsel=p.c[0]||null;save();renderAll();buildDock();
+}
+function txDel(c){dropChunk(c);VE.tsel=null;save();renderAll();buildDock()}
+function txNudge(c,d){
+  const dd=Math.max(-c.s,d);c.s+=dd;c.e+=dd;save();renderTL();seek(c.s+.05);
+}
+function txInspector(row,c,mk){
+  const E=ui==='en',x=(r,e)=>E?e:r;
+  mk('edit',x('Изменить','Edit'),()=>openEd(c,false),true);
+  mk('scissors',x('Разрезать','Split'),()=>txSplit(c),true);
+  mk('copy',x('Копия','Duplicate'),()=>txDup(c),true);
+  mk('trash',x('Удалить','Delete'),()=>txDel(c),true);
+  mk('check',x('Готово','Done'),()=>{VE.tsel=null;renderTL();buildDock()});
+  const dn=document.createElement('div');dn.className='dkn';
+  const tm=document.createElement('b');tm.className='dksv';const tmT=()=>{tm.textContent=c.s.toFixed(1)+x(' с',' s')};tmT();
+  const bm=document.createElement('button'),bp=document.createElement('button');bm.className=bp.className='chip';bm.textContent='−0.1';bp.textContent='+0.1';
+  bm.onclick=()=>{txNudge(c,-.1);tmT()};bp.onclick=()=>{txNudge(c,.1);tmT()};
+  dn.append(bm,tm,bp);row.appendChild(dkg(x('Время','Time'),dn));
+  const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Тяните края блока, чтобы изменить длину. Тап по выбранному блоку открывает правку текста.','Drag the block edges to change its length. Tap the selected block to edit its text.');row.appendChild(hn);
+}
+function sgInspector(row,q,mk){
+  const E=ui==='en',x=(r,e)=>E?e:r;
+  mk('scissors',x('Разрезать','Split'),vSplit,true);
+  mk('trash',x('Удалить кусок','Delete clip'),vDel,true);
+  if(trGaps().length)mk('plus',x('Переход','Transition'),vAddTr,true);
+  mk('layers',x('Сделать слоем','Clip to layer'),ovFromSel,true);
+  mk('check',x('Готово','Done'),()=>{VE.sel=null;renderTL();buildDock()});
+  mk('undo',x('Отменить','Undo'),hUndo);
+  const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Тяните белые края клипа, чтобы уменьшить его. Вырезанное место можно вернуть тем же краем.','Drag the white edges of the clip to shorten it. Pull the same edge back to restore it.');row.appendChild(hn);
+}
+const OSPD=[.25,.5,.75,1,1.25,1.5,2,3];
+function ovSetRate(o,nr){
+  const D=vdur(),old=o.r||1;nr=clampV(nr,.25,4);
+  let nd=o.d*old/nr;nd=clampV(nd,.3,Math.max(.3,D-o.s));
+  if(o.kind==='v'&&o.md)nd=Math.min(nd,Math.max(.3,(o.md-o.mo)/nr));
+  o.r=nr;o.d=nd;markDirty();renderTL();buildDock();
+}
+function ovStepRate(o,dir){const c=o.r||1;let i=0,best=9;OSPD.forEach((z,k)=>{const d=Math.abs(z-c);if(d<best){best=d;i=k}});ovSetRate(o,OSPD[clampV(i+dir,0,OSPD.length-1)])}
+function ovSplit(o){
+  const E=ui==='en',t=v.currentTime;
+  if(!(t>o.s+.2&&t<o.s+o.d-.2)){toast(E?'Move the playhead inside the layer first':'Поставьте маркер времени внутрь слоя',3500);return}
+  const r=o.r||1,c=Object.assign({},ovSnap(o),{id:ovId++});
+  c.blob=o.blob;c._url=URL.createObjectURL(c.blob);c.s=t;c.d=o.s+o.d-t;c.mo=o.mo+(t-o.s)*r;c.ln=o.ln;c.inA='none';
+  o.d=t-o.s;o.outA='none';
+  VE.ov.push(c);ovMake(c);VE.osel=c.id;markDirty();renderTL();buildDock();
+}
 function vdRow(row){
   const E=ui==='en',x=(r,e)=>E?e:r;
   const mk=(ic,txt,fn,hl)=>{const b=document.createElement('button');b.className='chip ichip'+(hl?' active':'');b.innerHTML=ico(ic)+'<span>'+txt+'</span>';b.onclick=fn;row.appendChild(b)};
@@ -4796,16 +5083,16 @@ function vdRow(row){
   const o=ovSel();
   if(o){ovInspector(row,o,mk);return}
   ovUi.o=null;ovUi.size=null;
-  mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
+  if(VE.tsel&&allC().includes(VE.tsel)){txInspector(row,VE.tsel,mk);return}
+  if(VE.sel){sgInspector(row,VE.sel,mk);return}
+  if(trGaps().length)mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
   mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia(),true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
   mk('photo',x('Фото','Photo'),()=>ovPick('i'));
-  mk('layers',x('Сделать слоем','Clip to layer'),ovFromSel);
   mk('scissors',x('Разрезать','Split'),vSplit);
-  mk('trash',x('Удалить кусок','Delete clip'),vDel);
   mk('undo',x('Отменить','Undo'),hUndo);
   mk('refresh',x('Вернуть всё','Restore all'),hRestoreAll);
-  const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Переход ставится на стыке. Видео и фото ложатся поверх: их можно двигать, менять размер и время.','A transition sits on a join. Videos and photos go on top: move them, resize them, change their timing.');row.appendChild(hn);
+  const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Нажмите на текст, кусок видео, слой или голос на дорожках: здесь появятся быстрые действия. Переход доступен после выреза.','Tap a text, video clip, layer or voice on the tracks: quick actions appear here. A transition is available after a cut.');row.appendChild(hn);
 }
 function auRow(row){if(VE.audRow){VE.audRow(row);return}const E=(typeof ui!=='undefined'&&ui==='en'),b=document.createElement('div');b.className='dkaud';
   b.innerHTML=VIC.a+'<span>'+(E?'Audio track editing':'Правка звуковой дорожки')+'</span><em>'+(E?'soon':'скоро')+'</em>';row.appendChild(b)}
@@ -5859,6 +6146,10 @@ async function trOpen(id){
     const m=document.createElement('div');m.id='fmenu';m.setAttribute('role','menu');
     const kb=document.createElement('button');kb.className='nb';kb.type='button';kb.textContent=l3('Ключи API (Gemini, Groq и др.)','API keys (Gemini, Groq and more)','API բանալիներ (Gemini, Groq և այլն)');
     kb.onclick=()=>{m.style.display='none';$$('#mGem').click()};m.appendChild(kb);
+    const nsb=document.createElement('button');nsb.className='nb';nsb.type='button';
+    const nsT=()=>{nsb.textContent=l3('Шумоподавление голоса: ','Voice noise reduction: ','Ձայնի աղմուկի ճնշում՝ ')+(DN.on()?l3('вкл','on','միաց․'):l3('выкл','off','անջ․'))};nsT();
+    nsb.onclick=()=>{DN.set(!DN.on());nsT();toast(DN.on()?l3('Шумоподавление включено. Работает при следующей записи.','Noise reduction is on. It applies to the next recording.','Աղմուկի ճնշումը միացված է։ Կգործի հաջորդ ձայնագրության ժամանակ։'):l3('Шумоподавление выключено.','Noise reduction is off.','Աղմուկի ճնշումն անջատված է։'),3500)};
+    m.appendChild(nsb);
     const lbl=document.createElement('div');lbl.className='fh';lbl.style.textAlign='left';lbl.textContent=l3('Язык интерфейса','Interface language','Ինտերֆեյսի լեզու');m.appendChild(lbl);
     const lg=document.createElement('div');lg.className='lg';
     [['en','EN'],['ru','RU'],['hy','ՀԱՅ']].forEach(([k,n])=>{const q=document.createElement('button');q.className='nb'+(ui===k?' on':'');q.type='button';q.textContent=n;
