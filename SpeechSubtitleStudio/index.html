@@ -2106,7 +2106,7 @@ function setAnim(k,quiet){
    Порядок, включение и ключи хранятся в этом браузере (localStorage). */
 const LX=(ru,en)=>ui==='en'?en:ru;
 const GKEY='substudio-gkey',GBASE='https://generativelanguage.googleapis.com/v1beta/',GTTS='gemini-2.5-flash-tts',GTTS2='gemini-2.5-flash-preview-tts',GTXTS=['gemini-3.8-flash','gemini-2.5-flash','gemini-2.5-flash-lite'],GTXT=GTXTS[0];
-const AIST='substudio-ai',AIORD=['gemini','groq','openrouter','mistral','cohere','hf','deepgram','eleven','pexels','pixabay','giphy','freesound'],AICD=new Map(),AIL={};
+const AIST='substudio-ai',AIORD=['gemini','groq','openrouter','mistral','cohere','hf','deepgram','eleven','pexels','pixabay','giphy','freesound','jamendo'],AICD=new Map(),AIL={};
 const AIS={o:AIORD.slice(),p:{}};
 try{const s=JSON.parse(localStorage.getItem(AIST)||'null');if(s&&typeof s==='object'){
   if(Array.isArray(s.o))AIS.o=[...s.o.filter(i=>AIORD.includes(i)),...AIORD.filter(i=>!s.o.includes(i))];
@@ -2402,6 +2402,7 @@ const AIP={
   pexels:{id:'pexels',n:'Pexels',k:['media'],ph:'',url:'https://www.pexels.com/api/new/',chk:k=>aiPing('https://api.pexels.com/v1/search?query=nature&per_page=1',{Authorization:k})},
   pixabay:{id:'pixabay',n:'Pixabay',k:['media'],ph:'',url:'https://pixabay.com/api/docs/',chk:k=>aiPing('https://pixabay.com/api/?key='+encodeURIComponent(k)+'&q=sea&per_page=3')},
   giphy:{id:'giphy',n:'GIPHY',k:['media'],ph:'',url:'https://developers.giphy.com/dashboard/',chk:k=>aiPing('https://api.giphy.com/v1/gifs/trending?limit=1&api_key='+encodeURIComponent(k))},
+  jamendo:{id:'jamendo',n:'Jamendo',k:['media'],ph:'',url:'https://devportal.jamendo.com/',chk:async k=>{try{const r=await fetch('https://api.jamendo.com/v3.0/tracks/?format=json&limit=1&client_id='+encodeURIComponent(k));if(!r.ok)return(r.status===401||r.status===403)?'bad':'unk';const j=await r.json();return j&&j.headers&&j.headers.code===0?'ok':'bad'}catch(e){return'unk'}}},
   freesound:{id:'freesound',n:'Freesound',k:['media'],ph:'',url:'https://freesound.org/apiv2/apply',chk:k=>aiPing('https://freesound.org/apiv2/search/text/?query=a&page_size=1&token='+encodeURIComponent(k))}
 };
 /* описания для окна ключей */
@@ -2428,6 +2429,8 @@ const AIINFO={
     fr:'Бесплатно, карту привязывать не нужно.',fe:'Free, no card to attach.'},
   giphy:{ru:'GIF-анимации. Права на сами GIF принадлежат их авторам: проверьте это перед публикацией. В поиске показывается пометка Powered by GIPHY.',en:'GIF animations. The rights to each GIF belong to its author: check them before publishing. Search shows a Powered by GIPHY mark.',
     fr:'Бесплатно, карту привязывать не нужно. Тестовый ключ: до 100 запросов в час.',fe:'Free, no card to attach. A beta key allows up to 100 requests per hour.'},
+  jamendo:{ru:'Музыка: быстрые серверы и много треков. Приложение показывает только те, что можно использовать в видео (без запрета на коммерческое использование и на изменение). Для CC BY добавляется подпись автора.',en:'Music: fast servers and many tracks. The app shows only tracks that can be used in videos (no non-commercial or no-derivatives licenses). CC BY tracks get an author credit.',
+    fr:'Бесплатно, нужна регистрация, карту привязывать не нужно.',fe:'Free, registration needed, no card to attach.'},
   freesound:{ru:'Звуковые эффекты. Приложение показывает только звуки CC0: подпись автора не нужна.',en:'Sound effects. The app shows CC0 sounds only: no credit to the author is needed.',
     fr:'Бесплатно, нужна регистрация, карту привязывать не нужно.',fe:'Free, registration needed, no card to attach.'}
 };
@@ -3463,7 +3466,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -7197,9 +7200,18 @@ async function trOpen(id){
   const PROV={
     openverse:{n:'Openverse',key:false,tabs:['photo','music'],async search(q,pg,tab){
       const au=tab==='music';
-      const u='https://api.openverse.org/v1/'+(au?'audio':'images')+'/?q='+encodeURIComponent(q)+'&license=cc0,pdm,by&page_size=20&page='+pg+(au?'&category=music':'&mature=false');
+      /* музыка: 6 треков за раз и без проверки «мёртвых» ссылок: ответ приходит заметно быстрее */
+      const u='https://api.openverse.org/v1/'+(au?'audio':'images')+'/?q='+encodeURIComponent(q)+'&license=cc0,pdm,by&page_size='+(au?6:20)+'&page='+pg+(au?'&category=music&filter_dead=false':'&mature=false');
       const j=await jget(u);
       return(j.results||[]).map(r=>({id:'ov'+r.id,prov:'Openverse',type:au?'aud':'img',thumb:r.thumbnail||r.url,title:r.title||'',by:r.creator||'',dur:au&&r.duration?r.duration/1000:0,w:r.width,h:r.height,dl:r.url,dl2:r.thumbnail,page:r.foreign_landing_url,prev:au?r.url:null,lic:LIC(r.license),cr:r.license==='by'?(r.attribution||('“'+(r.title||'')+'” '+(r.creator||'')+' CC BY')):''}));
+    }},
+    jamendo:{n:'Jamendo',key:true,tabs:['music'],async search(q,pg){
+      const j=await jget('https://api.jamendo.com/v3.0/tracks/?format=json&limit=6&offset='+((pg-1)*6)+'&search='+encodeURIComponent(q)+'&include=licenses&audioformat=mp32&client_id='+encodeURIComponent(keyOf('jamendo')));
+      if(j&&j.headers&&j.headers.code&&j.headers.code!==0){const e=new Error('HTTP 401');e.status=401;throw e}
+      return(j.results||[]).filter(r=>r.audio&&/creativecommons\.org\/(licenses\/by(-sa)?\/|publicdomain\/)/i.test(r.license_ccurl||'')).map(r=>{
+        const by=/licenses\/by/i.test(r.license_ccurl||'');
+        return{id:'jm'+r.id,prov:'Jamendo',type:'aud',thumb:r.image||'',title:r.name||'',by:r.artist_name||'',dur:r.duration||0,dl:r.audio,page:r.shareurl,prev:r.audio,lic:by?(/by-sa/i.test(r.license_ccurl)?'CC BY-SA':'CC BY'):'CC0',cr:by?('“'+(r.name||'')+'” '+(r.artist_name||'')+' (Jamendo) '+(/by-sa/i.test(r.license_ccurl)?'CC BY-SA':'CC BY')):''};
+      });
     }},
     pexels:{n:'Pexels',key:true,tabs:['photo','video'],async search(q,pg,tab){
       const h={Authorization:keyOf('pexels')},loc=ui==='ru'?'&locale=ru-RU':'';
@@ -7241,7 +7253,7 @@ async function trOpen(id){
       }).filter(Boolean);
     }}
   };
-  const TABP={photo:['pexels','pixabay','openverse'],video:['pexels','pixabay'],gif:['giphy'],music:['openverse'],sfx:['freesound']};
+  const TABP={photo:['pexels','pixabay','openverse'],video:['pexels','pixabay'],gif:['giphy'],music:['openverse','jamendo'],sfx:['freesound']};
   const usable=id=>!PROV[id].key||!needKeyOf(id);
   const SUG={
     photo:[['Природа','Nature','Բնություն','nature'],['Город','City','Քաղաք','city'],['Море','Sea','Ծով','sea'],['Горы','Mountains','Լեռներ','mountains'],['Люди','People','Մարդիկ','people'],['Еда','Food','Սնունդ','food'],['Технологии','Technology','Տեխնոլոգիա','technology'],['Фон','Background','Ֆոն','abstract background']],
@@ -7251,7 +7263,7 @@ async function trOpen(id){
     sfx:[['Вжух','Whoosh','Վժուխ','whoosh'],['Клик','Click','Կլիկ','click'],['Аплодисменты','Applause','Ծափահարություն','applause'],['Хлопок','Pop','Փոփ','pop'],['Сигнал','Notification','Ծանուցում','notification'],['Смех','Laugh','Ծիծաղ','laugh']]
   };
   const TABS=[['photo',l3('Фото','Photos','Նկարներ')],['video',l3('Видео','Video','Տեսանյութ')],['gif','GIF'],['music',l3('Музыка','Music','Երաժշտություն')],['sfx',l3('Звуки','Sounds','Հնչյուններ')]];
-  const KDESC={pexels:l3('Фото и видео. Бесплатно, карту привязывать не нужно.','Photos and video. Free, no card.','Նկարներ և տեսանյութ։ Անվճար է, քարտ պետք չէ։'),pixabay:l3('Фото и видео. Бесплатно, карту привязывать не нужно.','Photos and video. Free, no card.','Նկարներ և տեսանյութ։ Անվճար է, քարտ պետք չէ։'),giphy:l3('GIF-анимации. Бесплатно, карту привязывать не нужно.','GIF animations. Free, no card.','GIF անիմացիաներ։ Անվճար է, քարտ պետք չէ։'),freesound:l3('Звуковые эффекты (только CC0, подпись не нужна). Нужна регистрация.','Sound effects (CC0 only, no credit needed). Registration needed.','Ձայնային էֆեկտներ (միայն CC0)։ Պետք է գրանցում։')};
+  const KDESC={pexels:l3('Фото и видео. Бесплатно, карту привязывать не нужно.','Photos and video. Free, no card.','Նկարներ և տեսանյութ։ Անվճար է, քարտ պետք չէ։'),pixabay:l3('Фото и видео. Бесплатно, карту привязывать не нужно.','Photos and video. Free, no card.','Նկարներ և տեսանյութ։ Անվճար է, քարտ պետք չէ։'),giphy:l3('GIF-анимации. Бесплатно, карту привязывать не нужно.','GIF animations. Free, no card.','GIF անիմացիաներ։ Անվճար է, քարտ պետք չէ։'),jamendo:l3('Музыка: быстрый второй источник. Бесплатно, нужна регистрация.','Music: a fast second source. Free, registration needed.','Երաժշտություն՝ արագ երկրորդ աղբյուր։ Անվճար է, պետք է գրանցում։'),freesound:l3('Звуковые эффекты (только CC0, подпись не нужна). Нужна регистрация.','Sound effects (CC0 only, no credit needed). Registration needed.','Ձայնային էֆեկտներ (միայն CC0)։ Պետք է գրանցում։')};
 
   const md=document.createElement('div');md.id='mdl';md.setAttribute('role','dialog');md.setAttribute('aria-modal','true');
   md.innerHTML='<div class="mbx"><div class="mhd"><b>'+l3('Медиа','Media','Մեդիա')+'</b><button class="nb sm" id="mdX" type="button" aria-label="'+l3('Закрыть','Close','Փակել')+'">'+svgI('<path d="M6 6l12 12M18 6L6 18"/>',16)+'</button></div>'
@@ -7318,7 +7330,7 @@ async function trOpen(id){
         const pl=document.createElement('button');pl.type='button';pl.className='mplay';pl.setAttribute('aria-label',l3('Слушать','Play','Լսել'));pl.innerHTML=svgI('<path d="M8 5l11 7-11 7z" fill="currentColor"/>',18);
         pl.onclick=()=>{
           if(MED.audId===it.id){mdStopAud();return}
-          mdStopAud();const a=new Audio(it.prev);MED.aud=a;MED.audId=it.id;row.classList.add('play');a.onended=mdStopAud;a.onerror=()=>{toast(l3('Не удалось проиграть превью.','Could not play the preview.','Չհաջողվեց նվագարկել։'),3500);mdStopAud()};a.play().catch(()=>mdStopAud());
+          mdStopAud();const a=new Audio();a.preload='none';a.src=it.prev;MED.aud=a;MED.audId=it.id;row.classList.add('play');a.onended=mdStopAud;a.onerror=()=>{toast(l3('Не удалось проиграть превью.','Could not play the preview.','Չհաջողվեց նվագարկել։'),3500);mdStopAud()};a.play().catch(()=>mdStopAud());
         };
         const tx=document.createElement('div');tx.className='mtx';
         const t1=document.createElement('b');t1.textContent=it.title||'—';
@@ -7356,12 +7368,16 @@ async function trOpen(id){
     if(!ids.length){paintKeys();return}
     paintNote(l3('Ищу…','Searching…','Որոնում եմ…'));fe('mdMore').style.display='none';
     const en=await qEn(q);if(my!==MED.seq)return;
-    const res=await Promise.all(ids.map(id=>PROV[id].search(en,MED.page,MED.tab).then(a=>({id,a}),e=>({id,e}))));
+    /* результаты показываются по мере прихода: быстрый источник не ждёт медленного */
+    const prev=MED.items.slice(),got=[],errs=[];
+    const rebuild=()=>{
+      const mx=[];for(let i=0;i<30;i++)got.forEach(l=>{if(l[i])mx.push(l[i])});
+      const seen=new Set(prev.map(x=>x.id)),add=[];mx.forEach(x=>{if(!seen.has(x.id)){add.push(x);seen.add(x.id)}});
+      MED.items=prev.concat(add);paintRes();
+    };
+    await Promise.all(ids.map(id=>PROV[id].search(en,MED.page,MED.tab).then(a=>{if(my!==MED.seq)return;got.push(a);rebuild()},e=>{if(my!==MED.seq)return;errs.push(errText(PROV[id],e))})));
     if(my!==MED.seq)return;
-    const lists=res.filter(r=>r.a).map(r=>r.a),errs=res.filter(r=>r.e).map(r=>errText(PROV[r.id],r.e));
-    const mix=[];for(let i=0;i<30;i++)lists.forEach(l=>{if(l[i])mix.push(l[i])});
-    const seen=new Set(MED.items.map(x=>x.id));mix.forEach(x=>{if(!seen.has(x.id)){MED.items.push(x);seen.add(x.id)}});
-    paintRes();
+    const mix=got.flat();
     let msg='';
     if(!MED.items.length)msg=errs.length?errs.join('. '):l3('Ничего не нашлось. Попробуйте другое слово.','Nothing found. Try another word.','Ոչինչ չգտնվեց։ Փորձեք այլ բառ։');
     else if(errs.length)msg=errs.join('. ');
