@@ -1042,14 +1042,14 @@ input[type=checkbox],input[type=radio]{accent-color:#111}
 .cfmb .nb{height:50px;padding:0 10px}
 #cfmY.dng{background:var(--nb-p)}
 /* окно установки: без установки пользоваться нельзя */
-#instgate{position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(rgba(17,17,17,.16) 1.2px,transparent 1.6px) 0 0/20px 20px,#FFF1D0;overflow:auto}
+#instgate,#appgate{position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(rgba(17,17,17,.16) 1.2px,transparent 1.6px) 0 0/20px 20px,#FFF1D0;overflow:auto}
 .ig-box{width:min(100%,380px);background:#fff;border:4px solid #111;border-radius:22px;box-shadow:8px 8px 0 #111;padding:22px 18px 18px;text-align:center;color:#111}
 .ig-logo{width:74px;height:74px;margin:0 auto 14px;border:4px solid #111;border-radius:22px;background:var(--nb-y);box-shadow:5px 5px 0 #111;display:grid;place-items:center;animation:obDot2 1.6s ease-in-out infinite}
 .ig-logo::after{content:"";width:20px;height:20px;border-radius:50%;background:#111}
 @keyframes obDot2{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) scale(1.04)}}
 .ig-box h2{margin:0 0 8px;font-size:26px;letter-spacing:-.03em}
 .ig-box p{margin:0 0 16px;font-size:15px;line-height:1.4;font-weight:600;color:#333}
-#instgate .ig-btn{width:100%;height:56px;font-size:19px;flex:none}
+#instgate .ig-btn,#appgate .ig-btn{width:100%;height:56px;font-size:19px;flex:none}
 .ig-how{margin-top:12px;text-align:left;font-size:14px;line-height:1.4;font-weight:500}
 .ig-how p{margin:0 0 8px;font-size:14px;font-weight:600}
 .ig-how ol{margin:0;padding-left:20px}
@@ -5050,13 +5050,56 @@ const isAnd=/Android/i.test(navigator.userAgent);
 })();
 
 
+
+/* ---------- ссылка открылась во встроенном браузере (Telegram, Instagram и т.д.): уводим в обычный браузер ---------- */
+(function(){
+  const L3=(r,e,h)=>ui==='ru'?r:ui==='hy'?(h||e):e;
+  const ua=navigator.userAgent||'',ref=document.referrer||'';
+  if(!(isIOS||isAnd)||isStandalone())return;
+  const q=new URLSearchParams(location.search),dbg=location.hash==='#fxdebug';
+  const hit=/Telegram|Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|MicroMessenger|Snapchat|musical_ly|Bytedance|TikTok|Twitter|LinkedInApp|Pinterest|VKClient|OKApp|YaApp|Viber|WhatsApp/i.test(ua)
+    ||(isAnd&&/;\s*wv\)/.test(ua))
+    ||(isIOS&&!/Safari\//i.test(ua)&&!/CriOS|FxiOS|EdgiOS/.test(ua))
+    ||(isAnd&&/^android-app:\/\//.test(ref)&&!/com\.android\.chrome/.test(ref))
+    ||!!(window.TelegramWebviewProxy||window.TelegramWebview)
+    ||q.get('inapp')==='1';
+  if(!hit)return;
+  window.__inApp=true;
+  const full=location.href;
+  const tryOpen=()=>{
+    let u;
+    if(isAnd)u='intent://'+location.host+location.pathname+location.search+'#Intent;scheme='+location.protocol.replace(':','')+';action=android.intent.action.VIEW;end';
+    else u=full.replace(/^http/,'x-safari-http');
+    if(dbg)window.__extUrl=u;
+    try{location.href=u}catch(e){}
+  };
+  /* первая попытка сама, один раз за сеанс */
+  let tried=false;try{tried=sessionStorage.getItem('ss-ext')==='1';sessionStorage.setItem('ss-ext','1')}catch(e){}
+  if(!tried)setTimeout(tryOpen,250);
+  const box=document.createElement('div');box.id='appgate';box.className='gate';box.setAttribute('role','alertdialog');box.setAttribute('aria-modal','true');
+  box.style.cssText='position:fixed;inset:0;z-index:800';
+  box.innerHTML='<div class="ig-box"><div class="ig-logo"></div><h2></h2><p></p><button type="button" class="nb pri ig-btn" id="agOpen"></button><button type="button" class="nb ig-btn" id="agCopy" style="margin-top:10px;height:48px;font-size:16px"></button><div class="ig-how" id="agHow"></div></div>';
+  box.querySelector('h2').textContent=L3('Откройте в браузере','Open in your browser','Բացեք դիտարկչում');
+  box.querySelector('p').textContent=L3('Во встроенном браузере приложения не работают камера, микрофон и установка. Откройте ссылку в Chrome или Safari.','The in-app browser has no camera, microphone or install. Open the link in Chrome or Safari.','Ներկառուցված դիտարկչում տեսախցիկը, միկրոֆոնը և տեղադրումը չեն աշխատում։ Բացեք հղումը Chrome-ում կամ Safari-ում։');
+  box.querySelector('#agOpen').textContent=L3('Открыть в браузере','Open in browser','Բացել դիտարկչում');
+  box.querySelector('#agCopy').textContent=L3('Скопировать ссылку','Copy the link','Պատճենել հղումը');
+  box.querySelector('#agHow').innerHTML=isIOS
+    ?'<ol><li>'+L3('Нажмите ⋯ или значок «поделиться» вверху или внизу экрана.','Tap ⋯ or the Share icon at the top or bottom of the screen.','Սեղմեք ⋯ կամ «կիսվել» պատկերակը էկրանի վերևում կամ ներքևում։')+'</li><li>'+L3('Выберите «Открыть в Safari».','Choose “Open in Safari”.','Ընտրեք «Open in Safari»։')+'</li></ol>'
+    :'<ol><li>'+L3('Нажмите ⋮ вверху справа.','Tap ⋮ at the top right.','Սեղմեք ⋮ վերևի աջ անկյունում։')+'</li><li>'+L3('Выберите «Открыть в Chrome» или «Открыть в браузере».','Choose “Open in Chrome” or “Open in browser”.','Ընտրեք «Open in Chrome» կամ «Open in browser»։')+'</li></ol>';
+  box.querySelector('#agOpen').onclick=tryOpen;
+  box.querySelector('#agCopy').onclick=async()=>{
+    try{await navigator.clipboard.writeText(full)}catch(e){const t=document.createElement('textarea');t.value=full;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(x){}t.remove()}
+    box.querySelector('#agCopy').textContent='✓ '+L3('Ссылка скопирована','Link copied','Հղումը պատճենվեց');
+  };
+  document.body.appendChild(box);
+})();
 /* ---------- установка на телефон: окно посередине экрана, пока приложение не установлено ---------- */
 (function(){
   const L3=(r,e,h)=>ui==='ru'?r:ui==='hy'?(h||e):e;
   const q=new URLSearchParams(location.search);
   const mobile=isIOS||isAnd||q.get('inst')==='1';
   /* в окне установленного приложения верхняя кнопка не нужна */
-  if(!mobile||isStandalone())return;
+  if(!mobile||isStandalone()||window.__inApp)return;
   /* без установки пользоваться нельзя: окно посередине экрана, закрыть его нельзя */
   const bar=document.createElement('div');bar.id='instgate';bar.setAttribute('role','alertdialog');bar.setAttribute('aria-modal','true');
   bar.innerHTML='<div class="ig-box"><div class="ig-logo"></div><h2></h2><p></p><button type="button" class="nb pri ig-btn"></button><div class="ig-how"></div></div>';
