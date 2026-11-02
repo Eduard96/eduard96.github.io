@@ -2387,6 +2387,22 @@ function setAnim(k,quiet){
    Если у одного ключа или сервиса закончился лимит, запрос тихо уходит следующему.
    Порядок, включение и ключи хранятся в этом браузере (localStorage). */
 const LX=(ru,en)=>ui==='en'?en:ru;
+/* чистые запросы: к чужим сайтам уходят без cookies, без referrer и без кэша (для API); свои файлы и тяжёлые модели не затрагиваются */
+(()=>{
+  const f0=window.fetch.bind(window),API=/(^|\.)(generativelanguage\.googleapis\.com|api\.groq\.com|openrouter\.ai|api\.mistral\.ai|api\.cohere\.com|router\.huggingface\.co|api\.deepgram\.com|api\.elevenlabs\.io|api\.pexels\.com|pixabay\.com|api\.giphy\.com|freesound\.org|api\.jamendo\.com|api\.openverse\.org|api\.mymemory\.translated\.net)$/;
+  window.fetch=function(inp,init){
+    try{
+      if(typeof inp==='string'||inp instanceof URL){
+        const u=new URL(inp,location.href);
+        if(u.origin!==location.origin&&/^https?:$/.test(u.protocol)){
+          init=Object.assign({credentials:'omit',referrerPolicy:'no-referrer'},init||{});
+          if(API.test(u.hostname)&&init.cache===undefined)init.cache='no-store';
+        }
+      }
+    }catch(e){}
+    return f0(inp,init);
+  };
+})();
 const GKEY='substudio-gkey',GBASE='https://generativelanguage.googleapis.com/v1beta/',GTTS='gemini-2.5-flash-tts',GTTS2='gemini-2.5-flash-preview-tts',GTXTS=['gemini-3.8-flash','gemini-2.5-flash','gemini-2.5-flash-lite'],GTXT=GTXTS[0];
 const AIST='substudio-ai',AIORD=['gemini','groq','openrouter','mistral','cohere','hf','deepgram','eleven','pexels','pixabay','giphy','freesound','jamendo'],AICD=new Map(),AIL={};
 const AIS={o:AIORD.slice(),p:{}};
