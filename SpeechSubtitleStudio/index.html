@@ -1110,6 +1110,27 @@ input[type=checkbox],input[type=radio]{accent-color:#111}
 .vseg.outro span{font-size:11px;font-weight:700;overflow:hidden;white-space:nowrap}
 .vseg.outro .ox{flex:none;width:18px;height:18px;border-radius:6px;border:2px solid #111;background:#fff;color:#111;display:grid;place-items:center;font-size:10px;font-weight:700;line-height:1}
 .vseg.outro.off{background:transparent;border:2px dashed #111;box-shadow:none;color:#111;justify-content:center;opacity:.8}
+/* строка списка: кнопки «вернуть» и ножницы */
+.row .rbt{display:flex;gap:6px;align-items:flex-start}
+.row .un{width:38px;min-height:34px;border-radius:10px;background:var(--nb-y);border:2px solid #111;box-shadow:2px 2px 0 #111;color:#111;display:inline-grid;place-items:center}
+.row .un:active{transform:translate(1px,1px);box-shadow:1px 1px 0 #111}
+/* выбор голоса */
+.vsel{background:none!important;border:0!important;padding:0!important;box-shadow:none!important}
+.vpick{width:100%;height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:17px;text-align:left;justify-content:flex-start}
+.vpick .vpn{font-weight:700}.vpick .vpd{flex:1;color:#555;font-weight:600;font-size:14px}.vpick i{font-style:normal;font-size:16px}
+#vsheet{z-index:450}
+.vbox{width:min(100%,420px);max-height:86vh;display:flex;flex-direction:column;padding:16px}
+.vbox h3{margin:0 0 6px;font-size:22px;letter-spacing:-.02em}
+.vhint{margin:0 0 10px;font-size:13px;font-weight:600;color:#444;line-height:1.35}
+.vlist{overflow:auto;display:grid;gap:10px;padding:2px 6px 10px 2px;min-height:0;flex:1}
+.vrow{display:flex;align-items:center;gap:10px;padding:8px;border:3px solid #111;border-radius:14px;background:#fff;box-shadow:3px 3px 0 #111;cursor:pointer}
+.vrow.on{background:var(--nb-y)}
+.vplay{flex:none;width:44px;height:44px;border:3px solid #111;border-radius:12px;background:var(--nb-g);font-weight:700;font-size:16px;color:#111;box-shadow:2px 2px 0 #111}
+.vplay.on{background:var(--nb-p)}
+.vplay:disabled{opacity:.6}
+.vinfo{flex:1;min-width:0;line-height:1.15}.vinfo b{display:block;font-size:17px}.vinfo span{font-size:13px;font-weight:600;color:#444}
+.vrow .vck{flex:none;font-size:20px;font-weight:700;width:22px;text-align:center}
+.vbox .vclose{margin-top:6px;height:52px;font-size:17px;flex:none}
 /* ===== NEO-BRUTAL END ===== */
 </style>
 </head>
@@ -2183,14 +2204,65 @@ function load(){
 }
 
 /* ---------- куски по 5–6 слов ---------- */
+/* ---------- автоматическое разделение длинного текста: больше 7 слов или 30 букв делим по запятым и союзам ---------- */
+const SPL={maxW:7,maxL:30};
+const wordsOf=t=>String(t||'').split(/\s+/).filter(Boolean);
+const lettersOf=t=>(String(t||'').match(/[\p{L}\p{N}]/gu)||[]).length;
+const okLen=t=>wordsOf(t).length<=SPL.maxW&&lettersOf(t)<=SPL.maxL;
+const SPL_CONJ=/^(но|и|а|что|чтобы|потому|поэтому|когда|если|или|зато|однако|хотя|который|которая|которые|пока|как|where|and|but|that|because|when|if|so|which|while|ու|բայց|որ|քանի|երբ|եթե)$/i;
+function autoSplit(t){
+  const out=[];
+  String(t||'').split(/\n+/).map(x=>x.replace(/[ \t]+/g,' ').trim()).filter(Boolean).forEach(line=>{
+    const rec=w=>{
+      const sn=w.join(' ');
+      if(w.length<=1||okLen(sn)){out.push(sn);return}
+      let best=1,bs=1e9;
+      for(let i=1;i<w.length;i++){
+        const L=w.slice(0,i).join(' '),R=w.slice(i).join(' ');
+        let sc=Math.abs(lettersOf(L)-lettersOf(R));
+        if(/[,;:.!?…—–։]$/.test(w[i-1]))sc-=12;
+        else if(SPL_CONJ.test(w[i].replace(/^[«"“(]+/,'').replace(/[,.!?…»"”)]+$/,'')))sc-=5;
+        if(i===1&&lettersOf(L)<3)sc+=8;
+        if(w.length-i===1&&lettersOf(R)<3)sc+=8;
+        if(sc<bs){bs=sc;best=i}
+      }
+      rec(w.slice(0,best));rec(w.slice(best));
+    };
+    rec(wordsOf(line));
+  });
+  return out;
+}
+const partW=t=>lettersOf(t)+wordsOf(t).length;
 function buildPhrase(p){
-  const w=p.t.split(/\s+/).filter(Boolean),n=w.length;p.c=[];if(!n)return;
-  const k=Math.ceil(n/6),per=Math.ceil(n/k);
-  const e=Math.max(p.e,p.s+0.25*n),d=e-p.s;
-  for(let j=0;j<n;j+=per){
-    const part=w.slice(j,j+per);
-    p.c.push({g:p,t:part.join(' '),s:p.s+d*j/n,e:p.s+d*(j+part.length)/n});
-  }
+  const parts=autoSplit(p.t);p.c=[];if(!parts.length)return;
+  const n=Math.max(1,wordsOf(p.t).length),e=Math.max(p.e,p.s+0.25*n),d=e-p.s,w=parts.map(partW),tot=w.reduce((a,b)=>a+b,0);
+  let cur=p.s;
+  parts.forEach((t,i)=>{const dd=d*w[i]/tot;p.c.push({g:p,t,s:cur,e:cur+dd});cur+=dd});
+}
+/* правка строки в списке: длинный текст делится на несколько строк, времена делятся по длине кусков */
+function listSplit(p,src){
+  if(p.tx||p.o!==undefined)return 0;
+  const parts=autoSplit(src);
+  if(parts.length<2){if(parts[0])p.t=parts[0];return 0}
+  const n=wordsOf(src).length,e0=Math.max(p.e,p.s+.25*n),d=e0-p.s,w=parts.map(partW),tot=w.reduce((a,b)=>a+b,0),made=[];
+  let cur=p.s;
+  parts.forEach((t,i)=>{const dd=d*w[i]/tot;if(i===0){p.t=t;p.raw=t;p.e=cur+dd}else made.push({s:cur,e:cur+dd,l:p.l,t,raw:t,cut:p.cut,sp:1});cur+=dd});
+  phrases.splice(phrases.indexOf(p)+1,0,...made);made.forEach(buildPhrase);
+  return made.length;
+}
+/* «вернуть» для одной строки: отделённый кусок склеивается с предыдущим, обычная правка откатывается к прежнему тексту */
+function undoRow(p){
+  if(p.sp){
+    const i=phrases.indexOf(p),pr=phrases[i-1];
+    if(pr){pr.t=(pr.t+' '+p.t).replace(/\s+/g,' ').trim();pr.raw=pr.t;pr.e=Math.max(pr.e,p.e);phrases.splice(i,1);buildPhrase(pr)}else p.sp=0;
+  }else if(p.hist&&p.hist.length){p.t=p.hist.pop();p.raw=p.t;buildPhrase(p)}
+  save();renderAll();
+}
+/* кусок на дорожке: правка длинного текста делит блок на несколько блоков */
+function chunkSplit(c,parts){
+  const g=c.g,i=g.c.indexOf(c),w=parts.map(partW),tot=w.reduce((a,b)=>a+b,0),d=c.e-c.s;let cur=c.s;
+  const nc=parts.map((t,k)=>{const dd=d*w[k]/tot,o={g,t,s:cur,e:cur+dd};cur+=dd;return o});
+  g.c.splice(i,1,...nc);g.t=g.c.map(x=>x.t).join(' ');g.raw=g.t;
 }
 const nrm=w=>w.toLowerCase().replace(/[.,!?;:։՝՞«»"()…]/g,'');
 const wds=x=>x.split(/\s+/).filter(Boolean);
@@ -3695,7 +3767,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={pvo:()=>({run:PVO.run,t:PVO.t}),outro:(c,W,H,t,snap)=>drawOutro(c,W,H,t,snap),OUT:()=>OUT,fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={split:t=>autoSplit(t),chunks:()=>allC().map(c=>c.t),phr:()=>phrases.map(p=>({t:p.t,sp:!!p.sp,h:(p.hist||[]).length,s:+p.s.toFixed(2),e:+p.e.toFixed(2)})),pvo:()=>({run:PVO.run,t:PVO.t}),outro:(c,W,H,t,snap)=>drawOutro(c,W,H,t,snap),OUT:()=>OUT,fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);renderAll()},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -4063,9 +4135,9 @@ function syncMenuExp(){
 }
 function renderAll(){if(H.cur===null&&hasVideo)hBase();renderList();renderTL();updateButtons()}
 
-function renderList(){
+function renderList(force){
   const ae=document.activeElement;
-  if(ae&&ae.isContentEditable&&listEl.contains(ae))return;
+  if(!force&&ae&&ae.isContentEditable&&listEl.contains(ae))return;
   listEl.innerHTML='';rows=new Map();lastNow=null;
   const vis=phrases.filter(p=>p.t);
   if(!vis.length){const d=document.createElement('div');d.className='empty';d.textContent=t('empty');listEl.appendChild(d);return}
@@ -4078,13 +4150,29 @@ function renderList(){
     tx.contentEditable='plaintext-only';if(tx.contentEditable!=='plaintext-only')tx.contentEditable='true';
     tx.spellcheck=false;
     tx.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tx.blur()}e.stopPropagation()});
-    tx.addEventListener('blur',()=>{
-      const t=tx.textContent.replace(/\s+/g,' ').trim();
-      if(t!==p.t){p.t=t;p.raw=t;buildPhrase(p);save();renderTL();updateButtons()}
+    const un=document.createElement('button');un.type='button';un.className='un';un.innerHTML=ico('undo');
+    un.title=(typeof ui!=='undefined'&&ui==='en')?'Undo':(ui==='hy'?'Վերադարձնել':'Вернуть');un.setAttribute('aria-label',un.title);
+    const paintUn=()=>{un.style.display=(p.sp||(p.hist&&p.hist.length))?'':'none'};paintUn();
+    un.onclick=()=>undoRow(p);
+    tx.addEventListener('blur',ev=>{
+      const raw=tx.textContent,t=raw.replace(/\s+/g,' ').trim(),multi=/\n/.test(raw.trim());
+      if(t===p.t&&!multi)return;
+      (p.hist=p.hist||[]).push(p.t);if(p.hist.length>10)p.hist.shift();
+      p.t=t;p.raw=t;
+      const added=t?listSplit(p,multi?raw:t):0;
+      buildPhrase(p);save();
+      if(added){
+        /* новые строки появляются сразу; если фокус ушёл в другую строку, возвращаем его туда */
+        const nx=ev&&ev.relatedTarget&&ev.relatedTarget.closest?ev.relatedTarget.closest('.row'):null;let tp=null;
+        if(nx)for(const [pp,rr] of rows)if(rr===nx){tp=pp;break}
+        renderList(true);renderTL();updateButtons();
+        if(tp){const nr=rows.get(tp);if(nr){const q=nr.querySelector('.tx');if(q)q.focus()}}
+      }else{paintUn();renderTL();updateButtons()}
     });
     const sc=document.createElement('button');sc.className='sc';sc.innerHTML=ico(p.cut?'undo':'scissors');sc.title=p.cut?t('restoreT'):t('cutT');
     sc.onclick=()=>{p.cut=!p.cut;r.classList.toggle('cut',p.cut);sc.innerHTML=ico(p.cut?'undo':'scissors');save();renderTL()};
-    r.append(tm,lg,tx,sc);listEl.appendChild(r);rows.set(p,r);
+    const bt=document.createElement('div');bt.className='rbt';bt.append(un,sc);
+    r.append(tm,lg,tx,bt);listEl.appendChild(r);rows.set(p,r);
   });
 }
 
@@ -5123,9 +5211,13 @@ function dropChunk(c){
 }
 function saveEd(){
   if(!ec)return;
-  const t=etxt.value.replace(/\s+/g,' ').trim(),c=ec;
+  const raw=etxt.value,t=raw.replace(/\s+/g,' ').trim(),c=ec;
   if(!t)dropChunk(c);
-  else{c.t=t;c.g.t=c.g.c.map(x=>x.t).join(' ');c.g.raw=c.g.t}
+  else{
+    const parts=autoSplit(raw);
+    if(parts.length>1){chunkSplit(c,parts);toast((typeof ui!=='undefined'&&ui==='en')?'The long text was split into '+parts.length+' blocks.':'Длинный текст разделён на блоки: '+parts.length+'.',3500)}
+    else{c.t=t;c.g.t=c.g.c.map(x=>x.t).join(' ');c.g.raw=c.g.t}
+  }
   closeEd();save();renderAll();
 }
 $('#esave').onclick=saveEd;
@@ -6444,7 +6536,7 @@ async function doSave(){
   if(!projName)projName=defName();
   const id=curId,d=recDur||totalT()||dur;
   const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size+VE.ov.reduce((a,o)=>a+((o.blob&&!o.main)?o.blob.size:0),0)};
-  const data={id,name:projName,blob:recBlob,vedit:{ou:{on:OUT.on},zm:{on:ZM.on,cx:ZM.cx,cy:ZM.cy},cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},subpos:{x:SUBP.x,y:SUBP.y,off:subsOff},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d,fx:FX.getState(),fps:recFps};
+  const data={id,name:projName,blob:recBlob,vedit:{ou:{on:OUT.on},zm:{on:ZM.on,cx:ZM.cx,cy:ZM.cy},cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},subpos:{x:SUBP.x,y:SUBP.y,off:subsOff},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d,fx:FX.getState(),fps:recFps,dub:(VE.dubSnap?VE.dubSnap():null)};
   dirty=false;
   try{
     await dbPut(meta,data);doSave.failed=false;
@@ -6498,6 +6590,7 @@ async function openProject(id){
   audioPlayback();
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;v.playbackRate=1;$('#spd').textContent='1×';
   hasVideo=true;applyView();
+  try{VE.dubLoad&&VE.dubLoad(d.dub||null)}catch(e){}
   $('#pbox').classList.remove('show');
   renderAll();updateButtons();
   setSt(t('doneSt'),'ok');banner('');
@@ -7304,12 +7397,82 @@ async function trOpen(id){
   VOICES.forEach(q=>{const o=document.createElement('option');o.value=q[0];o.textContent=q[0]+' · '+q[1];dv.appendChild(o)});
   try{dv.value=localStorage.getItem('substudio-fvoice')||'Kore'}catch(_){}
   dv.onchange=()=>{try{localStorage.setItem('substudio-fvoice',dv.value)}catch(_){}};
+
+  /* ===== выбор голоса в стиле приложения: список с образцами, можно послушать и выбрать ===== */
+  const VRU={Bright:'Яркий',Upbeat:'Бодрый',Informative:'Информативный',Firm:'Уверенный',Excitable:'Эмоциональный',Youthful:'Молодой',Breezy:'Лёгкий','Easy-going':'Спокойный',Breathy:'Мягкий',Clear:'Чёткий',Smooth:'Плавный',Gravelly:'Хриплый',Soft:'Нежный',Even:'Ровный',Mature:'Зрелый',Forward:'Прямой',Friendly:'Дружелюбный',Casual:'Непринуждённый',Gentle:'Бережный',Lively:'Живой',Knowledgeable:'Знающий',Warm:'Тёплый'};
+  const vdesc=n=>{const d=(VOICES.find(q=>q[0]===n)||[n,''])[1];return ui==='ru'?(VRU[d]||d):d};
+  const vpk=document.createElement('button');vpk.type='button';vpk.className='nb vpick';
+  dv.style.display='none';dv.parentNode.insertBefore(vpk,dv);
+  const paintVpk=()=>{vpk.innerHTML='<span class="vpn"></span><span class="vpd"></span><i>▾</i>';vpk.querySelector('.vpn').textContent=dv.value;vpk.querySelector('.vpd').textContent=vdesc(dv.value)};
+  paintVpk();
+  const vs=document.createElement('div');vs.id='vsheet';vs.className='ovl';vs.setAttribute('role','dialog');vs.setAttribute('aria-modal','true');
+  vs.innerHTML='<div class="box vbox"><h3></h3><p class="vhint"></p><div class="vlist"></div><button type="button" class="nb pri vclose"></button></div>';
+  document.body.appendChild(vs);
+  vs.querySelector('h3').textContent=x('Выберите голос','Choose a voice');
+  vs.querySelector('.vhint').textContent=x('Нажмите ▶, чтобы послушать образец (один короткий запрос к вашему ключу озвучки), потом выберите.','Tap ▶ to hear a sample (one short request to your voice key), then choose.');
+  vs.querySelector('.vclose').textContent=x('Готово','Done');
+  let vsAud=null;const smp=new Map();
+  const stopSample=()=>{if(vsAud){try{vsAud.stop()}catch(e){}vsAud=null}vs.querySelectorAll('.vplay').forEach(b=>{b.classList.remove('on');b.textContent='▶'})};
+  const sampleTxt=()=>{const l=VO.lang||ui;return l==='ru'?'Привет! Так звучит мой голос.':l==='hy'?'Բարև։ Այսպես է հնչում իմ ձայնը։':'Hi! This is how my voice sounds.'};
+  async function playSample(name,btn){
+    if(btn.classList.contains('on')){stopSample();return}
+    stopSample();
+    if(!aiHas('tts')){toast(x('Сначала добавьте ключ озвучки (Gemini): 🔑 в шапке.','Add a voice key (Gemini) first: 🔑 in the header.'),5000);return}
+    const key=name+'|'+(VO.lang||ui);btn.textContent='…';btn.disabled=true;
+    try{
+      let a=smp.get(key);
+      if(!a){a=await ttsOne(sampleTxt(),name,'');smp.set(key,a)}
+      audioGraph();if(AC.state==='suspended')await AC.resume();
+      const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
+      const src=AC.createBufferSource();src.buffer=buf;src.connect(AC.destination);src.onended=()=>{if(vsAud===src)stopSample()};src.start();vsAud=src;btn.classList.add('on');btn.textContent='■';
+    }catch(e){btn.textContent='▶';toast((e&&e.message)||x('Не удалось получить образец.','Could not get the sample.'),5000)}
+    btn.disabled=false;
+  }
+  function paintVsheet(){
+    const list=vs.querySelector('.vlist');list.textContent='';
+    VOICES.forEach(([n])=>{
+      const r=document.createElement('div');r.className='vrow'+(dv.value===n?' on':'');r.tabIndex=0;
+      r.innerHTML='<button type="button" class="vplay" aria-label="'+x('Прослушать','Play sample')+'">▶</button><div class="vinfo"><b></b><span></span></div><span class="vck"></span>';
+      r.querySelector('b').textContent=n;r.querySelector('span').textContent=vdesc(n);r.querySelector('.vck').textContent=dv.value===n?'✓':'';
+      r.querySelector('.vplay').onclick=e=>{e.stopPropagation();playSample(n,e.currentTarget)};
+      const pick=()=>{dv.value=n;dv.onchange&&dv.onchange();paintVpk();stopSample();vs.classList.remove('show');if(VO.bufs&&VO.sig!==vsig()){}};
+      r.onclick=pick;r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
+      list.appendChild(r);
+    });
+  }
+  const closeV=()=>{stopSample();vs.classList.remove('show')};
+  vpk.onclick=()=>{paintVsheet();vs.classList.add('show');const on=vs.querySelector('.vrow.on');if(on)on.scrollIntoView({block:'center'})};
+  vs.querySelector('.vclose').onclick=closeV;vs.addEventListener('click',e=>{if(e.target===vs)closeV()});
+  VE.voicePaint=paintVpk;
   const SD=[['warm','Тёплый','Warm'],['confident','Уверенный','Confident'],['cheerful','Весёлый','Cheerful'],['calm','Спокойный','Calm'],['serious','Серьёзный','Serious'],['excited','Взволнованный','Excited'],['energetic','Энергичный','Energetic'],['friendly','Дружелюбный','Friendly'],['whispering','Шёпот','Whisper'],['dramatic','Драматичный','Dramatic']];
   const dsel=new Set();
   SD.forEach(([k,ru,en])=>{const b=document.createElement('button');b.className='chip';b.textContent=x(ru,en);b.onclick=()=>{dsel.has(k)?dsel.delete(k):dsel.add(k);b.classList.toggle('active',dsel.has(k))};$$('#dStyles').appendChild(b)});
   const dStyle=()=>[...SD.map(q=>q[0]).filter(k=>dsel.has(k)),$$('#dStyleTxt').value.trim()].filter(Boolean).join(', ');
   const vsig=()=>JSON.stringify(phrases.filter(p=>p.t&&!p.cut).map(p=>[p.s,dubText(p)]))+dv.value+'|'+dStyle()+'|'+(VO.lang||'');
   VE.bgOn=()=>!!(VO.on&&VO.bg&&VO.bufs&&VO.bufs.length&&VO.sig===vsig());
+  /* озвучка сохраняется вместе с проектом: если голос создан и текст не менялся, при открытии он уже готов */
+  const f2i=f=>{const o=new Int16Array(f.length);for(let i=0;i<f.length;i++){const q=Math.max(-1,Math.min(1,f[i]));o[i]=q<0?q*32768:q*32767}return o};
+  const i2f=a=>{const o=new Float32Array(a.length);for(let i=0;i<a.length;i++)o[i]=a[i]/(a[i]<0?32768:32767);return o};
+  VE.dubSnap=()=>{
+    if(!VO.bufs||!VO.bufs.length||VO.sig!==vsig())return null;
+    return{sig:VO.sig,voice:dv.value,styles:[...dsel],styleTxt:$$('#dStyleTxt').value,lang:VO.lang||null,on:!!VO.on,vol:VO.vol,gain:VO.gain,bg:VO.bg,
+      bufs:VO.bufs.map(b=>({s:b.s,rate:b.rate,g:b.g==null?1:b.g,sr:b.buf.sampleRate,ch:Array.from({length:b.buf.numberOfChannels},(_,c)=>f2i(b.buf.getChannelData(c)))}))};
+  };
+  VE.dubLoad=d=>{
+    VO.bufs=null;VO.sig='';VO.lang=null;
+    if(!d||!d.bufs||!d.bufs.length){setDub(false);dst('');return}
+    try{
+      if(d.voice&&[...dv.options].some(o=>o.value===d.voice)){dv.value=d.voice;paintVpk()}
+      dsel.clear();(d.styles||[]).forEach(k=>dsel.add(k));[...$$('#dStyles').children].forEach((b,i)=>b.classList.toggle('active',!!SD[i]&&dsel.has(SD[i][0])));
+      $$('#dStyleTxt').value=d.styleTxt||'';VO.lang=d.lang||null;
+      if(d.sig!==vsig()){VO.lang=null;setDub(false);return}
+      VO.bufs=d.bufs.map(q=>{const buf=new AudioBuffer({length:q.ch[0].length,sampleRate:q.sr,numberOfChannels:q.ch.length});q.ch.forEach((a,c)=>buf.copyToChannel(i2f(a),c));return{s:q.s,buf,rate:q.rate,g:q.g}});
+      VO.sig=d.sig;if(d.vol!=null)VO.vol=d.vol;if(d.gain!=null)VO.gain=d.gain;if(d.bg!=null)VO.bg=d.bg;
+      try{$$('#dBal').value=Math.round((1-VO.vol)*100);$$('#dBg').checked=!!VO.bg}catch(_){}
+      setDub(!!d.on);shareCache=null;if(d.on)dst(x('Голос готов (сохранён в проекте). Нажмите play на видео.','Voice ready (saved in the project). Press play on the video.'),'ok');
+    }catch(e){VO.bufs=null;VO.sig='';VO.lang=null;setDub(false)}
+  };
+
   const dKeyShow=()=>{$$('#dKey').style.display=aiHas('tts')?'none':''};
   const dst=(txt,kind)=>{const b=$$('#dBox');b.style.display=txt?'flex':'none';$$('#fh3').textContent=txt||'';b.className='dbox'+(kind?' '+kind:'');$$('#dRetry').style.display=kind==='err'?'':'none'};
   function vpStop(){if(exporting)return;VO.srcs.forEach(q=>{try{q.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
@@ -7360,7 +7523,7 @@ async function trOpen(id){
         if(buf.duration/rate>slot)rate=Math.min(1.7,buf.duration/slot);
         out.push({s:p.s,buf,rate,g:1});
       }
-      VO.bufs=out;VO.sig=vsig();shareCache=null;if(hasVideo)renderTL();dst(x('Голос готов. Нажмите play на видео.','Voice ready. Press play on the video.'),'ok');
+      VO.bufs=out;VO.sig=vsig();shareCache=null;if(hasVideo)renderTL();markDirty();dst(x('Голос готов. Нажмите play на видео.','Voice ready. Press play on the video.'),'ok');
     }catch(e){dst((e&&e.message)||x('Не удалось создать голос','Voice generation failed'),'err')}
     VO.busy=false;progEnd();$$('#fAct').disabled=false;dKeyShow();
   }
