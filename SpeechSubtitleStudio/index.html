@@ -1634,6 +1634,15 @@ function appConfirm(msg,o){
     try{(o.danger?no:yes).focus()}catch(e){}
   });
 }
+/* покадровый рендер фильтра; если аппаратный кодировщик подвис, пробуем следующий кодек */
+async function fxBake(blob,dur,prog){
+  const ex=[];let last=null;
+  for(let k=0;k<3;k++){
+    try{return await FX.bake(blob,dur,prog,ex)}
+    catch(e){last=e;if(e&&e.codec&&(e.message==='enc'||e.message==='stall'||/Encod|Codec|Operation/i.test(e.name+e.message)))ex.push(e.codec);else throw e}
+  }
+  throw last;
+}
 function toast(msg,ms){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),ms||4200)}
 function setSt(s,k){const e=$('#st');e.textContent=t('srp')+s;e.className=k||''}
 function banner(msg){const b=$('#banner');if(msg){b.textContent=msg;b.classList.add('show')}else b.classList.remove('show')}
@@ -3260,7 +3269,7 @@ void main(){
   }
 
   /* ----- покадровый рендер фильтра: видео проигрывается медленно, каждый кадр обрабатывается столько, сколько нужно, и кодируется через WebCodecs ----- */
-  async function bake(blob,durHint,prog){
+  async function bake(blob,durHint,prog,excl){
     if(!ok||!fxl||!window.VideoEncoder||!window.VideoFrame||!window.HTMLVideoElement||!HTMLVideoElement.prototype.requestVideoFrameCallback)throw new Error('nowc');
     const log=fxl.map(e=>({t:e.t,i:e.i})),idx=t=>{let r=log[0].i;for(const e of log){if(e.t<=t+.02)r=e.i;else break}return r};
     const used=[...new Set(log.map(e=>e.i))].map(i=>FL[i]);
@@ -3270,7 +3279,9 @@ void main(){
     baking=true;setOn(false);const tB0=performance.now();
     const bu=URL.createObjectURL(blob),bv=document.createElement('video');
     bv.muted=true;bv.playsInline=true;bv.preload='auto';bv.src=bu;
-    let wd=0;
+    /* на телефонах скрытый, но подключённый к странице ролик надёжнее выдаёт кадры */
+    bv.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';document.body.appendChild(bv);
+    let wd=0,curCodec='',outN=0,outT=performance.now(),stuck=false;
     try{
       await new Promise((res,rej)=>{bv.onloadedmetadata=res;bv.onerror=()=>rej(new Error('video'));setTimeout(()=>rej(new Error('meta')),20000)});
       const w0=bv.videoWidth,h0=bv.videoHeight;if(!w0||!h0)throw new Error('video');
@@ -3283,6 +3294,7 @@ void main(){
       const cands=[['mp4','avc1.'+(area<=2097152?'640028':'640033'),'avc','aac'],['webm','vp09.00.10.08','V_VP9','opus'],['webm','vp8','V_VP8','opus']];
       let pk=null;
       for(const c of cands){
+        if(excl&&excl.includes(c[1]))continue;
         try{
           const sp=await VideoEncoder.isConfigSupported({codec:c[1],width:Wb,height:Hb,bitrate:bps,framerate:fps});if(!(sp&&sp.supported))continue;
           if(ab){if(!window.AudioEncoder||!window.AudioData)continue;const as=await AudioEncoder.isConfigSupported({codec:c[3]==='aac'?'mp4a.40.2':'opus',sampleRate:48000,numberOfChannels:nch,bitrate:128000});if(!(as&&as.supported))continue}
@@ -3290,6 +3302,7 @@ void main(){
         }catch(e){}
       }
       if(!pk)throw new Error('nowc');
+      curCodec=pk[1];
       const mp4=pk[0]==='mp4',mx=await import(mp4?'./vendor/mp4-muxer.mjs':'./vendor/webm-muxer.mjs'),tgt=new mx.ArrayBufferTarget();
       const mo=mp4?{target:tgt,video:{codec:'avc',width:Wb,height:Hb},fastStart:'in-memory',firstTimestampBehavior:'offset'}:{target:tgt,video:{codec:pk[2],width:Wb,height:Hb,frameRate:fps},firstTimestampBehavior:'permissive'};
       if(ab)mo.audio=mp4?{codec:'aac',numberOfChannels:nch,sampleRate:48000}:{codec:'A_OPUS',numberOfChannels:nch,sampleRate:48000};
@@ -3309,7 +3322,7 @@ void main(){
         await aenc.flush();aenc.close();if(aerr)throw aerr;
       }
       let verr=null;
-      const venc=new VideoEncoder({output:(c,m)=>mux.addVideoChunk(c,m),error:e=>{verr=e}});
+      const venc=new VideoEncoder({output:(c,m)=>{outN++;outT=performance.now();mux.addVideoChunk(c,m)},error:e=>{verr=e}});
       venc.configure({codec:pk[1],width:Wb,height:Hb,bitrate:bps,framerate:fps,latencyMode:'quality'});
       const oc=document.createElement('canvas');oc.width=Wb;oc.height=Hb;const ox=oc.getContext('2d',{alpha:false});
       seed=true;faces=[];
@@ -3353,7 +3366,7 @@ void main(){
             if(cost>ivl*.6){const nr=Math.max(RMIN,Math.min(rate,dt*1000/(cost*1.8)));if(Math.abs(nr-rate)/rate>.05){rate=nr;bv.playbackRate=rate}}
             else if(cost<ivl*.2&&rate<1){rate=Math.min(1,rate*1.12);bv.playbackRate=rate}
             if(verr)throw verr;
-            if(venc.encodeQueueSize>10){bv.pause();while(venc.encodeQueueSize>3&&!verr)await sleep(8);if(verr)throw verr;if(!fin)await bv.play()}
+            if(venc.encodeQueueSize>10){bv.pause();while(venc.encodeQueueSize>3&&!verr&&!stuck)await sleep(8);if(verr)throw verr;if(stuck)throw new Error('enc');if(!fin)await bv.play()}
           }catch(e){fin=true;rej(e);return}
           if(prog)prog(Math.min(99,Math.round(meta.mediaTime/Math.max(.1,dur)*100)));
           if(!fin)bv.requestVideoFrameCallback(onF);
@@ -3362,17 +3375,21 @@ void main(){
         bv.onerror=()=>{fin=true;rej(new Error('video'))};
         let seen=-1,since=performance.now();
         wd=setInterval(()=>{
+          /* кодировщик перестал выдавать данные (бывает с аппаратным на телефонах): пробуем другой кодек */
+          if(!stuck&&n-outN>3&&performance.now()-outT>10000){stuck=true;if(!fin){fin=true;rej(new Error('enc'))}return}
           if(fin)return;
           if(lastMT!==seen){seen=lastMT;since=performance.now();return}
           const q=performance.now()-since;
-          if(q>6000&&bv.paused&&venc.encodeQueueSize<=3)bv.play().catch(()=>{});
-          if(q>60000){fin=true;rej(new Error('stall'))}
+          if(q>5000&&bv.paused&&venc.encodeQueueSize<=3)bv.play().catch(()=>{});
+          /* кадры не приходят при воспроизведении: переходим на точную перемотку */
+          if(q>9000&&!bv.paused){fin=true;try{bv.pause()}catch(e){}res('seek')}
+          if(q>45000){fin=true;rej(new Error('stall'))}
         },1000);
         bv.playbackRate=rate;
         bv.requestVideoFrameCallback(onF);
         bv.play().catch(rej);
       });
-      clearInterval(wd);wd=0;bv.onended=null;
+      bv.onended=null;
       if(mode==='seek'){
         dbgS=1;
         const end=dur>0?dur:(lastMT+1);
@@ -3381,7 +3398,8 @@ void main(){
           const t0=performance.now();
           frame1(t);dbgC+=performance.now()-t0;dbgN++;
           if(verr)throw verr;
-          if(venc.encodeQueueSize>6){while(venc.encodeQueueSize>2&&!verr)await sleep(8)}
+          if(venc.encodeQueueSize>6){while(venc.encodeQueueSize>2&&!verr&&!stuck)await sleep(8)}
+          if(stuck)throw new Error('enc');
           if(prog)prog(Math.min(99,Math.round(t/Math.max(.1,end)*100)));
         }
       }
@@ -3391,9 +3409,12 @@ void main(){
       if(prog)prog(100);
       if(location.hash==='#fxdebug')console.log('[bake] frames',n,'codec',pk[1],'size',tgt.buffer.byteLength,'audio',!!ab,'ms',Math.round(performance.now()-tB0),'rate',rate.toFixed(2),'avgCost',Math.round(dbgC/Math.max(1,dbgN)),'gaps',dbgG,'handled',dbgN,'seekMode',dbgS);
       return new Blob([tgt.buffer],{type:mp4?'video/mp4':'video/webm'});
+    }catch(e){
+      if(curCodec&&e&&typeof e==='object'&&!e.codec){try{e.codec=curCodec}catch(x){}}
+      throw e;
     }finally{
       clearInterval(wd);clk=null;baking=false;
-      try{bv.pause()}catch(e){}bv.removeAttribute('src');try{bv.load()}catch(e){}URL.revokeObjectURL(bu);
+      try{bv.pause()}catch(e){}try{bv.remove()}catch(e){}bv.removeAttribute('src');try{bv.load()}catch(e){}URL.revokeObjectURL(bu);
       seed=true;pvKey='';
     }
   }
@@ -4651,7 +4672,7 @@ async function exportVideo(target){
     h3.textContent=t('fxBakeT');pp.textContent=t('fxBakeP');$('#xpct').textContent='0%';$('#xbar').value=0;bx.classList.add('show');
     v.pause();
     let bb=null,fail='';
-    try{bb=await FX.bake(recBlob,recDur||v.duration||0,p=>{$('#xpct').textContent=p+'%';$('#xbar').value=p;expBtn.textContent=t('exPct',p)})}catch(e){fail=(e&&e.message)||'err';if(location.hash==='#fxdebug')console.log('[bake] fail',e&&e.name,fail)}
+    try{bb=await fxBake(recBlob,recDur||v.duration||0,p=>{$('#xpct').textContent=p+'%';$('#xbar').value=p;expBtn.textContent=t('exPct',p)})}catch(e){fail=(e&&e.message)||'err';if(location.hash==='#fxdebug')console.log('[bake] fail',e&&e.name,fail)}
     h3.textContent=h0;pp.textContent=p0;bx.classList.remove('show');
     if(bb&&location.hash==='#fxdebug')window.__bakeBlob=bb;
     if(fail==='model'){exporting=false;xctx=null;updateButtons();expBtn.textContent=explbl();toast(t('fxModel'),8000);return}
@@ -5084,7 +5105,7 @@ async function vAppend(file){
     if(FX.hasFx()){
       prog(0,t('fxBakeT'));
       let bb=null,fail='';
-      try{bb=await FX.bake(recBlob,recDur||v.duration||0,p=>prog(p,t('fxBakeT')))}catch(e){fail=(e&&e.message)||'err'}
+      try{bb=await fxBake(recBlob,recDur||v.duration||0,p=>prog(p,t('fxBakeT')))}catch(e){fail=(e&&e.message)||'err'}
       if(!bb){toast(fail==='model'?t('fxModel'):LX('Не удалось наложить фильтр перед склейкой.','Could not apply the filter before joining.'),7000);return}
       const o0=url;recBlob=bb;url=URL.createObjectURL(bb);FX.setState(null);
       v.pause();v.src=url;
