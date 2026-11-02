@@ -3466,7 +3466,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -5094,6 +5094,37 @@ function vAddTr(){
   const near=g.slice().sort((p,q)=>Math.abs(p.a-t)-Math.abs(q.a-t))[0];
   VE.selJ=near.key;trPick(near.key);
 }
+
+/* «Убрать паузы»: находим тишину по звуку и вырезаем её, оставляя короткий вдох по краям */
+async function vCutPauses(){
+  if(recording||exporting||passing){toast(t('prjBusy'),3000);return}
+  if(!hasVideo||!recBlob)return;
+  toast(LX('Ищу паузы…','Looking for pauses…'),2500);
+  let ab=null;
+  try{const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;ab=await new OC(1,44100,44100).decodeAudioData(await recBlob.arrayBuffer())}catch(e){ab=null}
+  if(!ab||!ab.length){toast(LX('В видео нет звука, паузы искать нечем.','The video has no sound to find pauses in.'),4500);return}
+  const sr=ab.sampleRate,hop=Math.max(1,Math.round(sr*.02)),n=Math.floor(ab.length/hop),nc=ab.numberOfChannels,E=new Float32Array(n);
+  for(let c=0;c<nc;c++){const d=ab.getChannelData(c);for(let i=0;i<n;i++){let a=0;const o=i*hop;for(let k=0;k<hop;k++){const x=d[o+k];a+=x*x}E[i]+=a/hop}}
+  const db=new Float32Array(n);for(let i=0;i<n;i++)db[i]=10*Math.log10(E[i]/nc+1e-10);
+  const so=Float32Array.from(db).sort(),lo=so[Math.floor(n*.1)],hi=so[Math.floor(n*.92)];
+  if(hi-lo<9){toast(LX('Заметных пауз не нашёл: речь не отделяется от шума.','No clear pauses found: speech does not stand out from the noise.'),5000);return}
+  const thr=lo+Math.max(6,(hi-lo)*.3),MIN=.55,KEEP=.16,D=vdur(),spans=[];
+  let st=-1;
+  for(let i=0;i<=n;i++){
+    const sil=i<n&&db[i]<thr;
+    if(sil&&st<0)st=i;
+    if(!sil&&st>=0){
+      const a=st*hop/sr,b=i*hop/sr;st=-1;
+      if(b-a>=MIN){const x=a+KEEP,y=Math.min(D,b-KEEP);if(y-x>=.25)spans.push([+x.toFixed(2),+y.toFixed(2)])}
+    }
+  }
+  const have=cutSpans(),fresh=spans.filter(q=>!have.some(h=>h[0]<=q[0]+.02&&h[1]>=q[1]-.02));
+  if(!fresh.length){toast(LX('Новых пауз не нашлось.','No new pauses found.'),3500);return}
+  fresh.forEach(q=>VE.cuts.push(q));VE.sel=null;
+  const tot=fresh.reduce((a,q)=>a+q[1]-q[0],0);
+  vAfter();
+  toast(LX('Вырезано пауз: '+fresh.length+' (−'+tot.toFixed(1)+' с). Кнопка «Отменить» вернёт их.','Cut '+fresh.length+' pauses (−'+tot.toFixed(1)+' s). “Undo” brings them back.'),6000);
+}
 function vDel(){const E=(typeof ui!=='undefined'&&ui==='en');
   if(!VE.sel){toast(E?'Tap a clip in the video track first':'Сначала нажмите на кусок в дорожке видео',3500);return}
   VE.cuts.push([VE.sel.a,VE.sel.b]);VE.sel=null;vAfter()}
@@ -5874,6 +5905,7 @@ function vdRow(row){
   if(VE.sel){sgInspector(row,VE.sel,mk);return}
   mk('plus',x('Добавить видео','Add video'),vAppendPick,true);
   mk('mic',x('Распознать речь','Transcribe'),vTranscribeSel,true);
+  mk('scissors',x('Убрать паузы','Cut pauses'),vCutPauses,true);
   if(trGaps().length)mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
   mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia(),true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
