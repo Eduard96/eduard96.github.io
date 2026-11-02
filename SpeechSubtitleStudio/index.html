@@ -2807,6 +2807,8 @@ async function scanPlayback(){
   vcrop=c;applyVLayout();lastLay='';
   renderTL();
 }
+let recFps=30;
+const camFps=()=>{try{const g=stream&&stream.getVideoTracks()[0];return g?Math.round(g.getSettings().frameRate||0):0}catch(e){return 0}};
 function outDims(){
   const vw=v.videoWidth,vh=v.videoHeight;
   const cr=(crop&&!crop._o&&vw&&vh&&crop.x+crop.w<=vw&&crop.y+crop.h<=vh)?crop:null;
@@ -2834,8 +2836,8 @@ function canvasTrack(){
     try{if(uc)x.drawImage(sv,cc.x,cc.y,cc.w,cc.h,-dw/2,-dh/2,dw,dh);else x.drawImage(sv,-dw/2,-dh/2,dw,dh)}catch(e){}
     x.restore();
   };
-  const keep=()=>{if(v.paused&&v.srcObject&&!hasVideo&&!exporting)v.play().catch(()=>{})};draw();rc.on=true;rc.t=setInterval(()=>{keep();draw()},33);
-  return rc.cv.captureStream(30).getVideoTracks()[0];
+  const keep=()=>{if(v.paused&&v.srcObject&&!hasVideo&&!exporting)v.play().catch(()=>{})};draw();rc.on=true;rc.t=setInterval(()=>{keep();draw()},recFps>=50?15:33);
+  return rc.cv.captureStream(recFps>=50?60:30).getVideoTracks()[0];
 }
 function stopCanvas(){clearInterval(rc.t);rc.on=false}
 
@@ -3388,7 +3390,7 @@ void main(){
       PH(0,'1/4');
       await new Promise((res,rej)=>{bv.onloadedmetadata=res;bv.onerror=()=>rej(new Error('video'));setTimeout(()=>rej(new Error('meta')),20000)});
       chk();const w0=bv.videoWidth,h0=bv.videoHeight;if(!w0||!h0)throw new Error('video');
-      const Wb=w0+(w0&1),Hb=h0+(h0&1),area=Wb*Hb,fps=30,bps=Math.round(Math.min(60e6,Math.max(8e6,area*fps*.2)));
+      const Wb=w0+(w0&1),Hb=h0+(h0&1),area=Wb*Hb,fps=recFps>=50?60:30,bps=Math.round(Math.min(60e6,Math.max(8e6,area*fps*.2)));
       let dur=durHint>0?durHint:bv.duration;if(!isFinite(dur)||dur<=0)dur=0;
       /* звук берём из исходной записи и кодируем отдельно */
       let ab=null,dto=false;PH(0,'2/4');
@@ -3438,7 +3440,7 @@ void main(){
       PH(0,'4/4');
       const oc=document.createElement('canvas');oc.width=Wb;oc.height=Hb;const ox=oc.getContext('2d',{alpha:false});
       seed=true;faces=[];
-      let rate=1,n=0,lastMT=-1,dt=1/30,cost=0,fin=false,lastTS=-1,dbgC=0,dbgN=0,dbgG=0,dbgS=0;
+      let rate=1,n=0,lastMT=-1,dt=1/fps,cost=0,fin=false,lastTS=-1,dbgC=0,dbgN=0,dbgG=0,dbgS=0;
       const dts=[];
       const push=mt=>{
         const ts=Math.max(lastTS+1,Math.round(Math.max(0,mt)*1e6));lastTS=ts;
@@ -3586,7 +3588,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -3690,6 +3692,11 @@ async function openStream0(lite){
   const tries=[];
   /* превью открывается без микрофона: открытый микрофон переводит Android в режим звонка */
   if(!lite){
+    /* сначала просим 60 кадров/с; если камера не даёт, идём дальше по прежнему списку (30) */
+    for(const [w,h] of [[2160,3840],[1440,2560],[1080,1920],[720,1280]]){
+      const pr=[{width:{exact:w},height:{exact:h}},{width:{exact:h},height:{exact:w}}];
+      (por?pr:pr.reverse()).forEach(s=>tries.push({video:Object.assign({frameRate:{min:50,ideal:60}},dev,s),audio:false}));
+    }
     for(const [w,h] of [[2160,3840],[1440,2560],[1080,1920],[720,1280]]){
       const pr=[{width:{exact:w},height:{exact:h}},{width:{exact:h},height:{exact:w}}];
       (por?pr:pr.reverse()).forEach(s=>tries.push({video:Object.assign({frameRate:{ideal:30}},dev,s),audio:false}));
@@ -3821,10 +3828,11 @@ async function _startRec(){
   try{rs=await DN.wrap(stream)}catch(e){rs=stream}
   if(pmv==='later')toast(t('laterMode'),6000);
   try{await detectCrop()}catch(e){crop=null;applyVLayout()}
+  recFps=camFps()>=50?60:30;
   if(!isIOSdev()||crop||mirror||(!hwZoom&&zoom>1.001)||wantAR()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
   {
     const px=rc.on?rc.cv.width*rc.cv.height:1920*1080;
-    const bps=Math.round(Math.min(40e6,Math.max(8e6,px*30*0.14)));
+    const bps=Math.round(Math.min(40e6,Math.max(8e6,px*(recFps>=50?60:30)*0.14)));
     const base=mt?{mimeType:mt}:{};
     try{mr=new MediaRecorder(rs,Object.assign({},base,{videoBitsPerSecond:bps,audioBitsPerSecond:128000}))}
     catch(e){try{mr=new MediaRecorder(rs,base)}catch(e2){stopCanvas();laterRec=false;pendingPass=false;toast(t('recUnsup'));return}}
@@ -4862,12 +4870,12 @@ async function exportVideo(target){
   toast(t('exToast'),5000);
   v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
   v.muted=false;v.volume=1;
-  const cs=cv.captureStream(30),out=[],expDur=Math.max(0.5,(totalT()||dur)-cutSpans().reduce((a,s)=>a+s[1]-s[0],0));
+  const efps=recFps>=50?60:30,cs=cv.captureStream(efps),out=[],expDur=Math.max(0.5,(totalT()||dur)-cutSpans().reduce((a,s)=>a+s[1]-s[0],0));
   const at=await xaTrack();if(at)cs.addTrack(at);
   await ovAudioPrep();
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
-  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){unbake();exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*efps*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){unbake();exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
   let finished=false,stopping=false,wdx=null,lastCt=-1,lastMove=performance.now(),triedResume=0;
   const finalize=()=>{
     if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
@@ -5505,7 +5513,7 @@ async function vAppend(file){
     if(blob.size<1000){toast(LX('Склейка не удалась.','Joining failed.'),5000);return}
     /* подменяем основной ролик: всё, что было до стыка, остаётся на своих местах */
     const old=url;
-    recBlob=blob;url=URL.createObjectURL(blob);
+    recBlob=blob;url=URL.createObjectURL(blob);recFps=30;
     v.pause();v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;
     for(let i=0;i<80&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
     try{if(old)URL.revokeObjectURL(old)}catch(e){}
@@ -6281,7 +6289,7 @@ async function doSave(){
   if(!projName)projName=defName();
   const id=curId,d=recDur||totalT()||dur;
   const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size+VE.ov.reduce((a,o)=>a+((o.blob&&!o.main)?o.blob.size:0),0)};
-  const data={id,name:projName,blob:recBlob,vedit:{zm:{on:ZM.on,cx:ZM.cx,cy:ZM.cy},cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},subpos:{x:SUBP.x,y:SUBP.y,off:subsOff},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d,fx:FX.getState()};
+  const data={id,name:projName,blob:recBlob,vedit:{zm:{on:ZM.on,cx:ZM.cx,cy:ZM.cy},cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},subpos:{x:SUBP.x,y:SUBP.y,off:subsOff},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d,fx:FX.getState(),fps:recFps};
   dirty=false;
   try{
     await dbPut(meta,data);doSave.failed=false;
@@ -6331,7 +6339,7 @@ async function openProject(id){
   setStyle(d.style||'classic',true);setAnim(d.anim||'fade',true);
   capTxt=d.cap||'';['#cap','#shCap'].forEach(q=>{$(q).value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}
   recBlob=d.blob;url=URL.createObjectURL(recBlob);ovLoad((d.vedit||{}).ov);{const q=d.subpos||{};SUBP.x=q.x==null?.5:q.x;SUBP.y=q.y==null?.78:q.y;subsOff=!!q.off;lastLay=''}
-  crop=null;vcrop=null;shareCache=null;lastSub='';FX.setState(d.fx||null);
+  crop=null;vcrop=null;shareCache=null;lastSub='';FX.setState(d.fx||null);recFps=d.fps||30;
   audioPlayback();
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;v.playbackRate=1;$('#spd').textContent='1×';
   hasVideo=true;applyView();
@@ -7217,7 +7225,7 @@ async function trOpen(id){
     try{stopCanvas()}catch(_){}
     if(stream){stream.getTracks().forEach(q=>q.stop());stream=null}
     crop=null;vcrop=null;if(url){try{URL.revokeObjectURL(url)}catch(_){}}
-    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;FX.setState(null);ZM.on=false;
+    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;FX.setState(null);ZM.on=false;recFps=30;
     recBlob=f;url=URL.createObjectURL(f);
     v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
     updateButtons();renderAll();try{saveCurrent()}catch(_){}
