@@ -3000,7 +3000,7 @@ void main(){
   const ER=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246];
   const cv=document.getElementById('fxc'),cx=cv.getContext('2d'),glc=document.createElement('canvas'),
         tc=document.createElement('canvas'),tcx=tc.getContext('2d');
-  let recOff=false,fxl=null,recLog=false,baked=false,baking=false,bgFile=null,clk=null,pvKey='',lastTs=0,gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
+  let segMix=.4,seg2=null,loadingSeg2=false,failedSeg2=false,seg2C=null,seg2X=null,seg2D=null,seg2Prev=null,seg2OK=false,sc2=0,recOff=false,fxl=null,recLog=false,baked=false,baking=false,bgFile=null,clk=null,pvKey='',lastTs=0,gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
       trayOpen=false,capL=1920,costE=0,costN=0,tab='all',bg='#000000',lmk=null,loadingFace=false,failedFace=false,faces=[],tmr=0,lblT=0,
       seg=null,loadingSeg=false,failedSeg=false,segC=null,segX=null,segD=null,segOK=false,sc=0,segPrev=null,segInv=false,segDec=false,bgImg=null,tmpC={};
   try{bg=localStorage.getItem('substudio-fxbg')||bg}catch(e){}
@@ -3075,7 +3075,7 @@ void main(){
   function drawHeadNeck(c,w,h,src){
     const pl=tmp('hn',w,h),px=pl.getContext('2d'),rg=tmp('hr',w,h),rx=rg.getContext('2d');
     px.globalCompositeOperation='source-over';px.clearRect(0,0,w,h);px.drawImage(src,0,0,w,h);
-    px.globalCompositeOperation='destination-in';px.drawImage(segC,0,0,w,h);
+    px.globalCompositeOperation='destination-in';px.drawImage(seg2OK&&seg2C?seg2C:segC,0,0,w,h);
     rx.globalCompositeOperation='source-over';rx.clearRect(0,0,w,h);
     faces.forEach(p=>{
       let x0=1,x1=0,y0=1,y1=0;OVAL.forEach(i=>{const q=p[i];if(q.x<x0)x0=q.x;if(q.x>x1)x1=q.x;if(q.y<y0)y0=q.y;if(q.y>y1)y1=q.y});
@@ -3090,7 +3090,7 @@ void main(){
   function drawMask(c,w,h,kind,src){
     c.fillStyle=bg;c.fillRect(0,0,w,h);
     if(!faces.length)return;
-    if(kind==='head'&&segOK&&segC){drawHeadNeck(c,w,h,src);return}
+    if(kind==='head'&&((seg2OK&&seg2C)||(segOK&&segC))){drawHeadNeck(c,w,h,src);return}
     c.save();c.beginPath();
     faces.forEach(p=>{
       if(kind==='face')poly(c,p,OVAL,1,0,w,h);
@@ -3121,7 +3121,7 @@ void main(){
     const d=segD.data,pv=segPrev,n=w*h;
     for(let i=0;i<n;i++){
       let a=segInv?1-f32[i]:f32[i];a=(a-.35)/.3;a=a<0?0:a>1?1:a;a=a*a*(3-2*a);
-      a=pv[i]*.4+a*.6;pv[i]=a;
+      a=pv[i]*segMix+a*(1-segMix);pv[i]=a;
       const k=i*4;d[k]=d[k+1]=d[k+2]=255;d[k+3]=a*255;
     }
     segX.putImageData(segD,0,0);segOK=true;
@@ -3139,6 +3139,56 @@ void main(){
           c/=Math.max(1,cn);b/=Math.max(1,bn);if(Math.abs(c-b)>.25){segInv=c<b;segDec=true}
         }
         setMask(a,m.width,m.height);
+      });
+    }catch(e){}
+  }
+
+  /* ----- голова: мультиклассовая модель (волосы, кожа лица, кожа тела, одежда, прочее); одежда ниже подбородка убирается ----- */
+  const SEG2MODEL='https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite';
+  async function ensureSeg2(force){
+    if(seg2||loadingSeg2||(failedSeg2&&!force))return;loadingSeg2=true;failedSeg2=false;
+    try{
+      const CDN=(window.SS_MP_BASE)||'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+      const mod=await import(CDN+'/vision_bundle.mjs');
+      const fs=await mod.FilesetResolver.forVisionTasks(CDN+'/wasm');
+      for(const d of['GPU','CPU']){
+        try{seg2=await mod.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:window.SS_SEG2_MODEL||SEG2MODEL,delegate:d},runningMode:'VIDEO',outputCategoryMask:true,outputConfidenceMasks:false});break}
+        catch(e){if(d==='CPU')throw e}
+      }
+    }catch(e){failedSeg2=true;ensureSeg(true)}
+    loadingSeg2=false;
+  }
+  function setMask2(a,w,h){
+    if(!seg2C||seg2C.width!==w||seg2C.height!==h){seg2C=document.createElement('canvas');seg2C.width=w;seg2C.height=h;seg2X=seg2C.getContext('2d');seg2D=seg2X.createImageData(w,h);seg2Prev=new Float32Array(w*h)}
+    /* полосы вокруг лиц: одежда считается частью головы (шапка, капюшон) только выше подбородка */
+    const bands=faces.map(p=>{let x0=1,x1=0,y1=0;OVAL.forEach(i=>{const q=p[i];if(q.x<x0)x0=q.x;if(q.x>x1)x1=q.x;if(q.y>y1)y1=q.y});const fw=x1-x0,cx=(x0+x1)/2;return{a:cx-fw*1.3,b:cx+fw*1.3,y:y1}});
+    const n=w*h,t=new Float32Array(n);
+    for(let y=0;y<h;y++){
+      const ny=(y+.5)/h;
+      for(let x=0;x<w;x++){
+        const c=a[y*w+x];let on=c===1||c===2||c===3||c===5;
+        if(c===4){const nx=(x+.5)/w;on=bands.some(q=>nx>=q.a&&nx<=q.b&&ny<q.y)}
+        t[y*w+x]=on?1:0;
+      }
+    }
+    /* лёгкое размытие краёв 3x3, чтобы контур не был ступенчатым */
+    const o=new Float32Array(n);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){let sm=0,k=0;for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=h)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=w)continue;sm+=t[yy*w+xx];k++}}o[y*w+x]=sm/k}
+    const d=seg2D.data,pv=seg2Prev;
+    for(let i=0;i<n;i++){
+      let v2=o[i];v2=(v2-.25)/.5;v2=v2<0?0:v2>1?1:v2;v2=v2*v2*(3-2*v2);
+      v2=pv[i]*segMix+v2*(1-segMix);pv[i]=v2;
+      const k=i*4;d[k]=d[k+1]=d[k+2]=255;d[k+3]=v2*255;
+    }
+    seg2X.putImageData(seg2D,0,0);seg2OK=true;
+  }
+  function seg2Detect(now,s,all){
+    if(!seg2){ensureSeg2();if(failedSeg2&&!seg)ensureSeg();return}
+    if(!all&&++sc2%2)return;
+    try{
+      seg2.segmentForVideo(s||v,now,res=>{
+        const m=res.categoryMask;if(!m)return;
+        setMask2(m.getAsUint8Array(),m.width,m.height);
       });
     }catch(e){}
   }
@@ -3234,7 +3284,7 @@ void main(){
     chips.forEach((b,j)=>b.classList.toggle('on',j===i));
     btn.classList.toggle('on',i>0);{const m=FL[i].m;tray.classList.toggle('mask',(!!m&&!FL[i].s)||m==='bgcolor');tray.classList.toggle('img',m==='bgimg')}
     if(FL[i].m){if(FL[i].s)ensureSeg(true);else ensureFace(true)}
-    if(FL[i].b)ensureSeg(true);
+    if(FL[i].b)ensureSeg2(true);
     if(FL[i].m==='bgimg'&&!bgImg)pickBgImage();
     showLbl(FL[i].n);paintCount();render(true);
   }
@@ -3308,7 +3358,8 @@ void main(){
       pvKey=key;clk=ti;
     }else clk=null;
     if((f.m&&!f.s)||(live&&(countOn||(trayOpen&&tab==='face'))))detect(now);
-    if(f.s||f.b||(live&&trayOpen&&tab==='bg'))segDetect(now);
+    if(f.s||(live&&trayOpen&&tab==='bg'))segDetect(now);
+    if(f.b){if(failedSeg2&&!seg2)segDetect(now);else seg2Detect(now)}
     paintCount();
     if(!act){setOn(false);return}
     if(recording&&recOff){setOn(false);return}
@@ -3327,8 +3378,9 @@ void main(){
     const used=[...new Set(log.map(e=>e.i))].map(i=>FL[i]);
     const waitM=async(isOn,start,fail)=>{start(true);for(let i=0;i<300&&!isOn()&&!fail();i++)await sleep(100);if(!isOn())throw new Error('model')};
     if(used.some(f=>f.m&&!f.s))await waitM(()=>!!lmk,ensureFace,()=>failedFace&&!loadingFace);
-    if(used.some(f=>f.s||f.b))await waitM(()=>!!seg,ensureSeg,()=>failedSeg&&!loadingSeg);
-    baking=true;setOn(false);const tB0=performance.now();
+    if(used.some(f=>f.s))await waitM(()=>!!seg,ensureSeg,()=>failedSeg&&!loadingSeg);
+    if(used.some(f=>f.b))await waitM(()=>!!(seg2||seg),ensureSeg2,()=>failedSeg2&&failedSeg&&!loadingSeg&&!loadingSeg2);
+    baking=true;setOn(false);const tB0=performance.now();segMix=0;
     const bu=URL.createObjectURL(blob),bv=document.createElement('video');
     bv.muted=true;bv.playsInline=true;bv.preload='auto';bv.src=bu;
     /* на телефонах скрытый, но подключённый к странице ролик надёжнее выдаёт кадры */
@@ -3401,7 +3453,8 @@ void main(){
       const frame1=mt=>{
         const f=FL[idx(mt)];clk=mt;
         if(f.m&&!f.s)detect(tsn(),bv,true);
-        if(f.s||f.b)segDetect(tsn(),bv,true);
+        if(f.s)segDetect(tsn(),bv,true);
+        if(f.b){if(seg2)seg2Detect(tsn(),bv,true);else segDetect(tsn(),bv,true)}
         if(!paint(bv,f,1e9)){ox.drawImage(bv,0,0,Wb,Hb)}else ox.drawImage(cv,0,0,Wb,Hb);
         push(mt);lastMT=mt;
       };
@@ -3480,7 +3533,7 @@ void main(){
       if(curCodec&&e&&typeof e==='object'&&!e.codec){try{e.codec=curCodec}catch(x){}}
       throw e;
     }finally{
-      clearInterval(wd);clk=null;baking=false;
+      clearInterval(wd);clk=null;baking=false;segMix=.4;
       try{bv.pause()}catch(e){}try{bv.remove()}catch(e){}bv.removeAttribute('src');try{bv.load()}catch(e){}URL.revokeObjectURL(bu);
       seed=true;pvKey='';
     }
@@ -3530,10 +3583,10 @@ void main(){
         fxl=st.log.map(e=>({t:e.t,i:e.i}));
         if(st.bg){bg=st.bg;col.value=bg}
         if(st.img){bgFile=st.img;const im=new Image();im.onload=()=>{bgImg=im;pvKey='';render(true)};im.src=URL.createObjectURL(st.img)}
-        fxl.forEach(e=>{const f=FL[e.i];if(f.m){if(f.s)ensureSeg(true);else ensureFace(true)}if(f.b)ensureSeg(true)});
+        fxl.forEach(e=>{const f=FL[e.i];if(f.m){if(f.s)ensureSeg(true);else ensureFace(true)}if(f.b)ensureSeg2(true)});
       }else{fxl=null;setOn(false)}
     },
-    _dbg:{setMask,state:()=>({segOK}),setFaces:f=>{faces=f},drawMask}
+    _dbg:{setMask,setMask2,state:()=>({segOK}),setFaces:f=>{faces=f},drawMask}
   };
 })();
 if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
