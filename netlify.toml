@@ -1,0 +1,19 @@
+# Netlify: the app lives in the SpeechSubtitleStudio folder, no build step
+[build]
+  publish = "SpeechSubtitleStudio"
+
+# always fetch the page, the manifest and the service worker fresh so updates arrive at once
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
