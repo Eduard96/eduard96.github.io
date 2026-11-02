@@ -2735,7 +2735,65 @@ const AIINFO={
 /* то, что раньше делали вызовы Gemini, теперь идёт через цепочку провайдеров */
 const aiText=(prompt,schema)=>aiTry('text',(p,k)=>p.text(k,prompt+(p.id==='gemini'?'':'\nReturn only valid JSON, with no markdown fences and no comments.'),p.id==='gemini'&&schema?{schema}:null));
 const aiStt=(blob,o)=>aiTry('stt',(p,k)=>p.stt(k,blob,o||{}),o&&o.pref);
-async function ttsOne(text,voice,style){return aiTry('tts',(p,k)=>p.tts(k,text,voice,style))}
+/* ---- ttsmp3.com: бесплатная озвучка без ключа, первая в очереди; при любой ошибке или лимите берётся следующий сервис ---- */
+const T3KEY='substudio-t3',T3URL='https://ttsmp3.com/makemp3_ai.php',T3LIM=1000;
+function t3St(){try{return JSON.parse(localStorage.getItem(T3KEY)||'{}')||{}}catch(e){return{}}}
+function t3Put(o){try{localStorage.setItem(T3KEY,JSON.stringify(Object.assign(t3St(),o)))}catch(e){}}
+const t3Day=()=>new Date().toISOString().slice(0,10);
+/* можно ли сейчас пробовать ttsmp3: нет паузы после сбоя и хватает дневного лимита (1000 символов) */
+function t3Can(len){const s=t3St();if(s.off&&s.off>Date.now())return false;if(len>T3LIM)return false;if(s.day===t3Day()&&(s.used||0)+len>T3LIM)return false;return true}
+const ttsHas=()=>aiHas('tts')||t3Can(1);
+async function t3Post(msg,instr,voice){
+  const body=new URLSearchParams({msg,instruction:instr||'',lang:String(voice||'kore').toLowerCase(),speed:'1.00',source:'ttsmp3'});
+  let r;
+  try{r=await fetch(T3URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),credentials:'omit'})}
+  catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+  let j=null;try{j=await r.json()}catch(e){}
+  if(!j||typeof j!=='object'){const er=new Error('ttsmp3: unexpected answer');er.status=502;throw er}
+  return j;
+}
+function t3Err(j){
+  const m=String(j.Error==null?'':j.Error),er=new Error('ttsmp3: '+(m||'error'));
+  if(/quota|limit|exceed|too many/i.test(m)){er.status=429;er.message+=' (per day)';t3Put({day:t3Day(),used:T3LIM})}
+  else er.status=400;
+  return er;
+}
+async function t3Tts(text,voice,style){
+  if(!t3Can(text.length)){const e=new Error('ttsmp3: daily limit (per day)');e.status=429;throw e}
+  /* первый раз за сутки проверяем коротким запросом (1 символ), отвечает ли сайт приложению; если нет, ttsmp3 отключается на несколько часов */
+  const s0=t3St();
+  if(!(s0.okAt&&Date.now()-s0.okAt<864e5)){
+    const pj=await t3Post('Ա','',voice);
+    t3Put({okAt:Date.now()});
+    if(Number(pj.Error)!==0)throw t3Err(pj);
+    t3Put({day:t3Day(),used:(t3St().day===t3Day()?t3St().used||0:0)+1});
+  }
+  const instr=style?('Speak in a '+style+' tone and manner.'):'';
+  const j=await t3Post(text,instr,voice);
+  if(Number(j.Error)!==0)throw t3Err(j);
+  const fu=parseInt(j.FreeUsed,10),st=t3St();
+  t3Put({day:t3Day(),used:isFinite(fu)?fu:((st.day===t3Day()?st.used||0:0)+(+j.UsedChars||text.length))});
+  if(!j.URL){const e=new Error('ttsmp3: audio is queued');e.status=502;throw e}
+  let r;try{r=await fetch(j.URL,{credentials:'omit'})}catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
+  if(!r.ok){const er=new Error('ttsmp3: HTTP '+r.status);er.status=r.status;throw er}
+  return trimSil(await decodeMono(await r.arrayBuffer(),24000));
+}
+let t3Told=0;
+async function ttsOne(text,voice,style){
+  let t3Fail=false;
+  if(t3Can(text.length)){
+    try{const a=await t3Tts(text,voice,style);AIL.tts='ttsmp3';return a}
+    catch(e){
+      if(e&&e.name==='AbortError')throw e;
+      t3Fail=true;
+      /* пауза зависит от сбоя: сеть или запрет браузера (CORS) — на 6 часов, лимит — на 30 минут, прочее — на 5 минут */
+      t3Put({off:Date.now()+(e.net?6*36e5:e.status===429?30*6e4:5*6e4)});
+    }
+  }
+  const r=await aiTry('tts',(p,k)=>p.tts(k,text,voice,style));
+  if(t3Fail&&Date.now()-t3Told>6e5){t3Told=Date.now();toast(LX('ttsmp3 сейчас недоступен или лимит закончился — озвучка идёт через другой сервис.','ttsmp3 is unavailable or out of quota right now — using another voice service.'),3800)}
+  return r;
+}
 async function aiTranslate(part,L){
   const prompt='Translate the "text" field of every item in this JSON array into '+L[1]+'. The result is a voice-over for a video: use natural spoken language and keep the spoken length close to the original. Return a JSON array with one object per item: {"i": the same id, "text": the translation}.\nInput:\n'+JSON.stringify(part.map(x=>({i:x.id,text:x.src})));
   return parseJsonArr(await aiText(prompt,SCHEMA_TRN));
@@ -6850,7 +6908,7 @@ $('#ttsStop').onclick=()=>{TS.cancel=true};
 $('#ttsGen').onclick=async()=>{
   const text=$('#ttsIn').value.trim();
   if(!text){toast(t('ttsEmpty'));return}
-  if(!aiHas('tts')){openGem();return}
+  if(!ttsHas()){openGem();return}
   if(TS.run)return;TS.cancel=false;ttsBusy(true);
   try{
     const parts=splitText(text,1200),outs=[],voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim();
@@ -6868,7 +6926,7 @@ $('#ttsGen').onclick=async()=>{
   finally{ttsBusy(false)}
 };
 $('#ttsSample').onclick=async()=>{
-  if(!aiHas('tts')){openGem();return}
+  if(!ttsHas()){openGem();return}
   const voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim(),key=voice+'|'+style;
   ttsBusy(true);
   try{
@@ -7089,7 +7147,7 @@ $('#trS2').onclick=async()=>{
 };
 $('#trS3').onclick=async()=>{
   if(TR.run)return;if(!TR.segs.some(x=>x.tr)){toast(t('trNeedTr'));return}
-  if(!aiHas('tts')){openGem();return}
+  if(!ttsHas()){openGem();return}
   const voice=$('#trVoice').value,style=$('#trStyleIn').value.trim();
   const need=TR.segs.filter(x=>x.tr&&(!TR.clips.some(c=>c.sid===x.id)||TR.clips.some(c=>c.sid===x.id&&(c.ver!==x.ver||c.voice!==voice||c.style!==style))));
   if(!need.length){trSt(t('trDone'));return}
@@ -7468,7 +7526,7 @@ async function trOpen(id){
       let a=smp.get(key);
       if(!a){a=await smpGet(key);if(a)smp.set(key,a)}
       if(!a){
-        if(!aiHas('tts'))throw new Error('nokey');
+        if(!ttsHas())throw new Error('nokey');
         a=await ttsOne(sampleTxt(),name,'');smp.set(key,a);smpPut(key,a);
       }
       audioGraph();if(AC.state==='suspended')await AC.resume();
@@ -7526,7 +7584,7 @@ async function trOpen(id){
     }catch(e){VO.bufs=null;VO.sig='';VO.lang=null;setDub(false)}
   };
 
-  const dKeyShow=()=>{$$('#dKey').style.display=aiHas('tts')?'none':''};
+  const dKeyShow=()=>{$$('#dKey').style.display=ttsHas()?'none':''};
   const dst=(txt,kind)=>{const b=$$('#dBox');b.style.display=txt?'flex':'none';$$('#fh3').textContent=txt||'';b.className='dbox'+(kind?' '+kind:'');$$('#dRetry').style.display=kind==='err'?'':'none'};
   function vpStop(){if(exporting)return;VO.srcs.forEach(q=>{try{q.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
   function vpStart(){
@@ -7561,7 +7619,7 @@ async function trOpen(id){
   $$('#dDet').addEventListener('toggle',renderAudio);
   async function genDub(){
     if(VO.busy||passing||!phrases.some(p=>p.t))return;
-    if(!aiHas('tts')){const k=$$('#dKey').value.trim();if(!k){toast(x('Сначала вставьте ключ Gemini или добавьте другой сервис озвучки (🔑 в шапке).','Paste a Gemini key first, or add another voice service (🔑 in the header).'),6000);return}aiAddKey('gemini',k)}
+    if(!ttsHas()){const k=$$('#dKey').value.trim();if(!k){toast(x('Сначала вставьте ключ Gemini или добавьте другой сервис озвучки (🔑 в шапке).','Paste a Gemini key first, or add another voice service (🔑 in the header).'),6000);return}aiAddKey('gemini',k)}
     VO.busy=true;$$('#fAct').disabled=true;vpStop();
     const list=phrases.filter(p=>p.t&&!p.cut).sort((p,q)=>p.s-q.s),out=[];
     try{
