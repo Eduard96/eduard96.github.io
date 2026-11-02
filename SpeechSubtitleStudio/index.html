@@ -2120,6 +2120,34 @@ function playOutro(){
     step();
   });
 }
+/* превью заставки в редакторе: когда видео доиграло, до конца проигрывается заставка, на дорожке бежит указатель */
+const PVO={run:false,t:0,cv:null,raf:0};
+function pvOutroStop(){
+  if(!PVO.run)return;
+  PVO.run=false;cancelAnimationFrame(PVO.raf);
+  if(PVO.cv)PVO.cv.style.display='none';
+  try{renderTL()}catch(e){}
+}
+function pvOutroStart(){
+  if(PVO.run||!hasVideo||!OUT.on||exporting||recording||passing||!vdur())return;
+  const FA=frameAR(),W=540,H=Math.max(2,Math.round(W/FA));
+  if(!PVO.cv){const c=document.createElement('canvas');c.id='oucv';c.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:25;display:none;border-radius:inherit;cursor:pointer';c.onclick=pvOutroStop;stage.appendChild(c);PVO.cv=c}
+  const cv2=PVO.cv;cv2.width=W;cv2.height=H;
+  const snap=document.createElement('canvas');snap.width=W;snap.height=H;
+  try{const sx=snap.getContext('2d'),vw=v.videoWidth,vh=v.videoHeight;if(vw&&vh){const k=Math.max(W/vw,H/vh),dw=vw*k,dh=vh*k;sx.fillStyle='#000';sx.fillRect(0,0,W,H);sx.drawImage(v,(W-dw)/2,(H-dh)/2,dw,dh)}}catch(e){}
+  const c=cv2.getContext('2d');cv2.style.display='block';PVO.run=true;const t0=performance.now();
+  const step=()=>{
+    if(!PVO.run)return;
+    const t=(performance.now()-t0)/1000;PVO.t=Math.min(t,OUT.d);
+    try{drawOutro(c,W,H,PVO.t,snap)}catch(e){}
+    if(t>=OUT.d+.7){pvOutroStop();return}
+    PVO.raf=requestAnimationFrame(step);
+  };
+  step();
+}
+v.addEventListener('ended',()=>{if(hasVideo&&OUT.on&&!exporting&&!recording&&!passing)pvOutroStart()});
+v.addEventListener('play',pvOutroStop);
+v.addEventListener('seeking',pvOutroStop);
 function cutSpans(){
   const a=phrases.filter(p=>p.cut).map(span).concat(VE.cuts.map(c=>[c[0],c[1]])).sort((x,y)=>x[0]-y[0]);
   const out=[];for(const s of a){const l=out[out.length-1];if(l&&s[0]<=l[1])l[1]=Math.max(l[1],s[1]);else out.push([s[0],s[1]])}
@@ -3667,7 +3695,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={outro:(c,W,H,t,snap)=>drawOutro(c,W,H,t,snap),OUT:()=>OUT,fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={pvo:()=>({run:PVO.run,t:PVO.t}),outro:(c,W,H,t,snap)=>drawOutro(c,W,H,t,snap),OUT:()=>OUT,fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -4206,9 +4234,9 @@ tlin.addEventListener('pointerdown',e=>{
 
 function updatePlayhead(follow){
   if(!ph)return;
-  const t=scrubbing?scrubPos:(recording?rt():(hasVideo?v.currentTime:0));
+  const t=scrubbing?scrubPos:(recording?rt():(hasVideo?(PVO.run?vdur()+PVO.t:v.currentTime):0));
   const x=t*PX;ph.style.left=x+'px';
-  if(follow&&!scrubbing&&(recording||(hasVideo&&!v.paused))){
+  if(follow&&!scrubbing&&(recording||PVO.run||(hasVideo&&!v.paused))){
     const l=tl.scrollLeft,w=tl.clientWidth;
     if(x<l||x>l+w*0.85)tl.scrollLeft=Math.max(0,x-w*0.3);
   }
@@ -4439,11 +4467,12 @@ function updatePlayerUI(){
   if(!seeking&&T)$('#seek').value=Math.round(Math.min(1,c/T)*1000);
   if(!hasVideo)$('#seek').value=0;
   $('#ptime').textContent=fmt(c)+' / '+fmt(T);
-  {const q=(hasVideo&&!v.paused&&!v.ended)?1:0,pe=$('#pp');if(pe._s!==q){pe._s=q;pe.innerHTML=ico(q?'pause':'play')}}
+  {const q=((hasVideo&&!v.paused&&!v.ended)||PVO.run)?1:0,pe=$('#pp');if(pe._s!==q){pe._s=q;pe.innerHTML=ico(q?'pause':'play')}}
   fillR($('#seek'));
 }
 function togglePlay(){
   if(!hasVideo||recording||exporting||passing)return;
+  if(PVO.run){pvOutroStop();return}
   if(AC&&AC.state==='suspended')AC.resume();
   v.muted=false;
   if(v.paused||v.ended){if(v.ended)v.currentTime=0;v.play().catch(()=>{})}else v.pause();
