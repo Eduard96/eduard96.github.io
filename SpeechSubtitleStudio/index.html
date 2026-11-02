@@ -2210,6 +2210,15 @@ const wordsOf=t=>String(t||'').split(/\s+/).filter(Boolean);
 const lettersOf=t=>(String(t||'').match(/[\p{L}\p{N}]/gu)||[]).length;
 const okLen=t=>wordsOf(t).length<=SPL.maxW&&lettersOf(t)<=SPL.maxL;
 const SPL_CONJ=/^(но|и|а|что|чтобы|потому|поэтому|когда|если|или|зато|однако|хотя|который|которая|которые|пока|как|where|and|but|that|because|when|if|so|which|while|ու|բայց|որ|քանի|երբ|եթե)$/i;
+function liveTail(t){
+  // живая подпись во время записи: слова копятся по порядку, как только набралось 7 слов или 30 букв — начинается новый блок
+  let cur=[];
+  wordsOf(t).forEach(w=>{
+    const nx=cur.concat(w);
+    if(cur.length&&!okLen(nx.join(' ')))cur=[w];else cur=nx;
+  });
+  return cur.join(' ');
+}
 function autoSplit(t){
   const out=[];
   String(t||'').split(/\n+/).map(x=>x.replace(/[ \t]+/g,' ').trim()).filter(Boolean).forEach(line=>{
@@ -4387,7 +4396,7 @@ function updateSub(){
   let txt='',cur=null,tm=99,dd=2;
   if(recording||passing){
     const p=phrases[phrases.length-1],now=nowT();
-    if(p&&p.t&&now-p.e<=3)txt=p.t.split(/\s+/).filter(Boolean).slice(-6).join(' ');
+    if(p&&p.t&&now-p.e<=3)txt=liveTail(p.t);
   }else if(hasVideo){
     const c=chunkAt(v.currentTime);if(c){txt=c.t;cur=c.g;tm=Math.max(0,v.currentTime-c.s);dd=c.e-c.s}
   }
@@ -7409,23 +7418,51 @@ async function trOpen(id){
   vs.innerHTML='<div class="box vbox"><h3></h3><p class="vhint"></p><div class="vlist"></div><button type="button" class="nb pri vclose"></button></div>';
   document.body.appendChild(vs);
   vs.querySelector('h3').textContent=x('Выберите голос','Choose a voice');
-  vs.querySelector('.vhint').textContent=x('Нажмите ▶, чтобы послушать образец (один короткий запрос к вашему ключу озвучки), потом выберите.','Tap ▶ to hear a sample (one short request to your voice key), then choose.');
+  vs.querySelector('.vhint').textContent=x('Нажмите ▶, чтобы послушать образец (один короткий запрос к вашему ключу озвучки), потом выберите. Уже прослушанные образцы сохраняются и дальше играют бесплатно.','Tap ▶ to hear a sample (one short request to your voice key), then choose.');
   vs.querySelector('.vclose').textContent=x('Готово','Done');
   let vsAud=null;const smp=new Map();
-  const stopSample=()=>{if(vsAud){try{vsAud.stop()}catch(e){}vsAud=null}vs.querySelectorAll('.vplay').forEach(b=>{b.classList.remove('on');b.textContent='▶'})};
+  const stopSample=()=>{if(vsAud){try{vsAud.stop()}catch(e){}vsAud=null}vs.querySelectorAll('.vplay').forEach(b=>{b.classList.remove('on');b.textContent='▶'});try{speechSynthesis.cancel()}catch(e){}};
   const sampleTxt=()=>{const l=VO.lang||ui;return l==='ru'?'Привет! Так звучит мой голос.':l==='hy'?'Բարև։ Այսպես է հնչում իմ ձայնը։':'Hi! This is how my voice sounds.'};
+  /* образцы хранятся на устройстве навсегда (IndexedDB): один раз получили — дальше слушаем бесплатно и без интернета */
+  const smpDb=()=>new Promise((ok,no)=>{try{const q=indexedDB.open('ss-voice-samples',1);q.onupgradeneeded=()=>q.result.createObjectStore('s');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)}catch(e){no(e)}});
+  const smpGet=key=>smpDb().then(db=>new Promise(ok=>{const r=db.transaction('s').objectStore('s').get(key);r.onsuccess=()=>{const v=r.result;ok(v?{f:new Float32Array(v.f),sr:v.sr}:null)};r.onerror=()=>ok(null)})).catch(()=>null);
+  const smpPut=(key,a)=>smpDb().then(db=>{db.transaction('s','readwrite').objectStore('s').put({f:a.f.buffer.slice(0),sr:a.sr},key)}).catch(()=>{});
+  /* запасной вариант без лимитов: голос самого устройства (это не голос Gemini, только для ориентира по полу и тону) */
+  const VFEM=new Set(['Zephyr','Kore','Leda','Aoede','Callirrhoe','Autonoe','Despina','Erinome','Laomedeia','Achernar','Gacrux','Pulcherrima','Vindemiatrix','Sulafat']);
+  function deviceSample(name,btn){
+    if(!('speechSynthesis' in window))return false;
+    const L=VO.lang||ui,lc=L==='ru'?'ru':L==='hy'?'hy':'en';
+    const u=new SpeechSynthesisUtterance(sampleTxt());u.lang=lc==='ru'?'ru-RU':lc==='hy'?'hy-AM':'en-US';
+    const vl=speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().startsWith(lc));
+    const fm=VFEM.has(name),pick=vl.find(v=>fm?/female|woman|milena|alena|anna|samantha|zira|jenny/i.test(v.name):/male|man|yuri|pavel|daniel|david|guy|alex/i.test(v.name)&&!/female/i.test(v.name))||vl[0];
+    if(pick)u.voice=pick;
+    u.pitch=fm?1.15:.85;
+    stopSample();
+    u.onend=u.onerror=()=>{btn.classList.remove('on');btn.textContent='▶'};
+    btn.classList.add('on');btn.textContent='■';btn.disabled=false;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+    toast(x('Лимит Gemini исчерпан или нет ключа — это голос устройства, не настоящий образец. Пол и тон показаны для ориентира.','Gemini limit reached or no key — this is your device voice, not the real sample. Gender/tone shown as a guide.'),5000);
+    return true;
+  }
   async function playSample(name,btn){
     if(btn.classList.contains('on')){stopSample();return}
     stopSample();
-    if(!aiHas('tts')){toast(x('Сначала добавьте ключ озвучки (Gemini): 🔑 в шапке.','Add a voice key (Gemini) first: 🔑 in the header.'),5000);return}
     const key=name+'|'+(VO.lang||ui);btn.textContent='…';btn.disabled=true;
     try{
       let a=smp.get(key);
-      if(!a){a=await ttsOne(sampleTxt(),name,'');smp.set(key,a)}
+      if(!a){a=await smpGet(key);if(a)smp.set(key,a)}
+      if(!a){
+        if(!aiHas('tts'))throw new Error('nokey');
+        a=await ttsOne(sampleTxt(),name,'');smp.set(key,a);smpPut(key,a);
+      }
       audioGraph();if(AC.state==='suspended')await AC.resume();
       const buf=new AudioBuffer({length:a.f.length,sampleRate:a.sr,numberOfChannels:1});buf.copyToChannel(a.f,0);
       const src=AC.createBufferSource();src.buffer=buf;src.connect(AC.destination);src.onended=()=>{if(vsAud===src)stopSample()};src.start();vsAud=src;btn.classList.add('on');btn.textContent='■';
-    }catch(e){btn.textContent='▶';toast((e&&e.message)||x('Не удалось получить образец.','Could not get the sample.'),5000)}
+    }catch(e){
+      btn.textContent='▶';
+      if(deviceSample(name,btn))return;
+      toast((e&&e.message)||x('Не удалось получить образец.','Could not get the sample.'),5000);
+    }
     btn.disabled=false;
   }
   function paintVsheet(){
@@ -7433,7 +7470,7 @@ async function trOpen(id){
     VOICES.forEach(([n])=>{
       const r=document.createElement('div');r.className='vrow'+(dv.value===n?' on':'');r.tabIndex=0;
       r.innerHTML='<button type="button" class="vplay" aria-label="'+x('Прослушать','Play sample')+'">▶</button><div class="vinfo"><b></b><span></span></div><span class="vck"></span>';
-      r.querySelector('b').textContent=n;r.querySelector('span').textContent=vdesc(n);r.querySelector('.vck').textContent=dv.value===n?'✓':'';
+      r.querySelector('b').textContent=n;r.querySelector('span').textContent=(VFEM.has(n)?'♀ ':'♂ ')+vdesc(n);r.querySelector('.vck').textContent=dv.value===n?'✓':'';
       r.querySelector('.vplay').onclick=e=>{e.stopPropagation();playSample(n,e.currentTarget)};
       const pick=()=>{dv.value=n;dv.onchange&&dv.onchange();paintVpk();stopSample();vs.classList.remove('show');if(VO.bufs&&VO.sig!==vsig()){}};
       r.onclick=pick;r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}};
