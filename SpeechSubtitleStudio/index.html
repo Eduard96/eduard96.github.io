@@ -3078,6 +3078,7 @@ void main(){
     faces.forEach(p=>{
       if(kind==='face')poly(c,p,OVAL,1,0,w,h);
       else if(kind==='head')poly(c,p,OVAL,1.3,-.045,w,h);
+      else if(kind==='mouth')poly(c,p,LIPS,1.45,0,w,h);
       else{poly(c,p,EL,1.3,0,w,h);poly(c,p,ER,1.3,0,w,h);if(kind==='eyesmouth')poly(c,p,LIPS,1.25,0,w,h)}
     });
     c.clip();c.drawImage(src,0,0,w,h);c.restore();
@@ -3169,7 +3170,7 @@ void main(){
   const cnt=document.createElement('div');cnt.id='fxcnt';cnt.style.display='none';stg.appendChild(cnt);
   const lbl=document.createElement('div');lbl.id='fxlbl';stg.appendChild(lbl);
   const tray=document.createElement('div');tray.id='fxtray';tray.setAttribute('role','dialog');tray.setAttribute('aria-label',L('Filters','Фильтры','Ֆիլտրեր'));
-  const TABS=[['all',L('All','Все','Բոլորը')],['face',L('Face','Лицо','Դեմք')],['bg',L('Background','Фон','Ֆոն')],['live',L('Live','Живые','Շարժուն')],['color',L('Color','Цвет','Գույն')],['art',L('Art','Арт','Արվեստ')],['fun',L('Fun','Забава','Զվարճ')]];
+  const TABS=[['all',L('All','Все','Բոլորը')],['face',L('Face','Лицо','Դեմք')],['color',L('Color','Цвет','Գույն')]];
   tray.innerHTML='<div class="fxh"><div class="fxtabs"></div><button type="button" class="fxx" aria-label="'+L('Close','Закрыть','Փակել')+'">×</button></div>'+
     '<div class="fxlist"></div>'+
     '<div class="fxfoot"><button type="button" class="fxtog" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c2.4-.3 4.2 1.1 4.8 4"/></svg><span>'+L('Count faces','Считать лица','Հաշվել դեմքերը')+'</span></button>'+
@@ -3182,6 +3183,8 @@ void main(){
   col.oninput=()=>{bg=col.value;try{localStorage.setItem('substudio-fxbg',bg)}catch(e){}};
   TABS.forEach(([k,n])=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.dataset.k=k;if(k===tab)b.className='on';
     b.onclick=()=>{tab=k;[...tabsEl.children].forEach(x=>x.classList.toggle('on',x===b));filterChips();list.scrollLeft=0;if(k==='face')ensureFace(true);if(k==='bg')ensureSeg(true);thumbTick()};tabsEl.appendChild(b)});
+  FL.push({"n":"Only Mouth","k":0,"c":"face","d":0,"ta":0,"m":"mouth","g":"radial-gradient(ellipse 22% 9% at 50% 62%,#e66 0 60%,#000 66%)"});
+  const KEEP=f=>f.c==='all'||(f.c==='face'&&f.m!=='head')||(f.c==='color'&&!f.d);
   const chips=FL.map((f,i)=>{
     const b=document.createElement('button');b.type='button';b.className='fxchip'+(i===0?' on':'');b.dataset.fx=i;
     const c=document.createElement('canvas');c.width=64;c.height=64;c.style.background=f.g;
@@ -3189,7 +3192,8 @@ void main(){
     b.append(c,s);if(f.d){const e=document.createElement('em');e.textContent='LIVE';b.appendChild(e)}
     b._c=c;b.onclick=()=>pick(i);list.appendChild(b);return b;
   });
-  function filterChips(){chips.forEach((b,i)=>{const f=FL[i];b.style.display=(i===0||tab==='all'||(tab==='live'?f.d:f.c===tab))?'':'none'})}
+  function filterChips(){chips.forEach((b,i)=>{const f=FL[i];b.style.display=(KEEP(f)&&(i===0||tab==='all'||f.c===tab))?'':'none'})}
+  {const em=FL.findIndex(f=>f.m==='eyesmouth'),mo=FL.findIndex(f=>f.m==='mouth');if(em>=0&&mo>=0)list.insertBefore(chips[mo],chips[em].nextSibling)}
   filterChips();
   tog.onclick=()=>{countOn=!countOn;tog.setAttribute('aria-pressed',countOn?'true':'false');tog.classList.toggle('on',countOn);if(countOn)ensureFace(true);paintCount()};
   tray.querySelector('.fxx').onclick=()=>close();
