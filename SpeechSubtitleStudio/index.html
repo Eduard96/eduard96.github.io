@@ -3507,19 +3507,19 @@ function audioGraph(){audioPlayback();
   if(AC.state==='suspended')AC.resume();
   return true;
 }
-let retried=false;
-async function transcribe(auto,speaker){
+let retried=false,passRange=null;
+async function transcribe(auto,speaker,range){
   if(!speaker)retried=false;
   if(!SR){toast('Распознавание речи работает в Chrome.');return}
   if(!hasVideo||recording||exporting||passing)return;
-  if(!auto&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
+  if(!auto&&!range&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
   for(let i=0;i<40&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
   const T=totalT();if(!T){toast('Длину видео определить пока не удалось.');return}
   if(!audioGraph()){toast('Звук для распознавания подготовить не удалось.');return}
-  setEdit(false);
+  if(!range)setEdit(false);
   setLang(langLog[0]?langLog[0].l:lang);
-  phrases=[];map={};save();renderAll();
-  if(!speaker&&!noCloudOnce&&aiHas('stt')&&recBlob){return transcribeCloud(T)}
+  if(range){phrases=phrases.filter(p=>!(p.s>=range.a-.05&&p.s<range.b));save();renderAll()}else{phrases=[];map={};save();renderAll()}
+  if(!speaker&&!noCloudOnce&&aiHas('stt')&&recBlob){return transcribeCloud(T,range)}
   noCloudOnce=false;
   passing=true;gotRes=false;
   ASRC.disconnect();
@@ -3527,7 +3527,8 @@ async function transcribe(auto,speaker){
   usingTrack=!speaker&&typeof SR.available==='function';
   passTrack=usingTrack?PDEST.stream.getAudioTracks()[0]:null;
   if(!usingTrack)ASRC.connect(aOut());
-  v.pause();v.muted=false;v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;await sleep(250);
+  passRange=range||null;
+  v.pause();v.muted=false;v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=range?range.a:0;await sleep(250);
   $('#pass').style.display='block';updateButtons();
   setSt('распознаю запись…');
   startSR();
@@ -3537,13 +3538,13 @@ async function transcribe(auto,speaker){
   v.onended=()=>finishPass();
 }
 /* тихое распознавание через API: звук из видео не воспроизводится, ничего не включается и не выключается */
-async function transcribeCloud(T){
+async function transcribeCloud(T,range){
   passing=true;let stopped=false,err=null;cloudPassStop=()=>{stopped=true};
   try{v.pause();v.currentTime=0}catch(e){}
   $('#pass').style.display='block';updateButtons();setSt('распознаю запись…');
   const lg=lang;
   try{
-    const a=await extractAudio(recBlob),CH=Math.round(60*a.sr),n=Math.ceil(a.f.length/CH);
+    const a0=await extractAudio(recBlob),base=range?range.a:0,a={sr:a0.sr,f:range?a0.f.subarray(Math.floor(range.a*a0.sr),Math.min(a0.f.length,Math.ceil(range.b*a0.sr))):a0.f},CH=Math.round(60*a.sr),n=Math.ceil(a.f.length/CH);
     for(let i=0;i<n&&!stopped;i++){
       const pct=i/n*100;$('#passBar').value=pct;
       $('#passTxt').textContent=LX('Распознаю речь через API, без звука: '+Math.round(pct)+'%. Текст появляется в списке фраз.','Recognising speech through the API, silently: '+Math.round(pct)+'%. Text appears in the phrase list.');
@@ -3554,7 +3555,7 @@ async function transcribeCloud(T){
       for(const g of segs){
         const tx=String(g.text||'').replace(/\s+/g,' ').trim();
         if(tx.length<2||(g.ns!==undefined&&g.ns>0.7))continue;
-        const s0=i*60+(+g.start||0),e0=i*60+(+g.end||0);
+        const s0=base+i*60+(+g.start||0),e0=base+i*60+(+g.end||0);
         phrases.push({s:s0,e:Math.max(e0,s0+.4),l:lg,t:tx,cut:false});
       }
       renderList();
@@ -3563,13 +3564,14 @@ async function transcribeCloud(T){
   cloudPassStop=null;passing=false;$('#pass').style.display='none';if(VE.progEnd)VE.progEnd();
   if(err&&!phrases.some(p=>p.t)&&!stopped){
     toast(LX('API не справились: '+(err.message||'')+' Пробую распознавание браузера.','The APIs did not manage: '+(err.message||'')+' Trying browser recognition.'),6000);
-    noCloudOnce=true;transcribe(true);return;
+    noCloudOnce=true;transcribe(true,false,range);return;
   }
   buildAll();const ok=phrases.some(p=>p.t);setSt(ok?t('doneSt'):t('nothing'),ok?'ok':'err');
   save();renderAll();
 }
 function passTick(){
   const T=totalT()||1,t=v.currentTime;
+  if(passRange&&t>=passRange.b-.05){finishPass();return}
   $('#passBar').value=Math.min(100,t/T*100);
   $('#passTxt').textContent=LX('Распознаю речь по записи: '+Math.min(100,Math.round(t/T*100))+'% ('+fmt(t)+' / '+fmt(T)+'). Текст появляется в списке фраз.','Recognising speech from the recording: '+Math.min(100,Math.round(t/T*100))+'% ('+fmt(t)+' / '+fmt(T)+'). The text appears in the phrase list.');
   let l=langLog[0]?langLog[0].l:lang;for(const e of langLog)if(e.t<=t)l=e.l;
@@ -3596,7 +3598,7 @@ async function finishPass(){
   try{sr&&sr._t&&sr._t.stop()}catch(e){}
   try{ASRC.disconnect();ASRC.connect(aOut())}catch(e){}
   $('#pass').style.display='none';
-  v.currentTime=0;
+  v.currentTime=passRange?passRange.a:0;passRange=null;
   buildAll();
   const ok=phrases.some(p=>p.t);
   
@@ -4456,6 +4458,116 @@ function vSetTr(k){const E=(typeof ui!=='undefined'&&ui==='en'),D=vdur();
   if(!keys.length){toast(E?'Delete a clip first: a transition sits on the join':'Сначала удалите кусок: переход ставится на стык',4000);return}
   keys.forEach(q=>{if(k)VE.tr[q]=k;else delete VE.tr[q]});vAfter()}
 
+
+/* ---------- «Добавить видео»: продолжение основного ролика, склейка в один файл ---------- */
+function mgMeta(e){
+  return new Promise(res=>{
+    let done=false;const fin=ok=>{if(done)return;done=true;res(ok)};
+    e.onerror=()=>fin(false);setTimeout(()=>fin(false),12000);
+    const go=()=>{
+      if(isFinite(e.duration)&&e.duration>0){fin(true);return}
+      e.ontimeupdate=()=>{if(isFinite(e.duration)&&e.duration>0){e.ontimeupdate=null;try{e.currentTime=0}catch(x){}fin(true)}};
+      try{e.currentTime=1e7}catch(x){fin(false)}
+    };
+    if(e.readyState>=1)go();else e.onloadedmetadata=go;
+  });
+}
+let mgBusy=false;
+async function vAppend(file){
+  if(mgBusy)return;
+  if(!hasVideo||recording||exporting||passing){toast(LX('Сначала нужно основное видео.','The main video comes first.'),3500);return}
+  if(!/^video\//.test(file.type)){toast(LX('Нужен файл видео.','A video file is needed.'),3500);return}
+  if(file.size>300*1048576){toast(LX('Файл больше 300 МБ.','The file is over 300 MB.'),5000);return}
+  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast(t('exNA'));return}
+  mgBusy=true;try{v.pause()}catch(e){}
+  const prog=(p,l)=>{if(VE.prog)VE.prog(l||LX('Склеиваю видео','Joining the videos'),p)};
+  const urls=[];let ac=null,iv=0;
+  try{
+    prog(0,LX('Готовлю видео','Preparing the videos'));
+    const W0=v.videoWidth||1080,H0=v.videoHeight||1920,W=W0-W0%2,H=H0-H0%2;
+    const mk=b=>{const e=document.createElement('video');e.playsInline=true;e.preload='auto';const u=URL.createObjectURL(b);urls.push(u);e.src=u;return e};
+    const va=mk(recBlob),vb=mk(file);
+    const okm=await Promise.all([mgMeta(va),mgMeta(vb)]);
+    if(!okm[0]||!okm[1]){toast(LX('Не удалось открыть видео.','Could not open the video.'),5000);return}
+    const Da=va.duration,Db=vb.duration,tot=Da+Db;
+    const C=window.AudioContext||window.webkitAudioContext;ac=new C();
+    const dest=ac.createMediaStreamDestination();
+    try{ac.createMediaElementSource(va).connect(dest)}catch(e){}
+    try{ac.createMediaElementSource(vb).connect(dest)}catch(e){}
+    const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d',{alpha:false});
+    let cur=va;
+    const draw=()=>{
+      const e=cur,ew=e.videoWidth,eh=e.videoHeight;if(!ew||!eh||e.readyState<2)return;
+      const k=Math.abs((ew/eh)/(W/H)-1)<.2?Math.max(W/ew,H/eh):Math.min(W/ew,H/eh),dw=ew*k,dh=eh*k;
+      x.fillStyle='#000';x.fillRect(0,0,W,H);try{x.drawImage(e,(W-dw)/2,(H-dh)/2,dw,dh)}catch(z){}
+    };
+    draw();
+    const ms=new MediaStream([cv.captureStream(30).getVideoTracks()[0],...dest.stream.getAudioTracks()]);
+    const mt=pickMime(),chunks=[];
+    const rec=new MediaRecorder(ms,mt?{mimeType:mt,videoBitsPerSecond:Math.min(20e6,Math.max(4e6,Math.round(W*H*30*0.12))),audioBitsPerSecond:160000}:undefined);
+    rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+    if(ac.state==='suspended')await ac.resume();
+    const t0=performance.now();
+    iv=setInterval(()=>{draw();prog(Math.min(99,(performance.now()-t0)/1000/tot*100))},33);
+    rec.start(1000);
+    await new Promise(res=>{va.onended=res;va.play().catch(res)});
+    const tB=(performance.now()-t0)/1000;
+    cur=vb;
+    await new Promise(res=>{vb.onended=res;vb.play().catch(res)});
+    await sleep(300);
+    await new Promise(res=>{rec.onstop=res;rec.stop()});
+    clearInterval(iv);iv=0;
+    const blob=new Blob(chunks,{type:rec.mimeType||'video/webm'});
+    if(blob.size<1000){toast(LX('Склейка не удалась.','Joining failed.'),5000);return}
+    /* подменяем основной ролик: всё, что было до стыка, остаётся на своих местах */
+    const old=url;
+    recBlob=blob;url=URL.createObjectURL(blob);
+    v.pause();v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;
+    for(let i=0;i<80&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
+    try{if(old)URL.revokeObjectURL(old)}catch(e){}
+    recDur=vdur();dur=recDur;
+    if(tB>.3&&!VE.splits.some(q=>Math.abs(q-tB)<.25)){VE.splits.push(tB);VE.splits.sort((p,q)=>p-q)}
+    VE.sel={a:tB,b:vdur()};VE.selJ=null;VE.tsel=null;VE.osel=null;VE.vsel=null;shareCache=null;
+    applyView();updateButtons();checkAudio(blob);saveCurrent();markDirty();
+    renderAll();buildDock();
+    try{v.currentTime=Math.min(vdur()-.05,tB+.05)}catch(e){}
+    toast(LX('Видео добавлено в конец. На нём есть кнопки «Распознать речь» и «Достать голос».','The video was added to the end. It has “Transcribe” and “Extract voice” buttons.'),6000);
+  }catch(e){
+    toast(LX('Не удалось добавить видео: ','Could not add the video: ')+(e&&e.message||''),6000);
+  }finally{
+    if(iv)clearInterval(iv);
+    try{ac&&ac.close()}catch(e){}
+    urls.forEach(u=>setTimeout(()=>URL.revokeObjectURL(u),3000));
+    if(VE.progEnd)VE.progEnd();mgBusy=false;
+  }
+}
+function vAppendPick(){
+  if(!hasVideo)return;
+  const inp=document.createElement('input');inp.type='file';inp.accept='video/*';
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(f)vAppend(f)};inp.click();
+}
+/* ---------- действия над выбранным куском: речь в текст, голос в файл ---------- */
+function vTranscribeSel(){
+  const q=VE.sel;if(!q)return;
+  if(typeof SR==='undefined'||!SR){toast(LX('Распознавание речи работает в Chrome.','Speech recognition works in Chrome.'),4000);return}
+  try{v.currentTime=q.a+.01}catch(e){}
+  transcribe(true,false,{a:q.a,b:q.b});
+}
+async function vExtractVoice(){
+  const q=VE.sel;if(!q||!recBlob)return;
+  const prog=(p)=>{if(VE.prog)VE.prog(LX('Достаю голос','Extracting the voice'),p)};
+  try{
+    prog(10);
+    const a=await extractAudio(recBlob),i0=Math.floor(q.a*a.sr),i1=Math.min(a.f.length,Math.ceil(q.b*a.sr));
+    if(i1-i0<a.sr*.2){toast(LX('В этом куске нет звука.','There is no sound in this clip.'),4000);return}
+    let mx=0;for(let k=i0;k<i1;k+=50)mx=Math.max(mx,Math.abs(a.f[k]));
+    if(mx<0.003){toast(LX('В этом куске нет голоса.','There is no voice in this clip.'),4000);return}
+    prog(70);
+    download(wavBlob(a.f.subarray(i0,i1),a.sr),(projName||'voice')+'-'+fmt(q.a).replace(':','m')+'s.wav');
+    toast(LX('Голос сохранён файлом .wav.','The voice was saved as a .wav file.'),4000);
+  }catch(e){toast(LX('Не удалось достать голос.','Could not extract the voice.'),4000)}
+  finally{if(VE.progEnd)VE.progEnd()}
+}
 /* ---------- тянуть за край клипа: уменьшить (вырезается), вернуть обратно ---------- */
 const clampV=(x,lo,hi)=>Math.max(lo,Math.min(hi,x));
 function vTrim(a,b,side,x){
@@ -5054,7 +5166,9 @@ function sgInspector(row,q,mk){
   mk('scissors',x('Разрезать','Split'),vSplit,true);
   mk('trash',x('Удалить кусок','Delete clip'),vDel,true);
   if(trGaps().length)mk('plus',x('Переход','Transition'),vAddTr,true);
-  mk('layers',x('Сделать слоем','Clip to layer'),ovFromSel,true);
+  mk('mic',x('Распознать речь','Transcribe'),vTranscribeSel,true);
+  mk('voice',x('Достать голос','Extract voice'),vExtractVoice,true);
+  mk('layers',x('Сделать слоем','Clip to layer'),ovFromSel);
   mk('check',x('Готово','Done'),()=>{VE.sel=null;renderTL();buildDock()});
   mk('undo',x('Отменить','Undo'),hUndo);
   const hn=document.createElement('span');hn.className='dksv dkhint';hn.textContent=x('Тяните белые края клипа, чтобы уменьшить его. Вырезанное место можно вернуть тем же краем.','Drag the white edges of the clip to shorten it. Pull the same edge back to restore it.');row.appendChild(hn);
@@ -5085,6 +5199,7 @@ function vdRow(row){
   ovUi.o=null;ovUi.size=null;
   if(VE.tsel&&allC().includes(VE.tsel)){txInspector(row,VE.tsel,mk);return}
   if(VE.sel){sgInspector(row,VE.sel,mk);return}
+  mk('plus',x('Добавить видео','Add video'),vAppendPick,true);
   if(trGaps().length)mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
   mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia(),true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
