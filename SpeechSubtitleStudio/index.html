@@ -2835,6 +2835,19 @@ function tbSplit(a,texts){
   }
   return out;
 }
+/* ---- готовые образцы голосов ttsmp3 (статичные mp3 на их сайте, без лимита символов) ---- */
+const t3SampleUrl=n=>'https://ttsmp3.com/samples/ai/Armenian/'+String(n).toLowerCase()+'.mp3';
+/* запускает образец через обычный аудио-элемент (CORS не нужен); null, если файл не загрузился */
+function t3Static(name){
+  return new Promise(res=>{
+    let done=false;const au=new Audio();au.preload='auto';
+    const fin=v=>{if(done)return;done=true;clearTimeout(tm);if(!v){try{au.removeAttribute('src');au.load()}catch(e){}}res(v?au:null)};
+    const tm=setTimeout(()=>fin(false),8000);
+    au.onerror=()=>fin(false);
+    au.oncanplay=()=>{au.play().then(()=>fin(true),()=>fin(false))};
+    au.src=t3SampleUrl(name);
+  });
+}
 /* одна группа фраз: один запрос и нарезка; при сомнениях в резке каждая фраза озвучивается отдельно */
 async function ttsGroup(texts,voice,style){
   if(texts.length<2)return[await ttsOne(texts[0],voice,style)];
@@ -6976,10 +6989,13 @@ $('#ttsGen').onclick=async()=>{
   finally{ttsBusy(false)}
 };
 $('#ttsSample').onclick=async()=>{
-  if(!ttsHas()){openGem();return}
   const voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim(),key=voice+'|'+style;
   ttsBusy(true);
   try{
+    /* без стиля играет готовый образец ttsmp3 (бесплатно); со стилем образец создаётся озвучкой */
+    if(TS.sAud){try{TS.sAud.pause()}catch(e){}TS.sAud=null}
+    if(!style){const au=await t3Static(voice);if(au){TS.sAud=au;return}}
+    if(!ttsHas()){openGem();return}
     let u=TS.cache[key];
     if(!u){const a=await ttsOne('Hello! This is how this voice sounds.',voice,style);u=TS.cache[key]=URL.createObjectURL(wavBlob(a.f,a.sr))}
     new Audio(u).play().catch(()=>{});
@@ -7545,7 +7561,7 @@ async function trOpen(id){
   vs.innerHTML='<div class="box vbox"><h3></h3><p class="vhint"></p><div class="vlist"></div><button type="button" class="nb pri vclose"></button></div>';
   document.body.appendChild(vs);
   vs.querySelector('h3').textContent=x('Выберите голос','Choose a voice');
-  vs.querySelector('.vhint').textContent=x('Нажмите ▶, чтобы послушать образец (один короткий запрос к вашему ключу озвучки), потом выберите. Уже прослушанные образцы сохраняются и дальше играют бесплатно.','Tap ▶ to hear a sample (one short request to your voice key), then choose.');
+  vs.querySelector('.vhint').textContent=x('Нажмите ▶, чтобы послушать готовый образец голоса (бесплатно, без расхода лимитов). Образцы сохраняются на устройстве и дальше играют сразу.','Tap ▶ to hear a ready-made voice sample (free, no quota used). Samples are saved on your device and then play instantly.');
   vs.querySelector('.vclose').textContent=x('Готово','Done');
   let vsAud=null;const smp=new Map();
   const stopSample=()=>{if(vsAud){try{vsAud.stop()}catch(e){}vsAud=null}vs.querySelectorAll('.vplay').forEach(b=>{b.classList.remove('on');b.textContent='▶'});try{speechSynthesis.cancel()}catch(e){}};
@@ -7554,6 +7570,21 @@ async function trOpen(id){
   const smpDb=()=>new Promise((ok,no)=>{try{const q=indexedDB.open('ss-voice-samples',1);q.onupgradeneeded=()=>q.result.createObjectStore('s');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)}catch(e){no(e)}});
   const smpGet=key=>smpDb().then(db=>new Promise(ok=>{const r=db.transaction('s').objectStore('s').get(key);r.onsuccess=()=>{const v=r.result;ok(v?{f:new Float32Array(v.f),sr:v.sr}:null)};r.onerror=()=>ok(null)})).catch(()=>null);
   const smpPut=(key,a)=>smpDb().then(db=>{db.transaction('s','readwrite').objectStore('s').put({f:a.f.buffer.slice(0),sr:a.sr},key)}).catch(()=>{});
+  /* образцы ttsmp3 тихо сохраняются на устройстве по одному, с паузами; если сайт не отдаёт файлы приложению (CORS), попытки прекращаются на 6 часов */
+  let t3Warmed=false;
+  async function t3Warm(){
+    if(t3Warmed)return;t3Warmed=true;
+    try{if(+localStorage.getItem('substudio-t3smp-off')>Date.now())return}catch(e){}
+    for(const [n] of VOICES){
+      const sk='t3|'+n.toLowerCase();
+      if(smp.get(sk)||await smpGet(sk))continue;
+      try{
+        const r=await fetch(t3SampleUrl(n),{credentials:'omit'});if(!r.ok)throw new Error('http');
+        const a=await decodeMono(await r.arrayBuffer(),24000);smp.set(sk,a);smpPut(sk,a);
+      }catch(e){try{localStorage.setItem('substudio-t3smp-off',String(Date.now()+6*36e5))}catch(_){}return}
+      await sleep(1200);
+    }
+  }
   /* запасной вариант без лимитов: голос самого устройства (это не голос Gemini, только для ориентира по полу и тону) */
   const VFEM=new Set(['Zephyr','Kore','Leda','Aoede','Callirrhoe','Autonoe','Despina','Erinome','Laomedeia','Achernar','Gacrux','Pulcherrima','Vindemiatrix','Sulafat']);
   function deviceSample(name,btn){
@@ -7576,8 +7607,18 @@ async function trOpen(id){
     stopSample();
     const key=name+'|'+(VO.lang||ui);btn.textContent='…';btn.disabled=true;
     try{
-      let a=smp.get(key);
-      if(!a){a=await smpGet(key);if(a)smp.set(key,a)}
+      /* сначала готовый образец ttsmp3: из памяти устройства, иначе прямо с их сайта */
+      const sk='t3|'+String(name).toLowerCase();let a=smp.get(sk);
+      if(!a){a=await smpGet(sk);if(a)smp.set(sk,a)}
+      if(!a){
+        const au=await t3Static(name);
+        if(au){
+          const me={stop(){try{au.pause();au.removeAttribute('src');au.load()}catch(e){}}};vsAud=me;
+          au.onended=()=>{if(vsAud===me)stopSample()};
+          btn.classList.add('on');btn.textContent='■';btn.disabled=false;t3Warm();return;
+        }
+      }
+      if(!a){a=smp.get(key);if(!a){a=await smpGet(key);if(a)smp.set(key,a)}}
       if(!a){
         if(!ttsHas())throw new Error('nokey');
         a=await ttsOne(sampleTxt(),name,'');smp.set(key,a);smpPut(key,a);
@@ -7605,7 +7646,7 @@ async function trOpen(id){
     });
   }
   const closeV=()=>{stopSample();vs.classList.remove('show')};
-  vpk.onclick=()=>{paintVsheet();vs.classList.add('show');const on=vs.querySelector('.vrow.on');if(on)on.scrollIntoView({block:'center'})};
+  vpk.onclick=()=>{t3Warm();paintVsheet();vs.classList.add('show');const on=vs.querySelector('.vrow.on');if(on)on.scrollIntoView({block:'center'})};
   vs.querySelector('.vclose').onclick=closeV;vs.addEventListener('click',e=>{if(e.target===vs)closeV()});
   VE.voicePaint=paintVpk;
   const SD=[['warm','Тёплый','Warm'],['confident','Уверенный','Confident'],['cheerful','Весёлый','Cheerful'],['calm','Спокойный','Calm'],['serious','Серьёзный','Serious'],['excited','Взволнованный','Excited'],['energetic','Энергичный','Energetic'],['friendly','Дружелюбный','Friendly'],['whispering','Шёпот','Whisper'],['dramatic','Драматичный','Dramatic']];
