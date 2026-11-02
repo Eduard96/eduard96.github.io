@@ -1005,10 +1005,37 @@ details,summary{color:#111}
 body.flowon .player.viewfull .stage,body.flowon.viewing .player.viewfull .stage{width:min(100%,calc((100dvh - 112px - env(safe-area-inset-top) - env(safe-area-inset-bottom))*var(--ar)))!important;max-width:100%;border-radius:16px}
 body.flowon .player.viewfull{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}
 body.flowon .player.viewfull .cpanel{max-width:none;width:100%}
+/* Contact Dev */
+.dcon{margin-top:16px;text-align:center}
+.dconh{font-weight:700;margin-bottom:10px;color:#111}
+.dcr{display:flex;justify-content:center;gap:28px;flex-wrap:wrap}
+.dcb{display:flex;flex-direction:column;align-items:center;gap:8px;color:#111;text-decoration:none;font-weight:700;font-size:13px}
+.dcb svg{width:48px;height:48px;border:3px solid #111;border-radius:14px;box-shadow:3px 3px 0 #111;background:#fff}
+.dcb:active svg{transform:translate(2px,2px);box-shadow:1px 1px 0 #111}
+.dcb span{border-bottom:2px solid #111;line-height:1.2}
+.donate .dcon{margin-top:14px}
+/* окно «Готово»: видео и управление в стиле приложения */
+#dnV{border:3px solid #111;border-radius:16px;box-shadow:4px 4px 0 #111;background:#000}
+.dctl{display:flex;align-items:center;gap:10px;margin:12px 2px 4px;padding:8px 10px;border:3px solid #111;border-radius:16px;background:#fff;box-shadow:4px 4px 0 #111}
+.dctl .pb{width:46px;height:46px;flex:none;font-size:15px;font-weight:800;color:#111!important;background:var(--nb-y)!important}
+.dctl input[type=range]{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:30px;background:transparent;--p:0%}
+.dctl input[type=range]::-webkit-slider-runnable-track{height:12px;border-radius:99px;border:2px solid #111;background:linear-gradient(90deg,#111 var(--p),#fff var(--p))}
+.dctl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-9px;border-radius:50%;background:var(--nb-y);border:3px solid #111}
+.dctl input[type=range]::-moz-range-track{height:10px;border-radius:99px;border:2px solid #111;background:#fff}
+.dctl input[type=range]::-moz-range-progress{height:10px;border-radius:99px;background:#111}
+.dctl input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--nb-y);border:3px solid #111}
+.dctl .tm{font-size:12px;font-weight:700;color:#111;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* окно экспорта: полоса вместо системной */
+progress{-webkit-appearance:none;appearance:none;width:100%;height:18px;border:3px solid #111;border-radius:99px;background:#fff;overflow:hidden}
+progress::-webkit-progress-bar{background:#fff;border-radius:99px}
+progress::-webkit-progress-value{background:var(--nb-y);border-radius:99px;border-right:3px solid #111}
+progress::-moz-progress-bar{background:var(--nb-y)}
+input[type=checkbox],input[type=radio]{accent-color:#111}
 /* ===== NEO-BRUTAL END ===== */
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="igGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".3" stop-color="#FA7E1E"/><stop offset=".55" stop-color="#D62976"/><stop offset=".8" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs></svg>
 <div class="app">
   <header>
     <div class="hl">
@@ -1016,7 +1043,7 @@ body.flowon .player.viewfull .cpanel{max-width:none;width:100%}
         <button class="icon-btn" id="mbL" aria-label="Menu" aria-haspopup="true">☰</button>
         <div class="dmenu" id="menuL"><button class="mi" id="mExp" disabled></button>
 <div class="mor" data-i="orExp"></div>
-<button class="mi sh" data-sh="instagram" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="igg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FEDA75"/><stop offset=".3" stop-color="#FA7E1E"/><stop offset=".55" stop-color="#D62976"/><stop offset=".8" stop-color="#962FBF"/><stop offset="1" stop-color="#4F5BD5"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#igg)"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.3" cy="7.7" r="1.1" fill="#fff"/></svg><span>Instagram</span></button>
+<button class="mi sh" data-sh="instagram" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="url(#igGrad)"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.3" cy="7.7" r="1.1" fill="#fff"/></svg><span>Instagram</span></button>
 <button class="mi sh" data-sh="youtube" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#fff"/><rect x="1.5" y="5" width="21" height="14" rx="4.2" fill="#FF0000"/><path d="M10 9l5.2 3L10 15z" fill="#fff"/></svg><span>YouTube</span></button>
 <button class="mi sh" data-sh="tiktok" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#000"/><g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g stroke="#25F4EE" transform="translate(-.8 -.6)"><path d="M13.6 5v9.3a2.9 2.9 0 1 1-2.9-2.9"/><path d="M13.6 5c.3 2.2 1.7 3.6 3.9 3.8"/></g><g stroke="#FE2C55" transform="translate(.8 .6)"><path d="M13.6 5v9.3a2.9 2.9 0 1 1-2.9-2.9"/><path d="M13.6 5c.3 2.2 1.7 3.6 3.9 3.8"/></g><g stroke="#fff"><path d="M13.6 5v9.3a2.9 2.9 0 1 1-2.9-2.9"/><path d="M13.6 5c.3 2.2 1.7 3.6 3.9 3.8"/></g></g></svg><span>TikTok</span></button>
 <button class="mi sh" data-sh="telegram" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#27A7E7"/><path d="M5.2 11.7l12.5-4.8c.6-.2 1.1.1.9 1l-2.1 10c-.2.7-.6.9-1.2.5l-3.3-2.4-1.6 1.5c-.2.2-.3.3-.7.3l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2l-7.5 4.7-3.2-1c-.7-.2-.7-.7.2-1z" fill="#fff"/></svg><span>Telegram</span></button>
@@ -1150,6 +1177,7 @@ body.flowon .player.viewfull .cpanel{max-width:none;width:100%}
     <h2><span>Support Project with BTC</span></h2>
     <div class="dn-net">BSC (BEP20)</div>
     <div class="dn-row"><code id="dnAddr">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="btn sm" id="donCopy" type="button">Copy</button></div>
+    <div class="dcon"><div class="dconh">Contact Dev:</div><div class="dcr"><a class="dcb" href="https://www.instagram.com/ai_mediator/" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="url(#igGrad)"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.3" cy="7.7" r="1.1" fill="#fff"/></svg><span>ai_mediator</span></a><a class="dcb" href="https://t.me/ai_mediat0r" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#27A7E7"/><path d="M5.2 11.7l12.5-4.8c.6-.2 1.1.1.9 1l-2.1 10c-.2.7-.6.9-1.2.5l-3.3-2.4-1.6 1.5c-.2.2-.3.3-.7.3l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2l-7.5 4.7-3.2-1c-.7-.2-.7-.7.2-1z" fill="#fff"/></svg><span>ai_mediat0r</span></a></div></div>
   </div>
 </div>
 
@@ -6774,14 +6802,14 @@ async function trOpen(id){
 
   const done=document.createElement('div');done.id='done';done.setAttribute('role','dialog');done.setAttribute('aria-modal','true');
   done.innerHTML='<div class="dbx"><div class="dhd"><b>'+l3('Готово','Ready','Պատրաստ է')+'</b><button class="nb sm" id="dnX" type="button" aria-label="'+l3('Закрыть','Close','Փակել')+'">'+svgI('<path d="M6 6l12 12M18 6L6 18"/>',16)+'</button></div>'
-   +'<video id="dnV" playsinline controls preload="metadata"></video><div class="dmeta" id="dnM"></div><div class="dwarn" id="dnW" style="display:none"></div>'
+   +'<video id="dnV" playsinline preload="metadata"></video><div class="dctl"><button class="pb" id="dnPlay" type="button" aria-label="Play">▶</button><input type="range" id="dnSeek" min="0" max="1000" value="0" step="1" aria-label="Seek"><span class="tm" id="dnTm">00:00</span></div><div class="dmeta" id="dnM"></div><div class="dwarn" id="dnW" style="display:none"></div>'
    +'<div class="dacts" id="dnA"><button class="nb pri" id="dnShare" type="button">'+svgI('<path d="M12 16V4M7 9l5-5 5 5M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/>')+l3('Поделиться…','Share…','Կիսվել…')+'</button><button class="nb" id="dnSave" type="button">'+svgI('<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>')+l3('Сохранить','Save','Պահել')+'</button></div>'
    +'<div class="sec">'+l3('Описание','Caption','Նկարագրություն')+'</div><textarea id="dnCap" class="sel" rows="2" maxlength="2200" style="min-height:64px;padding:10px;font-weight:500;line-height:1.35;resize:vertical"></textarea><button class="nb sm" id="dnCopy" type="button" style="margin-top:8px">'+svgI('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',16)+l3('Скопировать описание','Copy caption','Պատճենել նկարագրությունը')+'</button>'
    +'<div class="sec">'+l3('Открыть в приложении','Open in an app','Բացել հավելվածում')+'</div><div class="dplat" id="dnPlat"></div><div class="fh" style="margin-top:6px;text-align:left">'+l3('Файл сохранится на устройство, описание скопируется. Останется выбрать видео в приложении.','The file is saved to your device and the caption is copied. Then pick the video in the app.','Ֆայլը կպահվի սարքում, նկարագրությունը կպատճենվի։ Մնում է ընտրել տեսանյութը հավելվածում։')+'</div>'
    +'<div class="dsrt"><button class="nb sm" id="dnSrt" type="button">'+l3('Субтитры .srt','Subtitles .srt','Ենթագրեր .srt')+'</button></div>'
    +'<div class="dinst" id="dnInst"><div><b>'+l3('Установите приложение','Install the app','Տեղադրեք հավելվածը')+'</b><span>'+l3('Откроется с главного экрана и работает без сети.','Opens from the home screen and works offline.','Բացվում է գլխավոր էկրանից և աշխատում է առանց ցանցի։')+'</span></div><button class="nb sm" id="dnInstB" type="button">'+l3('Установить','Install','Տեղադրել')+'</button></div>'
    +'<div class="dsup" id="dnSup"><button class="dsupt" id="dnSupT" type="button" aria-expanded="false"><span class="hrt">♥</span><span>'+l3('Поддержать проект','Support the project','Աջակցել նախագծին')+'</span><i>▾</i></button>'
-   +'<div class="dsupb"><div class="dn-net">BSC (BEP20)</div><div class="dn-row"><code id="dnAddr2">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="nb sm" id="dnSupC" type="button">'+l3('Копировать','Copy','Պատճենել')+'</button></div></div></div>'
+   +'<div class="dsupb"><div class="dn-net">BSC (BEP20)</div><div class="dn-row"><code id="dnAddr2">BTC - 0xb92dbd721bbe9bf45d08eb9db3116c6d72ee94d2</code><button class="nb sm" id="dnSupC" type="button">'+l3('Копировать','Copy','Պատճենել')+'</button></div><div class="dcon"><div class="dconh">Contact Dev:</div><div class="dcr"><a class="dcb" href="https://www.instagram.com/ai_mediator/" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="url(#igGrad)"/><rect x="5" y="5" width="14" height="14" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="16.3" cy="7.7" r="1.1" fill="#fff"/></svg><span>ai_mediator</span></a><a class="dcb" href="https://t.me/ai_mediat0r" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#27A7E7"/><path d="M5.2 11.7l12.5-4.8c.6-.2 1.1.1.9 1l-2.1 10c-.2.7-.6.9-1.2.5l-3.3-2.4-1.6 1.5c-.2.2-.3.3-.7.3l.3-3.4 6.1-5.5c.3-.2-.1-.4-.4-.2l-7.5 4.7-3.2-1c-.7-.2-.7-.7.2-1z" fill="#fff"/></svg><span>ai_mediat0r</span></a></div></div></div></div>'
    +'<div class="dfoot"><button class="nb" id="dnBack" type="button">'+l3('Назад к правке','Back to editing','Վերադառնալ խմբագրմանը')+'</button><button class="nb pri" id="dnNew" type="button">'+l3('Новое видео','New video','Նոր տեսանյութ')+'</button></div></div>';
   B.appendChild(done);
 
@@ -6811,6 +6839,17 @@ async function trOpen(id){
     try{fe('toast').classList.remove('show')}catch(e){}
   }
   showShare=function(){openDone()};
+  {
+    const dv=fe('dnV'),pb=fe('dnPlay'),sk=fe('dnSeek'),tm=fe('dnTm');
+    const dd=()=>(isFinite(dv.duration)&&dv.duration>0)?dv.duration:0;
+    const paint=()=>{const D=dd();tm.textContent=fmt(dv.currentTime)+' / '+fmt(D);if(!sk._d){sk.value=D?Math.round(dv.currentTime/D*1000):0;fillR(sk)}pb.textContent=dv.paused?'▶':'❚❚'};
+    pb.onclick=()=>{if(dv.paused)dv.play().catch(()=>{});else dv.pause()};
+    dv.onclick=pb.onclick;
+    ['timeupdate','play','pause','loadedmetadata','durationchange','ended'].forEach(e=>dv.addEventListener(e,paint));
+    sk.oninput=()=>{sk._d=1;const D=dd();if(D)dv.currentTime=sk.value/1000*D;fillR(sk);tm.textContent=fmt(dv.currentTime)+' / '+fmt(D)};
+    sk.onchange=()=>{sk._d=0};
+    paint();
+  }
   fe('dnX').onclick=closeDone;fe('dnBack').onclick=closeDone;
   done.addEventListener('click',e=>{if(e.target===done)closeDone()});
   fe('dnSave').onclick=()=>{const c=shareCache;if(!c)return;if(capCopy())toast(t('capCopied'),4000);download(c.blob,c.fn)};
