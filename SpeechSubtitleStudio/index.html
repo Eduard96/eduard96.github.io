@@ -1031,6 +1031,16 @@ progress::-webkit-progress-bar{background:#fff;border-radius:99px}
 progress::-webkit-progress-value{background:var(--nb-y);border-radius:99px;border-right:3px solid #111}
 progress::-moz-progress-bar{background:var(--nb-y)}
 input[type=checkbox],input[type=radio]{accent-color:#111}
+/* окно подтверждения */
+#cfm{z-index:400}
+.cfm{width:min(100%,380px);text-align:center;padding:20px 18px 18px}
+.cfmh{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.01em;margin-bottom:12px;color:#111}
+.cfmh i{width:30px;height:30px;border:3px solid #111;border-radius:9px;background:var(--nb-y);box-shadow:2px 2px 0 #111;display:grid;place-items:center}
+.cfmh i::after{content:"";width:9px;height:9px;border-radius:50%;background:#111}
+#cfmt{margin:6px 4px 18px;font-size:16px;line-height:1.4;color:#111;overflow-wrap:anywhere}
+.cfmb{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cfmb .nb{height:50px;padding:0 10px}
+#cfmY.dng{background:var(--nb-p)}
 /* ===== NEO-BRUTAL END ===== */
 </style>
 </head>
@@ -1600,6 +1610,30 @@ const rt=()=>((paused?pauseAt:performance.now())-t0-pausedMs)/1000;
 const nowT=()=>passing?v.currentTime:rt();
 
 /* ---------- утилиты ---------- */
+
+/* окно подтверждения в стиле приложения вместо системного «eduard96.github.io says…» */
+function appConfirm(msg,o){
+  o=o||{};
+  return new Promise(res=>{
+    const L=(r,e,h)=>ui==='ru'?r:ui==='hy'?h:e;
+    let m=document.getElementById('cfm');
+    if(!m){
+      m=document.createElement('div');m.id='cfm';m.className='ovl';m.setAttribute('role','alertdialog');m.setAttribute('aria-modal','true');
+      m.innerHTML='<div class="box cfm"><div class="cfmh"><i></i><b>Subtitle Studio</b></div><p id="cfmt"></p><div class="cfmb"><button type="button" class="nb" id="cfmN"></button><button type="button" class="nb pri" id="cfmY"></button></div></div>';
+      document.body.appendChild(m);
+    }
+    const t=m.querySelector('#cfmt'),yes=m.querySelector('#cfmY'),no=m.querySelector('#cfmN'),prev=document.activeElement;
+    t.textContent=msg;no.textContent=o.no||L('Отмена','Cancel','Չեղարկել');yes.textContent=o.yes||L('Да','OK','Լավ');
+    yes.classList.toggle('dng',!!o.danger);
+    const done=v=>{m.classList.remove('show');document.removeEventListener('keydown',kd,true);m.onclick=null;yes.onclick=no.onclick=null;try{prev&&prev.focus&&prev.focus()}catch(e){}res(v)};
+    const kd=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false)}else if(e.key==='Enter'&&document.activeElement!==no){e.preventDefault();e.stopPropagation();done(true)}};
+    yes.onclick=()=>done(true);no.onclick=()=>done(false);
+    m.onclick=e=>{if(e.target===m)done(false)};
+    document.addEventListener('keydown',kd,true);
+    m.classList.add('show');
+    try{(o.danger?no:yes).focus()}catch(e){}
+  });
+}
 function toast(msg,ms){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),ms||4200)}
 function setSt(s,k){const e=$('#st');e.textContent=t('srp')+s;e.className=k||''}
 function banner(msg){const b=$('#banner');if(msg){b.textContent=msg;b.classList.add('show')}else b.classList.remove('show')}
@@ -3425,7 +3459,7 @@ async function startRec(){
   }
 }
 async function _startRec(){
-  if(hasVideo&&recBlob){const ok=await saveCurrent();if(!ok&&phrases.length&&!confirm(t('newRec')))return;capTxt='';['#cap','#shCap'].forEach(q=>{const e=$(q);if(e)e.value=''});try{localStorage.setItem('substudio-cap','')}catch(e){}}
+  if(hasVideo&&recBlob){const ok=await saveCurrent();if(!ok&&phrases.length&&!(await appConfirm(t('newRec'))))return;capTxt='';['#cap','#shCap'].forEach(q=>{const e=$(q);if(e)e.value=''});try{localStorage.setItem('substudio-cap','')}catch(e){}}
   if(MOB&&!getKey()&&!skipKey){openKey();return}
   if(!camLive()&&!(await initCam()))return;
   /* микрофон подключается только на время записи */
@@ -3869,7 +3903,7 @@ async function transcribe(auto,speaker,range){
   if(!speaker)retried=false;
   if(!SR){toast('Распознавание речи работает в Chrome.');return}
   if(!hasVideo||recording||exporting||passing)return;
-  if(!auto&&!range&&phrases.some(p=>p.t)&&!confirm('Распознать заново? Текущие фразы будут заменены.'))return;
+  if(!auto&&!range&&phrases.some(p=>p.t)&&!(await appConfirm('Распознать заново? Текущие фразы будут заменены.')))return;
   for(let i=0;i<40&&(fixing||!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
   const T=totalT();if(!T){toast('Длину видео определить пока не удалось.');return}
   if(!audioGraph()){toast('Звук для распознавания подготовить не удалось.');return}
@@ -4702,9 +4736,9 @@ setStyle('classic',true);setAnim('fade',true);
   $('#lreset').onclick=()=>{Object.assign(custom,{col:'',font:'',b:false,i:false,up:false,size:1});setStyle(style,false,true)};
 })();
 srtBtn.onclick=downloadSrt;expBtn.onclick=()=>exportVideo();$('#add').onclick=addManual;$('#passX').onclick=()=>{if(cloudPassStop)cloudPassStop();else finishPass()};
-$('#clear').onclick=()=>{
+$('#clear').onclick=async()=>{
   if(recording||exporting)return;
-  if(phrases.length&&!confirm(t('clearQ')))return;
+  if(phrases.length&&!(await appConfirm(t('clearQ'),{danger:1})))return;
   phrases=[];map={};dur=0;save();renderAll();
 };
 document.addEventListener('keydown',e=>{
@@ -4786,10 +4820,13 @@ $('#subTog').onclick=()=>{
     if(!go||!on){go=false;return}
     const hit=dy>=TH;go=false;
     if(!hit){reset();return}
-    if(hasVideo&&doSave.failed&&!confirm(t('ptrQ'))){reset();return}
-    el.classList.add('spin');el.style.transform='';el.style.opacity='';
-    try{if(stream)stream.getTracks().forEach(x=>x.stop())}catch(x){}
-    Promise.resolve(dirty?saveCurrent():savingP).catch(()=>{}).then(()=>setTimeout(()=>location.reload(),150));
+    const goReload=()=>{
+      el.classList.add('spin');el.style.transform='';el.style.opacity='';
+      try{if(stream)stream.getTracks().forEach(x=>x.stop())}catch(x){}
+      Promise.resolve(dirty?saveCurrent():savingP).catch(()=>{}).then(()=>setTimeout(()=>location.reload(),150));
+    };
+    if(hasVideo&&doSave.failed){appConfirm(t('ptrQ')).then(ok=>{if(ok)goReload();else reset()});return}
+    goReload();
   },{passive:true});
   addEventListener('touchcancel',()=>{go=false;if(on)reset()},{passive:true});
 })();
@@ -5730,7 +5767,7 @@ async function renderProjects(){
     const x=document.createElement('button');x.className='px';x.textContent='✕';x.setAttribute('aria-label','Delete');
     x.onclick=async()=>{
       if(exporting||passing){toast(t('prjBusy'));return}
-      if(!confirm(t('prjDelQ',m.name)))return;
+      if(!(await appConfirm(t('prjDelQ',m.name),{danger:1})))return;
       try{await dbDel(m.id)}catch(e){}
       if(m.id===TR.pid){TR.pid=null;TR.fsaved=false;clearTimeout(trSaveT)}if(m.id===TS.pid)TS.pid=null;
       if(m.id===curId&&hasVideo)closeProject();
@@ -5744,7 +5781,7 @@ $('#pclose').onclick=()=>$('#pbox').classList.remove('show');
 $('#pbox').addEventListener('click',e=>{if(e.target===$('#pbox'))$('#pbox').classList.remove('show')});
 $('#pclear').onclick=async()=>{
   if(exporting||passing){toast(t('prjBusy'));return}
-  if(!confirm(t('prjClearQ')))return;
+  if(!(await appConfirm(t('prjClearQ'),{danger:1})))return;
   try{await dbClear()}catch(e){}
   TR.pid=null;TR.fsaved=false;clearTimeout(trSaveT);TS.pid=null;
   if(curId&&hasVideo)closeProject();
@@ -5907,9 +5944,9 @@ function openStudio(id){
   if(!stRaf)stRaf=requestAnimationFrame(stLoop);
   if(!aiAny())setTimeout(openGem,200);
 }
-function closeStudio(id){
+async function closeStudio(id){
   const busy=id==='trs'?TR.run:TS.run;
-  if(busy){if(!confirm(t('stCloseQ')))return;TR.cancel=true;TS.cancel=true}
+  if(busy){if(!(await appConfirm(t('stCloseQ'))))return;TR.cancel=true;TS.cancel=true}
   ttStop();try{tvid.pause()}catch(e){}
   $('#'+id).classList.remove('show');
   studioOpen=$('#trs').classList.contains('show')||$('#tts').classList.contains('show');
@@ -6597,9 +6634,9 @@ async function trOpen(id){
   };
   $$('#fUp').onchange=e=>{const f=e.target.files&&e.target.files[0];e.target.value='';loadVid(f)};
   /* навигация */
-  $$('#fBack').onclick=()=>{
+  $$('#fBack').onclick=async()=>{
     if(step>1){setStep(step-1);return}
-    if(hasVideo&&!confirm(x('Начать заново? Видео останется в проектах.','Start over? The video stays in Projects.')))return;
+    if(hasVideo&&!(await appConfirm(x('Начать заново? Видео останется в проектах.','Start over? The video stays in Projects.'))))return;
     if(hasVideo)closeProject();VO.bufs=null;setDub(false);dst('');resetTr();setStep(1);
   };
   $$('#fAct').onclick=()=>{
