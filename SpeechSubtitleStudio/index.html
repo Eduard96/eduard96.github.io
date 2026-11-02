@@ -3466,7 +3466,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p)},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -5941,6 +5941,7 @@ function vdRow(row){
   mk('plus',x('Добавить видео','Add video'),vAppendPick,true);
   mk('mic',x('Распознать речь','Transcribe'),vTranscribeSel,true);
   mk('scissors',x('Убрать паузы','Cut pauses'),vCutPauses,true);
+  mk('layers',x('Авто-вставки','Auto B-roll'),()=>VE.autoBroll&&VE.autoBroll(),true);
   if(trGaps().length)mk('plus',x('Добавить переход','Add transition'),vAddTr,true);
   mk('layers',x('Медиатека','Stock media'),()=>VE.openMedia&&VE.openMedia(),true);
   mk('layers',x('Видео поверх','Video overlay'),()=>ovPick('v'));
@@ -7421,6 +7422,51 @@ async function trOpen(id){
       }
     });
   }
+
+  /* ===== Авто-вставки: ИИ выбирает фразы, где нужна картинка, и подбирает кадры из бесплатных библиотек ===== */
+  let brBusy=false;
+  async function autoBroll(){
+    if(recording||exporting||passing||brBusy||MED.busyId){toast(t('prjBusy'),3000);return}
+    if(!hasVideo)return;
+    const items=phrases.filter(p=>!p.cut&&p.t&&p.t.length>3);
+    if(!items.length){toast(l3('Сначала нужен текст видео: распознайте речь.','The video text comes first: transcribe the speech.','Սկզբում պետք է տեսանյութի տեքստը՝ ճանաչեք խոսքը։'),4500);return}
+    brBusy=true;const D=vdur(),max=Math.max(1,Math.min(6,Math.round(D/8)));
+    const P=(n,p)=>{try{VE.prog(n,p)}catch(e){}};
+    let added=0;
+    try{
+      P(l3('Выбираю моменты для вставок','Choosing moments for cutaways','Ընտրում եմ պահերը'),5);
+      const SCH={type:'ARRAY',items:{type:'OBJECT',properties:{i:{type:'INTEGER'},q:{type:'STRING'}},required:['i','q']}};
+      const prompt='You choose B-roll cutaways for a short vertical video. Below is a JSON array of spoken phrases: i is the index, s is the start time in seconds, t is the text (any language). Pick up to '+max+' phrases where a cutaway picture or footage would help the viewer: concrete things, places, people, actions, objects. Skip abstract phrases and anything before 1.5 seconds. Keep the picks at least 4 seconds apart. For each pick return "i" and "q": a concrete English stock-footage search query of 1 to 3 words (translate the meaning if the phrase is not in English). Return a JSON array of {"i": integer, "q": string}.\nPhrases: '+JSON.stringify(items.map((p,i)=>({i,s:+p.s.toFixed(1),t:p.t.slice(0,140)})));
+      let picks=parseJsonArr(await aiText(prompt,SCH)).filter(o=>o&&Number.isInteger(+o.i)&&items[+o.i]&&typeof o.q==='string'&&o.q.trim()).map(o=>({p:items[+o.i],q:o.q.trim().slice(0,60)})).sort((a,b)=>a.p.s-b.p.s);
+      const keep=[];picks.forEach(o=>{if(o.p.s>=1.2&&(!keep.length||o.p.s-keep[keep.length-1].p.s>=3.5))keep.push(o)});picks=keep.slice(0,max);
+      if(!picks.length)throw new Error(l3('Не нашёл моментов, где нужна картинка.','Could not find moments that need a picture.','Պատկեր պահանջող պահեր չգտա։'));
+      const vids=['pexels','pixabay'].filter(usable),imgs=['pexels','pixabay','openverse'].filter(usable);
+      for(let n=0;n<picks.length;n++){
+        const o=picks[n];P(l3('Подбираю кадры: ','Finding footage: ','Ընտրում եմ կադրեր՝ ')+o.q,10+80*n/picks.length);
+        let it=null;
+        for(const id of vids){try{const a=await PROV[id].search(o.q,1,'video');if(a&&a.length){it=a[0];break}}catch(e){}await sleep(200)}
+        if(!it)for(const id of imgs){try{const a=await PROV[id].search(o.q,1,'photo');if(a&&a.length){it=a[0];break}}catch(e){}await sleep(200)}
+        if(!it)continue;
+        const bl=await getBlob([it.dl,it.dl2]);if(!bl)continue;
+        const e=ext(it.dl,it.type==='vid'?'mp4':'jpg'),nm=(it.prov+'_'+it.id.replace(/\W/g,''))+'.'+e;
+        const type=bl.type&&/^(image|video)\//.test(bl.type)?bl.type:(MIME[e]||(it.type==='vid'?'video/mp4':'image/jpeg'));
+        const ov=await ovAdd(new File([bl],nm,{type}),{lane:0});
+        if(!ov)continue;
+        const FA=frameAR(),st=Math.max(1,o.p.s+.15),span=Math.max(2,Math.min(3.6,o.p.e-o.p.s+.6));
+        ov.s=Math.min(st,Math.max(0,D-1));
+        ov.d=Math.min(span,it.type==='vid'?Math.max(.8,ov.md||span):span,Math.max(.8,D-ov.s));
+        ov.w=Math.max(1,ov.ar/FA);ov.x=ov.y=.5;ov.rad=0;ov.vol=0;ov.mo=0;
+        ov._cr=it.cr||'';ov._src=it.prov;added++;
+        markDirty();renderTL();buildDock();
+      }
+      VE.osel=null;renderTL();buildDock();
+      if(!added)throw new Error(l3('Подходящих кадров не нашлось. Попробуйте добавить ключ Pexels или Pixabay в Медиатеке.','No suitable footage found. Try adding a Pexels or Pixabay key in Stock media.','Հարմար կադրեր չգտա։ Փորձեք Մեդիատեկում ավելացնել Pexels կամ Pixabay բանալի։'));
+      toast(l3('Добавлено вставок: '+added+'. Они лежат слоями: двигайте, меняйте длину или удаляйте. «Отменить» вернёт всё.','Cutaways added: '+added+'. They are layers: move, trim or delete them. “Undo” brings everything back.','Ավելացվեց ներդիրներ՝ '+added+'։ Դրանք շերտեր են՝ տեղափոխեք, կարճացրեք կամ ջնջեք։'),7000);
+    }catch(e){toast((e&&e.message)||l3('Не получилось подобрать вставки.','Could not pick cutaways.','Չհաջողվեց ընտրել ներդիրներ։'),7000)}
+    try{VE.progEnd()}catch(e){}
+    brBusy=false;
+  }
+  VE.autoBroll=autoBroll;
   function errText(p,e){
     const s=e&&e.status;
     if(s===429)return p.n+': '+l3('лимит запросов, попробуйте позже','request limit reached, try later','հարցումների սահմանը լրացել է');
