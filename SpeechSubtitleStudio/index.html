@@ -3236,7 +3236,7 @@ void main(){
     if(baking)return;
     const now=performance.now();
     /* во время записи превью лёгкое и редкое: оно не должно отнимать время у самой записи */
-    if(!force&&now-last<(recording?Math.max(110,Math.min(700,(costE||30)*4)):28))return;
+    if(!force&&now-last<(recording?Math.max(66,Math.min(900,(costE||30)*3)):28))return;
     last=now;
     const live=!!stream&&!hasVideo&&v.readyState>=2&&v.videoWidth>0;
     const pb=!live&&ok&&hasVideo&&!baked&&!!fxl&&v.readyState>=2&&v.videoWidth>0;
@@ -3252,11 +3252,11 @@ void main(){
     paintCount();
     if(!act){setOn(false);return}
     if(recording&&recOff){setOn(false);return}
-    const tS=performance.now(),lim=recording?Math.min(capL,288):capL;
+    const tS=performance.now(),lim=recording?Math.min(capL,540):capL;
     if(!paint(v,f,lim))return;
     setOn(true);adapt(performance.now()-tS);
-    /* слабое устройство: если даже лёгкое превью тормозит, во время записи его выключаем (запись важнее) */
-    if(recording&&costE>45)recOff=true;
+    /* совсем слабое устройство: превью во время записи выключаем (запись важнее); обычно оно просто идёт реже */
+    if(recording&&costN>12&&costE>400)recOff=true;
   }
 
   /* ----- покадровый рендер фильтра: видео проигрывается медленно, каждый кадр обрабатывается столько, сколько нужно, и кодируется через WebCodecs ----- */
