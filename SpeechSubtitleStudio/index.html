@@ -2717,9 +2717,10 @@ function canvasTrack(){
   rc.cv.width=W;rc.cv.height=H;
   const x=rc.cv.getContext('2d',{alpha:false});
   const draw=()=>{
-    const fxs=FX.active()?FX.frame():null,sv=fxs||v,vw=fxs?fxs.width:v.videoWidth,vh=fxs?fxs.height:v.videoHeight;
+    /* фильтр в запись не попадает: он накладывается покадрово при экспорте, поэтому запись всегда ровная */
+    const sv=v,vw=v.videoWidth,vh=v.videoHeight;
     if(!vw||!vh||v.readyState<2)return;
-    const sk=fxs&&v.videoWidth?vw/v.videoWidth:1,cc=cr&&sk!==1?{x:cr.x*sk,y:cr.y*sk,w:cr.w*sk,h:cr.h*sk}:cr;
+    const cc=cr;
     const uc=cc&&cc.x+cc.w<=vw+.5&&cc.y+cc.h<=vh+.5,sw0=uc?cc.w:vw,sh0=uc?cc.h:vh,z=hwZoom?1:zoom,
       k=Math.max(W/sw0,H/sh0),dw=sw0*k,dh=sh0*k;
     x.save();x.fillStyle='#000';x.fillRect(0,0,W,H);
@@ -2957,7 +2958,7 @@ void main(){
   const ER=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246];
   const cv=document.getElementById('fxc'),cx=cv.getContext('2d'),glc=document.createElement('canvas'),
         tc=document.createElement('canvas'),tcx=tc.getContext('2d');
-  let gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
+  let recOff=false,fxl=null,recLog=false,baked=false,baking=false,bgFile=null,clk=null,pvKey='',lastTs=0,gl=null,ok=false,uM,uT,uP,tex,tex2,W=0,H=0,cur=0,on=false,seed=true,last=0,dc=0,countOn=false,
       trayOpen=false,capL=1920,costE=0,costN=0,tab='all',bg='#000000',lmk=null,loadingFace=false,failedFace=false,faces=[],tmr=0,lblT=0,
       seg=null,loadingSeg=false,failedSeg=false,segC=null,segX=null,segD=null,segOK=false,sc=0,segPrev=null,segInv=false,segDec=false,bgImg=null,tmpC={};
   try{bg=localStorage.getItem('substudio-fxbg')||bg}catch(e){}
@@ -2982,18 +2983,19 @@ void main(){
   }catch(e){ok=false}
   /* камера может отдавать 4K: в шейдер отправляем уменьшенный кадр (быстрее и легче для видеокарты) */
   let dcv=null,dcx=null;
-  function frameSrc(){
-    if(!W||W>=v.videoWidth)return v;
+  function frameSrc(s){
+    s=s||v;
+    if(!W||W>=s.videoWidth)return s;
     if(!dcv){dcv=document.createElement('canvas');dcx=dcv.getContext('2d',{alpha:false})}
     if(dcv.width!==W||dcv.height!==H){dcv.width=W;dcv.height=H}
-    dcx.drawImage(v,0,0,W,H);return dcv;
+    dcx.drawImage(s,0,0,W,H);return dcv;
   }
-  const upV=()=>{try{gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,frameSrc());return true}catch(e){return false}};
+  const upV=s=>{try{gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,frameSrc(s));return true}catch(e){return false}};
   const upT=src=>{try{gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,tex2);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,src);gl.activeTexture(gl.TEXTURE0)}catch(e){}};
-  const clock=()=>performance.now()/1000%1000;
-  function size(){
-    const w0=v.videoWidth,h0=v.videoHeight;if(!w0||!h0)return false;
-    const k=Math.min(1,capL/Math.max(w0,h0)),w=Math.round(w0*k),h=Math.round(h0*k);
+  const clock=()=>clk!=null?clk:performance.now()/1000%1000;
+  function size(s,cap){
+    s=s||v;const w0=s.videoWidth,h0=s.videoHeight;if(!w0||!h0)return false;
+    const k=Math.min(1,(cap||capL)/Math.max(w0,h0)),w=Math.round(w0*k),h=Math.round(h0*k);
     if(w!==W||h!==H){W=w;H=h;glc.width=cv.width=w;glc.height=cv.height=h;gl.viewport(0,0,w,h);gl.uniform2f(uP,1/w,1/h);
       tc.width=Math.max(2,Math.round(w/2));tc.height=Math.max(2,Math.round(h/2));seed=true}
     return true;
@@ -3018,10 +3020,10 @@ void main(){
     if(o.length&&o.length===nf.length)nf.forEach((b,i)=>{const a=o[i];for(let j=0;j<b.length;j++)b[j]={x:a[j].x*.35+b[j].x*.65,y:a[j].y*.35+b[j].y*.65}});
     return nf;
   }
-  function detect(now){
+  function detect(now,s,all){
     if(!lmk){ensureFace();return}
-    if(++dc%2)return;
-    try{const r=lmk.detectForVideo(v,now);faces=smooth(r.faceLandmarks||[])}catch(e){}
+    if(!all&&++dc%2)return;
+    try{const r=lmk.detectForVideo(s||v,now);faces=smooth(r.faceLandmarks||[])}catch(e){}
   }
   function poly(c,pts,idx,sc,dy,w,h){
     let mx=0,my=0;idx.forEach(i=>{mx+=pts[i].x;my+=pts[i].y});mx/=idx.length;my/=idx.length;
@@ -3065,11 +3067,11 @@ void main(){
     }
     segX.putImageData(segD,0,0);segOK=true;
   }
-  function segDetect(now){
+  function segDetect(now,s,all){
     if(!seg){ensureSeg();return}
-    if(++sc%2)return;
+    if(!all&&++sc%2)return;
     try{
-      seg.segmentForVideo(v,now,res=>{
+      seg.segmentForVideo(s||v,now,res=>{
         const ms=res.confidenceMasks||[];if(!ms.length)return;
         const m=ms.length>1?ms[1]:ms[0],a=m.getAsFloat32Array();
         if(ms.length===1&&!segDec){ /* один канал: по центру обычно человек; если маска «наоборот», переворачиваем один раз */
@@ -3113,7 +3115,7 @@ void main(){
   }
   function pickBgImage(){
     const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-    inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const im=new Image();im.onload=()=>{bgImg=im;render(true)};im.src=URL.createObjectURL(f)};
+    inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;bgFile=f;const im=new Image();im.onload=()=>{bgImg=im;render(true)};im.src=URL.createObjectURL(f)};
     inp.click();
   }
   /* ----- интерфейс: кнопка под выбором языка, нижняя шторка, счётчик ----- */
@@ -3168,8 +3170,8 @@ void main(){
   function showLbl(n){lbl.textContent=n;lbl.classList.add('show');clearTimeout(lblT);lblT=setTimeout(()=>lbl.classList.remove('show'),1400)}
   function pick(i){
     if(i===cur)return;
-    if(recording&&!rc.on){toast(L('Change the filter before recording starts.','Фильтр меняется до начала записи.','Ֆիլտրը փոխեք մինչև ձայնագրության սկիզբը։'));return}
     cur=i;seed=true;
+    if(recLog&&fxl)fxl.push({t:Math.max(0,rt()),i});
     chips.forEach((b,j)=>b.classList.toggle('on',j===i));
     btn.classList.toggle('on',i>0);{const m=FL[i].m;tray.classList.toggle('mask',(!!m&&!FL[i].s)||m==='bgcolor');tray.classList.toggle('img',m==='bgimg')}
     if(FL[i].m){if(FL[i].s)ensureSeg(true);else ensureFace(true)}
@@ -3187,7 +3189,7 @@ void main(){
 
   /* живые превью в шторке: рисуем только видимые плитки, ~4 раза в секунду */
   function thumbTick(){
-    if(!ok||document.hidden||!tray.getClientRects().length)return;
+    if(!ok||document.hidden||recording||!tray.getClientRects().length)return;
     if(!stream||hasVideo||v.readyState<2||!size())return;
     const th=84,tw=Math.max(40,Math.round(th*W/H)),lr=list.getBoundingClientRect();
     if(!upV())return;
@@ -3218,24 +3220,182 @@ void main(){
     costE=costE?costE*.7+c*.3:c;
     if(++costN>8&&costE>45&&capL>640){capL=Math.max(640,Math.round(capL*.75/16)*16);costN=0;costE=0}
   }
+  /* какой фильтр действует в момент t записи (фильтр можно менять во время съёмки) */
+  function idxAt(t){if(!fxl)return 0;let r=fxl[0].i;for(const e of fxl){if(e.t<=t+.02)r=e.i;else break}return r}
+  /* один кадр: источник s -> холст cv (используется и превью, и покадровым рендером) */
+  function paint(s,f,cap){
+    if(!size(s,cap))return false;
+    if(f.m){if(f.s)drawSeg(cx,W,H,f.m,s,'m');else drawMask(cx,W,H,f.m,s);return true}
+    if(!upV(s))return false;
+    if(f.ta){tcx.globalAlpha=seed?1:f.ta;seed=false;tcx.drawImage(s,0,0,tc.width,tc.height);upT(tc)}
+    gl.viewport(0,0,W,H);gl.uniform1f(uM,f.k);gl.uniform1f(uT,clock());gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    cx.drawImage(glc,0,0);return true;
+  }
+  /* превью: на живой камере и на записанном видео (там фильтр берётся из записи, в облегчённом качестве) */
   function render(force){
+    if(baking)return;
     const now=performance.now();
-    if(!force&&now-last<28)return;
+    /* во время записи превью лёгкое и редкое: оно не должно отнимать время у самой записи */
+    if(!force&&now-last<(recording?Math.max(110,Math.min(700,(costE||30)*4)):28))return;
     last=now;
-    const live=!!stream&&!hasVideo&&v.readyState>=2&&v.videoWidth>0,f=FL[cur],act=ok&&live&&cur>0;
-    if(!live){setOn(false);paintCount();return}
-    if((f.m&&!f.s)||countOn||(trayOpen&&tab==='face'))detect(now);
-    if(f.s||(trayOpen&&tab==='bg'))segDetect(now);
+    const live=!!stream&&!hasVideo&&v.readyState>=2&&v.videoWidth>0;
+    const pb=!live&&ok&&hasVideo&&!baked&&!!fxl&&v.readyState>=2&&v.videoWidth>0;
+    if(!live&&!pb){setOn(false);paintCount();return}
+    const ti=pb?v.currentTime:0,fi=pb?idxAt(ti):cur,f=FL[fi],act=ok&&fi>0;
+    if(pb){
+      const key=ti.toFixed(3)+'|'+fi+'|'+(lmk?1:0)+(segOK?1:0)+(on?1:0);
+      if(!force&&v.paused&&key===pvKey)return;
+      pvKey=key;clk=ti;
+    }else clk=null;
+    if((f.m&&!f.s)||(live&&(countOn||(trayOpen&&tab==='face'))))detect(now);
+    if(f.s||(live&&trayOpen&&tab==='bg'))segDetect(now);
     paintCount();
     if(!act){setOn(false);return}
-    if(!size()){return}
-    const tS=performance.now();
-    if(f.m){if(f.s)drawSeg(cx,W,H,f.m,v,'m');else drawMask(cx,W,H,f.m,v);setOn(true);adapt(performance.now()-tS);return}
-    if(!upV())return;
-    if(f.ta){tcx.globalAlpha=seed?1:f.ta;seed=false;tcx.drawImage(v,0,0,tc.width,tc.height);upT(tc)}
-    gl.viewport(0,0,W,H);gl.uniform1f(uM,f.k);gl.uniform1f(uT,clock());gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    cx.drawImage(glc,0,0);
+    if(recording&&recOff){setOn(false);return}
+    const tS=performance.now(),lim=recording?Math.min(capL,288):capL;
+    if(!paint(v,f,lim))return;
     setOn(true);adapt(performance.now()-tS);
+    /* слабое устройство: если даже лёгкое превью тормозит, во время записи его выключаем (запись важнее) */
+    if(recording&&costE>45)recOff=true;
+  }
+
+  /* ----- покадровый рендер фильтра: видео проигрывается медленно, каждый кадр обрабатывается столько, сколько нужно, и кодируется через WebCodecs ----- */
+  async function bake(blob,durHint,prog){
+    if(!ok||!fxl||!window.VideoEncoder||!window.VideoFrame||!window.HTMLVideoElement||!HTMLVideoElement.prototype.requestVideoFrameCallback)throw new Error('nowc');
+    const log=fxl.map(e=>({t:e.t,i:e.i})),idx=t=>{let r=log[0].i;for(const e of log){if(e.t<=t+.02)r=e.i;else break}return r};
+    const used=[...new Set(log.map(e=>e.i))].map(i=>FL[i]);
+    const waitM=async(isOn,start,fail)=>{start(true);for(let i=0;i<300&&!isOn()&&!fail();i++)await sleep(100);if(!isOn())throw new Error('model')};
+    if(used.some(f=>f.m&&!f.s))await waitM(()=>!!lmk,ensureFace,()=>failedFace&&!loadingFace);
+    if(used.some(f=>f.s))await waitM(()=>!!seg,ensureSeg,()=>failedSeg&&!loadingSeg);
+    baking=true;setOn(false);const tB0=performance.now();
+    const bu=URL.createObjectURL(blob),bv=document.createElement('video');
+    bv.muted=true;bv.playsInline=true;bv.preload='auto';bv.src=bu;
+    let wd=0;
+    try{
+      await new Promise((res,rej)=>{bv.onloadedmetadata=res;bv.onerror=()=>rej(new Error('video'));setTimeout(()=>rej(new Error('meta')),20000)});
+      const w0=bv.videoWidth,h0=bv.videoHeight;if(!w0||!h0)throw new Error('video');
+      const Wb=w0+(w0&1),Hb=h0+(h0&1),area=Wb*Hb,fps=30,bps=Math.round(Math.min(60e6,Math.max(8e6,area*fps*.2)));
+      let dur=durHint>0?durHint:bv.duration;if(!isFinite(dur)||dur<=0)dur=0;
+      /* звук берём из исходной записи и кодируем отдельно */
+      let ab=null;
+      try{const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;ab=await new OC(2,48000,48000).decodeAudioData(await blob.arrayBuffer());if(!ab||!ab.length)ab=null}catch(e){ab=null}
+      const nch=ab?Math.min(2,ab.numberOfChannels):0;
+      const cands=[['mp4','avc1.'+(area<=2097152?'640028':'640033'),'avc','aac'],['webm','vp09.00.10.08','V_VP9','opus'],['webm','vp8','V_VP8','opus']];
+      let pk=null;
+      for(const c of cands){
+        try{
+          const sp=await VideoEncoder.isConfigSupported({codec:c[1],width:Wb,height:Hb,bitrate:bps,framerate:fps});if(!(sp&&sp.supported))continue;
+          if(ab){if(!window.AudioEncoder||!window.AudioData)continue;const as=await AudioEncoder.isConfigSupported({codec:c[3]==='aac'?'mp4a.40.2':'opus',sampleRate:48000,numberOfChannels:nch,bitrate:128000});if(!(as&&as.supported))continue}
+          pk=c;break;
+        }catch(e){}
+      }
+      if(!pk)throw new Error('nowc');
+      const mp4=pk[0]==='mp4',mx=await import(mp4?'./vendor/mp4-muxer.mjs':'./vendor/webm-muxer.mjs'),tgt=new mx.ArrayBufferTarget();
+      const mo=mp4?{target:tgt,video:{codec:'avc',width:Wb,height:Hb},fastStart:'in-memory',firstTimestampBehavior:'offset'}:{target:tgt,video:{codec:pk[2],width:Wb,height:Hb,frameRate:fps},firstTimestampBehavior:'permissive'};
+      if(ab)mo.audio=mp4?{codec:'aac',numberOfChannels:nch,sampleRate:48000}:{codec:'A_OPUS',numberOfChannels:nch,sampleRate:48000};
+      const mux=new mx.Muxer(mo);
+      if(ab){
+        let aerr=null;const aenc=new AudioEncoder({output:(c,m)=>mux.addAudioChunk(c,m),error:e=>{aerr=e}});
+        aenc.configure({codec:mp4?'mp4a.40.2':'opus',sampleRate:48000,numberOfChannels:nch,bitrate:128000});
+        const len=ab.length,B=48000;
+        for(let off=0;off<len;off+=B){
+          const n=Math.min(B,len-off),d=new Float32Array(n*nch);
+          for(let c=0;c<nch;c++)d.set(ab.getChannelData(Math.min(c,ab.numberOfChannels-1)).subarray(off,off+n),c*n);
+          const ad=new AudioData({format:'f32-planar',sampleRate:48000,numberOfFrames:n,numberOfChannels:nch,timestamp:Math.round(off/48000*1e6),data:d});
+          aenc.encode(ad);ad.close();
+          if(aenc.encodeQueueSize>24)await sleep(4);
+          if(aerr)throw aerr;
+        }
+        await aenc.flush();aenc.close();if(aerr)throw aerr;
+      }
+      let verr=null;
+      const venc=new VideoEncoder({output:(c,m)=>mux.addVideoChunk(c,m),error:e=>{verr=e}});
+      venc.configure({codec:pk[1],width:Wb,height:Hb,bitrate:bps,framerate:fps,latencyMode:'quality'});
+      const oc=document.createElement('canvas');oc.width=Wb;oc.height=Hb;const ox=oc.getContext('2d',{alpha:false});
+      seed=true;faces=[];
+      let rate=1,n=0,lastMT=-1,dt=1/30,cost=0,fin=false,lastTS=-1,dbgC=0,dbgN=0,dbgG=0,dbgS=0;
+      const dts=[];
+      const push=mt=>{
+        const ts=Math.max(lastTS+1,Math.round(Math.max(0,mt)*1e6));lastTS=ts;
+        const fr=new VideoFrame(oc,{timestamp:ts,duration:Math.round(dt*1e6)});
+        try{venc.encode(fr,{keyFrame:n%90===0})}finally{fr.close()}
+        n++;
+      };
+      const tsn=()=>{lastTs=Math.max(lastTs+1,performance.now());return lastTs};
+      /* один кадр: фильтр -> холст -> кодировщик */
+      const frame1=mt=>{
+        const f=FL[idx(mt)];clk=mt;
+        if(f.m&&!f.s)detect(tsn(),bv,true);
+        if(f.s)segDetect(tsn(),bv,true);
+        if(!paint(bv,f,1e9)){ox.drawImage(bv,0,0,Wb,Hb)}else ox.drawImage(cv,0,0,Wb,Hb);
+        push(mt);lastMT=mt;
+      };
+      const RMIN=.0626;
+      let mode=await new Promise((res,rej)=>{
+        const onF=async(now,meta)=>{
+          if(fin)return;
+          try{
+            const mt=meta.mediaTime,t0=performance.now();
+            if(lastMT>=0){
+              const g=mt-lastMT;
+              if(g>.005&&g<.12&&g<dt*1.6){dts.push(g);if(dts.length>12)dts.shift();const sd=[...dts].sort((a,b)=>a-b);dt=sd[sd.length>>1]}
+              else if(g>=dt*1.6&&g<2){
+                dbgG++;
+                /* даже на самой медленной скорости кадр не успели: устройство медленное, переходим на точную перемотку кадр за кадром */
+                if(rate<=RMIN+.001){fin=true;bv.pause();res('seek');return}
+                rate=Math.max(RMIN,rate*.5);bv.playbackRate=rate;
+                const miss=Math.min(8,Math.round(g/dt)-1);for(let k=1;k<=miss;k++)push(lastMT+k*dt);
+              }
+            }
+            frame1(mt);dbgC+=performance.now()-t0;dbgN++;
+            cost=cost?cost*.7+(performance.now()-t0)*.3:(performance.now()-t0);
+            const ivl=dt/rate*1000;
+            if(cost>ivl*.6){const nr=Math.max(RMIN,Math.min(rate,dt*1000/(cost*1.8)));if(Math.abs(nr-rate)/rate>.05){rate=nr;bv.playbackRate=rate}}
+            else if(cost<ivl*.2&&rate<1){rate=Math.min(1,rate*1.12);bv.playbackRate=rate}
+            if(verr)throw verr;
+            if(venc.encodeQueueSize>10){bv.pause();while(venc.encodeQueueSize>3&&!verr)await sleep(8);if(verr)throw verr;if(!fin)await bv.play()}
+          }catch(e){fin=true;rej(e);return}
+          if(prog)prog(Math.min(99,Math.round(meta.mediaTime/Math.max(.1,dur)*100)));
+          if(!fin)bv.requestVideoFrameCallback(onF);
+        };
+        bv.onended=()=>{if(fin)return;fin=true;res('end')};
+        bv.onerror=()=>{fin=true;rej(new Error('video'))};
+        let seen=-1,since=performance.now();
+        wd=setInterval(()=>{
+          if(fin)return;
+          if(lastMT!==seen){seen=lastMT;since=performance.now();return}
+          const q=performance.now()-since;
+          if(q>6000&&bv.paused&&venc.encodeQueueSize<=3)bv.play().catch(()=>{});
+          if(q>60000){fin=true;rej(new Error('stall'))}
+        },1000);
+        bv.playbackRate=rate;
+        bv.requestVideoFrameCallback(onF);
+        bv.play().catch(rej);
+      });
+      clearInterval(wd);wd=0;bv.onended=null;
+      if(mode==='seek'){
+        dbgS=1;
+        const end=dur>0?dur:(lastMT+1);
+        for(let t=lastMT>=0?lastMT+dt:0;t<end-.001;t+=dt){
+          await new Promise(r=>{const h=()=>{bv.removeEventListener('seeked',h);r()};bv.addEventListener('seeked',h);setTimeout(r,8000);try{bv.currentTime=t}catch(e){r()}});
+          const t0=performance.now();
+          frame1(t);dbgC+=performance.now()-t0;dbgN++;
+          if(verr)throw verr;
+          if(venc.encodeQueueSize>6){while(venc.encodeQueueSize>2&&!verr)await sleep(8)}
+          if(prog)prog(Math.min(99,Math.round(t/Math.max(.1,end)*100)));
+        }
+      }
+      if(verr)throw verr;
+      if(n<2)throw new Error('empty');
+      await venc.flush();venc.close();mux.finalize();
+      if(prog)prog(100);
+      if(location.hash==='#fxdebug')console.log('[bake] frames',n,'codec',pk[1],'size',tgt.buffer.byteLength,'audio',!!ab,'ms',Math.round(performance.now()-tB0),'rate',rate.toFixed(2),'avgCost',Math.round(dbgC/Math.max(1,dbgN)),'gaps',dbgG,'handled',dbgN,'seekMode',dbgS);
+      return new Blob([tgt.buffer],{type:mp4?'video/mp4':'video/webm'});
+    }finally{
+      clearInterval(wd);clk=null;baking=false;
+      try{bv.pause()}catch(e){}bv.removeAttribute('src');try{bv.load()}catch(e){}URL.revokeObjectURL(bu);
+      seed=true;pvKey='';
+    }
   }
   (function loop(){requestAnimationFrame(loop);render(false)})();
 
@@ -3245,10 +3405,28 @@ void main(){
     /* кадр для записи: свежий результат фильтра или null, если фильтра нет */
     frame(){if(performance.now()-last>40)render(true);return(on&&W)?cv:null},
     pick,open,close,
+    hasFx:()=>!!fxl,
+    isBaked:()=>baked,
+    setBaked(b){baked=!!b;pvKey='';if(b)setOn(false)},
+    bake,
+    /* кадр записанного видео с фильтром, если экспорт идёт без покадрового рендера (запасной путь) */
+    liveSrc(){if(!fxl||baked||baking)return null;if(performance.now()-last>40)render(true);return(on&&W)?cv:null},
+    recStart(){fxl=[{t:0,i:cur}];recLog=true;baked=false;pvKey='';recOff=false;costE=0;costN=0},
+    recEnd(){recLog=false;if(fxl&&!fxl.some(e=>e.i>0))fxl=null;else if(fxl){const o=[];fxl.forEach((e,k)=>{if(k===0||e.i!==o[o.length-1].i)o.push(e)});fxl=o}pvKey=''},
+    getState(){return fxl?{log:fxl.map(e=>({t:e.t,i:e.i})),bg,img:fxl.some(e=>FL[e.i].m==='bgimg')?bgFile:null}:null},
+    setState(st){
+      recLog=false;baked=false;pvKey='';
+      if(st&&st.log&&st.log.some(e=>e.i>0)){
+        fxl=st.log.map(e=>({t:e.t,i:e.i}));
+        if(st.bg){bg=st.bg;col.value=bg}
+        if(st.img){bgFile=st.img;const im=new Image();im.onload=()=>{bgImg=im;pvKey='';render(true)};im.src=URL.createObjectURL(st.img)}
+        fxl.forEach(e=>{const f=FL[e.i];if(f.m){if(f.s)ensureSeg(true);else ensureFace(true)}});
+      }else{fxl=null;setOn(false)}
+    },
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -3453,6 +3631,7 @@ async function startRec(){
     try{if(mr){mr.onstop=null;if(mr.state!=='inactive')mr.stop()}}catch(x){}
     try{cloudStop()}catch(x){}
     try{stopCanvas()}catch(x){}
+    try{FX.recEnd()}catch(x){}
     recBtn.classList.remove('on');recTxt.textContent=t('rec');badge.classList.remove('on');$('#pz').classList.remove('show');
     updateButtons();
     toast('Ошибка записи: '+((e&&e.name)||'')+' '+((e&&e.message)||''),10000);
@@ -3482,7 +3661,7 @@ async function _startRec(){
   try{rs=await DN.wrap(stream)}catch(e){rs=stream}
   if(pmv==='later')toast(t('laterMode'),6000);
   try{await detectCrop()}catch(e){crop=null;applyVLayout()}
-  if(!isIOSdev()||crop||mirror||(!hwZoom&&zoom>1.001)||wantAR()||FX.active()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
+  if(!isIOSdev()||crop||mirror||(!hwZoom&&zoom>1.001)||wantAR()){try{rs=new MediaStream([canvasTrack(),...rs.getAudioTracks()])}catch(e){stopCanvas()}}
   {
     const px=rc.on?rc.cv.width*rc.cv.height:1920*1080;
     const bps=Math.round(Math.min(40e6,Math.max(8e6,px*30*0.14)));
@@ -3493,7 +3672,7 @@ async function _startRec(){
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
-  recording=true;t0=performance.now();
+  recording=true;t0=performance.now();FX.recStart();
   setSt(t('starting'));banner('');$('#camSel').disabled=true;buildCamMenu();
   if(pmv==='cloud'){cloudStart();setSt(t('cloudRec'),'ok');toast(t('cloudToast'),5000)}
   else if(pmv==='later'){setSt(t('laterSt'),'ok')}
@@ -3543,6 +3722,7 @@ $('#pz').onclick=e=>{e.stopPropagation();paused?resumeRec():pauseRec()};
 window.addEventListener('beforeunload',e=>{if((hasVideo&&(dirty||!curId||doSave.failed))||recording||exporting||passing){e.preventDefault();e.returnValue=''}});
 async function finishRec(){
   try{DN.stop()}catch(e){}
+  try{FX.recEnd()}catch(e){}
   stopCanvas();crop=null;vcrop=null;$('#camSel').disabled=false;buildCamMenu();
   if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}
   audioPlayback();
@@ -4205,7 +4385,10 @@ function drawExportFrame(){
   const W=cv.width,H=cv.height;
   /* если в записи остались чёрные полосы, копируем только настоящую картинку (формат рилса) */
   const dc=vcrop;
-  const raw0=()=>{if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);else xctx.drawImage(v,0,0,W,H)};
+  const fsrc=FX.liveSrc(),fk=fsrc&&v.videoWidth?fsrc.width/v.videoWidth:1;
+  const raw0=()=>{
+    if(fsrc){if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(fsrc,dc.x*fk,dc.y*fk,dc.w*fk,dc.h*fk,0,0,W,H);else xctx.drawImage(fsrc,0,0,W,H);return}
+    if(dc&&dc.x+dc.w<=v.videoWidth&&dc.y+dc.h<=v.videoHeight)xctx.drawImage(v,dc.x,dc.y,dc.w,dc.h,0,0,W,H);else xctx.drawImage(v,0,0,W,H)};
   const raw=()=>{raw0();ovPaint(xctx,W,H,v.currentTime)};
   const vid=()=>{xctx.setTransform(1,0,0,1,0,0);xctx.globalAlpha=1;raw()};
   const tcur=v.currentTime;
@@ -4460,6 +4643,24 @@ async function exportVideo(target){
   if(target)xaPrep();
   cv.width=W;cv.height=H;xctx=cv.getContext('2d');
   exporting=true;updateButtons();v.controls=false;
+  /* кадр за кадром накладываем фильтр: экспорт идёт чуть дольше, но кадры не теряются на любом устройстве */
+  let fxBU=null;
+  const unbake=()=>{if(fxBU){FX.setBaked(false);try{v.src=url}catch(e){}URL.revokeObjectURL(fxBU);fxBU=null}};
+  if(FX.hasFx()){
+    const bx=$('#xbox'),h3=bx.querySelector('h3'),pp=bx.querySelector('p'),h0=h3.textContent,p0=pp.textContent;
+    h3.textContent=t('fxBakeT');pp.textContent=t('fxBakeP');$('#xpct').textContent='0%';$('#xbar').value=0;bx.classList.add('show');
+    v.pause();
+    let bb=null,fail='';
+    try{bb=await FX.bake(recBlob,recDur||v.duration||0,p=>{$('#xpct').textContent=p+'%';$('#xbar').value=p;expBtn.textContent=t('exPct',p)})}catch(e){fail=(e&&e.message)||'err';if(location.hash==='#fxdebug')console.log('[bake] fail',e&&e.name,fail)}
+    h3.textContent=h0;pp.textContent=p0;bx.classList.remove('show');
+    if(bb&&location.hash==='#fxdebug')window.__bakeBlob=bb;
+    if(fail==='model'){exporting=false;xctx=null;updateButtons();expBtn.textContent=explbl();toast(t('fxModel'),8000);return}
+    if(bb){
+      fxBU=URL.createObjectURL(bb);FX.setBaked(true);
+      v.src=fxBU;
+      await new Promise(r=>{const h=()=>{v.removeEventListener('loadedmetadata',h);r()};v.addEventListener('loadedmetadata',h);setTimeout(r,8000)});
+    }else toast(t('fxLive'),6000);
+  }
   toast(t('exToast'),5000);
   v.pause();v.playbackRate=1;$('#spd').textContent='1×';v.currentTime=0;
   v.muted=false;v.volume=1;
@@ -4468,12 +4669,12 @@ async function exportVideo(target){
   await ovAudioPrep();
   const mt=exportMime(),isMp4=mt.startsWith('video/mp4');let r2;
   if(!isMp4)toast(t('exWebm'),6000);
-  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
+  try{r2=new MediaRecorder(cs,mt?{mimeType:mt,videoBitsPerSecond:Math.min(40e6,Math.max(8e6,Math.round(W*H*30*0.14))),audioBitsPerSecond:192000}:undefined)}catch(e){unbake();exporting=false;v.controls=false;updateButtons();toast(t('recUnsup'));return}
   let finished=false,stopping=false,wdx=null,lastCt=-1,lastMove=performance.now(),triedResume=0;
   const finalize=()=>{
     if(finished)return;finished=true;clearInterval(wdx);v.onended=null;
     try{if(ASRC)ASRC.connect(aOut())}catch(e){}
-    xaStop();ovAudioStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}expBtn.textContent=explbl();$('#xbox').classList.remove('show');
+    xaStop();ovAudioStop();exporting=false;xctx=null;v.controls=false;try{v.pause();v.currentTime=0}catch(e){}unbake();expBtn.textContent=explbl();$('#xbox').classList.remove('show');
     const fn=nm+(isMp4?'.mp4':'.webm');
     if(out.length){const bl=new Blob(out,{type:isMp4?'video/mp4':'video/webm'});(isMp4&&isIOSdev()?Promise.resolve(bl):fixDur(bl,isMp4,expDur)).then(b=>{if(target)stashExport(b,fn,target);else{xdiag(bl,expDur,out.length);download(b,fn)}},()=>{if(target)stashExport(bl,fn,target);else download(bl,fn)})}
     updateButtons();toast(out.length?t('exDone',fn):'Export failed: no data was recorded. Try again.');
@@ -4630,6 +4831,9 @@ function applyLang(){
 document.querySelectorAll('#uil button').forEach(b=>b.onclick=()=>{ui=b.dataset.u;try{localStorage.setItem('substudio-ui',ui)}catch(e){}applyLang()});
 
 /* ---------- живые превью движения: каждая кнопка «Subtitle motion» сама играет свою анимацию ---------- */
+Object.assign(I18.en,{fxBakeT:'Applying the filter',fxBakeP:'The filter is rendered frame by frame so the video comes out smooth. This takes a little longer than the video itself. Keep the app open.',fxModel:'The filter needs its model, which loads once over the internet. Connect and try again.',fxLive:'This device cannot render frame by frame, so the filter is applied while exporting.'});
+Object.assign(I18.ru,{fxBakeT:'Накладываю фильтр',fxBakeP:'Фильтр считается кадр за кадром, чтобы видео вышло ровным. Это занимает немного больше времени, чем само видео. Не закрывайте приложение.',fxModel:'Фильтру нужна модель, она один раз загружается из интернета. Подключитесь и повторите.',fxLive:'Это устройство не умеет считать по кадрам, поэтому фильтр накладывается во время экспорта.'});
+Object.assign(I18.hy,{fxBakeT:'Կիրառում եմ ֆիլտրը',fxBakeP:'Ֆիլտրը հաշվվում է կադր առ կադր, որպեսզի տեսանյութը սահուն լինի։ Սա մի փոքր ավելի երկար է տևում։ Չփակեք հավելվածը։',fxModel:'Ֆիլտրի մոդելը մեկ անգամ բեռնվում է ինտերնետից։ Միացեք և կրկնեք։',fxLive:'Այս սարքը չի կարող հաշվել կադր առ կադր, ուստի ֆիլտրը կիրառվում է արտահանման ընթացքում։'});
 Object.assign(I18.en,{capLbl:'Caption for the post',capHint:'This text goes with the video when you share it to a social network.',capPh:'Write the text for your post here',capCopied:'Caption copied: paste it into the post if the app leaves the field empty'});
 Object.assign(I18.ru,{capLbl:'Описание под видео',capHint:'Этот текст уходит вместе с видео, когда вы отправляете его в соцсеть.',capPh:'Напишите здесь текст для публикации',capCopied:'Текст скопирован: если приложение оставит поле пустым, вставьте его в описание'});
 Object.assign(I18.hy,{capLbl:'Նկարագրություն տեսանյութի տակ',capHint:'Այս տեքստը գնում է տեսանյութի հետ, երբ այն ուղարկում եք սոցցանց։',capPh:'Գրեք այստեղ հրապարակման տեքստը',capCopied:'Տեքստը պատճենվեց․ եթե հավելվածը դաշտը դատարկ թողնի, տեղադրեք այն նկարագրության մեջ'});
@@ -4877,6 +5081,17 @@ async function vAppend(file){
   const prog=(p,l)=>{if(VE.prog)VE.prog(l||LX('Склеиваю видео','Joining the videos'),p)};
   const urls=[];let ac=null,iv=0;
   try{
+    if(FX.hasFx()){
+      prog(0,t('fxBakeT'));
+      let bb=null,fail='';
+      try{bb=await FX.bake(recBlob,recDur||v.duration||0,p=>prog(p,t('fxBakeT')))}catch(e){fail=(e&&e.message)||'err'}
+      if(!bb){toast(fail==='model'?t('fxModel'):LX('Не удалось наложить фильтр перед склейкой.','Could not apply the filter before joining.'),7000);return}
+      const o0=url;recBlob=bb;url=URL.createObjectURL(bb);FX.setState(null);
+      v.pause();v.src=url;
+      for(let i=0;i<80&&(!isFinite(v.duration)||!(v.duration>0));i++)await sleep(100);
+      try{if(o0)URL.revokeObjectURL(o0)}catch(e){}
+      toast(LX('Фильтр наложен на видео, теперь склеиваю.','The filter is now part of the video; joining.'),4000);
+    }
     prog(0,LX('Готовлю видео','Preparing the videos'));
     const W0=v.videoWidth||1080,H0=v.videoHeight||1920,W=W0-W0%2,H=H0-H0%2;
     const mk=b=>{const e=document.createElement('video');e.playsInline=true;e.preload='auto';const u=URL.createObjectURL(b);urls.push(u);e.src=u;return e};
@@ -5688,7 +5903,7 @@ async function doSave(){
   if(!projName)projName=defName();
   const id=curId,d=recDur||totalT()||dur;
   const meta={id,name:projName,t:Date.now(),dur:d,n:phrases.filter(p=>p.t).length,size:recBlob.size+VE.ov.reduce((a,o)=>a+((o.blob&&!o.main)?o.blob.size:0),0)};
-  const data={id,name:projName,blob:recBlob,vedit:{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},subpos:{x:SUBP.x,y:SUBP.y,off:subsOff},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d};
+  const data={id,name:projName,blob:recBlob,vedit:{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,ov:VE.ov.map(ovSnap)},subpos:{x:SUBP.x,y:SUBP.y,off:subsOff},phrases:snapPhrases(),style,anim,custom:Object.assign({},custom),cap:capTxt,langLog:langLog.slice(),dur:d,fx:FX.getState()};
   dirty=false;
   try{
     await dbPut(meta,data);doSave.failed=false;
@@ -5710,7 +5925,7 @@ function closeProject(){
   try{v.pause()}catch(e){}
   if(url){URL.revokeObjectURL(url);url=null}
   v.removeAttribute('src');v.srcObject=null;
-  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';
+  hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';FX.setState(null);
   applyView();renderAll();updateButtons();setSt(t('stIdle'));
   if(camWanted)initCam();
 }
@@ -5738,7 +5953,7 @@ async function openProject(id){
   setStyle(d.style||'classic',true);setAnim(d.anim||'fade',true);
   capTxt=d.cap||'';['#cap','#shCap'].forEach(q=>{$(q).value=capTxt});try{localStorage.setItem('substudio-cap',capTxt)}catch(e){}
   recBlob=d.blob;url=URL.createObjectURL(recBlob);ovLoad((d.vedit||{}).ov);{const q=d.subpos||{};SUBP.x=q.x==null?.5:q.x;SUBP.y=q.y==null?.78:q.y;subsOff=!!q.off;lastLay=''}
-  crop=null;vcrop=null;shareCache=null;lastSub='';
+  crop=null;vcrop=null;shareCache=null;lastSub='';FX.setState(d.fx||null);
   audioPlayback();
   v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;v.playbackRate=1;$('#spd').textContent='1×';
   hasVideo=true;applyView();
@@ -6624,7 +6839,7 @@ async function trOpen(id){
     try{stopCanvas()}catch(_){}
     if(stream){stream.getTracks().forEach(q=>q.stop());stream=null}
     crop=null;vcrop=null;if(url){try{URL.revokeObjectURL(url)}catch(_){}}
-    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;
+    phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';shareCache=null;recDur=0;FX.setState(null);
     recBlob=f;url=URL.createObjectURL(f);
     v.srcObject=null;v.src=url;v.muted=false;v.volume=1;v.controls=false;hasVideo=true;applyView();
     updateButtons();renderAll();try{saveCurrent()}catch(_){}
