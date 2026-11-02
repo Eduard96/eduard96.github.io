@@ -1041,6 +1041,70 @@ input[type=checkbox],input[type=radio]{accent-color:#111}
 .cfmb{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .cfmb .nb{height:50px;padding:0 10px}
 #cfmY.dng{background:var(--nb-p)}
+/* окно установки: без установки пользоваться нельзя */
+#instgate{position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(rgba(17,17,17,.16) 1.2px,transparent 1.6px) 0 0/20px 20px,#FFF1D0;overflow:auto}
+.ig-box{width:min(100%,380px);background:#fff;border:4px solid #111;border-radius:22px;box-shadow:8px 8px 0 #111;padding:22px 18px 18px;text-align:center;color:#111}
+.ig-logo{width:74px;height:74px;margin:0 auto 14px;border:4px solid #111;border-radius:22px;background:var(--nb-y);box-shadow:5px 5px 0 #111;display:grid;place-items:center;animation:obDot2 1.6s ease-in-out infinite}
+.ig-logo::after{content:"";width:20px;height:20px;border-radius:50%;background:#111}
+@keyframes obDot2{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) scale(1.04)}}
+.ig-box h2{margin:0 0 8px;font-size:26px;letter-spacing:-.03em}
+.ig-box p{margin:0 0 16px;font-size:15px;line-height:1.4;font-weight:600;color:#333}
+#instgate .ig-btn{width:100%;height:56px;font-size:19px;flex:none}
+.ig-how{margin-top:12px;text-align:left;font-size:14px;line-height:1.4;font-weight:500}
+.ig-how p{margin:0 0 8px;font-size:14px;font-weight:600}
+.ig-how ol{margin:0;padding-left:20px}
+.ig-how li{margin:4px 0}
+/* первый запуск: анимация, девиз, подключение ключей */
+#onb{position:fixed;inset:0;z-index:500;background:radial-gradient(rgba(17,17,17,.16) 1.2px,transparent 1.6px) 0 0/20px 20px,#FFF1D0;color:#111;font-family:var(--nb-font);overflow:hidden;transition:opacity .4s}
+#onb.out{opacity:0;pointer-events:none}
+.ob-scr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;text-align:center;opacity:0;transform:translateY(18px);pointer-events:none;transition:opacity .4s,transform .4s}
+.ob-scr.on{opacity:1;transform:none;pointer-events:auto}
+.ob-a{position:relative;width:240px;height:240px;display:grid;place-items:center}
+.ob-logo{width:100px;height:100px;border:5px solid #111;border-radius:30px;background:var(--nb-y);box-shadow:8px 8px 0 #111;display:grid;place-items:center;animation:obDrop .95s cubic-bezier(.2,1,.4,1) both}
+.ob-logo::after{content:"";width:28px;height:28px;border-radius:50%;background:#111;animation:obDot 1.1s .9s ease-in-out infinite}
+@keyframes obDrop{0%{transform:translateY(-360px) scale(.7,1.35) rotate(-14deg);opacity:0}50%{opacity:1;transform:translateY(0) scale(1.28,.7) rotate(2deg)}72%{transform:translateY(-22px) scale(.94,1.08)}100%{transform:none;opacity:1}}
+@keyframes obDot{0%,100%{transform:scale(1)}50%{transform:scale(1.55)}}
+.ob-ring{position:absolute;inset:6px;border:4px solid #111;border-radius:50%;opacity:0;animation:obRing 1.9s .75s ease-out infinite}
+.ob-ring.r2{animation-delay:1.35s;border-color:var(--nb-p)}
+@keyframes obRing{0%{transform:scale(.45);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+.ob-wave{display:flex;gap:7px;align-items:flex-end;height:64px;margin-top:26px}
+.ob-wave b{width:12px;height:100%;border:3px solid #111;border-radius:7px;background:var(--nb-p);transform-origin:bottom;transform:scaleY(.1);animation:obBar 1.05s ease-in-out infinite;animation-delay:calc(.9s + var(--i)*.085s)}
+.ob-wave b:nth-child(3n+2){background:var(--nb-b)}
+.ob-wave b:nth-child(3n){background:var(--nb-g)}
+@keyframes obBar{0%,100%{transform:scaleY(.14)}50%{transform:scaleY(1)}}
+.ob-name{margin-top:22px;font-size:30px;font-weight:700;letter-spacing:-.03em;display:flex;gap:10px;overflow:hidden}
+.ob-name span{display:inline-block;transform:translateY(120%);animation:obUp .55s cubic-bezier(.2,1.2,.4,1) forwards}
+.ob-name span:nth-child(1){animation-delay:1.1s}.ob-name span:nth-child(2){animation-delay:1.25s}
+@keyframes obUp{to{transform:none}}
+.ob-tag{display:flex;flex-direction:column;gap:16px;align-items:center}
+.ob-w{display:inline-block;font-size:clamp(38px,12vw,58px);line-height:1.05;font-weight:700;letter-spacing:-.03em;padding:4px 20px 8px;border:4px solid #111;border-radius:18px;box-shadow:6px 6px 0 #111;background:var(--c);color:#111;transform:rotate(var(--r)) scale(.15);opacity:0;animation:obPop .62s cubic-bezier(.2,1.5,.4,1) forwards;animation-delay:calc(var(--i)*.4s);transition:background .25s,color .25s,box-shadow .25s}
+.ob-w.hl{background:#111;color:#fff;box-shadow:6px 6px 0 var(--nb-p);animation:none;transform:rotate(var(--r)) scale(1.07);opacity:1}
+@keyframes obPop{to{transform:rotate(var(--r)) scale(1);opacity:1}}
+.ob-sub{margin-top:26px;font-size:17px;font-weight:600;color:#333;opacity:0;animation:obFade .6s 1.5s forwards}
+@keyframes obFade{to{opacity:1}}
+#onb .ob-go{margin-top:30px;opacity:0;animation:obFade .6s 1.8s forwards;flex:none;width:auto;min-width:200px;height:56px;min-height:0;padding:0 30px;font-size:18px}
+.ob-skiphint{position:absolute;bottom:calc(22px + env(safe-area-inset-bottom));left:0;right:0;text-align:center;font-size:13px;font-weight:600;color:#555}
+.ob-set{justify-content:flex-start;align-items:stretch;text-align:left;padding:calc(16px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom))}
+.ob-dots{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.ob-dots i{width:34px;height:10px;border:2px solid #111;border-radius:99px;background:#fff}
+.ob-dots i.on{background:var(--nb-y)}.ob-dots i.dn{background:var(--nb-g)}
+.ob-h{font-size:27px;font-weight:700;letter-spacing:-.03em;margin:4px 2px 2px}
+.ob-d{font-size:15px;font-weight:600;color:#333;margin:0 2px 12px}
+.ob-list{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-content:start;padding:2px 6px 12px 2px;-webkit-overflow-scrolling:touch}
+.ob-card{min-width:0;background:#fff;border:3px solid #111;border-radius:16px;box-shadow:4px 4px 0 #111;padding:12px}
+.ob-card.rec{background:#FFF6D6;border-width:4px;box-shadow:6px 6px 0 var(--nb-p)}
+.ob-card.ok{background:#E4FBEE}
+.ob-ch{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:19px;font-weight:700}
+.ob-ch em{font-style:normal;font-size:12px;font-weight:700;background:var(--nb-g);border:2px solid #111;border-radius:99px;padding:2px 9px}
+.ob-card p{margin:6px 0 10px;font-size:13px;line-height:1.35;color:#333;font-weight:500}
+.ob-row{display:flex;gap:8px;align-items:center}
+.ob-row .nb{flex:none;width:auto;min-width:84px}
+.ob-row input{flex:1;min-width:0;height:42px;padding:0 10px;border:3px solid #111;border-radius:12px;background:#fff;color:#111;font-size:15px}
+.ob-links{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+.ob-st{font-size:13px;font-weight:600;margin-top:6px;min-height:16px}
+.ob-need{min-height:18px;margin-top:6px;font-size:13px;font-weight:700;color:#C21B12;text-align:center}
+.ob-foot{display:flex;gap:10px;padding-top:6px}
+.ob-foot .nb{flex:1;height:52px;font-size:17px}
 /* ===== NEO-BRUTAL END ===== */
 </style>
 </head>
@@ -4977,6 +5041,118 @@ const isAnd=/Android/i.test(navigator.userAgent);
   $('#iclose').onclick=()=>$('#ibox').classList.remove('show');
 })();
 
+
+/* ---------- установка на телефон: окно посередине экрана, пока приложение не установлено ---------- */
+(function(){
+  const L3=(r,e,h)=>ui==='ru'?r:ui==='hy'?(h||e):e;
+  const q=new URLSearchParams(location.search);
+  const mobile=isIOS||isAnd||q.get('inst')==='1';
+  const flag=()=>{try{return localStorage.getItem('substudio-installed')==='1'}catch(e){return false}};
+  const setFlag=()=>{try{localStorage.setItem('substudio-installed','1')}catch(e){}};
+  if(isStandalone())setFlag();
+  /* в окне установленного приложения верхняя кнопка не нужна */
+  if(!mobile||isStandalone()||flag())return;
+  /* без установки пользоваться нельзя: окно посередине экрана, закрыть его нельзя */
+  const bar=document.createElement('div');bar.id='instgate';bar.setAttribute('role','alertdialog');bar.setAttribute('aria-modal','true');
+  bar.innerHTML='<div class="ig-box"><div class="ig-logo"></div><h2></h2><p></p><button type="button" class="nb pri ig-btn"></button><div class="ig-how"></div></div>';
+  const how=bar.querySelector('.ig-how'),btn=bar.querySelector('.ig-btn');
+  const lab=()=>{
+    bar.querySelector('h2').textContent=L3('Установите приложение','Install the app','Տեղադրեք հավելվածը');
+    bar.querySelector('p').textContent=L3('Чтобы пользоваться Subtitle Studio, установите его на телефон. Так оно работает быстрее, не теряет записи и открывается как обычное приложение.','To use Subtitle Studio, install it on your phone. It runs faster, keeps your recordings safe and opens like a regular app.','Subtitle Studio-ն օգտագործելու համար տեղադրեք այն հեռախոսում։ Այն աշխատում է ավելի արագ, չի կորցնում ձայնագրությունները և բացվում է սովորական հավելվածի պես։');
+    btn.textContent=L3('Установить','Install','Տեղադրել');
+    how.innerHTML=t(isIOS?'iIos':'iAnd')+t('iNote');
+  };
+  lab();window.__instLab=lab;
+  /* на iPhone системного окна установки нет: показываем шаги сразу */
+  if(isIOS){btn.style.display='none'}else how.style.display='none';
+  btn.onclick=async()=>{
+    if(typeof dip!=='undefined'&&dip){dip.prompt();try{await dip.userChoice}catch(e){}return}
+    how.style.display='';btn.style.display='none';
+  };
+  document.body.appendChild(bar);
+  window.addEventListener('appinstalled',()=>{setFlag();bar.remove()});
+})();
+
+/* ---------- первый запуск установленного приложения: анимация, девиз, подключение ключей ---------- */
+(function(){
+  const q=new URLSearchParams(location.search),force=q.get('onb')==='1';
+  if(!isStandalone()&&!force)return;
+  const L3=(r,e,h)=>ui==='ru'?r:ui==='hy'?(h||e):e;
+  const needKeys=()=>!aiAny();
+  const root=document.createElement('div');root.id='onb';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');
+  document.body.appendChild(root);
+  const scr=h=>{const d=document.createElement('div');d.className='ob-scr';d.innerHTML=h;root.appendChild(d);return d};
+  const show=d=>{root.querySelectorAll('.ob-scr').forEach(x=>x.classList.toggle('on',x===d))};
+  const close=()=>{root.classList.add('out');setTimeout(()=>root.remove(),500)};
+  const T={ru:['Говори.','Субтитры.','Делись.'],en:['Speak.','Subtitle.','Share.'],hy:['Խոսիր։','Ենթագրեր։','Կիսվիր։']}[ui]||['Speak.','Subtitle.','Share.'];
+  /* экран 1: анимация логотипа и звуковой волны */
+  const A=scr('<div class="ob-a"><i class="ob-ring"></i><i class="ob-ring r2"></i><div class="ob-logo"></div></div>'
+    +'<div class="ob-wave">'+[0,1,2,3,4,5,6,7,8].map(i=>'<b style="--i:'+i+'"></b>').join('')+'</div>'
+    +'<div class="ob-name"><span>Subtitle</span><span>Studio</span></div>');
+  /* экран 2: девиз из трёх слов, слова подсвечиваются как субтитры в караоке */
+  const col=['var(--nb-y)','var(--nb-p)','var(--nb-b)'],rot=['-3deg','2deg','-2deg'];
+  const B=scr('<div class="ob-tag">'+T.map((w,i)=>'<span class="ob-w" style="--i:'+i+';--c:'+col[i]+';--r:'+rot[i]+'">'+w+'</span>').join('')+'</div>'
+    +'<div class="ob-sub">'+L3('Видео с субтитрами за минуту','Captioned videos in a minute','Ենթագրերով տեսանյութ մեկ րոպեում')+'</div>'
+    +'<button type="button" class="nb pri ob-go"></button>');
+  const go=B.querySelector('.ob-go');
+  let hlT=0;
+  const startHl=()=>{const ws=[...B.querySelectorAll('.ob-w')];let i=0;clearInterval(hlT);hlT=setInterval(()=>{ws.forEach((w,k)=>w.classList.toggle('hl',k===i%ws.length));i++},650)};
+  /* экраны подключения ключей, если ни один не установлен */
+  const SETS=[
+    {k:['stt'],rec:'groq',t:L3('Распознавание речи','Text recognition','Խոսքի ճանաչում'),d:L3('Превращает голос в текст субтитров. Достаточно одного бесплатного ключа.','Turns your voice into subtitle text. One free key is enough.','Խոսքը դարձնում է ենթագրերի տեքստ։ Բավական է մեկ անվճար բանալի։')},
+    {k:['text','tts'],rec:'gemini',t:L3('Перевод и озвучка','Text translation and voice-over','Թարգմանություն և ձայնավորում'),d:L3('Переводит субтитры и озвучивает видео.','Translates the subtitles and voices the video.','Թարգմանում է ենթագրերը և ձայնավորում տեսանյութը։')},
+    {k:['media'],rec:'pixabay',t:L3('Фото, видео, GIF и звуки','Photos, video, GIF and sounds','Նկարներ, տեսանյութ, GIF և ձայներ'),d:L3('Подбирает кадры и музыку для роликов.','Finds footage and music for your videos.','Ընտրում է կադրեր և երաժշտություն։')}
+  ];
+  const ids=k=>{const l=AIORD.filter(id=>AIP[id]&&AIP[id].k.some(x=>k.includes(x)));return l};
+  async function saveKey(id,inp,st,card){
+    const k=inp.value.trim();if(!k){inp.focus();return}
+    st.style.color='';st.textContent=L3('Проверяю…','Checking…','Ստուգում եմ…');
+    let res='unk';try{res=await AIP[id].chk(k)}catch(e){}
+    if(res==='bad'){st.style.color='#E5251B';st.textContent=L3('Ключ не подошёл. Проверьте, что он скопирован полностью.','The key was rejected. Check that it was copied in full.','Բանալին չընդունվեց։ Ստուգեք՝ արդյո՞ք ամբողջությամբ է պատճենված։');return}
+    aiAddKey(id,k);try{AICD.clear()}catch(e){}
+    card.classList.add('ok');st.style.color='#16A05A';st.textContent='✓ '+L3('Ключ сохранён','Key saved','Բանալին պահված է');inp.value='';
+    if(saveKey.after)saveKey.after();
+  }
+  function card(id,rec){
+    const p=AIP[id],inf=AIINFO[id]||{},c=document.createElement('div');c.className='ob-card'+(rec?' rec':'');
+    const d=ui==='ru'?inf.ru:inf.en;
+    c.innerHTML='<div class="ob-ch"><span></span>'+(rec?'<em>'+L3('Рекомендуем','Recommended','Խորհուրդ ենք տալիս')+'</em>':'')+'</div><p></p><div class="ob-row"><input type="password" autocomplete="off" spellcheck="false"><button type="button" class="nb sm"></button></div><div class="ob-links"><a class="btn sm" target="_blank" rel="noopener"></a></div><div class="ob-st"></div>';
+    c.querySelector('.ob-ch span').textContent=p.n;c.querySelector('p').textContent=d||'';
+    const inp=c.querySelector('input'),sv=c.querySelector('button'),a=c.querySelector('a'),st=c.querySelector('.ob-st');
+    inp.placeholder=L3('Вставьте ключ','Paste the key','Տեղադրեք բանալին');sv.textContent=L3('Сохранить','Save','Պահել');
+    a.href=p.url;a.textContent=L3('Получить ключ →','Get a key →','Ստանալ բանալի →');
+    sv.onclick=()=>saveKey(id,inp,st,c);
+    return c;
+  }
+  const stageOk=S=>ids(S.k).some(id=>aiKeys(id).length>0);
+  function setup(n){
+    const S=SETS[n],sc=scr('<div class="ob-dots">'+SETS.map((_,i)=>'<i class="'+(i<n?'dn':i===n?'on':'')+'"></i>').join('')+'</div><div class="ob-h"></div><div class="ob-d"></div><div class="ob-list"></div><div class="ob-need"></div><div class="ob-foot"><button type="button" class="nb pri ob-next"></button></div>');
+    sc.classList.add('ob-set');
+    sc.querySelector('.ob-h').textContent=S.t;sc.querySelector('.ob-d').textContent=S.d;
+    const list=sc.querySelector('.ob-list'),all=ids(S.k),nx=sc.querySelector('.ob-next'),need=sc.querySelector('.ob-need');
+    [S.rec,...all.filter(i=>i!==S.rec)].forEach(id=>{if(AIP[id])list.appendChild(card(id,id===S.rec))});
+    const last=n===SETS.length-1;
+    nx.textContent=last?L3('Готово','Done','Պատրաստ է'):L3('Далее →','Next →','Հաջորդը →');
+    /* дальше можно только с хотя бы одним ключом на этом этапе */
+    const upd=()=>{const ok=stageOk(S);nx.disabled=!ok;need.textContent=ok?'':L3('Добавьте хотя бы один ключ, чтобы продолжить','Add at least one key to continue','Շարունակելու համար ավելացրեք առնվազն մեկ բանալի')};
+    upd();sc._upd=upd;
+    const next=()=>{if(!stageOk(S))return;if(last)close();else{const n2=setup(n+1);show(n2)}};
+    nx.onclick=next;
+    return sc;
+  }
+  saveKey.after=()=>{root.querySelectorAll('.ob-scr.on').forEach(x=>x._upd&&x._upd())};
+  /* ход показа */
+  const toTag=()=>{show(B);setTimeout(startHl,1600);go.textContent=needKeys()?L3('Далее →','Next →','Հաջորդը →'):L3('Начать','Start','Սկսել');
+    if(!needKeys())autoT=setTimeout(finish,3600)};
+  let autoT=0,step=0;
+  const finish=()=>{clearTimeout(autoT);clearInterval(hlT);if(needKeys()){const s0=setup(0);show(s0)}else close()};
+  go.onclick=finish;
+  A.onclick=()=>{if(step===0){step=1;clearTimeout(aT);toTag()}};
+  show(A);
+  const aT=setTimeout(()=>{if(step===0){step=1;toTag()}},2900);
+  window.__onb={A,B,toTag:()=>{step=1;clearTimeout(aT);toTag()},finish};
+})();
+
 /* ---------- язык интерфейса ---------- */
 function applyLang(){
   document.documentElement.lang=ui;document.title=t('title');
@@ -4986,6 +5162,7 @@ function applyLang(){
   document.querySelectorAll('#styles .sty').forEach((b,i)=>{b.querySelector('.nm').textContent=SN[ui][i];b.querySelector('.pv span').textContent=t('subWord')});
   recTxt.textContent=t(recording?'stop':'rec');
   if(capAiInit.lab)capAiInit.lab();
+  if(window.__instLab)window.__instLab();
   document.querySelectorAll('#anims .anim').forEach((b,i)=>{b.querySelector('.nm').textContent=ANIM[i].n[ui]});
   $('#lfont').options[0].textContent=t('fontPreset');$('#cap').placeholder=t('capPh');$('#shCap').placeholder=t('capPh');studioLang();
   $('#pz').textContent=t(paused?'resume':'pause');
