@@ -1,6 +1,7 @@
 # Netlify: the app lives in the SpeechSubtitleStudio folder, no build step
 [build]
   publish = "SpeechSubtitleStudio"
+  functions = "netlify/functions"
 
 # always fetch the page, the manifest and the service worker fresh so updates arrive at once
 [[headers]]
@@ -17,3 +18,12 @@
   for = "/manifest.webmanifest"
   [headers.values]
     Cache-Control = "no-cache"
+
+# защита страницы: скрипты только с нашего сайта и двух проверенных CDN, чужой код не запустится
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https: wss: blob: data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(self), geolocation=()"

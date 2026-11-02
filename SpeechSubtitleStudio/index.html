@@ -2396,9 +2396,13 @@ try{const s=JSON.parse(localStorage.getItem(AIST)||'null');if(s&&typeof s==='obj
 function aiLegacy(id){try{if(id==='gemini')return(localStorage.getItem(GKEY)||'').trim();if(id==='groq')return(localStorage.getItem('substudio-key')||'').trim()}catch(e){}return''}
 function aiKeys(id){const st=(AIS.p[id]&&AIS.p[id].keys)||[];return[...new Set([aiLegacy(id),...st].map(s=>String(s||'').trim()).filter(Boolean))]}
 const aiOn=id=>!(AIS.p[id]&&AIS.p[id].on===false);
-function aiProvs(kind){return AIS.o.filter(id=>AIP[id]&&AIP[id].k.includes(kind)&&aiOn(id)&&aiKeys(id).length).map(id=>AIP[id])}
+function aiProvs(kind){return AIS.o.filter(id=>AIP[id]&&AIP[id].k.includes(kind)&&aiOn(id)&&aiKeysX(id).length).map(id=>AIP[id])}
 const aiHas=kind=>aiProvs(kind).length>0;
-const aiAny=()=>AIORD.some(id=>aiKeys(id).length>0);
+/* безопасный режим: если на сервере (Netlify) задан ключ Gemini, он используется вместо ключа в браузере */
+const SRV={on:false,url:'/.netlify/functions/gemini'};
+try{if(/^https?:/.test(location.protocol))fetch(SRV.url,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.ok===true){SRV.on=true;try{renderKeys&&renderKeys()}catch(e){}}}).catch(()=>{})}catch(e){}
+const aiKeysX=id=>id==='gemini'&&SRV.on?[...aiKeys(id),'@server']:aiKeys(id);
+const aiAny=()=>SRV.on||AIORD.some(id=>aiKeys(id).length>0);
 const gKey=()=>aiKeys('gemini')[0]||'';
 function aiSave(){
   try{localStorage.setItem(AIST,JSON.stringify(AIS))}catch(e){}
@@ -2447,7 +2451,7 @@ async function aiTry(kind,fn,pref){
     if(!ps.length){const e=new Error(t('gemNeed'));e.noKey=true;try{openGem()}catch(x){}throw e}
     let last=null,minWait=1e9;
     for(const p of ps){
-      for(const k of aiKeys(p.id)){
+      for(const k of aiKeysX(p.id)){
         const cu=aiCool(p.id,k,'');
         if(cu){minWait=Math.min(minWait,cu-Date.now());continue}
         try{const r=await fn(p,k);aiUsed(kind,p);return r}
@@ -2471,7 +2475,7 @@ async function aiTry(kind,fn,pref){
 /* ---- Gemini ---- */
 async function gReq(k,model,body){
   let r,j=null;
-  try{r=await fetch(GBASE+'models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body:JSON.stringify(body)})}
+  try{r=await(k==='@server'?fetch(SRV.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,body})}):fetch(GBASE+'models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body:JSON.stringify(body)}))}
   catch(e){const er=new Error(t('gemNet'));er.net=true;throw er}
   try{j=await r.json()}catch(e){}
   if(r.ok)return j;
@@ -5383,7 +5387,7 @@ const isAnd=/Android/i.test(navigator.userAgent);
     sv.onclick=()=>saveKey(id,inp,st,c);
     return c;
   }
-  const stageOk=S=>ids(S.k).some(id=>aiKeys(id).length>0);
+  const stageOk=S=>ids(S.k).some(id=>aiKeysX(id).length>0);
   function setup(n){
     const S=SETS[n],sc=scr('<div class="ob-dots">'+SETS.map((_,i)=>'<i class="'+(i<n?'dn':i===n?'on':'')+'"></i>').join('')+'</div><div class="ob-h"></div><div class="ob-d"></div><div class="ob-list"></div><div class="ob-need"></div><div class="ob-foot"><button type="button" class="nb pri ob-next"></button></div>');
     sc.classList.add('ob-set');
@@ -6711,7 +6715,7 @@ function aiCollect(){
     const id=c.dataset.id,ks=[...c.querySelectorAll('.apkr input')].map(i=>i.value.trim()).filter(Boolean);
     AIS.p[id]=Object.assign(AIS.p[id]||{},{on:c.querySelector('.apon').checked});
     aiSetKeys(id,ks);
-    c.querySelector('.apd').className='apd'+(aiKeys(id).length&&aiOn(id)?' on':'');
+    c.querySelector('.apd').className='apd'+(aiKeysX(id).length&&aiOn(id)?' on':'');
   });
   aiSave();AICD.clear();
 }
