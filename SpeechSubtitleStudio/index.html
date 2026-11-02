@@ -1823,6 +1823,8 @@ function trRender2(c,W,H,nf,o,k,p){
     case'rotL':{nw();c.save();c.translate(0,H);c.rotate(-e*1.25);c.translate(0,-H);od(0,0);c.restore();return true}
     case'rotR':{nw();c.save();c.translate(W,H);c.rotate(e*1.25);c.translate(-W,-H);od(0,0);c.restore();return true}
     case'rotC':{nw();c.globalAlpha=1-e;c.translate(W/2,H/2);c.rotate(e*Math.PI);const q=1-e*.8;c.scale(q,q);od(-W/2,-H/2);c.globalAlpha=1;return true}
+    case'logoZ':case'logoR':{const q=p<.5?trEase(p*2):1-trEase(p*2-1);if(p<.5)od(0,0);else nw();
+      const S=Math.max(1,q*Math.hypot(W,H)*1.25);c.save();c.translate(W/2,H/2);if(k==='logoR')c.rotate((p<.5?-1:1)*(1-q)*1.6);trLogo(c,0,0,S);c.restore();return true}
     case'cas3':{const n=3,q=H/n;od(0,0);for(let i=0;i<n;i++){const u=trEase((p*1.6-i*.2)/.7);cl(()=>c.rect(0,i*q-.3,W,q+.6),()=>nw([1,0,0,1,(1-u)*W,0]))}return true}
   }
   return false;
@@ -1839,6 +1841,7 @@ function trRender2(c,W,H,nf,o,k,p){
   [['noise','Растворение','Dissolve'],['scan','Развёртка','Scanlines'],['cbar','Цветные полосы','Color bars'],['rgbs','RGB-сдвиг','RGB split']].forEach(([k,ru,en])=>TRS.push([k,ru,en,'fx']));
   [['drop','Падение','Drop'],['popin','Выскок','Pop in'],['cubeL','Куб влево','Cube left'],['cubeR','Куб вправо','Cube right'],['sqY','Переворот верт.','Flip vertical'],['rotL','Опрокидывание влево','Tip left'],['rotR','Опрокидывание вправо','Tip right'],['rotC','Закрутка','Twirl away']].forEach(([k,ru,en])=>TRS.push([k,ru,en,'motion']));
   TRS.push(['cas3','Каскад','Cascade','slide']);
+  TRS.push(['logoZ','Логотип: зум','Logo zoom','brand'],['logoR','Логотип: вращение','Logo spin','brand']);
   TRCATS.splice(1,0,['brut','◼ Брутал','◼ Brutal']);
   TRCATS.splice(7,0,['cine','Кино','Cinema']);
 })();
@@ -4928,17 +4931,33 @@ function vTrimBind(h,e,a,b,side){
 }
 /* ---------- анимированные переходы: окно выбора ---------- */
 const TRTH={w:0,a:null,b:null};
+
+/* логотип приложения: жёлтая карточка, красная и синяя точки, белая плашка субтитров */
+function trRR(c,x,y,w,h,r){c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function trLogo(c,cx,cy,S){
+  const x=cx-S/2,y=cy-S/2,lw=Math.max(1.5,S*.035),sh=S*.05;
+  c.save();c.lineJoin='round';c.strokeStyle='#111';c.lineWidth=lw;
+  c.fillStyle='#111';c.beginPath();trRR(c,x+sh,y+sh,S,S,S*.2);c.fill();
+  c.fillStyle='#FFD23F';c.beginPath();trRR(c,x,y,S,S,S*.2);c.fill();c.stroke();
+  const dot=(px,py,r,col)=>{c.fillStyle=col;c.beginPath();c.arc(x+px*S,y+py*S,r*S,0,7);c.fill();c.stroke()};
+  dot(.30,.34,.17,'#FF3B30');dot(.70,.30,.10,'#4D7CFF');
+  const bx=x+.12*S,by=y+.58*S,bw=.76*S,bh=.28*S;
+  c.fillStyle='#111';c.beginPath();trRR(c,bx+sh*.7,by+sh*.7,bw,bh,S*.07);c.fill();
+  c.fillStyle='#fff';c.beginPath();trRR(c,bx,by,bw,bh,S*.07);c.fill();c.stroke();
+  c.fillStyle='#111';c.beginPath();trRR(c,bx+.07*S,by+.07*S,.52*S,.05*S,.025*S);c.fill();
+  c.fillStyle='#FF6B9D';c.beginPath();trRR(c,bx+.07*S,by+.165*S,.34*S,.05*S,.025*S);c.fill();
+  c.restore();
+}
 function trThumbImgs(w,h){
   if(TRTH.w===w&&TRTH.h===h)return TRTH;
   const mk=(c1,c2,txt)=>{
     const cn=document.createElement('canvas');cn.width=w;cn.height=h;const g=cn.getContext('2d'),gr=g.createLinearGradient(0,0,w,h);
     gr.addColorStop(0,c1);gr.addColorStop(1,c2);g.fillStyle=gr;g.fillRect(0,0,w,h);
-    g.strokeStyle='#111';g.lineWidth=h*.09;g.beginPath();g.arc(w/2,h/2,h*.24,0,7);g.stroke();
-    g.fillStyle='#111';g.beginPath();g.arc(w/2,h/2,h*.09,0,7);g.fill();
+    trLogo(g,w/2,h/2,h*.66);g.fillStyle='#111';
     g.font='800 '+Math.round(h*.22)+'px sans-serif';g.textAlign='left';g.textBaseline='top';g.fillText(txt,w*.08,h*.06);
     return cn;
   };
-  TRTH.w=w;TRTH.h=h;TRTH.a=mk('#4D7CFF','#7FA0FF','A');TRTH.b=mk('#FFD23F','#FF6B9D','B');
+  TRTH.w=w;TRTH.h=h;TRTH.a=mk('#4D7CFF','#9DB6FF','A');TRTH.b=mk('#FF6B9D','#FFE08A','B');
   return TRTH;
 }
 function trAnim(cn,k,p){
