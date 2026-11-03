@@ -2494,9 +2494,11 @@ async function gReq(k,model,body){
   if(r.ok)return j;
   const er=new Error((j&&j.error&&j.error.message)||('HTTP '+r.status));er.status=r.status;throw er;
 }
+/* для текста и перевода сначала лёгкие модели с лимитом 500 запросов в сутки, затем обычные */
+const GTRM=['gemini-3.1-flash-lite','gemini-3.1-flash-lite-preview','gemini-3.5-flash-lite',...GTXTS];
 async function gemTextKey(k,prompt,o){
   let last;
-  for(const m of GTXTS){
+  for(const m of GTRM){
     if(aiCool('gemini',k,m))continue;
     try{
       const body={contents:[{parts:[{text:prompt}]}]};
@@ -2529,7 +2531,6 @@ const GTTSM=[
   {m:'gemini-3.8-flash-tts',v:38},
   {m:'gemini-3.8-flash-lite-tts',v:38},
   {m:'gemini-3.1-flash-tts-preview',v:25},
-  {m:'gemini-2.5-flash-preview-tts',v:25},
   {m:'gemini-2.5-flash-tts',v:25}
 ];
 /* семейство 3.8: текст читается как есть, стиль идёт отдельным полем speechMetadata.style */
@@ -2766,8 +2767,8 @@ const aiStt=(blob,o)=>aiTry('stt',(p,k)=>p.stt(k,blob,o||{}),o&&o.pref);
 const ttsHas=()=>aiHas('tts');
 async function ttsOne(text,voice,style){return aiTry('tts',(p,k)=>p.tts(k,text,voice,style))}
 
-/* ---- пакетная озвучка: несколько фраз идут одним запросом (1000-1500 символов, меньше запросов в сутки), затем аудио режется по паузам между фразами ---- */
-const TB_MIN=1000,TB_MAX=1500;
+/* ---- пакетная озвучка: несколько фраз идут одним запросом (до 5000 символов: весь текст целиком, если укладывается в лимит), затем аудио режется по паузам между фразами ---- */
+const TB_MIN=5000,TB_MAX=5000;
 const tbEnd=x=>{x=String(x==null?'':x).replace(/\s+/g,' ').trim();return /[.!?…։:;»”)]$/.test(x)?x:x+'.'};
 function tbGroups(texts){
   const g=[];let cur=[],len=0;
@@ -2840,6 +2841,9 @@ function tbSplitSoft(a,texts){
 async function ttsGroup(texts,voice,style){
   if(texts.length<2)return[await ttsOne(texts[0],voice,style)];
   const a=await ttsOne(texts.map(tbEnd).join('\n'),voice,style);
+  /* запись намного короче текста: модель оборвала длинный ответ, тогда пакет делится пополам */
+  const tot=texts.reduce((q,x)=>q+String(x).length,0);
+  if(a.f.length/a.sr<tot/28){const mid=texts.length>>1;return[...await ttsGroup(texts.slice(0,mid),voice,style),...await ttsGroup(texts.slice(mid),voice,style)]}
   return tbSplit(a,texts)||tbSplitSoft(a,texts);
 }
 async function aiTranslate(part,L){
@@ -4150,6 +4154,7 @@ async function _startRec(){
   mr.ondataavailable=e=>{if(e.data&&e.data.size)blobs.push(e.data)};
   mr.onstop=finishRec;
   mr.start(1000);
+  if(VE.dubReset)VE.dubReset();
   recording=true;t0=performance.now();FX.recStart();
   setSt(t('starting'));banner('');$('#camSel').disabled=true;buildCamMenu();
   if(pmv==='cloud'){cloudStart();setSt(t('cloudRec'),'ok');toast(t('cloudToast'),5000)}
@@ -6688,6 +6693,7 @@ function closeProject(){
   if(url){URL.revokeObjectURL(url);url=null}
   v.removeAttribute('src');v.srcObject=null;
   hasVideo=false;recBlob=null;recDur=0;dur=0;phrases=[];map={};VE.cuts=[];VE.splits=[];VE.tr={};VE.trd={};ovReset();VE.sel=null;VE.selJ=null;curId=null;projName='';vcrop=null;crop=null;scanTok++;shareCache=null;lastSub='';FX.setState(null);ZM.on=false;OUT.on=true;
+  if(VE.dubReset)VE.dubReset();
   applyView();renderAll();updateButtons();setSt(t('stIdle'));
   if(camWanted)initCam();
 }
@@ -6957,7 +6963,7 @@ $('#ttsGen').onclick=async()=>{
   if(!ttsHas()){openGem();return}
   if(TS.run)return;TS.cancel=false;ttsBusy(true);
   try{
-    const parts=splitText(text,1200),outs=[],voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim();
+    const parts=splitText(text,5000),outs=[],voice=$('#ttsVoice').value,style=$('#ttsStyle').value.trim();
     for(let i=0;i<parts.length&&!TS.cancel;i++){
       ttsSt(t('ttsWorking',i+1,parts.length),i/parts.length);
       outs.push(await ttsOne(parts[i],voice,style));
@@ -7516,6 +7522,12 @@ async function trOpen(id){
   const dv=$$('#dVoice');
   VE.voice=()=>(VO.on&&VO.bufs)?VO.bufs:[];VE.voiceMoved=()=>{shareCache=null;if(!v.paused)vpStart();markDirty();renderTL()};
   VE.voiceSet=l=>{VO.bufs=l;shareCache=null;if(!v.paused)vpStart()};
+  /* полный сброс озвучки при новом проекте: куски голоса со скоростью и громкостью, баланс, история правок голоса */
+  VE.dubReset=()=>{
+    try{vpStop()}catch(e){}
+    VO.bufs=null;VO.sig='';VO.lang=null;VO.on=false;VO.vol=.3;VO.gain=1;VO.bg=true;VO.srcs=[];VE.vsel=null;shareCache=null;
+    try{$$('#dBal').value=Math.round((1-VO.vol)*100);$$('#dBg').checked=true;setDub(false);dst('')}catch(e){}
+  };
   VE.voiceDel=b=>{VO.bufs=VO.bufs.filter(z=>z!==b);VE.vsel=null;VE.voiceMoved();buildDock()};
   VE.voiceDup=b=>{const n={s:b.s+b.buf.duration/b.rate+.05,buf:b.buf,rate:b.rate,g:b.g};VO.bufs.push(n);VE.vsel=n;VE.voiceMoved();buildDock()};
   /* разрезать блок голоса по указателю: звук делится на две части, каждую можно двигать, менять скорость и громкость отдельно */
