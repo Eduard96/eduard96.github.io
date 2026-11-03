@@ -7864,12 +7864,18 @@ async function trOpen(id){
     xaBus=null;const tr=await xaOrig();
     try{
       if(VE.bgOn&&VE.bgOn()&&xaMix){xaBus=makeVBus(AC);xaBus.out.connect(xaMix)}
-      if(VO.on&&VO.bufs&&VO.bufs.length&&VO.sig===vsig()&&tr&&ADEST&&xaMix){
-        xaMix.gain.value=VO.vol;const dg=AC.createGain();dg.gain.value=VO.gain;dg.connect(ADEST);
+      const has=!!(VO.on&&VO.bufs&&VO.bufs.length);
+      if(has&&tr&&ADEST){
+        /* голос идёт в экспорт, даже если текст менялся после его создания (тогда предупреждаем); при упрощённом пути звука (нет xaMix) голос подключается прямо к выходу */
+        if(xaMix)xaMix.gain.value=VO.vol;
+        const dg=AC.createGain();dg.gain.value=VO.gain;dg.connect(ADEST);
         v.addEventListener('play',()=>{
           const t0=AC.currentTime+0.05,sp=cutSpans();
           VO.bufs.forEach(b=>{const src=AC.createBufferSource();src.buffer=b.buf;src.playbackRate.value=b.rate;const gb=AC.createGain();gb.gain.value=(b.g==null?1:b.g);gb.connect(dg);src.connect(gb);src.start(t0+shiftT(b.s,sp));VO.srcs.push(src)});
         },{once:true});
+        if(VO.sig!==vsig())toast(x('Голос создан для прежнего текста и идёт в экспорт как есть. Создайте его заново, если текст менялся.','The voice was made for the previous text and is exported as is. Generate it again if you edited the text.'),7000);
+      }else if(has){
+        toast(x('Голос не попал в экспорт: не удалось получить звук для записи. Попробуйте экспорт ещё раз.','The voice did not reach the export: the audio for recording was unavailable. Try the export again.'),8000);
       }
     }catch(_){}
     return tr;
