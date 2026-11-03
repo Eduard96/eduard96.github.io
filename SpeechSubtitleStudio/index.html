@@ -4905,10 +4905,17 @@ function duckTick(){
 function exportAudioTrack(){audioPlayback();
   try{
     const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
-    if(!AC){AC=new C();ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}
+    if(!AC)AC=new C();
     if(AC.state==='suspended')AC.resume();
-    ASRC.disconnect();
-    ADEST=AC.createMediaStreamDestination();ASRC.connect(ADEST);
+    ADEST=AC.createMediaStreamDestination();
+    let ok=false;
+    /* источник из видео мог быть ещё не создан (контекст появился из другого места): создаём его здесь */
+    if(!ASRC){try{ASRC=AC.createMediaElementSource(v);ASRC.connect(AC.destination)}catch(e){ASRC=null}}
+    if(ASRC){try{ASRC.disconnect()}catch(e){}try{ASRC.connect(ADEST);ok=true}catch(e){}}
+    /* запасной путь без источника: звук берётся прямо из потока видео */
+    if(!ok){
+      try{const cst=(v.captureStream||v.mozCaptureStream).call(v),at=cst.getAudioTracks()[0];if(at){AC.createMediaStreamSource(new MediaStream([at])).connect(ADEST);ok=true}}catch(e){}
+    }
     return ADEST.stream.getAudioTracks()[0]||null;
   }catch(e){return null}
 }
@@ -7875,7 +7882,7 @@ async function trOpen(id){
         },{once:true});
         if(VO.sig!==vsig())toast(x('Голос создан для прежнего текста и идёт в экспорт как есть. Создайте его заново, если текст менялся.','The voice was made for the previous text and is exported as is. Generate it again if you edited the text.'),7000);
       }else if(has){
-        toast(x('Голос не попал в экспорт: не удалось получить звук для записи. Попробуйте экспорт ещё раз.','The voice did not reach the export: the audio for recording was unavailable. Try the export again.'),8000);
+        toast(x('Голос не попал в экспорт: не удалось получить звук для записи. Попробуйте экспорт ещё раз. [','The voice did not reach the export: the audio for recording was unavailable. Try the export again. [')+(AC?AC.state:'noAC')+'/'+(ASRC?'src':'nosrc')+'/'+(tr?'track':'notrack')+'/'+(ADEST?'dest':'nodest')+']',9000);
       }
     }catch(_){}
     return tr;
