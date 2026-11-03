@@ -2267,6 +2267,10 @@ function listSplit(p,src){
 }
 
 /* ---- свой текст и файлы субтитров (.srt, .vtt, .txt): блоки идут друг за другом, без наложения ---- */
+/* язык текста по алфавиту: армянский, кириллица или латиница; если букв нет, остаётся прежний язык */
+function textScript(tx){let a=0,c=0,l=0;for(const ch of String(tx)){const k=ch.codePointAt(0);if(k>=0x531&&k<=0x58F)a++;else if(k>=0x400&&k<=0x4FF)c++;else if((k>=65&&k<=90)||(k>=97&&k<=122)||(k>=0xC0&&k<=0x24F))l++}const m=Math.max(a,c,l);if(!m)return'';return m===a?'arm':m===c?'cyr':'lat'}
+const langScript=code=>({hy:'arm',ru:'cyr',uk:'cyr',bg:'cyr',be:'cyr',sr:'cyr',kk:'cyr'})[String(code||'').split('-')[0].toLowerCase()]||'lat';
+function detectLang(tx,fb){const sc=textScript(tx);if(!sc)return fb;return langScript(fb)===sc?fb:({arm:'hy',cyr:'ru',lat:'en'})[sc]}
 const estDur=tx=>Math.max(1.2,String(tx).length/14.5+.3);
 /* ближайшее свободное место для блока длиной d, начиная с s0 */
 function freeStart(s0,d){
@@ -2300,7 +2304,7 @@ function addPhrases(items,replace){
   items.forEach(it=>{
     let s,e;
     if(it.s!=null){s=it.s;e=it.e}else{s=cur;e=s+estDur(it.t);cur=e+.05}
-    made.push({s,e,l:lang,t:it.t,raw:it.t,cut:false});
+    made.push({s,e,l:it.l||detectLang(it.t,lang),t:it.t,raw:it.t,cut:false});
   });
   made.sort((a,b)=>a.s-b.s);
   for(let i=0;i<made.length-1;i++)if(made[i].e>made[i+1].s)made[i].e=Math.max(made[i].s+.3,made[i+1].s-.02);
@@ -4341,7 +4345,7 @@ function renderList(force){
       const raw=tx.textContent,t=raw.replace(/\s+/g,' ').trim(),multi=/\n/.test(raw.trim());
       if(t===p.t&&!multi)return;
       (p.hist=p.hist||[]).push(p.t);if(p.hist.length>10)p.hist.shift();
-      p.t=t;p.raw=t;
+      p.t=t;p.raw=t;if(t)p.l=detectLang(t,p.l);
       const added=t?listSplit(p,multi?raw:t):0;
       buildPhrase(p);save();
       if(added){
@@ -7532,7 +7536,8 @@ async function trOpen(id){
   }
   async function translateTo(code,chip){
     if(busyT||passing||!phrases.some(p=>p.t))return;
-    if(!orig){phrases.forEach(p=>{if(p.o===undefined){p.o=p.t;p.oraw=p.raw}});orig=phrases.map(p=>[p,p.o,p.oraw])}
+    /* список исходных текстов обновляется каждый раз: сюда попадают и добавленные позже фразы */
+    phrases.forEach(p=>{if(p.o===undefined){p.o=p.t;p.oraw=p.raw}});orig=phrases.map(p=>[p,p.o,p.oraw]);
     tchips.forEach(c=>c.classList.toggle('active',c===chip));busyT=true;let n=0;prog(x('Перевод','Translating'),0);
     try{
       for(const [p,t0,r0] of orig){
@@ -7549,7 +7554,7 @@ async function trOpen(id){
   let tgt='en',modeBusy=false,modeMsg='';
   async function ensureTx(code){
     const ps=phrases.filter(q=>q.t&&!q.cut);
-    if(!orig){phrases.forEach(q=>{if(q.o===undefined){q.o=q.t;q.oraw=q.raw}});orig=phrases.map(q=>[q,q.o,q.oraw])}
+    phrases.forEach(q=>{if(q.o===undefined){q.o=q.t;q.oraw=q.raw}});orig=phrases.map(q=>[q,q.o,q.oraw]);
     let n=0;
     for(const q of ps){
       const from=lc(q.l||lang);n++;
