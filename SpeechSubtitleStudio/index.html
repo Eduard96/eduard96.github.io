@@ -5256,6 +5256,17 @@ async function xdiag(b,exp,n){
     $('#ibox').classList.add('show');
   }catch(x){toast('diag err '+x,10000)}
 }
+/* экспорт всегда начинается с нуля: ждём, пока видео реально встанет на начало и покажет кадр (на телефонах перемотка идёт не мгновенно) */
+async function seekExportStart(){
+  try{v.pause()}catch(e){}
+  if(v.currentTime>0.001||v.seeking){
+    await new Promise(res=>{let done=false;const fin=()=>{if(done)return;done=true;v.removeEventListener('seeked',fin);res()};v.addEventListener('seeked',fin);try{v.currentTime=0}catch(e){}setTimeout(fin,4000)});
+  }
+  if(v.readyState<3){
+    await new Promise(res=>{let done=false;const fin=()=>{if(done)return;done=true;v.removeEventListener('canplay',fin);res()};v.addEventListener('canplay',fin);setTimeout(fin,3000)});
+  }
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+}
 async function exportVideo(target){
   if(!hasVideo||exporting||recording||passing)return;
   const dc=(vcrop&&vcrop.x+vcrop.w<=v.videoWidth&&vcrop.y+vcrop.h<=v.videoHeight)?vcrop:null;
@@ -5339,6 +5350,7 @@ async function exportVideo(target){
   $('#xpct').textContent='0%';$('#xbar').value=0;$('#xbox').classList.add('show');
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
   await ovPrepExport();
+  await seekExportStart();
   try{await v.play()}catch(e){}
   rc.xs=performance.now();r2.start(isIOSdev()?undefined:1000);
 }
@@ -7672,7 +7684,7 @@ async function trOpen(id){
     const nb={s:T,buf:B,rate:b.rate,g:b.g};b.buf=A;VO.bufs.splice(VO.bufs.indexOf(b)+1,0,nb);VE.vsel=nb;VE.voiceMoved();buildDock();
     toast(x('Голос разрезан на две части.','The voice was split in two.'),2500);
   };
-  if(location.hash==='#fxdebug')window.__vo={set:arr=>{VO.on=true;VO.bufs=arr;VO.sig=vsig();renderTL()},get:()=>(VO.bufs||[]).map(b=>({s:+b.s.toFixed(2),d:+(b.buf.duration/b.rate).toFixed(2)}))};
+  if(location.hash==='#fxdebug')window.__vo={playing:()=>VO.srcs.length,sigOk:()=>VO.sig===vsig(),set:arr=>{VO.on=true;VO.bufs=arr;VO.sig=vsig();renderTL()},get:()=>(VO.bufs||[]).map(b=>({s:+b.s.toFixed(2),d:+(b.buf.duration/b.rate).toFixed(2)}))};
   VOICES.forEach(q=>{const o=document.createElement('option');o.value=q[0];o.textContent=q[0]+' · '+q[1];dv.appendChild(o)});
   try{dv.value=localStorage.getItem('substudio-fvoice')||'Kore'}catch(_){}
   dv.onchange=()=>{try{localStorage.setItem('substudio-fvoice',dv.value)}catch(_){}};
@@ -7810,7 +7822,10 @@ async function trOpen(id){
   function vpStop(){if(exporting)return;VO.srcs.forEach(q=>{try{q.stop()}catch(_){}});VO.srcs=[];if(!exporting)v.volume=1}
   function vpStart(){
     vpStop();
-    if(!VO.on||!VO.bufs||!VO.bufs.length||exporting||passing||VO.sig!==vsig()||!AC)return;
+    if(!VO.on||!VO.bufs||!VO.bufs.length||exporting||passing||VO.sig!==vsig())return;
+    /* после повторного открытия приложения звукового контекста ещё нет: создаём его при запуске воспроизведения */
+    if(!AC&&!audioGraph())return;
+    if(AC.state==='suspended'){try{AC.resume()}catch(e){}}
     const now=AC.currentTime,t0=v.currentTime;v.volume=VO.vol;const gn=AC.createGain();gn.gain.value=VO.gain;gn.connect(AC.destination);
     VO.bufs.forEach(b=>{
       if(b.s+b.buf.duration/b.rate<=t0)return;
