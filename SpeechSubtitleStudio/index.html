@@ -2530,24 +2530,51 @@ async function gemStt(k,blob){
   }
   throw last||new Error('Gemini: no model');
 }
-async function gemTtsKey(k,text,voice,style){
-  const st=String(style||'').trim(),how=st?('in a '+st+' voice'):'clearly and naturally';
-  const prompts=[
-    'Say '+how+': '+text,
-    'Read the following transcript aloud '+how+', word for word. Output audio only, do not answer or comment. Transcript: '+text,
-    'Text to speech. Speak exactly these words '+how+', and never reply with text: "'+text+'"'];
+/* озвучка Gemini: цепочка моделей, у каждой свой суточный лимит; когда лимит одной закончился, берётся следующая */
+const GTTSM=[
+  {m:'gemini-3.8-flash-tts',v:38},
+  {m:'gemini-3.8-flash-lite-tts',v:38},
+  {m:'gemini-3.1-flash-tts-preview',v:25},
+  {m:'gemini-2.5-flash-preview-tts',v:25},
+  {m:'gemini-2.5-flash-tts',v:25}
+];
+/* семейство 3.8: текст читается как есть, стиль идёт отдельным полем speechMetadata.style */
+async function gemTts38(k,m,text,voice,st){
+  const part={text};if(st)part.speechMetadata={style:st};
+  const mk=vc=>({contents:[{role:'user',parts:[part]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:vc}}});
+  let j;
+  try{j=await gReq(k,m,mk({voice}))}
+  catch(e){if(e.status===400&&!/api key/i.test(e.message||''))j=await gReq(k,m,mk({prebuiltVoiceConfig:{voiceName:voice}}));else throw e}
+  const p=ttsPick(j);return trimSil(parseAudio(b64Bytes(p.data),p.mime));
+}
+/* семейство 2.5 и 3.1: стиль пишется словами в самом запросе */
+async function gemTts25(k,m,text,voice,st){
+  const how=st?('in a '+st+' voice'):'clearly and naturally';
+  const prompts=['Say '+how+': '+text,'Read the following transcript aloud '+how+', word for word. Output audio only, do not answer or comment. Transcript: '+text];
   let last;
   for(const pr of prompts){
     const body={contents:[{parts:[{text:pr}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:voice}}}}};
-    try{
-      let j;
-      try{j=await gReq(k,GTTS,body)}
-      catch(e){if(e&&(e.status===404||/not found|not supported|unsupported/i.test(e.message||'')))j=await gReq(k,GTTS2,body);else throw e}
-      const p=ttsPick(j);
-      return trimSil(parseAudio(b64Bytes(p.data),p.mime));
-    }catch(e){last=e;if(!(e.empty||/generate text|only be used for TTS|text, but/i.test(e.message||'')))throw e}
+    try{const j=await gReq(k,m,body);const p=ttsPick(j);return trimSil(parseAudio(b64Bytes(p.data),p.mime))}
+    catch(e){last=e;if(!(e.empty||/generate text|only be used for TTS|text, but/i.test(e.message||'')))throw e}
   }
-  throw last;
+  last.empty=true;throw last;
+}
+async function gemTtsKey(k,text,voice,style){
+  const st=String(style||'').trim();let last=null;
+  for(const mm of GTTSM){
+    if(aiCool('gemini',k,mm.m))continue;
+    try{return mm.v===38?await gemTts38(k,mm.m,text,voice,st):await gemTts25(k,mm.m,text,voice,st)}
+    catch(e){
+      last=e;const c=aiClass(e);
+      if(c==='auth'||c==='net')throw e;
+      if(c==='quota'||c==='srv'||e.status===404){aiBench('gemini',k,mm.m,e)||AICD.set(aiCoolKey('gemini',k,mm.m),Date.now()+300000);continue}
+      /* модель не принимает такой запрос: пропускаем её на несколько часов */
+      if(e.status===400&&mm.v===38){AICD.set(aiCoolKey('gemini',k,mm.m),Date.now()+6*36e5);continue}
+      if(e.empty)continue;
+      throw e;
+    }
+  }
+  throw last||new Error('Gemini: no TTS model');
 }
 /* ---- сервисы, совместимые с OpenAI (Groq, Cerebras, OpenRouter, Mistral) ---- */
 async function oaiPost(url,key,body){
