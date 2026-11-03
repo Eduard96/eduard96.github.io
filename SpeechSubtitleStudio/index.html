@@ -1133,6 +1133,11 @@ input[type=checkbox],input[type=radio]{accent-color:#111}
 .vbox .vclose{margin-top:6px;height:52px;font-size:17px;flex:none}
 /* ===== NEO-BRUTAL END ===== */
 
+
+.addtxt{margin:6px 0 10px}
+.addtxt textarea{width:100%;box-sizing:border-box;min-height:74px;padding:10px;font-weight:600;line-height:1.35;resize:vertical}
+.addbtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.addbtns .nb{flex:1 1 auto}
 </style>
 </head>
 <body>
@@ -2259,6 +2264,48 @@ function listSplit(p,src){
   parts.forEach((t,i)=>{const dd=d*w[i]/tot;if(i===0){p.t=t;p.raw=t;p.e=cur+dd}else made.push({s:cur,e:cur+dd,l:p.l,t,raw:t,cut:p.cut,sp:1});cur+=dd});
   phrases.splice(phrases.indexOf(p)+1,0,...made);made.forEach(buildPhrase);
   return made.length;
+}
+
+/* ---- свой текст и файлы субтитров (.srt, .vtt, .txt): блоки идут друг за другом, без наложения ---- */
+const estDur=tx=>Math.max(1.2,String(tx).length/14.5+.3);
+/* ближайшее свободное место для блока длиной d, начиная с s0 */
+function freeStart(s0,d){
+  let s=Math.max(0,s0);
+  const arr=phrases.filter(p=>p.t).slice().sort((a,b)=>a.s-b.s);
+  for(let k=0;k<2;k++)for(const p of arr){if(p.e>s&&p.s<s+d)s=p.e+.05}
+  return s;
+}
+function parseSubs(src){
+  const text=String(src||'').replace(/^﻿/,'').replace(/\r\n?/g,'\n').trim();
+  if(!text)return[];
+  const tsec=x=>{const m=/(?:(\d+):)?(\d+):(\d+)[,.](\d+)/.exec(x);return m?(+(m[1]||0))*3600+(+m[2])*60+(+m[3])+(+('0.'+m[4])):NaN};
+  const out=[];let timed=false;
+  text.split(/\n{2,}/).forEach(b=>{
+    const ln=b.split('\n').map(x=>x.trim()).filter(Boolean),i=ln.findIndex(x=>x.includes('-->'));
+    if(i<0)return;
+    const m=ln[i].split('-->'),s=tsec(m[0]),e=tsec(m[1]);
+    const tx=ln.slice(i+1).join(' ').replace(/<[^>]*>/g,'').replace(/\{[^}]*\}/g,'').replace(/\s+/g,' ').trim();
+    if(isFinite(s)&&isFinite(e)&&tx){out.push({s,e:Math.max(e,s+.3),t:tx});timed=true}
+  });
+  if(timed)return out.sort((a,b)=>a.s-b.s);
+  return text.split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(x=>x&&!/^WEBVTT/i.test(x)&&!/^\d+$/.test(x)).map(tx=>({t:tx}));
+}
+/* items: [{t}] без времени (встают по очереди после последнего блока) или [{s,e,t}] со временем (replace=true заменяет весь текст) */
+function addPhrases(items,replace){
+  if(!items.length)return[];
+  if(replace)phrases.length=0;
+  let cur=0;
+  if(!replace){phrases.forEach(p=>{if(p.t)cur=Math.max(cur,p.e)});if(cur>0)cur+=.1}
+  const made=[];
+  items.forEach(it=>{
+    let s,e;
+    if(it.s!=null){s=it.s;e=it.e}else{s=cur;e=s+estDur(it.t);cur=e+.05}
+    made.push({s,e,l:lang,t:it.t,raw:it.t,cut:false});
+  });
+  made.sort((a,b)=>a.s-b.s);
+  for(let i=0;i<made.length-1;i++)if(made[i].e>made[i+1].s)made[i].e=Math.max(made[i].s+.3,made[i+1].s-.02);
+  phrases.push(...made);phrases.sort((a,b)=>a.s-b.s);made.forEach(buildPhrase);
+  return made;
 }
 /* «вернуть» для одной строки: отделённый кусок склеивается с предыдущим, обычная правка откатывается к прежнему тексту */
 function undoRow(p){
@@ -3902,7 +3949,7 @@ void main(){
     _dbg:{setMask,state:()=>({segOK})}
   };
 })();
-if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={split:t=>autoSplit(t),chunks:()=>allC().map(c=>c.t),phr:()=>phrases.map(p=>({t:p.t,sp:!!p.sp,h:(p.hist||[]).length,s:+p.s.toFixed(2),e:+p.e.toFixed(2)})),pvo:()=>({run:PVO.run,t:PVO.t}),outro:(c,W,H,t,snap)=>drawOutro(c,W,H,t,snap),OUT:()=>OUT,fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);renderAll()},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
+if(location.hash==='#fxdebug'){window.__FX=FX;window.__rc=rc;window.__app={undo:()=>hUndo(),split:t=>autoSplit(t),chunks:()=>allC().map(c=>c.t),phr:()=>phrases.map(p=>({t:p.t,sp:!!p.sp,h:(p.hist||[]).length,s:+p.s.toFixed(2),e:+p.e.toFixed(2)})),pvo:()=>({run:PVO.run,t:PVO.t}),outro:(c,W,H,t,snap)=>drawOutro(c,W,H,t,snap),OUT:()=>OUT,fps:()=>({recFps,cam:camFps()}),zoomAt:t=>zoomAt(t),zoomSet:(on)=>{ZM.on=on;ZM.cx=.3;ZM.cy=.3;shareCache=null},addPhraseAt:(s,e,t)=>{const p={s,e,l:'ru',t,cut:false};phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);renderAll()},broll:()=>VE.autoBroll(),ovs:()=>VE.ov.map(o=>({kind:o.kind,s:+o.s.toFixed(2),d:+o.d.toFixed(2),w:+o.w.toFixed(2),lane:o.ln,cr:o._cr,src:o._src})),addPhrase:t=>{const p={s:0,e:2,l:'en',t,cut:false};phrases.push(p);buildPhrase(p)},pass:()=>passing,cutPauses:()=>vCutPauses(),cuts:()=>VE.cuts.map(c=>c.slice()),openMedia:()=>VE.openMedia(),open:id=>openProject(id),cur:()=>curId,st:()=>({recording,hasVideo,recDur,size:recBlob&&recBlob.size,type:recBlob&&recBlob.type,exporting,sc:!!shareCache,srcOk:v.src===url,pct:$('#xpct').textContent,h3:$('#xbox h3').textContent}),exp:x=>exportVideo(x),blob:()=>recBlob,share:()=>shareCache}}
 
 /* ---------- шумоподавление голоса: RNNoise (нейросеть, WebAssembly), считается на устройстве ---------- */
 const DN=(function(){
@@ -5362,7 +5409,7 @@ $('#edel').onclick=()=>{if(ec){dropChunk(ec);save();renderAll()}closeEd()};
 $('#eadd').onclick=()=>{
   if(!hasVideo||recording||exporting||passing)return;
   v.pause();
-  const now=v.currentTime;
+  const now=freeStart(v.currentTime,2.5);
   const p={s:now,e:now+2.5,l:lang,t:t('newPhrase'),cut:false};
   phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);save();renderAll();
   openEd(p.c[0],true);
@@ -6146,7 +6193,7 @@ const ovSnap=o=>({r:o.r||1,ln:o.ln,main:!!o.main,id:o.id,kind:o.kind,name:o.name
 
 /* ---- история правок: отмена по одному шагу ---- */
 const H={u:[],cur:null,t:0,busy:false};
-function hState(){return{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,pc:phrases.map(p=>!!p.cut),ov:VE.ov.map(ovSnap),vo:(VE.voice?VE.voice():[]).map(b=>[b.s,b.rate,b.g==null?1:b.g]),vref:(VE.voice?VE.voice():[]).slice()}}
+function hState(){return{cuts:VE.cuts.map(c=>c.slice()),splits:VE.splits.slice(),tr:Object.assign({},VE.tr),trd:Object.assign({},VE.trd),trDef:VE.trDef,pc:phrases.map(p=>!!p.cut),ov:VE.ov.map(ovSnap),vo:(VE.voice?VE.voice():[]).map(b=>[b.s,b.rate,b.g==null?1:b.g]),vref:(VE.voice?VE.voice():[]).slice(),ph:phrases.map(p=>({s:p.s,e:p.e,l:p.l,t:p.t,raw:p.raw,cut:!!p.cut,sp:p.sp||0,tx:p.tx,o:p.o,oraw:p.oraw,c:(p.c||[]).map(x=>[x.t,x.s,x.e])}))}}
 const hStr=st=>JSON.stringify(st,(k,v)=>k==='vref'?undefined:v);
 function hBase(){const st=hState();H.cur={s:hStr(st),st};H.t=0}
 function hCommit(){
@@ -6161,7 +6208,16 @@ function hCommit(){
 function hApply(st){
   H.busy=true;
   VE.cuts=st.cuts.map(c=>c.slice());VE.splits=st.splits.slice();VE.tr=Object.assign({},st.tr);VE.trd=Object.assign({},st.trd);VE.trDef=st.trDef;
-  phrases.forEach((p,i)=>{if(i<st.pc.length)p.cut=st.pc[i]});
+  if(st.ph){
+    /* тексты возвращаются целиком: добавленные, удалённые и исправленные фразы вместе с блоками */
+    phrases.length=0;
+    st.ph.forEach(q=>{
+      const p={s:q.s,e:q.e,l:q.l,t:q.t,raw:q.raw,cut:q.cut};
+      if(q.sp)p.sp=q.sp;if(q.tx!==undefined)p.tx=q.tx;if(q.o!==undefined){p.o=q.o;p.oraw=q.oraw}
+      p.c=q.c.map(([tx,s0,e0])=>({g:p,t:tx,s:s0,e:e0}));phrases.push(p);
+    });
+    VE.tsel=null;map={};
+  }else phrases.forEach((p,i)=>{if(i<st.pc.length)p.cut=st.pc[i]});
   const keep=new Set(st.ov.map(o=>o.id)),cur=new Map(VE.ov.map(o=>[o.id,o]));
   VE.ov.filter(o=>!keep.has(o.id)).forEach(ovDrop);
   VE.ov=st.ov.map(r=>{
@@ -6529,7 +6585,7 @@ function txSplit(c){
   save();renderAll();buildDock();
 }
 function txDup(c){
-  const g=c.g,d=c.e-c.s,p={s:c.e,e:c.e+d,l:g.l,t:c.t,cut:false};
+  const g=c.g,d=c.e-c.s,s0=freeStart(c.e,d),p={s:s0,e:s0+d,l:g.l,t:c.t,cut:false};
   phrases.push(p);phrases.sort((a,b)=>a.s-b.s);buildPhrase(p);
   VE.tsel=p.c[0]||null;save();renderAll();buildDock();
 }
@@ -7371,8 +7427,8 @@ async function trOpen(id){
   const ST=[x('Видео','Video'),x('Текст','Text'),x('Озвучка','Dub'),x('Стиль','Style'),x('Дорожки','Tracks'),x('Экспорт','Export')];
   $$('#fsteps').innerHTML=ST.map((l,i)=>'<button data-n="'+(i+1)+'"><i></i><span>'+l+'</span></button>').join('');
   $$('#flow').innerHTML=`<div id="fbody">
- <div class="fp" data-p="1"><div class="seg2"><button class="on" id="m1R">${x('Запись','Record')}</button><button id="m1U">${ico('upload')}${x('Загрузить видео','Upload video')}</button></div><input type="file" id="fUp" accept="video/*" hidden><div class="recw"><button id="fRec" aria-label="Record"><span></span></button><div class="fh">${x('Нажмите, чтобы снимать — субтитры появляются сразу','Tap to record — subtitles appear live')}</div></div><div id="f1extra"><div class="fh" id="f1drop">${l3('или перетащите видеофайл в окно','or drop a video file into the window','կամ քաշեք տեսաֆայլը պատուհանի մեջ')}</div><button class="nb sm" id="f1prj" type="button">${l3('Открыть проект','Open a project','Բացել նախագիծ')}</button></div></div>
- <div class="fp" data-p="2"><div class="rowt" id="stHost"></div><div class="fh" id="f2h" style="text-align:left;margin-top:6px"></div><div class="sec">${x('Язык речи','Spoken language')}</div><div id="langHost"></div><div class="sec">${x('Перевод','Translate to')}</div><div class="chiprow"><button class="chip active" data-tl="">${x('Нет','None')}</button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button></div><div class="sec">${x('Текст','Transcript')}</div><div id="listHost"></div></div>
+ <div class="fp" data-p="1"><div class="seg2"><button class="on" id="m1R">${x('Запись','Record')}</button><button id="m1U">${ico('upload')}${x('Загрузить видео','Upload video')}</button></div><input type="file" id="fUp" accept="video/*" hidden><div class="recw"><button id="fRec" aria-label="Record"><span></span></button><div class="fh">${x('Нажмите, чтобы снимать — субтитры появляются сразу','Tap to record — subtitles appear live')}</div></div><div id="f1extra"><div class="fh" id="f1drop">${l3('или перетащите видеофайл в окно','or drop a video file into the window','կամ քաշեք տեսաֆայլը պատուհանի մեջ')}</div><button class="nb sm" id="f1prj" type="button">${l3('Открыть проект','Open a project','Բացել նախագիծ')}</button></div><button class="nb sm" id="m1Txt" type="button" style="margin-top:12px;width:100%">+ ${x('Свой текст','Add own text')}</button></div>
+ <div class="fp" data-p="2"><div class="rowt" id="stHost"></div><div class="fh" id="f2h" style="text-align:left;margin-top:6px"></div><div class="sec">${x('Язык речи','Spoken language')}</div><div id="langHost"></div><div class="sec">${x('Перевод','Translate to')}</div><div class="chiprow"><button class="chip active" data-tl="">${x('Нет','None')}</button><button class="chip" data-tl="en">EN</button><button class="chip" data-tl="ru">RU</button><button class="chip" data-tl="hy">ՀԱՅ</button></div><div class="sec">${x('Текст','Transcript')}</div><div class="addtxt"><textarea id="addTxtIn" class="sel" rows="3" placeholder="${x('Вставьте или напишите свой текст: каждая строка станет субтитром','Paste or type your own text: each line becomes a subtitle')}"></textarea><div class="addbtns"><button class="nb sm pri" id="addTxtBtn" type="button">+ ${x('Добавить','Add')}</button><button class="nb sm" id="srtBtn" type="button">${x('Загрузить .srt / .txt','Load .srt / .txt')}</button></div><input type="file" id="srtIn" accept=".srt,.vtt,.txt,text/plain,application/x-subrip" hidden></div><div id="listHost"></div></div>
  <div class="fp" data-p="3"><div class="seg2"><button class="on" id="dNo">${x('Без озвучки','No dub')}</button><button id="dYes">${ico('mic')}${x('Озвучить','Dub')}</button></div><div id="dCtl" style="display:none"><div class="sec">${x('Голос','Voice')}</div><div class="vsel"><select id="dVoice"></select></div><div class="sec">${x('Стиль голоса','Voice style')}</div><div class="chiprow" id="dStyles"></div><input id="dStyleTxt" class="sel" placeholder="${x('Свой стиль, например: как диктор новостей','Custom style, e.g. like a news anchor')}"><div class="sec balrow"><span>${x('Оригинал','Original')}</span><span>${x('Озвучка','Dub')}</span></div><input type="range" id="dBal" min="0" max="100" value="70"><label class="chk"><input type="checkbox" id="dBg" checked><span>${x('Убирать голос автора, оставляя фоновые звуки','Remove the speaker\u2019s voice, keep background sounds')}</span></label><input id="dKey" type="password" autocomplete="off" placeholder="Gemini API key (AIza…)" class="sel"><div class="dbox" id="dBox" style="display:none"><span id="fh3"></span><button class="nb sm" id="dRetry">${x('Повторить','Retry')}</button></div><details id="dDet"><summary>${x('Тайминг голоса','Voice timing')}</summary><div id="faudio"></div></details></div></div>
  <div class="fp" data-p="4" id="styleHost"></div>
  <div class="fp" data-p="5"><div class="sec">${x('Дорожки','Tracks')}</div><div class="fh">${x('Все дорожки в одном месте: видео, слои, голос, переходы. Двигайте, режьте, добавляйте.','All tracks in one place: video, layers, voice, transitions. Move, split, add.')}</div><button class="nb pri" id="fTracks" type="button" style="width:100%;margin-top:12px">${ico('scissors')}${x('Открыть дорожки','Open tracks')}</button></div>
@@ -7406,6 +7462,36 @@ async function trOpen(id){
     $$('#fbody').scrollTop=0;
   }
   sb.forEach(b=>b.onclick=()=>setStep(+b.dataset.n));
+  /* свой текст: кнопка +, поле для вставки и файл .srt/.txt */
+  {
+    const needVid=()=>{if(hasVideo)return false;toast(x('Сначала запишите или загрузите видео.','Record or upload a video first.'),3500);return true};
+    const done=made=>{save();renderAll();try{buildDock()}catch(e){}if(made&&made.length)toast(x('Добавлено блоков: ','Blocks added: ')+made.length,2500)};
+    $$('#addTxtBtn').onclick=()=>{
+      if(needVid())return;
+      const raw=$$('#addTxtIn').value.trim();
+      let made;
+      if(!raw){
+        /* пустое поле: добавляется заготовка, её можно сразу править или вставить в неё текст */
+        made=addPhrases([{t:t('newPhrase')}],false);done(null);
+        const r=rows.get(made[0]);if(r){const q=r.querySelector('.tx');if(q){r.scrollIntoView({block:'center'});q.focus();try{document.execCommand('selectAll')}catch(e){}}}
+        return;
+      }
+      const items=parseSubs(raw),timed=items.some(q=>q.s!=null);
+      made=addPhrases(items,timed);$$('#addTxtIn').value='';done(made);
+    };
+    $$('#srtBtn').onclick=()=>{if(!needVid())$$('#srtIn').click()};
+    $$('#srtIn').onchange=async e=>{
+      const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+      let tx='';try{tx=await f.text()}catch(err){}
+      const items=parseSubs(tx);
+      if(!items.length){toast(x('В файле не нашёл текст.','No text found in the file.'),4000);return}
+      const timed=items.some(q=>q.s!=null);
+      done(addPhrases(items,timed));
+      toast(timed?x('Субтитры из файла заменили текст.','Subtitles from the file replaced the text. Undo is available.'):x('Текст из файла добавлен по порядку.','Text from the file added in order.'),4000);
+    };
+    $$('#m1Txt').onclick=()=>{if(needVid())return;setStep(2);setTimeout(()=>{try{$$('#addTxtIn').focus()}catch(e){}},50)};
+  }
+
   {const hb=document.createElement('div');hb.className='subhint';
    const ht=document.createElement('div');ht.className='fh';ht.textContent=x('Субтитры можно перетащить пальцем прямо на видео.','Drag the subtitles with your finger right on the video.');
    const rb=document.createElement('button');rb.type='button';rb.className='nb sm';rb.textContent=x('Сбросить','Reset');rb.onclick=()=>{SUBP.x=.5;SUBP.y=.78;lastLay='';shareCache=null;markDirty()};
