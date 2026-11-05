@@ -1,6 +1,6 @@
 /* Subtitle Studio: оболочка приложения доступна без сети.
    Страница и манифест берутся из сети в первую очередь, чтобы обновления приходили сразу. */
-const V = 'ss-v44';
+const V = 'ss-v45';
 const CDN = 'ss-cdn'; /* Edit Assistant library from the CDN: cached after the first load so it works offline */
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'vendor/mp4-muxer.mjs', 'vendor/webm-muxer.mjs', 'edit-assistant.js'];
 self.addEventListener('install', e => {

@@ -23,6 +23,7 @@
   btn.className = 'mi'; btn.id = 'mEA'; btn.type = 'button';
 
   function paint() {
+    try { paintT(); } catch (e) {}
     btn.disabled = false;
     if (busy) {
       btn.textContent = '⏳ Edit Assistant ' + pct + '%';
@@ -149,10 +150,14 @@
     return { step: +(document.body.dataset.step || 1), recording: !!App().recording, hasVideo: !!App().hasVideo };
   }
 
-  async function parse(text) {
+  async function parse(text) { return (await parseEx(text)).a; }
+
+  async function parseEx(text) {
+    const t0 = performance.now();
+    const ms = () => Math.round(performance.now() - t0);
     const f = fast(text);
-    if (f) return f;
-    if (!store.get()) return { action: 'none' };
+    if (f) return { a: f, src: 'words', ms: ms() };
+    if (!store.get()) return { a: { action: 'none' }, src: 'no-model', ms: ms() };
     const e = await ensure();
     const st = state();
     const r = await e.chat.completions.create({
@@ -164,9 +169,9 @@
     });
     try {
       const j = JSON.parse(r.choices[0].message.content);
-      if (j && ACTIONS.includes(j.action)) return j;
+      if (j && ACTIONS.includes(j.action)) return { a: j, src: 'qwen', ms: ms() };
     } catch (err) {}
-    return { action: 'none' };
+    return { a: { action: 'none' }, src: 'qwen', ms: ms() };
   }
 
   function click(sel) {
@@ -196,7 +201,92 @@
 
   async function command(text) { const a = await parse(text); return { action: a, done: run(a) }; }
 
-  window.EditAssistant = { install, ensure, parse, run, command, isInstalled: () => store.get(), MODEL };
+
+  /* ---------- test panel (Settings → Test Edit Assistant) ---------- */
+  const tbtn = document.createElement('button');
+  tbtn.id = 'mEAT'; tbtn.type = 'button'; tbtn.className = 'nb';
+  let panel = null, rec = null;
+
+  function paintT() {
+    tbtn.style.display = store.get() ? '' : 'none';
+    tbtn.textContent = '🎤 ' + L('Проверить Edit Assistant', 'Test Edit Assistant', 'Փորձարկել Edit Assistant');
+  }
+
+  function buildPanel() {
+    const d = document.createElement('div');
+    d.className = 'ovl'; d.id = 'eaPanel'; d.style.touchAction = 'auto';
+    d.innerHTML = '<div class="box" style="text-align:left">' +
+      '<h3 id="eaT"></h3><p id="eaH"></p>' +
+      '<input id="eaIn" type="text" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:inherit;font-size:16px">' +
+      '<div style="display:flex;gap:8px;margin-top:10px">' +
+      '<button class="nb" id="eaMic" type="button" style="flex:1"></button>' +
+      '<button class="nb pri" id="eaGo" type="button" style="flex:1"></button></div>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px"><input type="checkbox" id="eaEx"><span id="eaExT"></span></label>' +
+      '<pre id="eaOut" aria-live="polite" style="white-space:pre-wrap;margin:10px 0 0;padding:10px;border-radius:10px;background:var(--bg);font-size:13px;min-height:54px"></pre>' +
+      '<button class="nb" id="eaClose" type="button" style="width:100%;margin-top:10px"></button></div>';
+    document.body.appendChild(d);
+    const $ = id => d.querySelector('#' + id);
+    const fill = () => {
+      $('eaT').textContent = L('Проверка помощника', 'Assistant test', 'Օգնականի փորձարկում');
+      $('eaH').textContent = L('Скажите или напишите: «начни запись», «следующий шаг», «шаг 5», «переверни камеру».',
+        'Say or type: "start recording", "next step", "step 5", "flip camera".',
+        'Ասեք կամ գրեք՝ «start recording», «next step», «step 5».');
+      $('eaIn').placeholder = L('Команда…', 'Command…', 'Հրաման…');
+      $('eaMic').textContent = '🎤 ' + L('Говорить', 'Speak', 'Խոսել');
+      $('eaGo').textContent = L('Понять', 'Understand', 'Հասկանալ');
+      $('eaExT').textContent = L('Выполнять команду (нажимать кнопки)', 'Execute the command (press buttons)', 'Կատարել հրամանը');
+      $('eaClose').textContent = L('Закрыть', 'Close', 'Փակել');
+    };
+    const out = t => { $('eaOut').textContent = t; };
+    async function go() {
+      const text = $('eaIn').value.trim();
+      if (!text) return;
+      out('…');
+      try {
+        const r = await parseEx(text);
+        let t = JSON.stringify(r.a) + '\n' + L('Источник: ', 'Source: ', 'Աղբյուր՝ ') +
+          (r.src === 'qwen' ? 'Qwen' : r.src === 'words' ? L('ключевые слова', 'keywords', 'բանալի բառեր') : L('модель не установлена', 'model not installed', 'մոդելը տեղադրված չէ')) +
+          ' · ' + r.ms + ' ms';
+        if ($('eaEx').checked) {
+          const ok = run(r.a);
+          t += '\n' + (ok ? L('✓ выполнено', '✓ done', '✓ կատարված է') : L('— не выполнено (сейчас нельзя)', '— not executed (not possible now)', '— չի կատարվել'));
+        }
+        out(t);
+      } catch (e) { out('Error: ' + (e && e.message || e)); }
+    }
+    function mic() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { out(L('Распознавание речи не поддерживается в этом браузере.', 'Speech recognition is not supported in this browser.', 'Խոսքի ճանաչումը չի աջակցվում։')); return; }
+      if (rec) { try { rec.stop(); } catch (e) {} return; }
+      rec = new SR();
+      const u = lang();
+      rec.lang = u === 'ru' ? 'ru-RU' : u === 'hy' ? 'hy-AM' : 'en-US';
+      rec.interimResults = true; rec.maxAlternatives = 1;
+      $('eaMic').textContent = '⏺ ' + L('Слушаю…', 'Listening…', 'Լսում եմ…');
+      rec.onresult = ev => {
+        let t = ''; for (const r of ev.results) t += r[0].transcript;
+        $('eaIn').value = t;
+        if (ev.results[ev.results.length - 1].isFinal) go();
+      };
+      rec.onerror = ev => out('Mic: ' + (ev.error || 'error'));
+      rec.onend = () => { rec = null; $('eaMic').textContent = '🎤 ' + L('Говорить', 'Speak', 'Խոսել'); };
+      try { rec.start(); } catch (e) { rec = null; }
+    }
+    $('eaGo').onclick = go;
+    $('eaIn').onkeydown = e => { if (e.key === 'Enter') go(); };
+    $('eaMic').onclick = mic;
+    $('eaClose').onclick = () => { if (rec) { try { rec.stop(); } catch (e) {} } d.classList.remove('show'); };
+    d._fill = fill;
+    return d;
+  }
+
+  function openPanel() {
+    if (!panel) panel = buildPanel();
+    panel._fill();
+    panel.classList.add('show');
+  }
+
+  window.EditAssistant = { install, ensure, parse, parseEx, run, test: openPanel, command, isInstalled: () => store.get(), MODEL };
 
   function mount() {
     if (document.getElementById('mEA')) return;
@@ -207,14 +297,21 @@
     btn.className = fm ? 'nb' : 'mi';
     const first = fm && fm.querySelector('button');        /* "API keys" */
     first ? first.after(btn) : host.appendChild(btn);
+    tbtn.className = fm ? 'nb' : 'mi';
+    btn.after(tbtn);
+    tbtn.onclick = () => {
+      if (fm) fm.style.display = 'none';
+      try { App().closeMenus(); } catch (e) {}
+      openPanel();
+    };
     btn.onclick = () => {
       if (fm) fm.style.display = 'none';
       try { App().closeMenus(); } catch (e) {}
       install();
     };
     /* refresh the label every time the Settings popup is opened */
-    document.addEventListener('click', () => setTimeout(paint, 40), true);
-    paint();
+    document.addEventListener('click', () => setTimeout(() => { paint(); paintT(); }, 40), true);
+    paint(); paintT();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
 })();
