@@ -585,14 +585,16 @@
     if (!SR || lrec || lfatal) return;
     const r = new SR();
     r.lang = VCODE[vlang()];
-    r.continuous = true; r.interimResults = false; r.maxAlternatives = 1;
+    r.continuous = false; r.interimResults = false; r.maxAlternatives = 1;   /* one phrase, no restarts (every restart makes Android beep) */
     r.onresult = ev => {
       for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) heard(ev.results[i][0].transcript);
     };
     r.onerror = ev => {
-      if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') { lfatal = true; paintBadge(); }
+      if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') lfatal = true;
+      armedUntil = 0;                              /* silence, error or anything else: switch off */
+      paintBadge();
     };
-    r.onend = () => { if (lrec === r) lrec = null; lgap = Date.now() + 400; };
+    r.onend = () => { if (lrec === r) lrec = null; lgap = Date.now() + 400; armedUntil = 0; paintBadge(); };
     lrec = r;
     try { r.start(); } catch (e) { lrec = null; }
   }
