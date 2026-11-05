@@ -8618,6 +8618,8 @@ async function trOpen(id){
   if(VE.permBoot)VE.permBoot();else if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)initCam();
   requestAnimationFrame(tick);
 })();
+/* мост для edit-assistant.js: только то, что ему нужно */
+window.SSApp={toast,appConfirm,closeMenus,VE,get ui(){return ui},get recording(){return recording},get hasVideo(){return hasVideo}};
 })();
 </script>
 <script>
@@ -8628,5 +8630,6 @@ document.getElementById('donCopy').onclick=function(){
   function sel(){var r=document.createRange();r.selectNodeContents(document.getElementById('dnAddr'));var g=getSelection();g.removeAllRanges();g.addRange(r)}
 };
 </script>
+<script src="edit-assistant.js" defer></script>
 </body>
 </html>

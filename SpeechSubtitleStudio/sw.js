@@ -1,17 +1,25 @@
 /* Subtitle Studio: оболочка приложения доступна без сети.
    Страница и манифест берутся из сети в первую очередь, чтобы обновления приходили сразу. */
-const V = 'ss-v43';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'vendor/mp4-muxer.mjs', 'vendor/webm-muxer.mjs'];
+const V = 'ss-v44';
+const CDN = 'ss-cdn'; /* Edit Assistant library from the CDN: cached after the first load so it works offline */
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'vendor/mp4-muxer.mjs', 'vendor/webm-muxer.mjs', 'edit-assistant.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== V).map(x => caches.delete(x)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== V && x !== CDN).map(x => caches.delete(x)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const r = e.request;
   if (r.method !== 'GET') return;
   const u = new URL(r.url);
+  if (u.hostname === 'esm.run' || u.hostname === 'cdn.jsdelivr.net') {
+    e.respondWith(caches.open(CDN).then(c => c.match(r).then(hit => hit || fetch(r).then(res => {
+      if (res && res.ok) c.put(r, res.clone());
+      return res;
+    }))));
+    return;
+  }
   if (u.origin !== location.origin) return;
   const page = r.mode === 'navigate' || /\/(index\.html)?$/.test(u.pathname) || u.pathname.endsWith('.webmanifest') || u.pathname.endsWith('/sw.js');
   if (page) {
