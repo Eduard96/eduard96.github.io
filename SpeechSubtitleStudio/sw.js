@@ -1,6 +1,6 @@
 /* Subtitle Studio: оболочка приложения доступна без сети.
    Страница и манифест берутся из сети в первую очередь, чтобы обновления приходили сразу. */
-const V = 'ss-v45';
+const V = 'ss-v46';
 const CDN = 'ss-cdn'; /* Edit Assistant library from the CDN: cached after the first load so it works offline */
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'vendor/mp4-muxer.mjs', 'vendor/webm-muxer.mjs', 'edit-assistant.js'];
 self.addEventListener('install', e => {
@@ -21,7 +21,7 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (u.origin !== location.origin) return;
-  const page = r.mode === 'navigate' || /\/(index\.html)?$/.test(u.pathname) || u.pathname.endsWith('.webmanifest') || u.pathname.endsWith('/sw.js');
+  const page = r.mode === 'navigate' || /\/(index\.html)?$/.test(u.pathname) || u.pathname.endsWith('.webmanifest') || u.pathname.endsWith('/sw.js') || u.pathname.endsWith('/edit-assistant.js');
   if (page) {
     e.respondWith(
       fetch(r.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
