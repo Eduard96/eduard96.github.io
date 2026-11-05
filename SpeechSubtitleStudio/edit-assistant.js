@@ -216,11 +216,11 @@
     return 'button';
   }
   function scan() {
-    const modals = [...document.querySelectorAll('.ovl.show')].filter(m => m.id !== 'eaPanel');
+    const modals = [...document.querySelectorAll('.ovl.show')].filter(m => !['eaPanel', 'eaTeach', 'eaList'].includes(m.id));
     const root = modals.length ? modals[modals.length - 1] : document;
     const out = [];
     for (const e of root.querySelectorAll('button,a[href],input,select,textarea,[role=button],[role=tab],summary')) {
-      if (e.closest('#eaBadge,#eaLang,#eaPanel')) continue;
+      if (e.closest('#eaBadge,#eaLang,#eaPanel,#eaTeach,#eaList')) continue;
       if (!e.getClientRects().length) continue;
       const cs = getComputedStyle(e);
       if (cs.visibility === 'hidden' || cs.pointerEvents === 'none') continue;
@@ -254,8 +254,8 @@
   /* ---------- the assistant's own knowledge, kept as JSON on the device ---------- */
   const KB_KEY = 'ss_ea_kb';
   const KB = (() => {
-    try { const j = JSON.parse(localStorage.getItem(KB_KEY)); if (j && j.version === 1) return j; } catch (e) {}
-    return { version: 1, app: 'SpeechSubtitleStudio', aliases: {}, screens: {}, history: [] };
+    try { const j = JSON.parse(localStorage.getItem(KB_KEY)); if (j && j.version === 1) { j.taught = j.taught || []; return j; } } catch (e) {}
+    return { version: 1, app: 'SpeechSubtitleStudio', aliases: {}, taught: [], screens: {}, history: [] };
   })();
   let kbTimer = 0;
   function saveKB() { clearTimeout(kbTimer); kbTimer = setTimeout(() => { try { localStorage.setItem(KB_KEY, JSON.stringify(KB)); } catch (e) {} }, 400); }
@@ -298,11 +298,11 @@
     const ms = () => Math.round(performance.now() - t0);
     const map = scan();
     remember(map);
-    /* phrases Qwen already resolved earlier: instant */
-    const al = KB.aliases[norm(text)];
-    if (al) {
-      const o = map.find(o => !o.dis && ((al.id && o.id === al.id) || o.label === al.label));
-      if (o) return { a: { action: 'tap', id: o.n, label: o.label }, src: 'learned', ms: ms() };
+    /* phrases the user has taught before: instant (exact or very similar wording) */
+    const tg = bestTaught(text, 0.75);
+    if (tg) {
+      const a = resolveTaught(tg.e.a, map);
+      if (a) return { a, src: 'taught', ms: ms() };
     }
     /* cheap hints: keyword table (ru / en / hy) and a label match on the current screen */
     const f = fast(text);
@@ -324,7 +324,7 @@
     try {
       r = await e.chat.completions.create({
         messages: [{ role: 'system', content: SYSTEM2 }].concat(SHOTS, [
-          { role: 'user', content: 'Screen: step=' + st.step + ' recording=' + st.recording + ' hasVideo=' + st.hasVideo + '\n' + mapText(map) + hintLine + '\nCommand: ' + text }
+          { role: 'user', content: taughtLines(text) + 'Screen: step=' + st.step + ' recording=' + st.recording + ' hasVideo=' + st.hasVideo + '\n' + mapText(map) + hintLine + '\nCommand: ' + text }
         ]),
         temperature: 0, max_tokens: 60, response_format: { type: 'json_object' }
       });
@@ -530,6 +530,7 @@
     on() { return Date.now() < armedUntil; },
     set(v) { armedUntil = v ? Date.now() + ARM_MS : 0; }
   };
+  let lastHeard = null;
   let lrec = null, lfatal = false, lbusy = false, lgap = 0, lnote = '';
   const badge = document.createElement('button');
   badge.id = 'eaBadge'; badge.type = 'button';
@@ -549,7 +550,8 @@
     badge.setAttribute('aria-label', t);
   }
   badge.onclick = () => {
-    toggleListen();
+    if (!lst.on() && lastHeard && Date.now() - lastHeard.t < 30000) showTeach(lastHeard.text);   /* "that was not it": teach the right meaning */
+    else toggleListen();
   };
 
   function toggleListen() {
@@ -604,6 +606,77 @@
   function stopL() {
     const r = lrec; lrec = null;
     if (r) { r.onend = null; r.onresult = null; r.onerror = null; try { r.abort(); } catch (e) {} }
+  }
+
+  /* ---------- teaching: pick what a phrase meant; it is remembered and also shown to Qwen as an example ---------- */
+  function similarity(a, b) {
+    const x = new Set(stems(a)), y = new Set(stems(b));
+    if (!x.size || !y.size) return 0;
+    let n = 0; x.forEach(w => { if (y.has(w)) n++; });
+    return n / (x.size + y.size - n);
+  }
+  function bestTaught(text, min) {
+    const k = norm(text);
+    let best = null, bs = 0;
+    for (const e of KB.taught) {
+      const sc = norm(e.phrase) === k ? 1 : similarity(text, e.phrase);
+      if (sc >= min && sc > bs) { bs = sc; best = e; }
+    }
+    return best ? { e: best, score: bs } : null;
+  }
+  function taughtLines(text) {
+    const near = KB.taught.map(e => ({ e, sc: similarity(text, e.phrase) })).filter(x => x.sc >= 0.3).sort((a, b) => b.sc - a.sc).slice(0, 3);
+    return near.length ? 'Learned examples:\n' + near.map(x => '"' + x.e.phrase + '" -> ' + JSON.stringify(x.e.a)).join('\n') + '\n' : '';
+  }
+  function resolveTaught(t, map) {
+    if (t.action === 'tap') {
+      const o = map.find(o => !o.dis && ((t.sid && o.id === t.sid) || o.label === t.label));
+      return o ? { action: 'tap', id: o.n, label: o.label } : null;
+    }
+    return run(t, true) ? t : null;
+  }
+  function learn(phrase, a, o) {
+    const entry = a.action === 'tap' && o ? { action: 'tap', label: o.label, sid: o.id } : a;
+    const k = norm(phrase);
+    KB.taught = KB.taught.filter(e => norm(e.phrase) !== k);
+    KB.taught.push({ phrase, a: entry });
+    if (KB.taught.length > 200) KB.taught.splice(0, KB.taught.length - 200);
+    saveKB();
+  }
+
+  let teachBox = null;
+  function showTeach(phrase) {
+    if (!store.get() || !phrase) return;
+    const map = scan().filter(o => !o.dis);
+    const specials = ['start_recording', 'stop_recording', 'export', 'help', 'read_screen'].filter(id => run({ action: id }, true));
+    if (!teachBox) {
+      teachBox = document.createElement('div');
+      teachBox.className = 'ovl'; teachBox.id = 'eaTeach'; teachBox.style.touchAction = 'auto';
+      document.body.appendChild(teachBox);
+    }
+    teachBox.innerHTML = '<div class="box" style="text-align:left;max-height:84vh;overflow:auto"><h3></h3><p class="eaQ"></p><div class="eaItems" style="display:flex;flex-direction:column;gap:6px;margin-top:10px"></div></div>';
+    teachBox.querySelector('h3').textContent = L('Что вы имели в виду?', 'What did you mean?', 'Ի՞նչ նկատի ունեիք');
+    teachBox.querySelector('.eaQ').textContent = '«' + phrase + '»';
+    const box = teachBox.querySelector('.eaItems');
+    const add = (text, fn, cls) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'nb' + (cls ? ' ' + cls : ''); b.textContent = text; b.style.width = '100%';
+      b.onclick = fn; box.appendChild(b);
+    };
+    map.slice(0, 30).forEach(o => add(o.label, () => {
+      teachBox.classList.remove('show');
+      learn(phrase, { action: 'tap' }, o);
+      run({ action: 'tap', id: o.n, label: o.label });
+      speak(L('Запомнил', 'Learned', 'Հիշեցի'));
+    }));
+    specials.forEach(id => add('▶ ' + (FN.find(f => f.id === id).d.replace(/\s*\(.*$/, '')), () => {
+      teachBox.classList.remove('show');
+      learn(phrase, { action: id });
+      run({ action: id });
+      speak(L('Запомнил', 'Learned', 'Հիշեցի'));
+    }));
+    add(L('Ничего из этого', 'None of these', 'Ոչ մեկը'), () => teachBox.classList.remove('show'), 'pri');
+    teachBox.classList.add('show');
   }
 
   /* the text box the user was in: tapping the empty screen for the double tap blurs it, so it is remembered for a minute */
@@ -679,17 +752,15 @@
                          : L('Не нашёл такой команды. Скажите: что на экране.', 'I did not find that command. Say: what is on screen.', 'Այդ հրամանը չգտա։ Ասեք՝ what is on screen։');
       } else {
         ok = run(a);
-        if (ok && r.src === 'qwen' && (a.action === 'tap' || a.action === 'type' || a.action === 'set')) {   /* learn what Qwen understood */
-          const k = norm(text);
-          if (k && Object.keys(KB.aliases).length < 300) KB.aliases[k] = { id: (scan().find(o => o.label === a.label) || {}).id || '', label: a.label || '' };
-        }
         say2 = ok ? (a.action === 'help' || a.action === 'read_screen' ? '' : L('Готово', 'Done', 'Պատրաստ է')) : L('Сейчас это недоступно', 'Not available right now', 'Հիմա հասանելի չէ');
         if (ok && textField()) {                       /* the command opened a text box: listen once more for the text */
           say2 = L('Диктуйте текст', 'Dictate the text', 'Թելադրեք տեքստը');
           lst.set(true); lfatal = false;
         }
       }
+      lastHeard = { text, t: Date.now() };
       log({ text, action: a, src: r.src, ms: r.ms, ok });
+      if (a.action === 'none') setTimeout(() => showTeach(text), 400);
       lnote = (ok ? '✓ ' : '× ') + text;
       if (say2) speak(say2);
       setTimeout(() => { lnote = ''; paintBadge(); }, 4000);
@@ -737,7 +808,7 @@
 
   function mountBadge() { if (!badge.isConnected) { document.body.appendChild(badge); document.body.appendChild(lb); } }
 
-  window.EditAssistant = { install, ensure, parse, parseEx, run, scan, knowledge, test: openPanel, command, isInstalled: () => store.get(), MODEL };
+  window.EditAssistant = { teach: showTeach, install, ensure, parse, parseEx, run, scan, knowledge, test: openPanel, command, isInstalled: () => store.get(), MODEL };
 
   function mount() {
     if (document.getElementById('mEA')) return;
