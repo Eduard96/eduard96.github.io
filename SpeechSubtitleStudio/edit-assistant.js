@@ -10,6 +10,14 @@
 
   const App = () => window.SSApp || {};
   const lang = () => { const u = App().ui; return u === 'ru' || u === 'hy' ? u : 'en'; };
+  /* language of the voice (speech recognition + spoken answers): own setting, else the app's spoken language */
+  const VL_KEY = 'ss_ea_vl';
+  const vlang = () => {
+    let v = null; try { v = localStorage.getItem(VL_KEY); } catch (e) {}
+    if (v !== 'ru' && v !== 'en' && v !== 'hy') v = App().lang;
+    return v === 'ru' || v === 'hy' || v === 'en' ? v : lang();
+  };
+  const VCODE = { ru: 'ru-RU', en: 'en-US', hy: 'hy-AM' };
   const L = (ru, en, hy) => { const u = lang(); return u === 'ru' ? ru : u === 'hy' ? hy : en; };
   const say = (m, ms) => { try { App().toast(m, ms); } catch (e) { console.log('[EditAssistant]', m); } };
   const confirmBox = (m, o) => App().appConfirm ? App().appConfirm(m, o) : Promise.resolve(window.confirm(m));
@@ -225,8 +233,7 @@
       if (!window.speechSynthesis || !text) return;
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      const l = lang();
-      u.lang = l === 'ru' ? 'ru-RU' : l === 'hy' ? 'hy-AM' : 'en-US';
+      u.lang = VCODE[vlang()];
       speechSynthesis.speak(u);
     } catch (e) {}
   }
@@ -240,7 +247,7 @@
       case 'stop_recording': return st.recording ? click('#rec', false) : false;
       case 'go_step': return a.n >= 1 && a.n <= 6 ? click('#fsteps button[data-n="' + a.n + '"]') : false;
       case 'export': return st.step === 6 ? click('#fNext') : (click('#exp') || click('#fNext'));
-      case 'help': speak(HELP[lang()]); return true;
+      case 'help': speak(HELP[vlang()]); return true;
       case 'none': return false;
       default: return BTN[a.action] ? click(BTN[a.action]) : false;
     }
@@ -307,8 +314,7 @@
       if (!SR) { out(L('Распознавание речи не поддерживается в этом браузере.', 'Speech recognition is not supported in this browser.', 'Խոսքի ճանաչումը չի աջակցվում։')); return; }
       if (rec) { try { rec.stop(); } catch (e) {} return; }
       rec = new SR();
-      const u = lang();
-      rec.lang = u === 'ru' ? 'ru-RU' : u === 'hy' ? 'hy-AM' : 'en-US';
+      rec.lang = VCODE[vlang()];
       rec.interimResults = true; rec.maxAlternatives = 1;
       $('eaMic').textContent = '⏺ ' + L('Слушаю…', 'Listening…', 'Լսում եմ…');
       rec.onresult = ev => {
@@ -371,6 +377,7 @@
     else if (lfatal) t = '🎤✕ ' + L('нет доступа к микрофону', 'no microphone access', 'խոսափողը անհասանելի է');
     else if (!lst.on()) t = '🔇 ' + L('слух выключен', 'listening off', 'լսելը անջատված է');
     else t = '🎤 ' + (lnote || L('слушаю', 'listening', 'լսում եմ'));
+    paintLang();
     badge.textContent = t;
     badge.setAttribute('aria-label', t);
   }
@@ -381,6 +388,23 @@
     paintBadge();
   };
 
+  const lb = document.createElement('button');
+  lb.id = 'eaLang'; lb.type = 'button';
+  lb.style.cssText = 'position:fixed;left:10px;bottom:56px;z-index:150;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:inherit;font-size:13px;box-shadow:var(--shadow);display:none';
+  const paintLang = () => {
+    const v = vlang();
+    lb.style.display = store.get() && !busy && !App().recording ? '' : 'none';
+    lb.textContent = '🌐 ' + { ru: 'Русский', en: 'English', hy: 'Հայերեն' }[v];
+    lb.setAttribute('aria-label', L('Язык голоса: ', 'Voice language: ', 'Ձայնի լեզուն՝ ') + lb.textContent);
+  };
+  lb.onclick = () => {
+    const order = ['ru', 'en', 'hy'];
+    const n = order[(order.indexOf(vlang()) + 1) % 3];
+    try { localStorage.setItem(VL_KEY, n); } catch (e) {}
+    stopL();                                   /* the loop restarts it in the new language */
+    paintLang();
+    speak({ ru: 'Русский язык.', en: 'English.', hy: 'Հայերեն։' }[n]);
+  };
   const SRC = () => window.SpeechRecognition || window.webkitSpeechRecognition;
   const testOpen = () => !!(panel && panel.classList.contains('show'));
 
@@ -388,8 +412,7 @@
     const SR = SRC();
     if (!SR || lrec || lfatal) return;
     const r = new SR();
-    const u = lang();
-    r.lang = u === 'ru' ? 'ru-RU' : u === 'hy' ? 'hy-AM' : 'en-US';
+    r.lang = VCODE[vlang()];
     r.continuous = true; r.interimResults = false; r.maxAlternatives = 1;
     r.onresult = ev => {
       for (let i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) heard(ev.results[i][0].transcript);
@@ -450,7 +473,7 @@
     } else lastTap = { t: now, x: ev.clientX, y: ev.clientY };
   }, true);
 
-  function mountBadge() { if (!badge.isConnected) document.body.appendChild(badge); }
+  function mountBadge() { if (!badge.isConnected) { document.body.appendChild(badge); document.body.appendChild(lb); } }
 
   window.EditAssistant = { install, ensure, parse, parseEx, run, test: openPanel, command, isInstalled: () => store.get(), MODEL };
 
