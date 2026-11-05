@@ -93,8 +93,7 @@
     try {
       await ensure(p => { const n = Math.round(p * 100); if (n !== pct) { pct = n; paint(); bar(n); } });
       store.set(true);
-      lst.set(true); lfatal = false;
-      setTimeout(() => speak(L('Помощник готов и слушает. Скажите: что можно сказать.', 'The assistant is ready and listening. Say: what can I say.', 'Օգնականը պատրաստ է և լսում է։')), 600);
+      setTimeout(() => speak(L('Помощник готов. Чтобы включить слух, дважды коснитесь правой части экрана.', 'The assistant is ready. To start listening, double-tap the right side of the screen.', 'Օգնականը պատրաստ է։ Լսելը միացնելու համար երկու անգամ հպեք էկրանի աջ մասին։')), 600);
       say(L('Edit Assistant установлен и готов.', 'Edit Assistant is installed and ready.', 'Edit Assistant-ը տեղադրված է և պատրաստ։'), 4500);
     } catch (e) {
       engine = null;
@@ -301,41 +300,45 @@
     const ms = () => Math.round(performance.now() - t0);
     const map = scan();
     remember(map);
-    /* 1. phrases learned earlier */
+    /* phrases Qwen already resolved earlier: instant */
     const al = KB.aliases[norm(text)];
     if (al) {
       const o = map.find(o => !o.dis && ((al.id && o.id === al.id) || o.label === al.label));
       if (o) return { a: { action: 'tap', id: o.n, label: o.label }, src: 'learned', ms: ms() };
     }
-    /* 2. fixed keywords (ru / en / hy), only if the button is on this screen right now */
+    /* cheap hints: keyword table (ru / en / hy) and a label match on the current screen */
     const f = fast(text);
-    if (f && run(f, true)) return { a: f, src: 'words', ms: ms() };
-    /* 3. words that match a label on the screen */
+    const fOk = f && run(f, true) ? f : null;
     const m = matchLabel(text, map);
-    if (m && m.o) return { a: { action: 'tap', id: m.o.n, label: m.o.label }, src: 'screen', ms: ms() };
-    if (m && m.locked) return { a: { action: 'locked', label: m.locked.label }, src: 'screen', ms: ms() };
-    if (!store.get()) return { a: { action: 'none' }, src: 'no-model', blocked: f ? f.action : undefined, ms: ms() };
-    /* 4. Qwen reads the screen list and decides */
+    const hint = fOk ? fOk : (m && m.o ? { action: 'tap', id: m.o.n, label: m.o.label } : null);
+    if (m && m.locked && !hint) return { a: { action: 'locked', label: m.locked.label }, src: 'screen', ms: ms() };
+    if (!store.get()) return { a: hint || { action: 'none' }, src: hint ? (fOk ? 'words' : 'screen') : 'no-model', blocked: !hint && f ? f.action : undefined, ms: ms() };
+
+    /* recognised words -> Qwen reads the screen and decides what was meant */
     const e = await ensure();
     const st = state();
+    const hintLine = hint ? '\nHint: a simple matcher suggests ' + JSON.stringify(hint.action === 'tap' ? { action: 'tap', id: hint.id } : hint) + ' (use it only if it fits the command)' : '';
     let r;
     try {
       r = await e.chat.completions.create({
         messages: [{ role: 'system', content: SYSTEM2 }].concat(SHOTS, [
-          { role: 'user', content: 'Screen: step=' + st.step + ' recording=' + st.recording + ' hasVideo=' + st.hasVideo + '\n' + mapText(map) + '\nCommand: ' + text }
+          { role: 'user', content: 'Screen: step=' + st.step + ' recording=' + st.recording + ' hasVideo=' + st.hasVideo + '\n' + mapText(map) + hintLine + '\nCommand: ' + text }
         ]),
         temperature: 0, max_tokens: 60, response_format: { type: 'json_object' }
       });
-    } catch (err) { return { a: { action: 'none' }, src: 'qwen', ms: ms() }; }
+    } catch (err) { return { a: hint || { action: 'none' }, src: hint ? 'fallback' : 'qwen', ms: ms() }; }
     try {
       const j = JSON.parse(r.choices[0].message.content);
       if (j && ['tap', 'type', 'set'].includes(j.action)) {
         const o = map.find(o => o.n === +j.id && !o.dis);
         if (o) return { a: Object.assign({}, j, { id: o.n, label: o.label }), src: 'qwen', ms: ms() };
-      } else if (j && ACTIONS.includes(j.action) && (j.action === 'none' || run(j, true))) {
+      } else if (j && j.action !== 'none' && ACTIONS.includes(j.action) && run(j, true)) {
         return { a: j, src: 'qwen', ms: ms() };
       }
     } catch (err) {}
+    /* Qwen found nothing usable: fall back to the hint, else report */
+    if (hint) return { a: hint, src: 'fallback', ms: ms() };
+    if (m && m.locked) return { a: { action: 'locked', label: m.locked.label }, src: 'screen', ms: ms() };
     return { a: { action: 'none' }, src: 'qwen', blocked: f ? f.action : undefined, ms: ms() };
   }
 
@@ -354,6 +357,11 @@
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = VCODE[vlang()];
+      speaking = true; stopL();
+      clearTimeout(speakTimer);
+      const done = () => { speaking = false; lgap = Date.now() + 500; };
+      u.onend = done; u.onerror = done;
+      speakTimer = setTimeout(done, 9000);
       speechSynthesis.speak(u);
     } catch (e) {}
   }
@@ -513,10 +521,12 @@
 
 
   /* ---------- hands-free listening + double-tap stop ---------- */
-  const LS_L = 'ss_ea_listen';
+  /* listening is armed by a double tap on the right side of the screen and switches itself off after a quiet half minute */
+  const ARM_MS = 30000;
+  let armedUntil = 0, speaking = false, speakTimer = 0;
   const lst = {
-    on() { try { return localStorage.getItem(LS_L) !== '0'; } catch (e) { return true; } },
-    set(v) { try { localStorage.setItem(LS_L, v ? '1' : '0'); } catch (e) {} }
+    on() { return Date.now() < armedUntil; },
+    set(v) { armedUntil = v ? Date.now() + ARM_MS : 0; }
   };
   let lrec = null, lfatal = false, lbusy = false, lgap = 0, lnote = '';
   const badge = document.createElement('button');
@@ -529,18 +539,25 @@
     let t;
     if (App().recording) t = '👆👆 ' + L('двойное касание = стоп', 'double-tap = stop', 'երկու հպում = կանգ');
     else if (lfatal) t = '🎤✕ ' + L('нет доступа к микрофону', 'no microphone access', 'խոսափողը անհասանելի է');
-    else if (!lst.on()) t = '🔇 ' + L('слух выключен', 'listening off', 'լսելը անջատված է');
+    else if (!lst.on()) t = '🔇 ' + L('дважды коснитесь справа: слушать', 'double-tap the right side to listen', 'երկու հպում աջ կողմում՝ լսելու համար');
     else t = '🎤 ' + (lnote || L('слушаю', 'listening', 'լսում եմ'));
     paintLang();
     badge.textContent = t;
     badge.setAttribute('aria-label', t);
   }
   badge.onclick = () => {
-    if (lfatal) { lfatal = false; lst.set(true); } else lst.set(!lst.on());
-    if (!lst.on()) stopL();
-    speak(lst.on() ? L('Слушаю.', 'Listening.', 'Լսում եմ։') : L('Слух выключен.', 'Listening off.', 'Լսելը անջատված է։'));
-    paintBadge();
+    toggleListen();
   };
+
+  function toggleListen() {
+    if (lfatal) lfatal = false;
+    const on = !lst.on();
+    lst.set(on);
+    if (!on) stopL();
+    try { navigator.vibrate && navigator.vibrate(on ? 60 : [40, 60, 40]); } catch (e) {}
+    speak(on ? L('Слушаю.', 'Listening.', 'Լսում եմ։') : L('Слух выключен.', 'Listening off.', 'Լսելը անջատված է։'));
+    paintBadge();
+  }
 
   const lb = document.createElement('button');
   lb.id = 'eaLang'; lb.type = 'button';
@@ -585,8 +602,9 @@
 
   async function heard(text) {
     text = String(text || '').trim();
-    if (!text || lbusy || text.split(/\s+/).length > 8) return;   /* commands are short; longer speech is ignored */
+    if (!text || lbusy || speaking || text.split(/\s+/).length > 8) return;   /* commands are short; longer speech is ignored */
     lbusy = true;
+    armedUntil = Date.now() + ARM_MS;
     try {
       const r = await parseEx(text);
       const a = r.a || { action: 'none' };
@@ -613,10 +631,13 @@
   }
 
   /* the main loop: listen when idle, hand the microphone over to the recording while filming */
-  let wasRec = false;
+  let wasRec = false, wasArmed = false;
   setInterval(() => {
     const rec = !!App().recording;
-    const want = store.get() && lst.on() && !rec && !busy && !document.hidden && !testOpen();
+    const armed = lst.on();
+    if (wasArmed && !armed && !rec) { try { navigator.vibrate && navigator.vibrate([40, 60, 40]); } catch (e) {} }
+    wasArmed = armed;
+    const want = store.get() && armed && !rec && !busy && !speaking && !document.hidden && !testOpen();
     if (want && !lrec && Date.now() >= lgap) startL();
     if (!want && lrec) stopL();
     if (rec !== wasRec) {
@@ -627,16 +648,21 @@
     paintBadge();
   }, 700);
 
-  /* double tap anywhere (not on a control) stops the recording */
+  /* double tap on a free spot: while filming it stops the recording; otherwise on the right side of the screen it switches listening on / off */
   let lastTap = null;
   document.addEventListener('pointerup', ev => {
-    if (!store.get() || !App().recording) { lastTap = null; return; }
-    if (ev.target.closest && ev.target.closest('button,a,input,select,textarea,label')) { lastTap = null; return; }
+    if (!store.get()) { lastTap = null; return; }
+    if (ev.target.closest && ev.target.closest('button,a,input,select,textarea,label,#eaPanel')) { lastTap = null; return; }
+    const rec = !!App().recording;
+    const right = ev.clientX >= window.innerWidth * 0.55;
+    if (!rec && !right) { lastTap = null; return; }
     const now = Date.now();
-    if (lastTap && now - lastTap.t < 450 && Math.hypot(ev.clientX - lastTap.x, ev.clientY - lastTap.y) < 60) {
+    if (lastTap && now - lastTap.t < 450 && Math.hypot(ev.clientX - lastTap.x, ev.clientY - lastTap.y) < 70) {
       lastTap = null;
-      try { navigator.vibrate && navigator.vibrate(80); } catch (e) {}
-      run({ action: 'stop_recording' });
+      if (rec) {
+        try { navigator.vibrate && navigator.vibrate(80); } catch (e) {}
+        run({ action: 'stop_recording' });
+      } else toggleListen();
     } else lastTap = { t: now, x: ev.clientX, y: ev.clientY };
   }, true);
 
