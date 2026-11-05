@@ -161,6 +161,7 @@
     { id: 'start_recording',kw: /начн|начина|запиш|запись|старт|record|start|սկս|ձայնագր/, d: 'start filming (начни запись, start recording, սկսել ձայնագրությունը)' },
     { id: 'next_step',      kw: /дальше|следующ|далее|вперед|вперёд|next|հաջորդ|առաջ/, d: 'go to the next step (дальше, next)' },
     { id: 'prev_step',      kw: /назад|предыдущ|back|previous|նախորդ|հետ/,           d: 'go to the previous step (назад, back)' },
+    { id: 'read_screen',     kw: /что на экране|прочита\S* экран|что вижу|read screen|what.s on (?:the )?screen|what do you see|էկրանին/, d: 'read aloud the buttons visible on the screen' },
     { id: 'help',           kw: /что (?:можно|умеешь|ты умеешь)|помощь|команды|help|what can|commands|օգնություն|հրաման/, d: 'tell the user what can be said' }
   ];
   const BTN = {
@@ -197,34 +198,153 @@
 
   async function parse(text) { return (await parseEx(text)).a; }
 
+  /* ---------- the app's screen as a numbered list of controls (what Qwen "sees") ---------- */
+  const ID_NAMES = { pp: 'play pause', fs: 'fullscreen', seek: 'seek bar' };
+  const norm = x => String(x || '').toLowerCase().replace(/ё/g, 'е').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+  const stems = x => norm(x).split(' ').filter(w => w.length >= 3 || /^\d$/.test(w)).map(w => w.slice(0, 5));
+  function labelOf(e) {
+    let t = (e.getAttribute('aria-label') || e.title || '').trim();
+    if (!t) t = (e.innerText || e.textContent || '').trim();
+    if (!t) t = e.placeholder || '';
+    if (!t && e.tagName === 'INPUT' && e.type !== 'checkbox' && e.type !== 'range') t = e.value || '';
+    if (!t) t = ID_NAMES[e.id] || '';
+    return t.replace(/\s+/g, ' ').slice(0, 40);
+  }
+  function kindOf(e) {
+    if (e.tagName === 'SELECT') return 'select';
+    if (e.tagName === 'TEXTAREA') return 'text';
+    if (e.tagName === 'INPUT') return e.type === 'checkbox' ? 'checkbox' : e.type === 'range' ? 'slider' : e.type === 'file' ? 'file' : 'text';
+    return 'button';
+  }
+  function scan() {
+    const modals = [...document.querySelectorAll('.ovl.show')].filter(m => m.id !== 'eaPanel');
+    const root = modals.length ? modals[modals.length - 1] : document;
+    const out = [];
+    for (const e of root.querySelectorAll('button,a[href],input,select,textarea,[role=button],[role=tab],summary')) {
+      if (e.closest('#eaBadge,#eaLang,#eaPanel')) continue;
+      if (!e.getClientRects().length) continue;
+      const cs = getComputedStyle(e);
+      if (cs.visibility === 'hidden' || cs.pointerEvents === 'none') continue;
+      const label = labelOf(e);
+      if (!label) continue;
+      out.push({ el: e, label, id: e.id || '', kind: kindOf(e), dis: !!e.disabled });
+    }
+    out.forEach((o, i) => { o.n = i + 1; });
+    return out;
+  }
+  function mapText(map) {
+    return map.filter(o => !o.dis).slice(0, 40).map(o => '[' + o.n + '] ' + o.kind + ' "' + o.label + '"').join('\n');
+  }
+  /* deterministic match of the spoken words against the visible labels (works when speech language = UI language) */
+  function matchLabel(text, map) {
+    const cs = stems(text);
+    if (!cs.length) return null;
+    let best = null, bs = 0;
+    for (const o of map) {
+      const ls = stems(o.label);
+      if (!ls.length) continue;
+      const hit = ls.filter(w => cs.includes(w)).length;
+      const sc = hit / ls.length;
+      if (hit < 1 || sc < 0.5) continue;
+      const w = sc * 10 + ls.length + (o.dis ? -0.5 : 0);
+      if (w > bs) { bs = w; best = o; }
+    }
+    return best ? (best.dis ? { locked: best } : { o: best }) : null;
+  }
+
+  /* ---------- the assistant's own knowledge, kept as JSON on the device ---------- */
+  const KB_KEY = 'ss_ea_kb';
+  const KB = (() => {
+    try { const j = JSON.parse(localStorage.getItem(KB_KEY)); if (j && j.version === 1) return j; } catch (e) {}
+    return { version: 1, app: 'SpeechSubtitleStudio', aliases: {}, screens: {}, history: [] };
+  })();
+  let kbTimer = 0;
+  function saveKB() { clearTimeout(kbTimer); kbTimer = setTimeout(() => { try { localStorage.setItem(KB_KEY, JSON.stringify(KB)); } catch (e) {} }, 400); }
+  function remember(map) {
+    const k = 'step' + state().step;
+    const set = new Set(KB.screens[k] || []);
+    map.forEach(o => set.add(o.id ? o.id + ': ' + o.label : o.label));
+    KB.screens[k] = [...set].slice(0, 80);
+    saveKB();
+  }
+  function knowledge() {
+    return Object.assign({}, KB, {
+      updated: new Date().toISOString(), voiceLanguage: vlang(), model: MODEL,
+      functions: FN.map(f => ({ id: f.id, description: f.d, keywords: f.kw.source })),
+      buttons: BTN, help: HELP
+    });
+  }
+  function downloadKB() {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(knowledge(), null, 2)], { type: 'application/json' }));
+    a.download = 'edit-assistant-knowledge.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  function log(entry) {
+    KB.history.push(Object.assign({ t: new Date().toISOString() }, entry));
+    if (KB.history.length > 40) KB.history.splice(0, KB.history.length - 40);
+    saveKB();
+  }
+
+  const SYSTEM2 = SYSTEM.replace('Reply with exactly one JSON object {"action":NAME} (go_step also needs "n"). Available actions: ',
+    'You also see the buttons currently on screen as a numbered list. Reply with exactly one JSON object. Press a button on screen: {"action":"tap","id":N}. Type text into a field: {"action":"type","id":N,"text":S}. Pick a value in a list: {"action":"set","id":N,"text":S}. Or a shortcut action {"action":NAME} (go_step also needs "n"). Prefer a button from the list when its label fits. Shortcut actions: ') ;
+  const SHOTS = [
+    { role: 'user', content: 'Screen: step=6 recording=false hasVideo=true\n[1] button "Export"\n[2] button "Share"\n[3] button "Back"\nCommand: отправь друзьям' },
+    { role: 'assistant', content: '{"action":"tap","id":2}' },
+    { role: 'user', content: 'Screen: step=1 recording=false hasVideo=false\n[1] button "Record"\n[2] button "Upload video"\n[3] button "Open a project"\nCommand: покажи мои старые работы' },
+    { role: 'assistant', content: '{"action":"tap","id":3}' }
+  ];
+
   async function parseEx(text) {
     const t0 = performance.now();
     const ms = () => Math.round(performance.now() - t0);
+    const map = scan();
+    remember(map);
+    /* 1. phrases learned earlier */
+    const al = KB.aliases[norm(text)];
+    if (al) {
+      const o = map.find(o => !o.dis && ((al.id && o.id === al.id) || o.label === al.label));
+      if (o) return { a: { action: 'tap', id: o.n, label: o.label }, src: 'learned', ms: ms() };
+    }
+    /* 2. fixed keywords (ru / en / hy), only if the button is on this screen right now */
     const f = fast(text);
-    if (f) return { a: f, src: 'words', ms: ms() };
-    if (!store.get()) return { a: { action: 'none' }, src: 'no-model', ms: ms() };
+    if (f && run(f, true)) return { a: f, src: 'words', ms: ms() };
+    /* 3. words that match a label on the screen */
+    const m = matchLabel(text, map);
+    if (m && m.o) return { a: { action: 'tap', id: m.o.n, label: m.o.label }, src: 'screen', ms: ms() };
+    if (m && m.locked) return { a: { action: 'locked', label: m.locked.label }, src: 'screen', ms: ms() };
+    if (!store.get()) return { a: { action: 'none' }, src: 'no-model', blocked: f ? f.action : undefined, ms: ms() };
+    /* 4. Qwen reads the screen list and decides */
     const e = await ensure();
     const st = state();
-    const r = await e.chat.completions.create({
-      messages: [
-        { role: 'system', content: SYSTEM },
-        { role: 'user', content: 'State: step=' + st.step + ' recording=' + st.recording + ' hasVideo=' + st.hasVideo + '\nCommand: ' + text }
-      ],
-      temperature: 0, max_tokens: 40, response_format: { type: 'json_object' }
-    });
+    let r;
+    try {
+      r = await e.chat.completions.create({
+        messages: [{ role: 'system', content: SYSTEM2 }].concat(SHOTS, [
+          { role: 'user', content: 'Screen: step=' + st.step + ' recording=' + st.recording + ' hasVideo=' + st.hasVideo + '\n' + mapText(map) + '\nCommand: ' + text }
+        ]),
+        temperature: 0, max_tokens: 60, response_format: { type: 'json_object' }
+      });
+    } catch (err) { return { a: { action: 'none' }, src: 'qwen', ms: ms() }; }
     try {
       const j = JSON.parse(r.choices[0].message.content);
-      if (j && ACTIONS.includes(j.action)) return { a: j, src: 'qwen', ms: ms() };
+      if (j && ['tap', 'type', 'set'].includes(j.action)) {
+        const o = map.find(o => o.n === +j.id && !o.dis);
+        if (o) return { a: Object.assign({}, j, { id: o.n, label: o.label }), src: 'qwen', ms: ms() };
+      } else if (j && ACTIONS.includes(j.action) && (j.action === 'none' || run(j, true))) {
+        return { a: j, src: 'qwen', ms: ms() };
+      }
     } catch (err) {}
-    return { a: { action: 'none' }, src: 'qwen', ms: ms() };
+    return { a: { action: 'none' }, src: 'qwen', blocked: f ? f.action : undefined, ms: ms() };
   }
 
   const visible = b => !!b && !b.disabled && b.getClientRects().length > 0;
-  function click(sel, needVisible) {
+  function click(sel, needVisible, dry) {
     const b = document.querySelector(sel);
     if (!b || b.disabled) return false;
     if (needVisible !== false && !visible(b)) return false;
-    b.click();
+    if (!dry) b.click();
     return true;
   }
 
@@ -238,18 +358,49 @@
     } catch (e) {}
   }
 
-  /* executes one action by pressing the same buttons a finger would press */
-  function run(a) {
+  function setValue(el, v) {
+    const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : el.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+    const d = Object.getOwnPropertyDescriptor(proto, 'value');
+    d && d.set ? d.set.call(el, v) : (el.value = v);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  /* executes one action by pressing the same buttons a finger would press; dry=true only checks that it could */
+  function run(a, dry) {
     if (!a || !a.action) return false;
     const st = state();
     switch (a.action) {
-      case 'start_recording': return st.recording ? false : (click('#rec') || click('#fRec') || click('#m1R'));
-      case 'stop_recording': return st.recording ? click('#rec', false) : false;
-      case 'go_step': return a.n >= 1 && a.n <= 6 ? click('#fsteps button[data-n="' + a.n + '"]') : false;
-      case 'export': return st.step === 6 ? click('#fNext') : (click('#exp') || click('#fNext'));
-      case 'help': speak(HELP[vlang()]); return true;
-      case 'none': return false;
-      default: return BTN[a.action] ? click(BTN[a.action]) : false;
+      case 'start_recording': return st.recording ? false : (click('#rec', true, dry) || click('#fRec', true, dry) || click('#m1R', true, dry));
+      case 'stop_recording': return st.recording ? click('#rec', false, dry) : false;
+      case 'go_step': return a.n >= 1 && a.n <= 6 ? click('#fsteps button[data-n="' + a.n + '"]', true, dry) : false;
+      case 'export': return st.step === 6 ? click('#fNext', true, dry) : (click('#exp', true, dry) || click('#fNext', true, dry));
+      case 'help': if (!dry) speak(HELP[vlang()]); return true;
+      case 'read_screen': {
+        if (!dry) {
+          const names = scan().filter(o => !o.dis).slice(0, 10).map(o => o.label);
+          speak(L('На экране: ', 'On screen: ', 'Էկրանին՝ ') + names.join(', '));
+        }
+        return true;
+      }
+      case 'tap': case 'type': case 'set': {
+        const o = scan().find(o => o.n === +a.id && (!a.label || o.label === a.label));
+        if (!o || o.dis) return false;
+        if (dry) return true;
+        if (a.action === 'tap') {
+          if (o.kind === 'text') o.el.focus(); else o.el.click();
+        } else if (a.action === 'type' && (o.kind === 'text')) { o.el.focus(); setValue(o.el, String(a.text || '')); }
+        else if (a.action === 'set' && o.kind === 'select') {
+          const want = norm(a.text);
+          const opt = [...o.el.options].find(x => norm(x.text).includes(want) || norm(x.value) === want);
+          if (!opt) return false;
+          setValue(o.el, opt.value);
+        } else if (a.action === 'set' && (o.kind === 'slider' || o.kind === 'text')) setValue(o.el, String(a.text));
+        else return false;
+        return true;
+      }
+      case 'none': case 'locked': return false;
+      default: return BTN[a.action] ? click(BTN[a.action], true, dry) : false;
     }
   }
 
@@ -277,7 +428,8 @@
       '<button class="nb pri" id="eaGo" type="button" style="flex:1"></button></div>' +
       '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px"><input type="checkbox" id="eaEx"><span id="eaExT"></span></label>' +
       '<pre id="eaOut" aria-live="polite" style="white-space:pre-wrap;margin:10px 0 0;padding:10px;border-radius:10px;background:var(--bg);font-size:13px;min-height:54px"></pre>' +
-      '<button class="nb" id="eaClose" type="button" style="width:100%;margin-top:10px"></button></div>';
+      '<button class="nb" id="eaKb" type="button" style="width:100%;margin-top:10px"></button>' +
+      '<button class="nb" id="eaClose" type="button" style="width:100%;margin-top:8px"></button></div>';
     document.body.appendChild(d);
     const $ = id => d.querySelector('#' + id);
     const fill = () => {
@@ -289,6 +441,7 @@
       $('eaMic').textContent = '🎤 ' + L('Говорить', 'Speak', 'Խոսել');
       $('eaGo').textContent = L('Понять', 'Understand', 'Հասկանալ');
       $('eaExT').textContent = L('Выполнять команду (нажимать кнопки)', 'Execute the command (press buttons)', 'Կատարել հրամանը');
+      $('eaKb').textContent = '⬇ ' + L('Скачать JSON знаний помощника', 'Download assistant knowledge (JSON)', 'Ներբեռնել գիտելիքի JSON');
       $('eaClose').textContent = L('Закрыть', 'Close', 'Փակել');
     };
     const out = t => { $('eaOut').textContent = t; };
@@ -299,7 +452,7 @@
       try {
         const r = await parseEx(text);
         let t = JSON.stringify(r.a) + '\n' + L('Источник: ', 'Source: ', 'Աղբյուր՝ ') +
-          (r.src === 'qwen' ? 'Qwen' : r.src === 'words' ? L('ключевые слова', 'keywords', 'բանալի բառեր') : L('модель не установлена', 'model not installed', 'մոդելը տեղադրված չէ')) +
+          (r.src === 'qwen' ? 'Qwen' : r.src === 'screen' || r.src === 'learned' ? L('экран', 'screen', 'էկրան') + '/' + r.src : r.src === 'words' ? L('ключевые слова', 'keywords', 'բանալի բառեր') : L('модель не установлена', 'model not installed', 'մոդելը տեղադրված չէ')) +
           ' · ' + r.ms + ' ms';
         if ($('eaEx').checked) {
           const ok = run(r.a);
@@ -326,6 +479,7 @@
       rec.onend = () => { rec = null; $('eaMic').textContent = '🎤 ' + L('Говорить', 'Speak', 'Խոսել'); };
       try { rec.start(); } catch (e) { rec = null; }
     }
+    $('eaKb').onclick = downloadKB;
     $('eaGo').onclick = go;
     $('eaIn').onkeydown = e => { if (e.key === 'Enter') go(); };
     $('eaMic').onclick = mic;
@@ -435,11 +589,24 @@
     lbusy = true;
     try {
       const r = await parseEx(text);
-      if (!r.a || r.a.action === 'none') { lnote = ''; return; }
-      const ok = run(r.a);
+      const a = r.a || { action: 'none' };
+      let ok = false, say2 = '';
+      if (a.action === 'locked') {
+        say2 = L('Эта кнопка сейчас заблокирована: ', 'That button is locked right now: ', 'Այս կոճակը հիմա արգելափակված է՝ ') + a.label;
+      } else if (a.action === 'none') {
+        say2 = r.blocked ? L('Сейчас это недоступно. Скажите: что на экране.', 'Not available right now. Say: what is on screen.', 'Հիմա հասանելի չէ։ Ասեք՝ what is on screen։')
+                         : L('Не нашёл такой команды. Скажите: что на экране.', 'I did not find that command. Say: what is on screen.', 'Այդ հրամանը չգտա։ Ասեք՝ what is on screen։');
+      } else {
+        ok = run(a);
+        if (ok && r.src === 'qwen' && (a.action === 'tap' || a.action === 'type' || a.action === 'set')) {   /* learn what Qwen understood */
+          const k = norm(text);
+          if (k && Object.keys(KB.aliases).length < 300) KB.aliases[k] = { id: (scan().find(o => o.label === a.label) || {}).id || '', label: a.label || '' };
+        }
+        say2 = ok ? (a.action === 'help' || a.action === 'read_screen' ? '' : L('Готово', 'Done', 'Պատրաստ է')) : L('Сейчас это недоступно', 'Not available right now', 'Հիմա հասանելի չէ');
+      }
+      log({ text, action: a, src: r.src, ok });
       lnote = (ok ? '✓ ' : '× ') + text;
-      if (ok && r.a.action !== 'help') speak(L('Готово', 'Done', 'Պատրաստ է'));
-      if (!ok) speak(L('Сейчас это недоступно', 'Not available right now', 'Հիմա հասանելի չէ'));
+      if (say2) speak(say2);
       setTimeout(() => { lnote = ''; paintBadge(); }, 4000);
     } catch (e) { console.error('[EditAssistant]', e); }
     finally { lbusy = false; paintBadge(); }
@@ -475,7 +642,7 @@
 
   function mountBadge() { if (!badge.isConnected) { document.body.appendChild(badge); document.body.appendChild(lb); } }
 
-  window.EditAssistant = { install, ensure, parse, parseEx, run, test: openPanel, command, isInstalled: () => store.get(), MODEL };
+  window.EditAssistant = { install, ensure, parse, parseEx, run, scan, knowledge, test: openPanel, command, isInstalled: () => store.get(), MODEL };
 
   function mount() {
     if (document.getElementById('mEA')) return;
