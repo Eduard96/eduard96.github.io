@@ -256,6 +256,7 @@
     }
     function mic() {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (App().recording) { out(L('Идёт запись: команды слушает сама запись. Скажите «стоп» в кадре.', 'Recording is on: commands are heard through the recording itself. Say "stop".', 'Ձայնագրման ժամանակ հրամանները լսվում են ձայնագրությամբ։ Ասեք «stop»։')); return; }
       if (!SR) { out(L('Распознавание речи не поддерживается в этом браузере.', 'Speech recognition is not supported in this browser.', 'Խոսքի ճանաչումը չի աջակցվում։')); return; }
       if (rec) { try { rec.stop(); } catch (e) {} return; }
       rec = new SR();
@@ -285,6 +286,23 @@
     panel._fill();
     panel.classList.add('show');
   }
+
+
+  /* ---------- voice commands while recording: listen through the app's own recognizer (a second one would fight for the microphone) ---------- */
+  let lastFire = 0;
+  function onSpeech(txt) {
+    if (!store.get() || !App().recording) return false;
+    const s = String(txt || '').toLowerCase().replace(/ё/g, 'е').replace(/[.,!?]/g, '').trim();
+    if (!s || Date.now() - lastFire < 2500) return false;
+    let act = null;
+    if (/(^|\s)(стоп|остановить запись|останови запись|закончить запись|stop recording|stop)$/.test(s) && s.split(/\s+/).length <= 5) act = 'stop_recording';
+    else if (/(^|\s)(пауза|поставь на паузу|pause)$/.test(s) && s.split(/\s+/).length <= 5) act = 'pause';
+    if (!act) return false;
+    lastFire = Date.now();
+    setTimeout(() => run({ action: act }), 150);
+    return true;           /* the command phrase is removed from the subtitles */
+  }
+  window.SSApp && (window.SSApp.onSpeech = onSpeech);
 
   window.EditAssistant = { install, ensure, parse, parseEx, run, test: openPanel, command, isInstalled: () => store.get(), MODEL };
 

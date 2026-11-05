@@ -2362,7 +2362,10 @@ function startSR(){
       const txt=ev.results[i][0].transcript.trim();
       if(!txt)continue;
       if(!p){p={s:Math.max(0,now-0.6),e:now,l:lg,t:'',cut:false};map[key]=p;phrases.push(p)}
+      if(p.cmd)continue;
       p.raw=txt;p.e=now;p.t=stripDup(p);
+      /* one microphone, two listeners: the assistant reads the same recognizer output (voice commands while filming) */
+      try{if(window.SSApp&&window.SSApp.onSpeech&&window.SSApp.onSpeech(txt,ev.results[i].isFinal)){p.cmd=true;p.t='';p.raw=''}}catch(e){}
     }
     setSt(t('textOn'),'ok');banner('');
     save();renderList();updateButtons();
