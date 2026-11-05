@@ -152,7 +152,7 @@
     { id: 'new_video',      kw: /нов\S* видео|new video|նոր տեսանյութ/,              d: 'start a new video' },
     { id: 'back_to_edit',   kw: /к правке|back to edit|վերադառնալ խմբագր/,           d: 'return to editing from the result screen' },
     { id: 'export',         kw: /экспорт|export|արտահան/,                            d: 'render and export the video (экспорт)' },
-    { id: 'play_result',    kw: /воспроизв|покажи|смотр|play|ցուցադր/,               d: 'play the finished video' },
+    { id: 'play_result',    kw: /воспроизв|покажи|смотр|включ\S*\s+(?:уже\s+)?(?:видео|ролик|просмотр)|play|ցուցադր/,               d: 'play the finished video' },
     { id: 'share',          kw: /поделись|отправ|share|կիսվ/,                        d: 'share the finished video' },
     { id: 'copy',           kw: /скопируй|копир|copy|պատճեն/,                        d: 'copy the subtitle text' },
     { id: 'save_video',     kw: /сохрани|save|պահպան/,                               d: 'save the video to the device (сохранить)' },
@@ -172,7 +172,7 @@
   const ACTIONS = FN.map(f => f.id).concat(['none']);
   const SYSTEM = 'You control a video subtitle studio app by voice. The user may speak Russian, English or Armenian. ' +
     'Reply with exactly one JSON object {"action":NAME} (go_step also needs "n"). Available actions: ' +
-    FN.map(f => f.id + ' = ' + f.d).join('; ') + '. Use {"action":"none"} when the command matches none of them.';
+    FN.map(f => f.id + ' (' + f.d.replace(/\s*\(.*$/, '') + ')').join('; ') + '. Use {"action":"none"} when the command matches none of them.';
   const HELP = {
     ru: 'Можно сказать: начни запись, стоп, пауза, продолжи, переверни камеру, дальше, назад, шаг и номер, монтаж, озвучить, без озвучки, экспорт, сохранить, поделиться, новое видео. Чтобы дать команду, дважды коснитесь правой части экрана и скажите её. Во время записи двойное касание останавливает запись.',
     en: 'You can say: start recording, stop, pause, resume, flip camera, next, back, step and a number, tracks, dub, no dub, export, save, share, new video. To give a command, double-tap the right side of the screen and say it. While recording, a double tap stops the recording.',
@@ -207,7 +207,7 @@
     if (!t) t = e.placeholder || '';
     if (!t && e.tagName === 'INPUT' && e.type !== 'checkbox' && e.type !== 'range') t = e.value || '';
     if (!t) t = ID_NAMES[e.id] || '';
-    return t.replace(/\s+/g, ' ').slice(0, 40);
+    return t.replace(/\s+/g, ' ').slice(0, 28);
   }
   function kindOf(e) {
     if (e.tagName === 'SELECT') return 'select';
@@ -232,7 +232,7 @@
     return out;
   }
   function mapText(map) {
-    return map.filter(o => !o.dis).slice(0, 40).map(o => '[' + o.n + '] ' + o.kind + ' "' + o.label + '"').join('\n');
+    return map.filter(o => !o.dis).slice(0, 25).map(o => '[' + o.n + '] ' + o.kind + ' "' + o.label + '"').join('\n');
   }
   /* deterministic match of the spoken words against the visible labels (works when speech language = UI language) */
   function matchLabel(text, map) {
@@ -290,9 +290,7 @@
     'You also see the buttons currently on screen as a numbered list. Reply with exactly one JSON object. Press a button on screen: {"action":"tap","id":N}. Type text into a field: {"action":"type","id":N,"text":S}. Pick a value in a list: {"action":"set","id":N,"text":S}. Or a shortcut action {"action":NAME} (go_step also needs "n"). Prefer a button from the list when its label fits. Shortcut actions: ') ;
   const SHOTS = [
     { role: 'user', content: 'Screen: step=6 recording=false hasVideo=true\n[1] button "Export"\n[2] button "Share"\n[3] button "Back"\nCommand: отправь друзьям' },
-    { role: 'assistant', content: '{"action":"tap","id":2}' },
-    { role: 'user', content: 'Screen: step=1 recording=false hasVideo=false\n[1] button "Record"\n[2] button "Upload video"\n[3] button "Open a project"\nCommand: покажи мои старые работы' },
-    { role: 'assistant', content: '{"action":"tap","id":3}' }
+    { role: 'assistant', content: '{"action":"tap","id":2}' }
   ];
 
   async function parseEx(text) {
@@ -313,6 +311,10 @@
     const hint = fOk ? fOk : (m && m.o ? { action: 'tap', id: m.o.n, label: m.o.label } : null);
     if (m && m.locked && !hint) return { a: { action: 'locked', label: m.locked.label }, src: 'screen', ms: ms() };
     if (!store.get()) return { a: hint || { action: 'none' }, src: hint ? (fOk ? 'words' : 'screen') : 'no-model', blocked: !hint && f ? f.action : undefined, ms: ms() };
+
+    /* a clear keyword in a short phrase without negation: no need to wait for the model */
+    const nt = norm(text);
+    if (fOk && nt.split(' ').length <= 6 && !/(^| )(не|нельзя|not|dont|never)( |$)/.test(nt)) return { a: fOk, src: 'words', ms: ms() };
 
     /* recognised words -> Qwen reads the screen and decides what was meant */
     const e = await ensure();
@@ -555,6 +557,7 @@
     const on = !lst.on();
     lst.set(on);
     if (!on) stopL();
+    if (on && store.get()) ensure().catch(() => {});         /* load the model while the user is still speaking */
     try { navigator.vibrate && navigator.vibrate(on ? 60 : [40, 60, 40]); } catch (e) {}
     speak(on ? L('Слушаю.', 'Listening.', 'Լսում եմ։') : L('Слух выключен.', 'Listening off.', 'Լսելը անջատված է։'));
     paintBadge();
@@ -603,6 +606,51 @@
     if (r) { r.onend = null; r.onresult = null; r.onerror = null; try { r.abort(); } catch (e) {} }
   }
 
+  /* the text box the user was in: tapping the empty screen for the double tap blurs it, so it is remembered for a minute */
+  let lastField = null, lastFieldAt = 0;
+  const isText = e => !!e && !e.closest('#eaPanel') && (e.tagName === 'TEXTAREA' || (e.tagName === 'INPUT' && !['checkbox', 'radio', 'range', 'file', 'button', 'submit', 'color'].includes(e.type)));
+  document.addEventListener('focusin', ev => { if (isText(ev.target)) { lastField = ev.target; lastFieldAt = Date.now(); } }, true);
+  function textField() {
+    const e = document.activeElement;
+    if (isText(e) && e.getClientRects().length) return e;
+    if (lastField && lastField.isConnected && Date.now() - lastFieldAt < 60000 && lastField.getClientRects().length) return lastField;
+    return null;
+  }
+
+  /* hold a finger on the right side: list what can be said on this very screen */
+  let listBox = null;
+  function showList() {
+    if (!store.get()) return;
+    const items = scan().filter(o => !o.dis).map(o => o.label);
+    if (!listBox) {
+      listBox = document.createElement('div');
+      listBox.className = 'ovl'; listBox.id = 'eaList'; listBox.style.touchAction = 'auto';
+      document.body.appendChild(listBox);
+    }
+    listBox.innerHTML = '<div class="box" style="text-align:left;max-height:80vh;overflow:auto"><h3></h3><p class="eaL"></p><p class="eaH"></p><button class="nb" type="button" style="width:100%;margin-top:10px"></button></div>';
+    listBox.querySelector('h3').textContent = L('Что можно сказать на этом экране', 'What you can say on this screen', 'Ինչ կարելի է ասել այս էկրանին');
+    listBox.querySelector('.eaL').textContent = items.join(' · ');
+    listBox.querySelector('.eaH').textContent = HELP[vlang()];
+    const close = listBox.querySelector('button');
+    close.textContent = L('Закрыть', 'Close', 'Փակել');
+    close.onclick = () => listBox.classList.remove('show');
+    listBox.classList.add('show');
+    try { navigator.vibrate && navigator.vibrate([30, 40, 30]); } catch (e) {}
+    speak(L('На экране: ', 'On screen: ', 'Էկրանին՝ ') + items.slice(0, 8).join(', '));
+  }
+  let press = null, pressFired = false;
+  document.addEventListener('pointerdown', ev => {
+    if (!store.get() || App().recording) return;
+    if (ev.target.closest && ev.target.closest('button,a,input,select,textarea,label,.ovl')) return;
+    if (ev.clientX < window.innerWidth * 0.55) return;
+    pressFired = false;
+    const x = ev.clientX, y = ev.clientY;
+    press = { x, y, tm: setTimeout(() => { pressFired = true; lastTap = null; showList(); }, 700) };
+  }, true);
+  const cancelPress = ev => { if (press && (ev.type !== 'pointermove' || Math.hypot(ev.clientX - press.x, ev.clientY - press.y) > 14)) { clearTimeout(press.tm); press = null; } };
+  document.addEventListener('pointermove', cancelPress, true);
+  document.addEventListener('pointercancel', cancelPress, true);
+
   async function heard(text) {
     text = String(text || '').trim();
     if (!text || lbusy || speaking) return;
@@ -610,6 +658,16 @@
     armedUntil = 0; stopL();                       /* one command per double tap: stop listening right away */
     try { navigator.vibrate && navigator.vibrate(40); } catch (e) {}
     try {
+      const fld = textField();
+      if (fld && !/^(готово|сохрани\S*|отмена|done|save|cancel|стоп|stop)$/.test(norm(text))) {   /* a text box is open: this is dictation, not a command */
+        setValue(fld, (fld.value ? fld.value.replace(/\s+$/, '') + ' ' : '') + text);
+        lastFieldAt = Date.now();
+        log({ text, action: { action: 'dictate' }, src: 'dictation', ok: true });
+        lnote = '✎ ' + text;
+        speak(L('Записано', 'Written', 'Գրված է'));
+        return;
+      }
+      if (fld) { try { fld.blur(); } catch (e) {} lastField = null; }
       if (text.split(/\s+/).length > 12) { speak(L('Слишком длинно. Коснитесь дважды и скажите короче.', 'Too long. Double-tap and say it shorter.', 'Շատ երկար է։ Հպեք երկու անգամ և ասեք կարճ։')); return; }
       const r = await parseEx(text);
       const a = r.a || { action: 'none' };
@@ -626,8 +684,12 @@
           if (k && Object.keys(KB.aliases).length < 300) KB.aliases[k] = { id: (scan().find(o => o.label === a.label) || {}).id || '', label: a.label || '' };
         }
         say2 = ok ? (a.action === 'help' || a.action === 'read_screen' ? '' : L('Готово', 'Done', 'Պատրաստ է')) : L('Сейчас это недоступно', 'Not available right now', 'Հիմա հասանելի չէ');
+        if (ok && textField()) {                       /* the command opened a text box: listen once more for the text */
+          say2 = L('Диктуйте текст', 'Dictate the text', 'Թելադրեք տեքստը');
+          lst.set(true); lfatal = false;
+        }
       }
-      log({ text, action: a, src: r.src, ok });
+      log({ text, action: a, src: r.src, ms: r.ms, ok });
       lnote = (ok ? '✓ ' : '× ') + text;
       if (say2) speak(say2);
       setTimeout(() => { lnote = ''; paintBadge(); }, 4000);
@@ -656,6 +718,8 @@
   /* double tap on a free spot: while filming it stops the recording; otherwise on the right side of the screen it switches listening on / off */
   let lastTap = null;
   document.addEventListener('pointerup', ev => {
+    cancelPress(ev);
+    if (pressFired) { pressFired = false; lastTap = null; return; }
     if (!store.get()) { lastTap = null; return; }
     if (ev.target.closest && ev.target.closest('button,a,input,select,textarea,label,#eaPanel')) { lastTap = null; return; }
     const rec = !!App().recording;
