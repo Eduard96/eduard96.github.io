@@ -174,9 +174,9 @@
     'Reply with exactly one JSON object {"action":NAME} (go_step also needs "n"). Available actions: ' +
     FN.map(f => f.id + ' = ' + f.d).join('; ') + '. Use {"action":"none"} when the command matches none of them.';
   const HELP = {
-    ru: 'Можно сказать: начни запись, стоп, пауза, продолжи, переверни камеру, дальше, назад, шаг и номер, монтаж, озвучить, без озвучки, экспорт, сохранить, поделиться, новое видео. Во время записи остановить можно двойным касанием экрана.',
-    en: 'You can say: start recording, stop, pause, resume, flip camera, next, back, step and a number, tracks, dub, no dub, export, save, share, new video. While recording, double-tap the screen to stop.',
-    hy: 'Կարող եք ասել՝ սկսել ձայնագրությունը, կանգ, դադար, շարունակել, հաջորդ, հետ, քայլ և թիվ, արտահանել, պահպանել։ Ձայնագրության ժամանակ կանգնեցնելու համար երկու անգամ հպեք էկրանին։'
+    ru: 'Можно сказать: начни запись, стоп, пауза, продолжи, переверни камеру, дальше, назад, шаг и номер, монтаж, озвучить, без озвучки, экспорт, сохранить, поделиться, новое видео. Чтобы дать команду, дважды коснитесь правой части экрана и скажите её. Во время записи двойное касание останавливает запись.',
+    en: 'You can say: start recording, stop, pause, resume, flip camera, next, back, step and a number, tracks, dub, no dub, export, save, share, new video. To give a command, double-tap the right side of the screen and say it. While recording, a double tap stops the recording.',
+    hy: 'Կարող եք ասել՝ սկսել ձայնագրությունը, կանգ, դադար, շարունակել, հաջորդ, հետ, քայլ և թիվ, արտահանել, պահպանել։ Հրաման տալու համար երկու անգամ հպեք էկրանի աջ մասին և ասեք այն։ Ձայնագրության ժամանակ երկու հպումը կանգնեցնում է ձայնագրությունը։'
   };
 
   /* instant keyword path (ru/en/hy): works even before the model is installed */
@@ -521,8 +521,8 @@
 
 
   /* ---------- hands-free listening + double-tap stop ---------- */
-  /* listening is armed by a double tap on the right side of the screen and switches itself off after a quiet half minute */
-  const ARM_MS = 30000;
+  /* one command per double tap on the right side: it listens, runs one command and switches off (or gives up after 10 quiet seconds) */
+  const ARM_MS = 10000;
   let armedUntil = 0, speaking = false, speakTimer = 0;
   const lst = {
     on() { return Date.now() < armedUntil; },
@@ -539,8 +539,9 @@
     let t;
     if (App().recording) t = '👆👆 ' + L('двойное касание = стоп', 'double-tap = stop', 'երկու հպում = կանգ');
     else if (lfatal) t = '🎤✕ ' + L('нет доступа к микрофону', 'no microphone access', 'խոսափողը անհասանելի է');
-    else if (!lst.on()) t = '🔇 ' + L('дважды коснитесь справа: слушать', 'double-tap the right side to listen', 'երկու հպում աջ կողմում՝ լսելու համար');
-    else t = '🎤 ' + (lnote || L('слушаю', 'listening', 'լսում եմ'));
+    else if (!lst.on() && !lnote) t = '🔇 ' + L('дважды коснитесь справа: слушать', 'double-tap the right side to listen', 'երկու հպում աջ կողմում՝ լսելու համար');
+    else if (lst.on()) t = '🎤 ' + L('говорите…', 'speak now…', 'խոսեք…');
+    else t = lnote || '🔇';
     paintLang();
     badge.textContent = t;
     badge.setAttribute('aria-label', t);
@@ -602,10 +603,12 @@
 
   async function heard(text) {
     text = String(text || '').trim();
-    if (!text || lbusy || speaking || text.split(/\s+/).length > 8) return;   /* commands are short; longer speech is ignored */
+    if (!text || lbusy || speaking) return;
     lbusy = true;
-    armedUntil = Date.now() + ARM_MS;
+    armedUntil = 0; stopL();                       /* one command per double tap: stop listening right away */
+    try { navigator.vibrate && navigator.vibrate(40); } catch (e) {}
     try {
+      if (text.split(/\s+/).length > 12) { speak(L('Слишком длинно. Коснитесь дважды и скажите короче.', 'Too long. Double-tap and say it shorter.', 'Շատ երկար է։ Հպեք երկու անգամ և ասեք կարճ։')); return; }
       const r = await parseEx(text);
       const a = r.a || { action: 'none' };
       let ok = false, say2 = '';
