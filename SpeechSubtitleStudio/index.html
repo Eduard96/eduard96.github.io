@@ -868,6 +868,7 @@ body.flowon .card.stage-wrap{background:none;border:0;box-shadow:none}
 #fshare .btn{background:#fff;color:#111;border:3px solid #111;box-shadow:4px 4px 0 #111}
 /* дорожки */
 .tl,.tlin{background:#fff}
+.tlin{cursor:grab}.tlin.pan{cursor:grabbing}
 .tl{border:3px solid #111;border-radius:14px;box-shadow:none}
 .tick{color:#454545}
 .blk{border:2px solid #111;color:#111;font-weight:700;box-shadow:none}
@@ -1797,9 +1798,10 @@ function renderVTracks(){
     e.className+=(VE.vsel===b?' sel':'');
     e.addEventListener('pointerdown',ev=>{
       ev.stopPropagation();try{e.setPointerCapture(ev.pointerId)}catch(x){}
-      const x0=ev.clientX,s0=b.s;let moved=false;
-      e.onpointermove=m=>{const dx=(m.clientX-x0)/PX;if(Math.abs(m.clientX-x0)>3)moved=true;if(moved){b.s=Math.max(0,s0+dx);e.style.left=(b.s*PX)+'px'}};
-      e.onpointerup=e.onpointercancel=()=>{e.onpointermove=e.onpointerup=e.onpointercancel=null;if(moved&&VE.voiceMoved)VE.voiceMoved();else if(!moved){VE.vsel=b;VE.osel=null;VE.sel=null;VE.tsel=null;renderTL();buildDock()}};
+      const x0=ev.clientX,s0=b.s,sl0=tl.scrollLeft;let moved=false,lx=x0,stopE=null;
+      const apV=()=>{b.s=Math.max(0,s0+(lx-x0+tl.scrollLeft-sl0)/PX);e.style.left=(b.s*PX)+'px'};
+      e.onpointermove=m=>{lx=m.clientX;if(Math.abs(m.clientX-x0)>3)moved=true;if(moved){if(!stopE)stopE=edgeFollow(()=>lx,apV);apV()}};
+      e.onpointerup=e.onpointercancel=()=>{if(stopE)stopE();e.onpointermove=e.onpointerup=e.onpointercancel=null;if(moved&&VE.voiceMoved)VE.voiceMoved();else if(!moved){VE.vsel=b;VE.osel=null;VE.sel=null;VE.tsel=null;renderTL();buildDock()}};
     });
     tlin.appendChild(e);
   });
@@ -4506,11 +4508,18 @@ function attachDrag(b,c){
     const mode=grp?'m':(e.target.dataset&&e.target.dataset.h||'m');
     b.setPointerCapture(e.pointerId);
     const x0=e.clientX,s0=c.s,e0=c.e,sl0=tl.scrollLeft;
-    let drag=false,lp=false,grab=false,lastX=x0,edge=null,items=null,minS=0;
+    let drag=false,lp=false,grab=false,lastX=x0,edge=null,edge2=null,items=null,minS=0;
     const applyG=()=>{
       let d=(lastX-x0+tl.scrollLeft-sl0)/PX;d=Math.max(d,-minS);
       items.forEach(i=>{i.c.s=i.s+d;i.c.e=i.e+d;const el=blkEl.get(i.c);if(el)place(el,i.c)});
       seek(c.s+0.05);
+    };
+    const applyS=()=>{
+      const d=(lastX-x0+tl.scrollLeft-sl0)/PX;
+      if(mode==='m'){const ns=Math.max(0,s0+d);c.s=ns;c.e=ns+(e0-s0)}
+      else if(mode==='l'){c.s=Math.min(Math.max(0,s0+d),e0-0.2)}
+      else{c.e=Math.max(e0+d,s0+0.2)}
+      place(b,c);seek(c.s+0.05);
     };
     const timer=setTimeout(()=>{
       if(drag)return;
@@ -4531,14 +4540,11 @@ function attachDrag(b,c){
       if(Math.abs(ev.clientX-x0)>8)drag=true;
       if(grab){applyG();return}
       if(!drag||lp||grp)return;
-      const d=(ev.clientX-x0)/PX;
-      if(mode==='m'){const ns=Math.max(0,s0+d);c.s=ns;c.e=ns+(e0-s0)}
-      else if(mode==='l'){c.s=Math.min(Math.max(0,s0+d),e0-0.2)}
-      else{c.e=Math.max(e0+d,s0+0.2)}
-      place(b,c);seek(c.s+0.05);
+      if(!edge2)edge2=edgeFollow(()=>lastX,applyS);
+      applyS();
     };
     const up=ev=>{
-      clearTimeout(timer);clearInterval(edge);
+      clearTimeout(timer);clearInterval(edge);if(edge2){edge2();edge2=null}
       b.removeEventListener('pointermove',mv);b.removeEventListener('pointerup',up);b.removeEventListener('pointercancel',up);
       if(items)items.forEach(i=>{const el=blkEl.get(i.c);if(el)el.classList.remove('grab')});
       if(grab||(drag&&!grp&&!lp)){save();renderTL();return}
@@ -4549,23 +4555,34 @@ function attachDrag(b,c){
     b.addEventListener('pointermove',mv);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
   });
 }
-/* перемотка пальцем по любому пустому месту таймлайна */
+/* автопрокрутка: пока объект удерживается у края дорожек, дорожки едут в ту же сторону вместе с ним; onScroll пересчитывает положение объекта */
+function edgeFollow(getX,onScroll){
+  const id=setInterval(()=>{
+    const r=tl.getBoundingClientRect(),x=getX(),z=60;let sp=0;
+    if(x>r.right-z)sp=Math.min(30,4+(x-(r.right-z))/z*26);else if(x<r.left+z)sp=-Math.min(30,4+((r.left+z)-x)/z*26);
+    if(!sp)return;
+    if(sp>0&&tl.scrollLeft+tl.clientWidth>=tl.scrollWidth-2)tlin.style.width=(tlin.offsetWidth+Math.ceil(sp)*2)+'px';
+    const b0=tl.scrollLeft;tl.scrollLeft=Math.max(0,b0+sp);
+    if(tl.scrollLeft!==b0)onScroll();
+  },16);
+  return()=>clearInterval(id);
+}
+/* дорожки двигаются рукой: тяга за пустое место листает их, короткое касание перематывает видео к этому месту (перемотка линейкой и красной ручкой осталась) */
 tlin.addEventListener('pointerdown',e=>{
   if(e.target.closest('.blk')||recording||exporting||e.button>0)return;
-  const sc=ev=>{
-    const r=tlin.getBoundingClientRect();
-    seek(Math.max(0,(ev.clientX-r.left)/PX));
-    const tr=tl.getBoundingClientRect();
-    if(ev.clientX>tr.right-40)tl.scrollLeft+=14;
-    else if(ev.clientX<tr.left+40)tl.scrollLeft-=14;
+  const tgt=e.target.closest('.vseg,.vjn'),x0=e.clientX,y0=e.clientY,sl0=tl.scrollLeft,st0=tl.scrollTop;let moved=false;
+  try{tlin.setPointerCapture(e.pointerId)}catch(_){}
+  const mv=ev=>{
+    if(!moved&&Math.hypot(ev.clientX-x0,ev.clientY-y0)>6){moved=true;tlin.classList.add('pan')}
+    if(moved){tl.scrollLeft=sl0-(ev.clientX-x0);tl.scrollTop=st0-(ev.clientY-y0)}
   };
-  /* тап по куску видео или стыку выбирает его (захват указателя иначе «съедал» клик); тяга по ним перематывает */
-  const tgt=e.target.closest('.vseg,.vjn'),x0=e.clientX;let moved=false;
-  tlin.setPointerCapture(e.pointerId);sc(e);
-  const trk=ev=>{if(Math.abs(ev.clientX-x0)>6)moved=true};
-  tlin.addEventListener('pointermove',trk);
-  const up=ev=>{tlin.removeEventListener('pointermove',sc);tlin.removeEventListener('pointermove',trk);tlin.removeEventListener('pointerup',up);tlin.removeEventListener('pointercancel',up);if(tgt&&!moved&&ev.type==='pointerup'&&tgt.isConnected)tgt.click()};
-  tlin.addEventListener('pointermove',sc);tlin.addEventListener('pointerup',up);tlin.addEventListener('pointercancel',up);
+  const up=ev=>{
+    tlin.removeEventListener('pointermove',mv);tlin.removeEventListener('pointerup',up);tlin.removeEventListener('pointercancel',up);tlin.classList.remove('pan');
+    if(moved||ev.type!=='pointerup')return;
+    seek(Math.max(0,(x0-tlin.getBoundingClientRect().left)/PX));
+    if(tgt&&tgt.isConnected)tgt.click();
+  };
+  tlin.addEventListener('pointermove',mv);tlin.addEventListener('pointerup',up);tlin.addEventListener('pointercancel',up);
 });
 
 /* ---------- масштаб дорожек, как в CapCut: щипок двумя пальцами (телефон) или Ctrl/⌘ + колесо / щипок на тачпаде (компьютер) ---------- */
@@ -6149,13 +6166,15 @@ function vTrimBind(h,e,a,b,side){
     const lo=side==='l'?(gl?gl[0]:a):a+MIN,hi=side==='l'?b-MIN:(gr?gr[1]:b);
     let x=side==='l'?a:b,moved=false;
     const paint=()=>{if(side==='l'){e.style.left=x*PX+'px';e.style.width=Math.max(10,(b-x)*PX-2)+'px'}else e.style.width=Math.max(10,(x-a)*PX-2)+'px'};
-    const mv=m=>{
-      const d=(m.clientX-x0+tl.scrollLeft-sl0)/PX;if(Math.abs(m.clientX-x0)>2)moved=true;
+    let lx=x0,stopT=null;
+    const apT=()=>{
+      const d=(lx-x0+tl.scrollLeft-sl0)/PX;
       x=clampV((side==='l'?a:b)+d,lo,hi);paint();
-      const r2=tl.getBoundingClientRect();if(m.clientX>r2.right-40)tl.scrollLeft+=10;else if(m.clientX<r2.left+40)tl.scrollLeft-=10;
       try{v.currentTime=clampV(x,0,Math.max(0,D-.05))}catch(z){}
     };
+    const mv=m=>{lx=m.clientX;if(Math.abs(m.clientX-x0)>2)moved=true;if(moved&&!stopT)stopT=edgeFollow(()=>lx,apT);apT()};
     const up=()=>{
+      if(stopT)stopT();
       h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);
       if(moved&&Math.abs(x-(side==='l'?a:b))>.04)vTrim(a,b,side,x);else renderTL();
     };
@@ -6598,11 +6617,11 @@ function ovBlockDrag(b,o){
     e.stopPropagation();
     const h=e.target.classList.contains('h')?(e.target.classList.contains('l')?'l':'r'):'m';
     try{b.setPointerCapture(e.pointerId)}catch(x){}
-    const x0=e.clientX,y0=e.clientY,s0=o.s,d0=o.d,mo0=o.mo,ln0=o.ln||0,D=vdur();let moved=false;
+    const x0=e.clientX,y0=e.clientY,s0=o.s,d0=o.d,mo0=o.mo,ln0=o.ln||0,D=vdur(),sl0=tl.scrollLeft;let moved=false,lev=e,stopO=null;
     if(VE.osel!==o.id)ovSelect(o.id,true);
     const paint=()=>{b.style.left=(o.s*PX)+'px';b.style.width=Math.max(16,o.d*PX-2)+'px';const sp=b.querySelector('span');if(sp)sp.textContent=o.d.toFixed(1)+(ui==='en'?' s':' с')};
-    b.onpointermove=ev=>{
-      const dx=(ev.clientX-x0)/PX;if(Math.abs(ev.clientX-x0)>3)moved=true;if(!moved)return;
+    const apO=ev=>{
+      const dx=(ev.clientX-x0+tl.scrollLeft-sl0)/PX;if(!moved)return;
       if(h==='m'){o.s=clampN(s0+dx,0,Math.max(0,D-o.d));if(Math.abs(ev.clientY-y0)>OV_LH*.6){moved=true;o.ln=clampN(ln0+Math.round((ev.clientY-y0)/OV_LH),0,ovMaxLane()+1)}}
       else if(h==='r'){let d=clampN(d0+dx,.3,Math.max(.3,D-o.s));if(o.kind==='v')d=Math.min(d,Math.max(.3,o.md-o.mo));o.d=d}
       else{
@@ -6612,7 +6631,8 @@ function ovBlockDrag(b,o){
       }
       paint();
     };
-    b.onpointerup=b.onpointercancel=()=>{b.onpointermove=b.onpointerup=b.onpointercancel=null;if(moved){markDirty();renderTL();buildDock()}};
+    b.onpointermove=ev=>{lev=ev;if(Math.abs(ev.clientX-x0)>3)moved=true;if(!moved)return;if(!stopO)stopO=edgeFollow(()=>lev.clientX,()=>apO(lev));apO(ev)};
+    b.onpointerup=b.onpointercancel=()=>{if(stopO)stopO();b.onpointermove=b.onpointerup=b.onpointercancel=null;if(moved){markDirty();renderTL();buildDock()}};
   });
 }
 /* ---- нижняя панель: настройки выбранного слоя ---- */
